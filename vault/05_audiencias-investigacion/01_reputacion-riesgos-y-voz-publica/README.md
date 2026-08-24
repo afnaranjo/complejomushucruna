@@ -20,6 +20,7 @@ No es una carpeta para atacar personas ni recopilar rumores. Su propósito es de
 
 ## Navegación
 
+- [[02_reportes-internos/00_empieza-aqui|Empieza aquí para contar un problema interno]]
 - [[00_resumen-ejecutivo|Resumen ejecutivo de la línea base]]
 - [[00_metodologia/metodologia-y-clasificacion|Metodología y clasificación]]
 - [[01_hallazgos-publicos/2026-08-24_linea-base-publica|Hallazgos públicos iniciales]]

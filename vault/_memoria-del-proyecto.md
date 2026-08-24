@@ -27,11 +27,12 @@ El equipo integral está organizando la Feria de Finados 2026 en el Complejo Int
 ## Estado actual
 
 - Arquitectura del repositorio: creada.
-- Repositorio GitHub: conectado; primer commit pendiente de validación final.
+- Repositorio GitHub: conectado y sincronizado con `origin/main`.
 - Configuración base de Obsidian: creada.
 - Contexto público inicial del complejo: recopilado y marcado para revisión.
 - Alcance, fechas, presupuesto, metas y responsables de la feria: por confirmar.
 - Línea base de reputación pública: creada; identifica atención, higiene, precios, movilidad, información, capacidad, accesibilidad, bienestar animal y carga laboral como temas a verificar.
+- Entrada guiada para observaciones internas: creada en `02_reportes-internos/00_empieza-aqui.md` para que el personal pueda relatar problemas en un chat y la IA los convierta en reportes anonimizados.
 
 ## Información que necesitamos recibir de Alex y del equipo
 

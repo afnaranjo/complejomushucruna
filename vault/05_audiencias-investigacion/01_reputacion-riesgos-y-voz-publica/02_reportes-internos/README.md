@@ -12,6 +12,9 @@ tags: [reportes-internos, riesgos, feria-finados-2026]
 
 Aquí se sintetizan problemas que el personal conoce y que no aparecen públicamente. No se guardan nombres, capturas privadas ni acusaciones identificables.
 
+> [!tip] Entrada para el personal
+> Para contar un problema sin preparar un informe, abre [[00_empieza-aqui|Empieza aquí para registrar una observación interna]] y copia el mensaje indicado en una tarea nueva de Codex.
+
 ## Cómo recibir un reporte
 
 1. Escucha sin prometer una conclusión.

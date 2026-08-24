@@ -152,3 +152,13 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Publicación externa: ninguna; no se respondieron reseñas ni se modificaron perfiles.
 - Riesgos: la muestra pública es limitada y faltan fuentes internas y comentarios no indexados de redes.
 - Pendiente: validación con personal/operaciones, auditorías y acceso autorizado a canales de atención.
+
+### 2026-08-24 — Entrada guiada para observaciones del personal
+
+- Se creó `02_reportes-internos/00_empieza-aqui.md` como puerta de entrada sencilla para que el personal abra una tarea, relate un problema y sea guiado por preguntas neutrales.
+- Se estableció que cada problema se guarda en un reporte independiente y anonimizado, sin nombres ni datos personales.
+- Se añadieron accesos directos desde el centro de mando y desde los índices de reputación y reportes internos.
+- Commit: incluido en `Crear entrada guiada para observaciones internas`.
+- Publicación externa: ninguna; no se envió ningún reporte ni se modificaron cuentas.
+- Riesgos: compartir acceso al mismo repositorio permite técnicamente navegar otras carpetas; esta entrada organiza el uso, pero no funciona como control de permisos.
+- Pendiente: definir la persona de confianza que revisará y escalará los reportes recibidos.

@@ -26,6 +26,7 @@ tags:
 ## Memoria y acción
 
 - [[AGENTS|Reglas obligatorias para IA en Obsidian]]
+- [[05_audiencias-investigacion/01_reputacion-riesgos-y-voz-publica/02_reportes-internos/00_empieza-aqui|Contar un problema u observación interna]]
 - [[_memoria-del-proyecto|Memoria del proyecto]]
 - [[_pendientes|Pendientes ejecutivos]]
 - [[00_gobernanza/registro-decisiones|Decisiones de arquitectura]]

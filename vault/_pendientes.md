@@ -22,6 +22,7 @@ tags:
 - [ ] Validar con operaciones los hallazgos de baños, agua, limpieza, tráfico, señalización, filas y atención. Responsable: por asignar. Fecha: por definir.
 - [ ] Ejecutar auditoría preventiva de bienestar animal. Responsable: por asignar. Fecha: por definir.
 - [ ] Entrevistar de forma anonimizada al personal con [[05_audiencias-investigacion/01_reputacion-riesgos-y-voz-publica/02_reportes-internos/preguntas-para-el-personal|preguntas neutrales]]. Responsable: por asignar. Fecha: por definir.
+- [ ] Nombrar a la persona de confianza que revisará, verificará y escalará los reportes recibidos desde [[05_audiencias-investigacion/01_reputacion-riesgos-y-voz-publica/02_reportes-internos/00_empieza-aqui|la entrada para el personal]]. Responsable: Alex/equipo directivo. Fecha: por definir.
 - [ ] Auditar todas las fuentes públicas y corregir fechas, horarios, contactos, categoría de Google Maps y contenido genérico. Responsable: marketing/digital. Fecha: por definir.
 
 ## Siguiente nivel
