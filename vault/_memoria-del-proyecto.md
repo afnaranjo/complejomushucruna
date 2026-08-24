@@ -34,6 +34,8 @@ El equipo integral está organizando la Feria de Finados 2026 en el Complejo Int
 - Línea base de reputación pública: creada; identifica atención, higiene, precios, movilidad, información, capacidad, accesibilidad, bienestar animal y carga laboral como temas a verificar.
 - Línea base positiva y entrada guiada: creadas en una carpeta separada y de alcance acotado; documentan una percepción visible mayoritariamente favorable, fortalezas culturales, familiares, comerciales, turísticas y deportivas, y eventos destacados de 2020 a 2026.
 - Entrada guiada para observaciones internas: creada en `02_reportes-internos/00_empieza-aqui.md` para que el personal pueda relatar problemas en un chat y la IA los convierta en reportes anonimizados.
+- Acceso de auditoría Meta: verificado en modo de solo lectura el 2026-08-24 para las páginas `Finados Mushuc Runa` y `Carnavales Mushuc Runa`, y para las cuentas publicitarias `ExpoFeria Mushuc Runa` y `Complejo Mushuc Runa`. Meta respondió mediante Graph API `v26.0`, con permisos de lectura de páginas, contenidos, estadísticas y publicidad. No se descargó todavía el histórico ni se realizó ninguna modificación externa.
+- Configuración publicitaria por revisar: ambas cuentas accesibles reportan moneda USD y zona horaria `America/Los_Angeles`; el análisis histórico deberá normalizar fechas y cortes diarios a `America/Guayaquil` sin cambiar la configuración de las cuentas.
 
 ## Información que necesitamos recibir de Alex y del equipo
 

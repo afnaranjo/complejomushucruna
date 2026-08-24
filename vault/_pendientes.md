@@ -25,6 +25,7 @@ tags:
 - [ ] Nombrar a la persona de confianza que revisará, verificará y escalará los reportes recibidos desde [[05_audiencias-investigacion/01_reputacion-riesgos-y-voz-publica/02_reportes-internos/00_empieza-aqui|la entrada para el personal]]. Responsable: Alex/equipo directivo. Fecha: por definir.
 - [ ] Auditar todas las fuentes públicas y corregir fechas, horarios, contactos, categoría de Google Maps y contenido genérico. Responsable: marketing/digital. Fecha: por definir.
 - [ ] Validar con dirección las cifras positivas históricas de asistencia, expositores, empleo y ventas antes de usarlas públicamente. Responsable: dirección/finanzas/eventos. Fecha: por definir.
+- [ ] Ejecutar la auditoría histórica de Meta desde 2021 para `Finados Mushuc Runa` y `Carnavales Mushuc Runa`: publicaciones, pauta, inversión, rendimiento, comportamiento agregado y patrones creativos por edición. Normalizar los cortes de las cuentas desde `America/Los_Angeles` a `America/Guayaquil`, separar orgánico/pagado y marcar cualquier gasto cuya atribución al evento sea ambigua. Responsable: marketing/digital. Fecha: por definir.
 
 ## Siguiente nivel
 

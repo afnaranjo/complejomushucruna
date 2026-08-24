@@ -172,3 +172,13 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Publicación externa: ninguna; no se respondieron reseñas, no se modificaron perfiles y no se ejecutaron campañas.
 - Riesgos: varias cifras históricas provienen del organizador, notas previas o aliados y no cuentan con cierre auditado; los comentarios de redes no están completos.
 - Pendiente: validar asistencia, ventas, empleo, satisfacción y testimonios autorizados con informes internos de cada edición.
+
+### 2026-08-24 — Validación segura de acceso para auditoría histórica de Meta
+
+- Se comprobó mediante consultas oficiales de solo lectura el acceso a las páginas `Finados Mushuc Runa` y `Carnavales Mushuc Runa`, y a las cuentas publicitarias `ExpoFeria Mushuc Runa` y `Complejo Mushuc Runa`.
+- Meta confirmó Graph API `v26.0`, permisos de lectura de estadísticas, páginas, contenidos y publicidad, y uso reportado prácticamente nulo durante la prueba.
+- No se almacenó el token, no se descargó el historial y no se modificaron páginas, anuncios, campañas, mensajes ni configuraciones.
+- Commit: incluido en `Registrar acceso de lectura para auditoría Meta`.
+- Publicación externa: ninguna; solo se realizaron consultas de validación autorizadas.
+- Riesgos: las cuentas publicitarias reportan zona horaria `America/Los_Angeles`; los análisis diarios deberán convertirse a `America/Guayaquil`. El acceso de Marketing API figura en nivel de desarrollo, por lo que la extracción debe ser secuencial, conservadora y sensible a los encabezados de uso.
+- Pendiente: auditar desde 2021 las ediciones verificadas de Carnaval y Finados, separar orgánico/pagado, atribuir inversión con trazabilidad y convertir los hallazgos en estrategia digital 2026.
