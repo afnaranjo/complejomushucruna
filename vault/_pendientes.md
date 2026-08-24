@@ -24,6 +24,7 @@ tags:
 - [ ] Entrevistar de forma anonimizada al personal con [[05_audiencias-investigacion/01_reputacion-riesgos-y-voz-publica/02_reportes-internos/preguntas-para-el-personal|preguntas neutrales]]. Responsable: por asignar. Fecha: por definir.
 - [ ] Nombrar a la persona de confianza que revisará, verificará y escalará los reportes recibidos desde [[05_audiencias-investigacion/01_reputacion-riesgos-y-voz-publica/02_reportes-internos/00_empieza-aqui|la entrada para el personal]]. Responsable: Alex/equipo directivo. Fecha: por definir.
 - [ ] Auditar todas las fuentes públicas y corregir fechas, horarios, contactos, categoría de Google Maps y contenido genérico. Responsable: marketing/digital. Fecha: por definir.
+- [ ] Validar con dirección las cifras positivas históricas de asistencia, expositores, empleo y ventas antes de usarlas públicamente. Responsable: dirección/finanzas/eventos. Fecha: por definir.
 
 ## Siguiente nivel
 
@@ -33,6 +34,7 @@ tags:
 - [ ] Aprobar oferta para expositores, patrocinadores y entradas.
 - [ ] Diseñar plan integral de marketing con medición desde el inicio.
 - [ ] Completar matriz de permisos, seguridad y contingencias.
+- [ ] Incorporar en [[05_audiencias-investigacion/02_reputacion-fortalezas-y-voz-positiva/03_aportes-internos/README|aportes internos positivos]] testimonios y resultados con autorización y evidencia. Responsable: investigación/experiencia. Fecha: por definir.
 
 ## Regla
 

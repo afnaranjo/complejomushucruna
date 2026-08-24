@@ -162,3 +162,13 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Publicación externa: ninguna; no se envió ningún reporte ni se modificaron cuentas.
 - Riesgos: compartir acceso al mismo repositorio permite técnicamente navegar otras carpetas; esta entrada organiza el uso, pero no funciona como control de permisos.
 - Pendiente: definir la persona de confianza que revisará y escalará los reportes recibidos.
+
+### 2026-08-24 — Fortalezas, voz positiva y eventos destacados
+
+- Se creó `vault/05_audiencias-investigacion/02_reputacion-fortalezas-y-voz-positiva/` como carpeta separada para elogios, fortalezas, experiencias favorables y eventos anteriores destacados.
+- Se añadieron un `AGENTS.md` local y `00_empieza-aqui.md` para que una persona abra un chat, cuente algo bueno y el agente trabaje de forma acotada sin modificar el resto del vault salvo los registros obligatorios de cierre.
+- Se documentó la línea base positiva de reseñas, testimonios públicos, fortalezas culturales/familiares/comerciales/deportivas y una cronología de eventos de 2020 a 2026 con fuentes y cautelas.
+- Commit: incluido en `Documentar fortalezas y eventos destacados de Mushuc Runa`.
+- Publicación externa: ninguna; no se respondieron reseñas, no se modificaron perfiles y no se ejecutaron campañas.
+- Riesgos: varias cifras históricas provienen del organizador, notas previas o aliados y no cuentan con cierre auditado; los comentarios de redes no están completos.
+- Pendiente: validar asistencia, ventas, empleo, satisfacción y testimonios autorizados con informes internos de cada edición.

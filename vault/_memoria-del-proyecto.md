@@ -32,6 +32,7 @@ El equipo integral está organizando la Feria de Finados 2026 en el Complejo Int
 - Contexto público inicial del complejo: recopilado y marcado para revisión.
 - Alcance, fechas, presupuesto, metas y responsables de la feria: por confirmar.
 - Línea base de reputación pública: creada; identifica atención, higiene, precios, movilidad, información, capacidad, accesibilidad, bienestar animal y carga laboral como temas a verificar.
+- Línea base positiva y entrada guiada: creadas en una carpeta separada y de alcance acotado; documentan una percepción visible mayoritariamente favorable, fortalezas culturales, familiares, comerciales, turísticas y deportivas, y eventos destacados de 2020 a 2026.
 - Entrada guiada para observaciones internas: creada en `02_reportes-internos/00_empieza-aqui.md` para que el personal pueda relatar problemas en un chat y la IA los convierta en reportes anonimizados.
 
 ## Información que necesitamos recibir de Alex y del equipo
@@ -43,6 +44,7 @@ El equipo integral está organizando la Feria de Finados 2026 en el Complejo Int
 - Oferta comercial, precios, entradas, canales oficiales y activos existentes.
 - Restricciones del complejo, permisos, seguridad, movilidad y planes de contingencia.
 - Reclamos, incidentes, encuestas y conocimiento interno que todavía no está documentado.
+- Resultados verificables de eventos anteriores: asistentes conciliados, ventas, satisfacción, testimonios autorizados y cierres operativos.
 
 ## Próxima revisión
 

@@ -27,6 +27,7 @@ tags:
 
 - [[AGENTS|Reglas obligatorias para IA en Obsidian]]
 - [[05_audiencias-investigacion/01_reputacion-riesgos-y-voz-publica/02_reportes-internos/00_empieza-aqui|Contar un problema u observación interna]]
+- [[05_audiencias-investigacion/02_reputacion-fortalezas-y-voz-positiva/00_empieza-aqui|Contar algo bueno sobre el complejo]]
 - [[_memoria-del-proyecto|Memoria del proyecto]]
 - [[_pendientes|Pendientes ejecutivos]]
 - [[00_gobernanza/registro-decisiones|Decisiones de arquitectura]]
@@ -43,6 +44,7 @@ tags:
 - [[04_estrategia/README|Estrategia]]
 - [[05_audiencias-investigacion/README|Audiencias e investigación]]
 - [[05_audiencias-investigacion/01_reputacion-riesgos-y-voz-publica/README|Reputación, riesgos y voz pública]]
+- [[05_audiencias-investigacion/02_reputacion-fortalezas-y-voz-positiva/README|Fortalezas, experiencias positivas y eventos destacados]]
 - [[06_oferta-experiencias/README|Oferta y experiencias]]
 
 ## Sistemas de marketing
