@@ -1,0 +1,33 @@
+name: Clasificar contenido
+description: Solicitar la ubicación correcta de un archivo o documento ambiguo.
+title: "[Clasificar] "
+labels:
+  - organizacion
+body:
+  - type: input
+    id: material
+    attributes:
+      label: Material
+      description: Nombre o enlace del archivo.
+    validations:
+      required: true
+  - type: textarea
+    id: purpose
+    attributes:
+      label: Propósito y uso
+      description: Explica para qué sirve, quién lo utiliza y si está aprobado.
+    validations:
+      required: true
+  - type: input
+    id: owner
+    attributes:
+      label: Responsable que puede aclararlo
+    validations:
+      required: true
+  - type: textarea
+    id: options
+    attributes:
+      label: Ubicaciones posibles
+      description: Propón dos o tres carpetas y explica la duda.
+    validations:
+      required: true

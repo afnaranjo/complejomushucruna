@@ -1,0 +1,13 @@
+{
+  "collapse-filter": false,
+  "collapse-color-groups": false,
+  "showTags": true,
+  "showAttachments": false,
+  "hideUnresolved": false,
+  "showOrphans": true,
+  "colorGroups": [
+    {"query": "path:11_eventos/2026_feria-finados", "color": {"a": 1, "rgb": 14803425}},
+    {"query": "path:00_gobernanza", "color": {"a": 1, "rgb": 5010175}},
+    {"query": "path:01_contexto-negocio", "color": {"a": 1, "rgb": 52224}}
+  ]
+}
