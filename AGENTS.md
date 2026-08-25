@@ -302,3 +302,15 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Publicación externa: ninguna; no se desplegó, publicó, pautó, activó venta ni modificó ninguna página, cuenta, campaña, dominio o boletería.
 - Riesgos: faltan aprobación cultural/operativa/de marca, derechos publicitarios del archivo, ratificación de fecha/oferta, plano y capacidad real de los parqueaderos nuevos y existentes, y criterios/consentimientos para reconocer visitantes frecuentes.
 - Pendiente: aprobar o corregir la guía hasta el 28 de agosto; validar derechos y parqueaderos hasta el 2 de septiembre; completar todos los gates antes de expectativa, venta o comunicación de disponibilidad.
+
+### 2026-08-25 — Refactor visual colorido y teatral de `ES TRADICIÓN` v03
+
+- Se refactorizó la guía creativa completa en una versión v03 de 40 diapositivas editables, conservando el contenido estratégico y elevando la dirección visual hacia una feria nocturna, viva y teatral.
+- Se definió una paleta de violeta, magenta, naranja, amarillo, turquesa y azul eléctrico, dosificada sobre bases claras y nocturnas para sostener jerarquía, emoción, legibilidad y continuidad entre semanas.
+- El afiche histórico compartido por Alex se usó únicamente como referencia cromática y de energía. No se copiaron su composición, logos, artistas, fechas, precios, patrocinadores ni condiciones comerciales.
+- Se eliminaron marcas históricas visibles de las fotografías empleadas como apoyo y se mantuvieron fuera del archivo el presupuesto de pauta, el cartel bajo embargo y cualquier credencial.
+- Se inspeccionaron visualmente las 40 diapositivas; `slides_test.py` no detectó desbordamientos, LibreOffice produjo un PDF de 40 páginas y la revisión de texto no encontró token ni presupuesto de pauta.
+- Commit: incluido en `Refactorizar guía creativa ES TRADICIÓN v03`.
+- Publicación externa: ninguna; no se accedió a Meta, no se desplegó, publicó, pautó, activó venta ni modificó ninguna página, cuenta, campaña, dominio o boletería.
+- Riesgos: el sistema visual continúa como propuesta interna hasta la aprobación cultural, operativa, de marca y dirección; siguen pendientes los derechos de archivo, la identidad maestra, la ratificación de fecha/oferta y la validación operativa de parqueaderos.
+- Pendiente: aprobar, ajustar o descartar la v03 hasta el 28 de agosto y completar todos los gates antes de convertirla en piezas públicas.
