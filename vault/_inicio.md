@@ -27,6 +27,7 @@ tags:
 - [[11_eventos/2026_feria-finados/05_marketing-comunicacion/03_pauta/2026-08-24_plan-pauta-social-usd4000-finados-2026_v01|Pauta social USD 4.000]]
 - [[11_eventos/2026_feria-finados/01_concepto-experiencia/2026-08-24_arquitectura-experiencia-asistencia-200k-finados-2026_v01|Arquitectura de experiencia y asistencia 200K]]
 - [[11_eventos/2026_feria-finados/05_marketing-comunicacion/01_estrategia/2026-08-25_plataforma-emocional-es-tradicion-finados-2026_v01|Plataforma emocional ES TRADICIÓN]]
+- [[11_eventos/2026_feria-finados/05_marketing-comunicacion/02_contenido/2026-08-25_calendario-expectativa-es-tradicion-finados-2026_v01|Calendario de expectativa ES TRADICIÓN]]
 - [[11_eventos/2026_feria-finados/05_marketing-comunicacion/01_estrategia/2026-08-25_plan-confidencial-revelacion-cartel-finados-2026_v01|Plan confidencial del cartel]]
 - [[11_eventos/2026_feria-finados/10_tecnologia-datos/2026-08-24_guia-movil-informativa-sin-backend-finados-2026_v01|Guía móvil informativa sin backend]]
 - [[11_eventos/2026_feria-finados/05_marketing-comunicacion/05_alianzas-difusion/2026-08-24_programa-creadores-referidos-finados-2026_v01|Programa de creadores y referidos]]

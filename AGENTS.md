@@ -266,3 +266,15 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Publicación externa: ninguna campaña o pieza; no se accedió a Meta, no se activó pauta, no se reveló el cartel y no se modificaron páginas, campañas, cuentas, boletería, dominio o sitio. El commit se reescribió antes del cierre para que `origin/main` no contenga el inventario nominal compartido.
 - Riesgos: `ES TRADICIÓN` todavía requiere aprobación cultural, operativa y de marca; la retrospectiva de Carnaval no está conciliada; contratos, nombres oficiales, días, precios y derechos del cartel siguen pendientes; el dominio oficial continúa inseguro. Aunque `main` ya fue reemplazado sin el inventario nominal, GitHub todavía resuelve el objeto anterior por hash mientras el repositorio siga público.
 - Pendiente: con autorización de Alex, volver privado el repositorio y solicitar la purga del objeto no referenciado; aprobar o ajustar la plataforma hasta el 28 de agosto; conciliar Carnaval 2026 hasta el 2 de septiembre; completar los gates del cartel y las rutas comerciales antes del 7 de septiembre; desplazar cualquier revelación que no esté completamente validada.
+
+### 2026-08-25 — Calendario operativo de expectativa `ES TRADICIÓN`
+
+- Se convirtió la plataforma emocional en un brief que Alex puede entregar al equipo: topic, promesa, audiencias, marco ACCA, código audiovisual, paleta sonora y reglas para usar archivo histórico sin confundirlo con oferta vigente.
+- Se planificó producción diaria del 25 de agosto al 2 de septiembre y ocho piezas públicas condicionadas del 3 al 16 de septiembre, todas sin cartel, precios ni servicios no confirmados.
+- Se definieron tareas propuestas para dirección, coordinación, audiovisual, diseño, comunicación, relaciones públicas, producción, datos y aprobación cultural/marca, sujetas a ratificación del RACI 2026.
+- Se documentó el banco histórico reportado por Alex como materia prima potencial; faltan ubicación, dueño, catálogo y derechos. Git solo conservará metadatos y enlaces, no binarios pesados o embargados.
+- Se fijó un gate Go/No-Go para el 2 de septiembre y una distribución máxima de USD 400 para expectativa: USD 180 de prueba comparable y USD 220 de escalamiento condicionado.
+- Commit: incluido en `Planificar expectativa ES TRADICIÓN Finados 2026`.
+- Publicación externa: ninguna; no se accedió a Meta, no se activó pauta, no se publicó contenido y no se modificaron páginas, campañas, cuentas, dominio o boletería.
+- Riesgos: la plataforma continúa pendiente de aprobación cultural, operativa y de marca; no se conocen todavía ubicación, derechos ni calidad del banco; la fecha pública y los responsables siguen sin ratificarse.
+- Pendiente: recibir acceso al banco el 26 de agosto, producir tres pilotos, decidir `ES TRADICIÓN` el 28 de agosto y ejecutar el gate del 2 de septiembre antes de cualquier salida.

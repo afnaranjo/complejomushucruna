@@ -64,6 +64,8 @@ Cada video se entrega en 9:16 con subtítulos y se recompone a 4:5 cuando vaya a
 
 Los cuatro videos hero se ordenan como: `Nos llama`, `Hacer feria`, `La canción que vuelve` y `Cinco capítulos`. El cartel permanece confidencial y se rige por [[../01_estrategia/2026-08-25_plan-confidencial-revelacion-cartel-finados-2026_v01|el plan de revelación]].
 
+La producción diaria, las ocho piezas de expectativa, la curaduría del banco histórico y el reparto por roles se detallan en [[2026-08-25_calendario-expectativa-es-tradicion-finados-2026_v01|Calendario de expectativa ES TRADICIÓN]].
+
 ## Flujo de una pieza
 
 1. El frente dueño registra el dato, estado y evidencia.

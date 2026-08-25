@@ -20,6 +20,7 @@ Convierte el concepto, la programación y las ofertas aprobadas en demanda medib
 - [[01_estrategia/2026-08-25_plan-confidencial-revelacion-cartel-finados-2026_v01|Plan confidencial de revelación del cartel]]
 - [[2026-08-24_equipo-operativo-marketing-finados-2026_v01|Equipo operativo y RACI por ratificar]]
 - [[02_contenido/2026-08-24_sistema-contenidos-finados-2026_v01|Sistema de contenidos]]
+- [[02_contenido/2026-08-25_calendario-expectativa-es-tradicion-finados-2026_v01|Calendario de expectativa ES TRADICIÓN · 25 de agosto–16 de septiembre]]
 - [[03_pauta/2026-08-24_plan-pauta-social-usd4000-finados-2026_v01|Pauta social · USD 4.000]]
 - [[04_pr-medios/2026-08-24_protocolo-integracion-medios-finados-2026_v01|Integración de medios e influencers]]
 - [[06_medicion/2026-08-24_plan-medicion-digital-finados-2026_v01|Medición digital]]

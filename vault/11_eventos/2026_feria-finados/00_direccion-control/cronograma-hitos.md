@@ -18,11 +18,14 @@ tags:
 |---|---|---|---|---|
 | Inicio del sprint digital | estrategia y presupuesto social definidos | 2026-08-25 | Edwin Masabanda, propuesto | programado |
 | G0 Constitución aprobada | dirección, fecha pública y responsables | 2026-08-26 | por asignar | pendiente |
+| Banco histórico accesible y primera matriz | ubicación, dueño, acceso y permisos de curaduría | 2026-08-26 | Andrés Naula/producción, propuesto | pendiente |
 | Plataforma `ES TRADICIÓN` decidida | dirección, cultura, marca, comercio y operación | 2026-08-28 | dirección/marketing/comunidad | desarrollo creado; aprobación pendiente |
+| Tres pilotos de expectativa revisados | selects históricos, derechos preliminares, edición y sonido | 2026-08-28 | audiovisual/comunicación | calendario creado; producción pendiente |
 | Alcance de guía móvil y concepto 200K decidido | definición de asistencia, producto y responsables | 2026-08-28 | dirección/experiencia/tecnología | alcance propuesto; aprobación operativa pendiente |
 | Bases y cupo de Camino al Megaescenario definidos | programación, producción, derechos, premio y reglas de votación | 2026-08-28 | dirección/programación | propuesta pendiente de aprobación |
 | Apertura propuesta de postulaciones artísticas | bases aprobadas y formulario probado | 2026-08-29 | programación/marketing | propuesta pendiente de aprobación |
 | Gate digital: destino y tracking probados | tecnología, ventas, pauta y datos | 2026-09-02 | por asignar | pendiente |
+| Gate Go/No-Go de expectativa | plataforma, derechos, QA 6C, canal y moderación | 2026-09-02 | dirección/Edwin | condicionado; no autoriza publicación automática |
 | Plano base e inventario de puntos de guía móvil | producción, servicio, seguridad y tecnología | 2026-09-02 | por asignar | pendiente |
 | Expectativa digital | piezas aprobadas y medición | 2026-09-03 | marketing | condicionada; no autoriza publicación |
 | Presentación propuesta de `ES TRADICIÓN` | plataforma, personas y derechos aprobados | 2026-09-03 | marketing/comunicación | condicionada; no autoriza publicación |
