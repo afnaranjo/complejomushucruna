@@ -23,3 +23,7 @@ Marketing solo comunica elementos con estado `confirmado`, aprobación registrad
 - Contratos y riders enlazados desde el almacenamiento autorizado.
 - Plan B por cancelación, clima o falla técnica.
 - Ficha de comunicación aprobada para cada atracción.
+
+## Propuesta en revisión
+
+- [[2026-08-24_convocatoria-camino-megaescenario-finados-2026_v01|Camino al Megaescenario]]: convocatoria de talento con voto verificable, jurado y viabilidad técnica. No está autorizada para publicación.

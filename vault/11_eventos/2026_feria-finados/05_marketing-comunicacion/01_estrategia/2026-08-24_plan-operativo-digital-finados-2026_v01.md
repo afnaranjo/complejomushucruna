@@ -41,6 +41,9 @@ Orden de prioridades:
 - Música y artistas fueron el gancho más fuerte; la información útil también produjo publicaciones destacadas.
 - Finados 2025 concentró 179 publicaciones en cinco días, 35,8 por día, con baja mediana de interacción; más volumen no significó mejor desempeño.
 - La pauta histórica disponible es parcial y las compras atribuidas por Meta no están conciliadas con boletería.
+- La pregunta de Carnaval 2022 sobre qué artista debería presentarse fue la publicación número 1 de consideración de esa edición: 847 interacciones y 535 comentarios.
+- Las candidaturas y finalistas de `Rey Pan` y `Srta. Colada Morada` sumaron 6.876 interacciones en doce publicaciones de la página principal durante Finados 2025; su mediana de 358 superó ampliamente la mediana de 40 de la fase de conversión, pero no prueba ventas.
+- En 2025 existieron ferias y programación artística gratuita del Municipio y del Gobierno Provincial durante el mismo feriado. Para 2026 es una amenaza probable todavía sin anuncio oficial encontrado.
 
 ### Confirmado por Alex para este plan
 
@@ -48,11 +51,14 @@ Orden de prioridades:
 - Ventana operativa asumida: 2026-10-29 a 2026-11-02.
 - Pauta social: USD 4.000.
 - Presupuestos de influencers y medios tradicionales: separados y fuera del control de pauta digital.
+- Entrada general de adulto: USD 3.
+- Acceso al megaescenario: pago adicional con precio por confirmar.
 
 ### Por confirmar antes de publicar o vender
 
 - Ratificación pública de las fechas.
 - Nombre oficial de la edición, precios, inclusiones, aforo y condiciones.
+- Precio, aforo y condiciones del megaescenario; niños, reingreso, parqueadero y cargos adicionales.
 - Artistas, experiencias y horarios aprobados para comunicación.
 - Dominio o destino seguro y canal de compra.
 - Responsable final de aprobación y turnos reales del equipo.
@@ -76,10 +82,10 @@ Si el evento `purchase` no pasa una compra de prueba completa, la campaña no se
 | Fase | Fechas | Objetivo | Salida obligatoria | Pauta |
 |---|---|---|---|---:|
 | 0. Fundamentos | 25 ago–2 sep | Dejar listo gobierno, activos, destino, tracking y respuesta | fuente única, responsables, QA, tres conceptos piloto | USD 0 |
-| 1. Expectativa | 3–16 sep | Construir recuerdo y públicos sin depender solo del cartel | historias de territorio, memoria y experiencia | USD 300 |
-| 2. Revelaciones | 17 sep–1 oct | Transformar atención en intención | confirmaciones escalonadas, itinerarios y prueba real | USD 600 |
-| 3. Conversión | 2–21 oct | Generar compras verificadas o conversaciones calificadas | producto por día, precio/inclusiones, prueba y CTA | USD 1.700 |
-| 4. Urgencia útil | 22–28 oct | Cerrar decisión y reducir fricción | agenda final, disponibilidad real, movilidad y FAQ | USD 1.000 |
+| 1. Expectativa | 3–16 sep | Construir públicos y participación sin depender solo del cartel | convocatoria/voto, registro prioritario y memoria | USD 400 |
+| 2. Revelaciones | 17 sep–1 oct | Transformar atención en preventa | ganador, confirmaciones, itinerarios y primeros lotes | USD 800 |
+| 3. Conversión | 2–21 oct | Asegurar compradores antes de la presión competitiva tardía | producto por noche, precio total, prueba y CTA | USD 1.600 |
+| 4. Urgencia útil | 22–28 oct | Cerrar decisión y reducir fricción | agenda final, disponibilidad real, movilidad y FAQ | USD 800 |
 | 5. Feria en vivo | 29 oct–2 nov | Orientar, proteger reputación y capturar prueba social | información fijada, alertas, recap diario | USD 200 |
 | Reserva controlada | por liberar | Reforzar una señal demostrada o cubrir contingencia | decisión registrada con motivo y KPI | USD 200 |
 | **Total** | 3 sep–2 nov |  |  | **USD 4.000** |
@@ -93,6 +99,8 @@ La reserva no es dinero libre. Solo se libera por resultado verificable, necesid
 - Reunión de 45 minutos con Dirección, marketing, comunicación, producción, ventas y datos.
 - Ratificar la fecha pública, oferta, canal de conversión y aprobador final.
 - Confirmar qué página es centro oficial y quién responde mensajes.
+- Aprobar la arquitectura comercial: general adultos USD 3, megaescenario adicional, combo y posibles pases.
+- Aprobar o descartar la convocatoria `Camino al Megaescenario` y reservar un slot real antes de prometerlo.
 - Crear inventario de videos, fotografías, testimonios y permisos de uso; no mover activos aprobados.
 
 ### 26 de agosto
@@ -122,6 +130,8 @@ La reserva no es dinero libre. Solo se libera por resultado verificable, necesid
 | Territorio y comunidad | “Busco algo distinto, no otra feria genérica” | voces, oficios, gastronomía y contexto con autorización | microdocumental | conocer/guardar |
 | Confianza práctica | “Me preocupa llegar, pagar o encontrar servicios” | mapa, precio, parqueo, baños, accesibilidad y atención verificados | carrusel/estático | consultar guía |
 | Comercio vivo | “Quiero descubrir o vender productos” | expositor confirmado, producto y condiciones | reel/UGC autorizado | visitar/aplicar |
+| La gente elige | “Quiero ser parte de la programación” | artistas elegibles, voto auditado y resultado presencial | reel + landing | postular/votar/comprar |
+| Preventa transparente | “Quiero asegurar mi noche sin cobros sorpresa” | producto, total, cupo y condiciones | video + carrusel | comprar combo |
 
 Reglas:
 
@@ -134,12 +144,14 @@ Reglas:
 
 El detalle de producción está en [[../02_contenido/2026-08-24_sistema-contenidos-finados-2026_v01|sistema de contenidos]].
 
+La respuesta a eventos gratuitos, la recuperación de `Rey Pan`/`Srta. Colada Morada`, la convocatoria artística y la preventa se desarrollan en [[2026-08-24_estrategia-competitiva-preventa-participacion-finados-2026_v01|la estrategia competitiva y de participación]].
+
 ## Arquitectura de pauta
 
 Meta es el canal pagado principal porque allí existe evidencia histórica, audiencias y capacidad creativa. Con USD 4.000 no se divide la inversión entre plataformas sin una hipótesis y medición comparables.
 
-- **Campaña A · Demanda:** USD 900 para expectativa y revelaciones.
-- **Campaña B · Resultado:** USD 2.700 para conversión y urgencia. Optimiza a compra únicamente si pasa el gate técnico; de lo contrario, a conversación calificada o visita útil.
+- **Campaña A · Participación:** máximo USD 200 para convocatoria/voto; el alcance principal debe venir de los artistas y sus comunidades.
+- **Campaña B · Preventa/resultado:** USD 3.400 para registro prioritario, combos, pases y venta por noche. Optimiza a compra únicamente si pasa el gate técnico; de lo contrario, a conversación calificada o visita útil.
 - **Campaña C · Servicio en vivo:** USD 200, geografía cercana y datos operativos confirmados.
 - **Reserva:** USD 200, no asignada hasta decisión documentada.
 

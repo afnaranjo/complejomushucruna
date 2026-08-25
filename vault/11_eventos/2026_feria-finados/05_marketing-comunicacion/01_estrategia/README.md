@@ -15,6 +15,7 @@ Objetivos, audiencias, posicionamiento, embudos, arquitectura de campañas, pres
 
 - [[2026-08-24_estrategia-digital-finados-2026_v01|Estrategia digital provisional Feria de Finados 2026]]
 - [[2026-08-24_plan-operativo-digital-finados-2026_v01|Plan operativo digital del 25 de agosto al 2 de noviembre]]
+- [[2026-08-24_estrategia-competitiva-preventa-participacion-finados-2026_v01|Estrategia competitiva, preventa y participación]]
 - [[../../../../13_datos-medicion/2026-08-24_auditoria-meta-2021-2026/2026-08-24_informe-auditoria-meta-2021-2026_v01|Auditoría histórica Meta 2021-2026]]
 
 [[../README|Volver a marketing y comunicación]]

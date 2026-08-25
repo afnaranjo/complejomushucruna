@@ -27,6 +27,7 @@ El equipo integral está organizando la Feria de Finados 2026 en el Complejo Int
 - Se planifica con una ventana de feria del 29 de octubre al 2 de noviembre de 2026; Dirección debe ratificarla antes de publicarla como fecha oficial.
 - El presupuesto de USD 4.000 se usa exclusivamente para pauta en redes sociales.
 - Influencers, radio, televisión y prensa administran presupuestos separados; el frente digital coordina mensaje, calendario, enlaces y evidencia, pero no administra ese dinero.
+- La entrada general para adultos cuesta USD 3. El megaescenario se cobra adicionalmente; su precio, capacidad, noches e inclusiones todavía deben confirmarse.
 
 ## Estado actual
 
@@ -44,7 +45,12 @@ El equipo integral está organizando la Feria de Finados 2026 en el Complejo Int
 - Medición publicitaria: las compras atribuidas por Meta cambian de 221 en la ventana Finados 2025 a cero en Carnaval 2026 pese a tráfico relevante. Esto se considera una discontinuidad de tracking por auditar, no evidencia de ventas reales. Faltan píxel, Conversion API, atribución, boletería, caja y facturación.
 - Estrategia digital Finados 2026: creada como propuesta en revisión en [[11_eventos/2026_feria-finados/05_marketing-comunicacion/01_estrategia/2026-08-24_estrategia-digital-finados-2026_v01|estrategia digital provisional]]. La tesis es `la música atrae; la experiencia total diferencia; la confianza convierte; la operación cumple`. No autoriza publicación ni pauta.
 - Plan operativo digital: creado en [[11_eventos/2026_feria-finados/05_marketing-comunicacion/01_estrategia/2026-08-24_plan-operativo-digital-finados-2026_v01|su expediente]], con sprint de fundamentos del 25 de agosto al 2 de septiembre, pauta condicionada desde el 3 de septiembre, conversión intensiva del 2 al 28 de octubre y servicio digital durante la feria.
-- Distribución de pauta social: USD 300 expectativa, USD 600 revelaciones, USD 1.700 conversión, USD 1.000 urgencia, USD 200 servicio en vivo y USD 200 de reserva controlada. Meta es el canal pagado inicial para evitar fragmentación; otra plataforma requiere hipótesis, activos y medición propios.
+- Estrategia competitiva, preventa y participación: ampliada en [[11_eventos/2026_feria-finados/05_marketing-comunicacion/01_estrategia/2026-08-24_estrategia-competitiva-preventa-participacion-finados-2026_v01|su documento canónico]]. Integra la reputación positiva y negativa, la competencia pública del feriado, la entrada adulta de USD 3, el costo adicional del megaescenario, una preventa condicionada y tres motores participativos: `Camino al Megaescenario`, `Rey Pan` y `Srta. Colada Morada`. Las mecánicas y nombres están propuestos, no autorizan convocatoria ni venta.
+- Evidencia participativa histórica: doce publicaciones de candidaturas y finalistas de `Rey Pan` y `Srta. Colada Morada` en la página principal de Finados 2025 acumularon 6.876 interacciones, con mediana de 358; la fase de conversión tuvo mediana de 40. La pregunta de artistas de 2022 logró 847 interacciones y 535 comentarios. Estos datos prueban capacidad de conversación, no venta.
+- Diseño seguro de convocatoria: [[11_eventos/2026_feria-finados/02_programacion-atracciones/2026-08-24_convocatoria-camino-megaescenario-finados-2026_v01|Camino al Megaescenario]] propone 40 % voto propio verificado, 40 % jurado artístico/cultural y 20 % viabilidad de producción/seguridad. Se descartó depender de “más likes gana” por fraude, desigualdad de audiencias, presión de plataforma y ausencia de señal comercial.
+- Arquitectura de oferta y preventa: documentada en [[11_eventos/2026_feria-finados/06_ventas-entradas/2026-08-24_arquitectura-oferta-preventa-finados-2026_v01|su expediente]]. Prioriza comprometer temprano la noche o combo con megaescenario; reservar solo una entrada general de USD 3 tiene alto riesgo de inasistencia. No se cobra hasta confirmar cartel contratado, precio total, capacidad, términos, canal seguro y compra de prueba.
+- Competencia del feriado: en 2025 el Municipio de Ambato comunicó más de 1.300 espacios comerciales y programación artística en Shuyurco; la red provincial operó parques gratuitos y el Parque Provincial concentró la Mega Expo Feria. No se encontró una programación oficial 2026 publicada al corte del 2026-08-24, por lo que el evento municipal/provincial 2026 se gestiona como amenaza de probabilidad alta, no como hecho confirmado.
+- Distribución revisada de pauta social: USD 400 expectativa, USD 800 revelaciones/preventa, USD 1.600 conversión, USD 800 urgencia, USD 200 servicio en vivo y USD 200 de reserva controlada. Dentro de esos rubros, la promoción de participación tiene un máximo de USD 200; la venta/preventa concentra USD 3.400. Meta es el canal pagado inicial para evitar fragmentación; otra plataforma requiere hipótesis, activos y medición propios.
 - Sistema digital interconectado: se documentaron contenido, pauta, medición, integración con medios/influencers y las entregas entre los 16 frentes de la feria. Ningún presupuesto externo de medios o creadores se mezcló con la pauta social.
 - Equipo de marketing: se transcribió el organigrama `Estructura finados 2025` entregado por Alex y se propuso un RACI 2026 pendiente de ratificación. Permanecen como vacantes críticas la compra de medios, analítica/tracking, community management, aprobación cultural/marca y enlace con boletería.
 - Seguridad de Meta: la extracción fue `GET` de solo lectura, con pausa y límites conservadores. Se detuvo al primer error de cuota de aplicación; el uso de la cuenta publicitaria reportó 0%. No se guardaron credenciales, no se extrajeron comentarios individuales y no se modificó ningún activo.
@@ -60,6 +66,8 @@ El equipo integral está organizando la Feria de Finados 2026 en el Complejo Int
 - Organigrama real y responsables de aprobación.
 - Avances, contratos, compromisos, artistas, expositores, patrocinadores y proveedores.
 - Oferta comercial, precios, entradas, canales oficiales y activos existentes.
+- Precio, capacidad, fechas e inclusiones del megaescenario; precio infantil; reingreso, estacionamiento, cargos, descuentos y política de cambios/devoluciones.
+- Aprobación, ajuste o descarte de `Camino al Megaescenario`, `Rey Pan`, `Srta. Colada Morada` y el posible paraguas `La tradición elige`; cada activación necesita bases, premios/contratos, derechos, jurado, protección de datos y capacidad operativa.
 - Restricciones del complejo, permisos, seguridad, movilidad y planes de contingencia.
 - Reclamos, incidentes, encuestas y conocimiento interno que todavía no está documentado.
 - Resultados verificables de eventos anteriores: asistentes conciliados, ventas, satisfacción, testimonios autorizados y cierres operativos.
@@ -71,7 +79,7 @@ El equipo integral está organizando la Feria de Finados 2026 en el Complejo Int
 
 ## Próxima revisión
 
-El 25 de agosto se debe ratificar fecha pública, responsables, oferta, destino y capacidad de respuesta. Hasta el 2 de septiembre se debe resolver el riesgo del dominio o aprobar un destino alterno seguro y validar tracking con una compra o conversación de prueba. Solo entonces puede comenzar la pauta planificada para el 3 de septiembre.
+El 25 de agosto se inicia expectativa y, si existe un destino seguro, un registro prioritario sin cobro. Hasta el 28 de agosto se debe aprobar o descartar `Camino al Megaescenario`. Antes del 7 de septiembre deben quedar cerrados el precio total, capacidad, cartel contractual, términos, destino y medición; solo después puede habilitarse la preventa propuesta para el 8 de septiembre. La pauta sigue condicionada a destino seguro, tracking probado y capacidad de respuesta.
 
 ## Enlaces
 
@@ -82,4 +90,7 @@ El 25 de agosto se debe ratificar fecha pública, responsables, oferta, destino 
 - [[13_datos-medicion/2026-08-24_auditoria-meta-2021-2026/README|Auditoría Meta 2021-2026]]
 - [[11_eventos/2026_feria-finados/05_marketing-comunicacion/01_estrategia/2026-08-24_estrategia-digital-finados-2026_v01|Estrategia digital Finados 2026]]
 - [[11_eventos/2026_feria-finados/05_marketing-comunicacion/01_estrategia/2026-08-24_plan-operativo-digital-finados-2026_v01|Plan operativo digital Finados 2026]]
+- [[11_eventos/2026_feria-finados/05_marketing-comunicacion/01_estrategia/2026-08-24_estrategia-competitiva-preventa-participacion-finados-2026_v01|Estrategia competitiva, preventa y participación]]
+- [[11_eventos/2026_feria-finados/06_ventas-entradas/2026-08-24_arquitectura-oferta-preventa-finados-2026_v01|Arquitectura de oferta y preventa]]
+- [[11_eventos/2026_feria-finados/02_programacion-atracciones/2026-08-24_convocatoria-camino-megaescenario-finados-2026_v01|Camino al Megaescenario]]
 - [[11_eventos/2026_feria-finados/05_marketing-comunicacion/03_pauta/2026-08-24_plan-pauta-social-usd4000-finados-2026_v01|Plan de pauta social USD 4.000]]

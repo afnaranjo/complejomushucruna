@@ -12,6 +12,12 @@ tags: [feria-finados-2026, entradas]
 
 Define productos, precios, cupos, descuentos, canales, medios de pago, términos, emisión, validación, reembolsos, atención, control de acceso, fraude y conciliación.
 
+## Oferta en revisión
+
+- Entrada general de adulto: USD 3, confirmada por Alex para planificación.
+- Megaescenario: acceso adicional pagado; precio, aforo y condiciones pendientes.
+- [[2026-08-24_arquitectura-oferta-preventa-finados-2026_v01|Arquitectura de oferta y preventa]]: combo, pases, lotes, transparencia y gates comerciales.
+
 ## Entregables mínimos
 
 - Catálogo de entradas y reglas aprobadas.

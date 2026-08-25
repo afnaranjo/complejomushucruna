@@ -139,13 +139,13 @@ Contenido:
 - prueba de parqueo, servicios, seguridad y operación;
 - captación de remarketing y base propia con consentimiento.
 
-Pauta planificada: 7,5%, USD 300.
+Pauta planificada: 10%, USD 400.
 
 ### D-42 a D-28 · Revelaciones · 17 de septiembre a 1 de octubre
 
 Objetivo: transformar atención en intención mediante confirmaciones escalonadas, itinerarios y prueba real.
 
-Pauta planificada: 15%, USD 600.
+Pauta planificada: 20%, USD 800.
 
 ### D-27 a D-8 · Conversión · 2 a 21 de octubre
 
@@ -160,7 +160,7 @@ Contenido:
 - retargeting por interés y visita a producto;
 - exclusión de compradores conciliados.
 
-Pauta planificada: 42,5%, USD 1.700.
+Pauta planificada: 40%, USD 1.600.
 
 ### D-7 a D-1 · Urgencia útil · 22 a 28 de octubre
 
@@ -174,7 +174,7 @@ Contenido:
 - qué llevar, qué está permitido y cómo pedir ayuda;
 - recordatorios diferenciados por día comprado.
 
-Pauta planificada: 25%, USD 1.000.
+Pauta planificada: 20%, USD 800.
 
 ### D0 a D+4 · Experiencia y servicio · 29 de octubre a 2 de noviembre
 
@@ -282,8 +282,8 @@ La estructura final depende de destinos y volumen de conversiones. El presupuest
 
 ### Campañas propuestas
 
-1. **Demanda:** USD 900 para expectativa y revelaciones con video, experiencia e información útil.
-2. **Resultado:** USD 2.700 para conversión y urgencia; ventas solo después de validar el evento y, mientras tanto, conversación cualificada o visita útil. El remarketing se separa únicamente si tiene volumen.
+1. **Participación:** máximo USD 200 para convocatoria/voto verificable; no para comprar likes.
+2. **Preventa/resultado:** USD 3.400 desde expectativa hasta urgencia; ventas solo después de validar el evento y, mientras tanto, conversación cualificada o visita útil. El remarketing se separa únicamente si tiene volumen.
 3. **Servicio/última milla:** USD 200 para geografía cercana, horarios, accesos y cambios confirmados.
 
 Se mantienen USD 200 como reserva controlada. El detalle de fases, ritmo y gates está en [[../03_pauta/2026-08-24_plan-pauta-social-usd4000-finados-2026_v01|el plan de pauta]].

@@ -228,3 +228,15 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Publicación externa: ninguna; no se desplegó, publicó, pautó ni modificó páginas, anuncios, cuentas, dominios o boletería.
 - Riesgos: pauta incompleta, segunda cuenta pendiente, historial previo a agosto de 2023 no disponible por Insights, zona horaria publicitaria distinta, compras/leads sin conciliación y ausencia de sentimiento de comentarios.
 - Pendiente: esperar la restitución de cuota antes de otra extracción; obtener facturación y desglose de ambas cuentas; auditar tracking/boletería; confirmar presupuesto/oferta; aprobar o ajustar la estrategia con dirección, operación y comunidad.
+
+### 2026-08-24 — Estrategia competitiva, preventa y participación Finados 2026
+
+- Se integraron en una sola capa estratégica los problemas reputacionales, las fortalezas públicas, la competencia del feriado y los aprendizajes históricos de Meta para evitar una estrategia basada únicamente en anuncios y artistas.
+- Se documentó la entrada general adulta de USD 3 y el cobro adicional del megaescenario, cuyo precio, capacidad, noches e inclusiones siguen pendientes. La preventa propuesta prioriza el producto nocturno o combo y queda condicionada a contratos, términos, canal seguro y compra de prueba.
+- Se diseñó `Camino al Megaescenario` como convocatoria propuesta con voto propio verificable, jurado y viabilidad de producción/seguridad; también se incorporó el posible regreso de `Rey Pan` y `Srta. Colada Morada` sin usar “más likes gana”.
+- Se redistribuyeron los USD 4.000 de pauta social para adelantar expectativa y preventa: USD 400 expectativa, USD 800 revelaciones/preventa, USD 1.600 conversión, USD 800 urgencia, USD 200 servicio y USD 200 reserva. La participación pagada tiene un máximo de USD 200 y la venta/preventa concentra USD 3.400.
+- Se añadieron hitos, métricas, arquitectura de entradas y riesgos por precio poco claro, competencia gratuita, fraude de votación y preventa prematura.
+- Commit: incluido en `Integrar preventa y participación a estrategia Finados 2026`.
+- Publicación externa: ninguna; no se accedió a Meta, no se activó pauta, no se abrió convocatoria y no se habilitó venta.
+- Riesgos: precio/capacidad del megaescenario y cartel siguen sin confirmar; la programación pública 2026 de Municipio y Provincia no está verificada; el dominio oficial permanece inseguro.
+- Pendiente: aprobar o descartar las mecánicas propuestas, cerrar la oferta comercial y completar los gates antes de cobrar o pautar.

@@ -26,10 +26,10 @@ Con este presupuesto se usa una estructura consolidada: una campaña por resulta
 
 | Fase | Fechas | Días | Presupuesto | Ritmo orientativo | Resultado |
 |---|---|---:|---:|---:|---|
-| Expectativa | 3–16 sep | 14 | USD 300 | USD 21,43/día | atención útil y públicos |
-| Revelaciones | 17 sep–1 oct | 15 | USD 600 | USD 40,00/día | visitas a agenda/intención |
-| Conversión | 2–21 oct | 20 | USD 1.700 | USD 85,00/día | compras o conversaciones calificadas |
-| Urgencia útil | 22–28 oct | 7 | USD 1.000 | USD 142,86/día | cierre y planificación de visita |
+| Expectativa | 3–16 sep | 14 | USD 400 | USD 28,57/día | participación, registro y primera preventa |
+| Revelaciones | 17 sep–1 oct | 15 | USD 800 | USD 53,33/día | ganador, artistas y preventa por noche |
+| Conversión | 2–21 oct | 20 | USD 1.600 | USD 80,00/día | compras o conversaciones calificadas |
+| Urgencia útil | 22–28 oct | 7 | USD 800 | USD 114,29/día | cierre y planificación de visita |
 | Servicio en vivo | 29 oct–2 nov | 5 | USD 200 | USD 40,00/día | información operativa cercana |
 | Reserva controlada | por liberar | — | USD 200 | — | ganadora o contingencia aprobada |
 | **Total** | 3 sep–2 nov | 61 | **USD 4.000** | — | — |
@@ -38,22 +38,23 @@ El ritmo diario es una guía de control, no una obligación automática. Se ajus
 
 ## Arquitectura
 
-### Campaña A · Demanda · USD 900
+### Campaña A · Participación · máximo USD 200
 
-- Periodo: 3 de septiembre–1 de octubre.
-- Público: prospección amplia dentro de la geografía operativa aprobada.
-- Conceptos: música, experiencia completa, territorio/comunidad y utilidad.
-- KPI: alcance útil, consumo de video, visitas útiles, guardados/compartidos y señales de intención.
-- Exclusión: audiencias inválidas o fuera del radio real de asistencia.
+- Periodo: 3–15 de septiembre.
+- Función: amplificar `Camino al Megaescenario` y conducir a voto/registro propio.
+- Distribución: los finalistas y sus comunidades deben aportar la mayor parte del alcance orgánico.
+- KPI: postulaciones válidas, votos verificados, registros consentidos y ventas posteriores por enlace.
+- No se optimiza ni se evalúa por likes o compartidos.
 
-### Campaña B · Resultado · USD 2.700
+### Campaña B · Preventa/resultado · USD 3.400
 
-- Periodo: 2–28 de octubre.
+- Periodo: 3 de septiembre–28 de octubre, activada por etapas.
 - Objetivo A: venta/compra si el evento está validado y conciliado.
 - Objetivo B: conversación calificada o visita útil si la compra no es técnicamente confiable.
 - Públicos: prospección principal y retargeting con profundidad comprobada.
 - Retargeting separado solo si existe volumen suficiente; si no, permanece consolidado.
 - Exclusión: compradores verificados cuando el dato pueda actualizarse de forma segura.
+- Producto prioritario: combo de entrada general + megaescenario o pase, no solo la entrada general de USD 3.
 
 ### Campaña C · Servicio · USD 200
 
@@ -89,6 +90,8 @@ No se crean microaudiencias por intereses. Edad, ubicación y exclusiones deben 
 | Plan completo | “elige tu día” | itinerario real | visita a agenda y compra |
 | Diferenciación | territorio/comunidad | experiencia documentada | guardado, compartido y visita |
 | Confianza | “todo lo que necesitas saber” | precio, mapa y servicio verificados | visita útil y reducción de preguntas repetidas |
+| Preventa | “asegura tu noche antes” | lote, aforo, artista y precio total | compra conciliada |
+| Participación | “tu voto abre el megaescenario” | finalistas elegibles y reglas auditables | voto verificado → registro → compra |
 
 Cada concepto tiene al menos una variante 9:16 y una 4:5. Cambiar colores o CTA no cuenta como concepto nuevo.
 
@@ -99,6 +102,7 @@ Cada concepto tiene al menos una variante 9:16 y una 4:5. Cambiar colores o CTA 
 - destino seguro y operativo;
 - página/cuenta correcta y permisos mínimos necesarios;
 - fechas, oferta, inventario y CTA aprobados;
+- precio total claramente separado entre entrada general de USD 3 y megaescenario adicional;
 - UTMs e identificadores de anuncio;
 - responsable de seguimiento y respuesta;
 - derechos de imagen, música y marca;
@@ -126,6 +130,8 @@ Si no pasa, se usa un resultado intermedio y se declara. El historial de 221 com
 - Evaluar fatiga con frecuencia, caída de respuesta y aumento de costo en conjunto; la frecuencia sola no prueba saturación.
 
 El costo máximo por compra solo se fija cuando ventas/finanzas entreguen precio, margen, capacidad y meta. Sin esa cifra no se promete ROAS.
+
+La estrategia prioriza asegurar compradores antes del 15 de octubre, porque en 2025 las principales agendas públicas de Finados se hicieron visibles durante octubre. No se aumenta inversión temprana si la boletería o la oferta no están listas.
 
 ## Control diario
 

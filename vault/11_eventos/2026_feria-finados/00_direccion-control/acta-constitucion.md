@@ -22,6 +22,8 @@ Diseñar, comercializar, promocionar, producir y operar integralmente la Feria d
 - Ventana operativa de feria: 2026-10-29 a 2026-11-02.
 - Presupuesto: USD 4.000 exclusivamente para pauta en redes sociales.
 - Influencers, radio, televisión y prensa administran presupuestos separados; el frente digital coordina mensaje, calendario y medición.
+- Entrada general para adultos: USD 3.
+- El acceso al megaescenario se comercializa adicionalmente; precio, capacidad, noches e inclusiones siguen por confirmar.
 
 La ventana de feria todavía requiere ratificación de Dirección antes de ser comunicada como fecha pública oficial.
 
@@ -31,6 +33,7 @@ La ventana de feria todavía requiere ratificación de Dirección antes de ser c
 - Fechas de montaje y desmontaje, y ratificación pública de apertura/cierre.
 - Público objetivo, aforo y meta de asistencia.
 - Metas de ingresos, utilidad, expositores, patrocinadores y reputación.
+- Precio y capacidad del megaescenario; precio infantil; reingreso, estacionamiento, cargos, descuentos y política de cambios o devoluciones.
 - Presupuesto integral y reservas de contingencia fuera de los USD 4.000 de pauta social.
 - Alcance incluido y excluido.
 - Director general, sponsor y responsables de aprobación.

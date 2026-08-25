@@ -30,6 +30,10 @@ Cada pregunta tiene una fuente de verdad. Meta informa entrega y costo; analíti
 | ROAS_conciliado | ingreso neto atribuible / gasto social | cálculo; solo tras conciliación | semanal/cierre | datos/finanzas |
 | visitante_validado | persona con entrada validada en acceso | control de acceso | por jornada | operación |
 | satisfaccion | evaluación posvisita con método declarado | encuesta | diario/cierre | experiencia |
+| postulacion_valida | artista que cumple bases y documentación mínima | programación | por convocatoria | programación |
+| voto_verificado | voto aceptado después de controles de duplicación/fraude | sistema de votación | diario | datos |
+| registro_prioritario | persona que consiente recibir apertura/preventa | formulario/CRM | diario | marketing/ventas |
+| capacidad_vendida | entradas cobradas / aforo vendible por noche | boletería + seguridad | diario | ventas/operaciones |
 
 No se informa ROAS si las ventas no pueden conciliarse. Se informa gasto, demanda y limitación.
 
@@ -44,6 +48,9 @@ No se informa ROAS si las ventas no pueden conciliarse. Se informa gasto, demand
 | 5 | `entry_validated` | entrada usada en acceso | control de acceso |
 | A | `message_started` | inició conversación | mensajería |
 | B | `qualified_conversation` | cumple criterio aprobado y tiene siguiente paso | atención/CRM |
+| C | `artist_application_valid` | postulación cumple bases | programación |
+| D | `verified_vote` | voto aceptado por regla antifraude | sistema propio |
+| E | `priority_registration` | registro con consentimiento | CRM/formulario |
 
 Son nombres internos; se mapean a la plataforma únicamente después de validar compatibilidad. Navegador y servidor deben deduplicar con el mismo identificador cuando ambos envíen un evento.
 
@@ -58,6 +65,8 @@ utm_term=<audiencia_o_ubicacion>
 ```
 
 No se colocan datos personales en UTMs.
+
+Para finalistas se añade un identificador no sensible en `utm_content` o un parámetro interno aprobado; cada artista recibe enlace propio y se concilian visitas, votos, registros y compras.
 
 ## Compra de prueba
 

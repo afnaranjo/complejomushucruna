@@ -26,6 +26,14 @@ Transformar datos aprobados de los frentes de la feria en contenido claro, compr
 
 Los porcentajes orientan el portafolio; no obligan a publicar material débil.
 
+## Propiedades participativas y comerciales
+
+- `Camino al Megaescenario`: convocatoria, finalistas, voto auditado y presentación del ganador.
+- `La tradición elige`: retorno propuesto de `Rey Pan` y `Srta. Colada Morada`, sujeto a aprobación cultural y de marca.
+- `Asegura tu noche`: preventa de combos y pases con precio total.
+- `Tu ruta por USD 3`: explicación de lo que incluye la entrada general, sin mezclar el costo adicional del megaescenario.
+- `Pase Dorado`: antecedente histórico de alta interacción; solo se reutiliza si existe objetivo comercial, bases y medición. No será el centro de la campaña.
+
 ## Cadencia sostenible
 
 - 25 de agosto–16 de septiembre: 4 piezas principales por semana.
@@ -43,6 +51,8 @@ Los porcentajes orientan el portafolio; no obligan a publicar material débil.
 | Videos de confirmación/revelación | 6 | pauta y orgánico |
 | Itinerarios por público/día | 5 | carrusel, landing y medios |
 | Piezas de precio/inclusiones | 3 | feed, story, atención |
+| Finalistas de `Camino al Megaescenario` | 8–12 si se aprueba | distribución por artistas y voto |
+| Piezas de preventa por noche/producto | 6 | pauta, orgánico y aliados |
 | Guías de movilidad/servicio | 5 | carrusel, fijados, prensa |
 | Testimonios o pruebas reales autorizadas | 4 | video corto y estático |
 | Plantillas de cambios/alertas | 3 | operación en vivo |
