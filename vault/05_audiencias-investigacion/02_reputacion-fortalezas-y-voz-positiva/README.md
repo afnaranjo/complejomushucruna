@@ -34,9 +34,11 @@ Puedes copiar este pedido:
 - [[00_empieza-aqui|Empieza aquí para contar algo bueno]]
 - [[00_resumen-ejecutivo|Resumen ejecutivo positivo]]
 - [[01_hallazgos-publicos/2026-08-24_linea-base-positiva|Línea base de fortalezas y voz positiva]]
+- [[01_hallazgos-publicos/2026-08-24_mapeo-global-referencias-positivas|Mapa global de referencias positivas]]
 - [[02_eventos-destacados/2026-08-24_eventos-pasados-destacados|Eventos pasados destacados]]
 - [[03_aportes-internos/README|Aportes internos positivos]]
 - [[04_fuentes-evidencias/fuentes-consultadas|Fuentes y evidencia]]
+- [[04_fuentes-evidencias/2026-08-24_fuentes-globales-consultadas|Fuentes globales consultadas]]
 
 ## Principio de calidad
 

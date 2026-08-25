@@ -182,3 +182,14 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Publicación externa: ninguna; solo se realizaron consultas de validación autorizadas.
 - Riesgos: las cuentas publicitarias reportan zona horaria `America/Los_Angeles`; los análisis diarios deberán convertirse a `America/Guayaquil`. El acceso de Marketing API figura en nivel de desarrollo, por lo que la extracción debe ser secuencial, conservadora y sensible a los encabezados de uso.
 - Pendiente: auditar desde 2021 las ediciones verificadas de Carnaval y Finados, separar orgánico/pagado, atribuir inversión con trazabilidad y convertir los hallazgos en estrategia digital 2026.
+
+### 2026-08-24 — Mapa global de referencias positivas
+
+- Se amplió la investigación de fortalezas con búsquedas en español, portugués, inglés, francés, alemán e italiano y fuentes de prensa, turismo, arquitectura, academia, boletería y archivos musicales.
+- Se separó la evidencia que describe directamente al complejo del reconocimiento internacional del club y de la marca Mushuc Runa.
+- Se identificaron como ventajas respaldadas la identidad indígena, la combinación de experiencias, la escala, el carácter familiar, la formación juvenil, la plataforma comercial y los antecedentes de programación internacional.
+- Se documentó una conclusión prudente: existe diferenciación internacional creíble, pero no evidencia suficiente para afirmar fama mundial; la cobertura directa más fuerte fuera de Ecuador está en Brasil, España y Argentina.
+- Commit: incluido en `Ampliar investigación global de fortalezas de Mushuc Runa`.
+- Publicación externa: ninguna; solo se consultaron fuentes públicas y no se modificaron cuentas, campañas ni sitios.
+- Riesgos: las superficies publicadas discrepan, varios resultados históricos carecen de cierre auditado y la presencia editorial directa en inglés, francés, alemán e italiano es limitada.
+- Pendiente: validar ficha técnica, posicionamiento y resultados con dirección y comunidades, y preparar información verificable en español, inglés y portugués.

@@ -36,6 +36,7 @@ tags:
 - [ ] Diseñar plan integral de marketing con medición desde el inicio.
 - [ ] Completar matriz de permisos, seguridad y contingencias.
 - [ ] Incorporar en [[05_audiencias-investigacion/02_reputacion-fortalezas-y-voz-positiva/03_aportes-internos/README|aportes internos positivos]] testimonios y resultados con autorización y evidencia. Responsable: investigación/experiencia. Fecha: por definir.
+- [ ] Validar con dirección y comunidades la hipótesis de posicionamiento internacional documentada en el [[05_audiencias-investigacion/02_reputacion-fortalezas-y-voz-positiva/01_hallazgos-publicos/2026-08-24_mapeo-global-referencias-positivas|mapa global]], confirmar una ficha técnica única y preparar información verificable en español, inglés y portugués. Responsable: dirección/marketing/operaciones. Fecha: por definir.
 
 ## Regla
 

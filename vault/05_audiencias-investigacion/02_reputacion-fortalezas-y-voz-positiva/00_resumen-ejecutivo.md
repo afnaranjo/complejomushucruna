@@ -19,6 +19,14 @@ La evidencia pública revisada describe al Complejo Mushuc Runa como un lugar co
 
 En las tres fichas de Google Maps registradas en la línea base del 24 de agosto de 2026, los tres perfiles tenían una calificación de **4,5/5**. En conjunto, 350 de 397 valoraciones visibles eran de 4 o 5 estrellas, equivalentes al **88,2 %**. Este cálculo describe valoraciones, no personas únicas, y mezcla visitas cotidianas, deporte y ferias; por eso no debe usarse como un indicador exclusivo de Feria de Finados.
 
+## Lectura global
+
+Una búsqueda en español, portugués, inglés, francés, alemán e italiano encontró referencias directas favorables en medios de Brasil, España y Argentina. La cobertura más completa fuera del país es la de Globo GE, que destaca la escala y la combinación de infraestructura deportiva, granja, parque de dinosaurios, recorridos y eventos. AS documenta instalaciones, formación juvenil y recreación; *El Litoral* recoge una valoración favorable de su amplitud, canchas, ferias y espacios comerciales.
+
+Esto demuestra **diferenciación internacional**, pero todavía no una reputación mundial consolidada. La evidencia editorial directa es escasa en inglés y no se encontraron piezas sustantivas en francés, alemán o italiano. La notoriedad exterior más amplia pertenece al club de fútbol y a su identidad indígena; funciona como puerta de entrada para el complejo, pero no sustituye reseñas ni mediciones del recinto.
+
+El posicionamiento con mejor respaldo es: un espacio intercultural de origen indígena que integra deporte, naturaleza, familia, emprendimiento y eventos. Se mantiene como hipótesis estratégica hasta que dirección la valide.
+
 ## Lo que más se valora
 
 1. **Identidad cultural y orgullo indígena.** Fuentes periodísticas y del propio complejo destacan el rescate de la identidad Chibuleo, los saberes ancestrales, la danza y las tradiciones andinas.
@@ -52,5 +60,7 @@ Conservar esta base y completarla con resultados internos: asistencia conciliada
 
 - [[README|Fortalezas y voz positiva]]
 - [[01_hallazgos-publicos/2026-08-24_linea-base-positiva|Evidencia pública positiva]]
+- [[01_hallazgos-publicos/2026-08-24_mapeo-global-referencias-positivas|Mapa global de referencias positivas]]
 - [[02_eventos-destacados/2026-08-24_eventos-pasados-destacados|Eventos pasados destacados]]
 - [[04_fuentes-evidencias/fuentes-consultadas|Fuentes consultadas]]
+- [[04_fuentes-evidencias/2026-08-24_fuentes-globales-consultadas|Fuentes globales consultadas]]
