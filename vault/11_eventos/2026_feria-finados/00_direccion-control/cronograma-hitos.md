@@ -12,22 +12,29 @@ tags:
 
 # Cronograma e hitos
 
-> Las fechas exactas de la feria todavía no están confirmadas. No se construye un cronograma falso: primero se confirma la fecha de apertura y después se calculan los hitos regresivos.
+> Alex aprobó como supuesto de planificación la ventana del 29 de octubre al 2 de noviembre de 2026 y el inicio digital el 25 de agosto. Dirección debe ratificarla antes de publicarla como fecha oficial. Montaje y desmontaje siguen por definir.
 
 | Hito | Dependencia | Fecha objetivo | Responsable | Estado |
 |---|---|---|---|---|
-| G0 Constitución aprobada | dirección | por definir | por asignar | pendiente |
-| G1 Viabilidad aprobada | presupuesto, aforo, permisos | por definir | por asignar | pendiente |
-| Oferta de expositores lista | planos, precios, condiciones | por definir | por asignar | pendiente |
-| Oferta de patrocinio lista | inventario, audiencia, medición | por definir | por asignar | pendiente |
-| Programación principal confirmada | contratos y producción | por definir | por asignar | pendiente |
-| G2 Salida comercial | ofertas aprobadas | por definir | por asignar | pendiente |
-| Venta de entradas habilitada | precios, plataforma, términos | por definir | por asignar | pendiente |
-| G3 Lanzamiento público | programación, campaña, tracking | por definir | por asignar | pendiente |
-| Planos y proveedores cerrados | programación, capacidad | por definir | por asignar | pendiente |
-| Permisos críticos aprobados | expedientes completos | por definir | por asignar | pendiente |
-| G4 Preparación operativa | pruebas y planes | por definir | por asignar | pendiente |
-| Simulacro y G5 | todo operativo | por definir | por asignar | pendiente |
-| Apertura | G5 aprobado | por definir | por asignar | pendiente |
+| Inicio del sprint digital | estrategia y presupuesto social definidos | 2026-08-25 | Edwin Masabanda, propuesto | programado |
+| G0 Constitución aprobada | dirección, fecha pública y responsables | 2026-08-26 | por asignar | pendiente |
+| Gate digital: destino y tracking probados | tecnología, ventas, pauta y datos | 2026-09-02 | por asignar | pendiente |
+| Expectativa digital | piezas aprobadas y medición | 2026-09-03 | marketing | programado |
+| G1 Viabilidad aprobada | presupuesto, aforo, permisos | 2026-09-09 | por asignar | pendiente |
+| Oferta de expositores lista | planos, precios, condiciones | 2026-09-11 | por asignar | pendiente |
+| Oferta de patrocinio lista | inventario, audiencia, medición | 2026-09-11 | por asignar | pendiente |
+| Programación inicial publicable | contratos y producción | 2026-09-16 | por asignar | pendiente |
+| G2 Salida comercial | ofertas aprobadas | 2026-09-16 | por asignar | pendiente |
+| Inicio de revelaciones | confirmaciones y activos aprobados | 2026-09-17 | marketing | programado |
+| Venta de entradas habilitada | precios, plataforma, términos | 2026-10-01 | por asignar | pendiente |
+| G3 Conversión pública | programación, campaña, tracking | 2026-10-02 | por asignar | pendiente |
+| Planos y proveedores cerrados | programación, capacidad | 2026-10-14 | por asignar | pendiente |
+| Permisos críticos aprobados | expedientes completos | 2026-10-14 | por asignar | pendiente |
+| Agenda y guía final aprobadas | programación, operación, servicio | 2026-10-21 | por asignar | pendiente |
+| G4 Urgencia y preparación operativa | pruebas y planes | 2026-10-22 | por asignar | pendiente |
+| Simulacro y G5 | todo operativo | 2026-10-28 | por asignar | pendiente |
+| Apertura asumida | G5 aprobado | 2026-10-29 | por asignar | supuesto de planificación |
+| Cierre asumido | operación y conciliación diaria | 2026-11-02 | por asignar | supuesto de planificación |
+| Corte preliminar digital | datos del evento | 2026-11-03 | marketing/datos | programado |
 | Desmontaje y conciliación | cierre de feria | por definir | por asignar | pendiente |
-| G6 Informe final | datos, finanzas y aprendizajes | por definir | por asignar | pendiente |
+| G6 Informe final | datos, finanzas y aprendizajes | 2026-12-02 | por asignar | programado |

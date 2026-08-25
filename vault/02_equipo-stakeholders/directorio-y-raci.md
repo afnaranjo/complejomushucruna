@@ -35,3 +35,7 @@ R = ejecuta · A = aprueba y responde por el resultado · C = consultado · I = 
 | Aprobar reporte de cierre | I | A | C | C | I | R |
 
 > Reemplaza los roles por nombres únicamente después de confirmar responsabilidades con el equipo.
+
+## Feria de Finados 2026
+
+El organigrama histórico entregado por Alex y la propuesta de responsabilidades digitales están en [[../11_eventos/2026_feria-finados/05_marketing-comunicacion/2026-08-24_equipo-operativo-marketing-finados-2026_v01|Equipo operativo de marketing Finados 2026]]. Los nombres no reemplazan este directorio hasta que el equipo ratifique sus atribuciones para 2026.

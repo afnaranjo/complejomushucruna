@@ -11,9 +11,11 @@ confidencialidad: restringido
 
 ## Estado de esta propuesta
 
-Esta es una **directriz avanzada para decisión**, no una campaña aprobada. Fechas, presupuesto, meta comercial, oferta, precios, aforo, artistas, atractivos, dominio, responsables y activos de marca siguen por confirmar. Nada de este documento autoriza publicación, pauta, cambio de cuenta o despliegue.
+Esta es una **directriz avanzada para decisión**, no una campaña aprobada. Alex definió USD 4.000 exclusivamente para pauta social, el inicio interno el 25 de agosto y la ventana del 29 de octubre al 2 de noviembre como supuesto de planificación. La fecha pública, meta comercial, oferta, precios, aforo, artistas, atractivos, dominio, responsables y activos de marca siguen por confirmar. Nada de este documento autoriza publicación, pauta, cambio de cuenta o despliegue.
 
 Evidencia base: [[../../../../13_datos-medicion/2026-08-24_auditoria-meta-2021-2026/2026-08-24_informe-auditoria-meta-2021-2026_v01|auditoría histórica de Meta 2021-2026]].
+
+Ejecución: [[2026-08-24_plan-operativo-digital-finados-2026_v01|plan operativo digital del 25 de agosto al 2 de noviembre]].
 
 ## 1. Tesis estratégica
 
@@ -109,11 +111,11 @@ Contenido mínimo:
 
 ## 5. Embudo por fases
 
-Las fechas son relativas al inicio `D0` y se ajustan cuando dirección confirme calendario.
+Para planificación, `D0` es el 29 de octubre de 2026. Dirección debe ratificar la fecha antes de su comunicación pública.
 
-### D-120 a D-61 · Descubrimiento
+### D-65 a D-57 · Fundamentos · 25 de agosto a 2 de septiembre
 
-Objetivo: construir memoria y significado antes de la cartelera.
+Objetivo: dejar listos gobierno, activos, destino, tracking, respuesta y conceptos piloto.
 
 Contenido:
 
@@ -123,9 +125,9 @@ Contenido:
 - adelantos de experiencia, no rumores de artistas;
 - registro temprano de interesados.
 
-Pauta provisional: 12% del presupuesto.
+Pauta: 0%. Esta etapa trabaja orgánico, producción y validación.
 
-### D-60 a D-31 · Consideración
+### D-56 a D-43 · Expectativa · 3 a 16 de septiembre
 
 Objetivo: convertir interés en intención de visita.
 
@@ -137,9 +139,15 @@ Contenido:
 - prueba de parqueo, servicios, seguridad y operación;
 - captación de remarketing y base propia con consentimiento.
 
-Pauta provisional: 23%.
+Pauta planificada: 7,5%, USD 300.
 
-### D-30 a D-8 · Conversión
+### D-42 a D-28 · Revelaciones · 17 de septiembre a 1 de octubre
+
+Objetivo: transformar atención en intención mediante confirmaciones escalonadas, itinerarios y prueba real.
+
+Pauta planificada: 15%, USD 600.
+
+### D-27 a D-8 · Conversión · 2 a 21 de octubre
 
 Objetivo: vender entradas o registrar intención verificable.
 
@@ -152,9 +160,9 @@ Contenido:
 - retargeting por interés y visita a producto;
 - exclusión de compradores conciliados.
 
-Pauta provisional: 40%.
+Pauta planificada: 42,5%, USD 1.700.
 
-### D-7 a D-1 · Urgencia útil
+### D-7 a D-1 · Urgencia útil · 22 a 28 de octubre
 
 Objetivo: cerrar decisión sin saturar.
 
@@ -166,9 +174,9 @@ Contenido:
 - qué llevar, qué está permitido y cómo pedir ayuda;
 - recordatorios diferenciados por día comprado.
 
-Pauta provisional: 20%.
+Pauta planificada: 25%, USD 1.000.
 
-### D0 a cierre · Experiencia y servicio
+### D0 a D+4 · Experiencia y servicio · 29 de octubre a 2 de noviembre
 
 Objetivo: orientar, proteger reputación y capturar prueba social.
 
@@ -180,7 +188,7 @@ Contenido:
 - excepciones para información crítica y contingencias;
 - un recap diario, no decenas de fragmentos repetidos.
 
-Pauta provisional: 5% para servicio, cambios y contingencia aprobada.
+Pauta planificada: 5%, USD 200 para servicio y cambios aprobados. Se conserva además 5%, USD 200, como reserva controlada fuera de las fases.
 
 ### D+1 a D+30 · Memoria y aprendizaje
 
@@ -270,15 +278,15 @@ No es una duración obligatoria. Es una estructura de prueba para piezas cortas.
 
 ## 8. Arquitectura de Meta Ads
 
-La estructura final depende de presupuesto, destinos y volumen de conversiones.
+La estructura final depende de destinos y volumen de conversiones. El presupuesto confirmado es USD 4.000 exclusivamente para redes sociales.
 
 ### Campañas propuestas
 
-1. **Descubrimiento:** video y alcance cualificado con creatividad de identidad/experiencia.
-2. **Consideración:** tráfico a agenda y vistas de contenido por interés real.
-3. **Conversión:** ventas solo después de validar evento; mientras tanto, landing page o conversación cualificada.
-4. **Remarketing:** visitantes, reproducciones significativas y personas que iniciaron compra.
-5. **Servicio/última milla:** geografía cercana, horarios, accesos y cambios confirmados.
+1. **Demanda:** USD 900 para expectativa y revelaciones con video, experiencia e información útil.
+2. **Resultado:** USD 2.700 para conversión y urgencia; ventas solo después de validar el evento y, mientras tanto, conversación cualificada o visita útil. El remarketing se separa únicamente si tiene volumen.
+3. **Servicio/última milla:** USD 200 para geografía cercana, horarios, accesos y cambios confirmados.
+
+Se mantienen USD 200 como reserva controlada. El detalle de fases, ritmo y gates está en [[../03_pauta/2026-08-24_plan-pauta-social-usd4000-finados-2026_v01|el plan de pauta]].
 
 ### Audiencias
 
@@ -418,7 +426,7 @@ Ritmo:
 
 1. Aprobar o corregir la tesis estratégica.
 2. Confirmar fuente oficial, página principal y dominio seguro.
-3. Definir meta comercial, aforo y presupuesto.
+3. Definir meta comercial, aforo y costo máximo sostenible por compra.
 4. Auditar boletería, píxel, Conversion API y facturación.
 5. Confirmar oferta y calendario con cada frente.
 6. Aprobar manual o sistema visual provisional.

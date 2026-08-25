@@ -14,6 +14,7 @@ Plan de tracking, diccionario de conversiones, UTMs, tableros, atribución, cont
 ## Línea base histórica
 
 - [[../../../../13_datos-medicion/2026-08-24_auditoria-meta-2021-2026/README|Auditoría Meta 2021-2026]]
+- [[2026-08-24_plan-medicion-digital-finados-2026_v01|Plan de medición digital Finados 2026]]
 - La pauta recuperada es parcial y las compras atribuidas no están conciliadas con boletería.
 - Antes de activar 2026 se debe validar dominio, píxel, Conversion API, UTMs, deduplicación y compra de prueba.
 

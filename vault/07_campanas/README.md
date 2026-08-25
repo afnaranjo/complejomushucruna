@@ -22,3 +22,5 @@ AAAA-MM_nombre-corto/
 ```
 
 Muévela entre `planificadas/`, `activas/` y `cerradas/` sin duplicarla. Usa las plantillas de `00_gobernanza/plantillas/`.
+
+La Feria de Finados es un programa transversal y su expediente canónico vive en [[../11_eventos/2026_feria-finados/README|Feria de Finados 2026]]. No se duplica como campaña; su sistema digital se enlaza desde [[../11_eventos/2026_feria-finados/05_marketing-comunicacion/README|Marketing y comunicación de la feria]].

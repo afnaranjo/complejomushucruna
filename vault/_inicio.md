@@ -22,6 +22,8 @@ tags:
 - [[11_eventos/2026_feria-finados/00_direccion-control/cronograma-hitos|Cronograma e hitos]]
 - [[11_eventos/2026_feria-finados/00_direccion-control/raci-integral|RACI integral]]
 - [[11_eventos/2026_feria-finados/13_riesgos-contingencias/registro-riesgos|Registro de riesgos]]
+- [[11_eventos/2026_feria-finados/05_marketing-comunicacion/01_estrategia/2026-08-24_plan-operativo-digital-finados-2026_v01|Plan operativo digital Finados 2026]]
+- [[11_eventos/2026_feria-finados/05_marketing-comunicacion/03_pauta/2026-08-24_plan-pauta-social-usd4000-finados-2026_v01|Pauta social USD 4.000]]
 
 ## Memoria y acción
 

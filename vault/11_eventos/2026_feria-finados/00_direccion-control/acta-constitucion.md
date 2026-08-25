@@ -16,13 +16,22 @@ tags:
 
 Diseñar, comercializar, promocionar, producir y operar integralmente la Feria de Finados 2026 en el Complejo Mushuc Runa.
 
+## Supuestos aprobados para planificación
+
+- Inicio del trabajo digital: 2026-08-25.
+- Ventana operativa de feria: 2026-10-29 a 2026-11-02.
+- Presupuesto: USD 4.000 exclusivamente para pauta en redes sociales.
+- Influencers, radio, televisión y prensa administran presupuestos separados; el frente digital coordina mensaje, calendario y medición.
+
+La ventana de feria todavía requiere ratificación de Dirección antes de ser comunicada como fecha pública oficial.
+
 ## Por confirmar con dirección
 
 - Objetivo principal y objetivos secundarios.
-- Fechas de montaje, apertura, cierre y desmontaje.
+- Fechas de montaje y desmontaje, y ratificación pública de apertura/cierre.
 - Público objetivo, aforo y meta de asistencia.
 - Metas de ingresos, utilidad, expositores, patrocinadores y reputación.
-- Presupuesto máximo y reservas de contingencia.
+- Presupuesto integral y reservas de contingencia fuera de los USD 4.000 de pauta social.
 - Alcance incluido y excluido.
 - Director general, sponsor y responsables de aprobación.
 - Entidades organizadoras y naturaleza de sus relaciones.

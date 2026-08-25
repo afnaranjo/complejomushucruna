@@ -206,6 +206,17 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Riesgos: dominio comprometido o mal redirigido por causa todavía desconocida; competencia directa en Finados; folclorización; bienestar animal; inversión prematura.
 - Pendiente: diagnóstico autorizado del dominio, visitas de campo, inventario y línea base operativa, validación cultural Chibuleo y aprobación/ajuste del concepto.
 
+### 2026-08-24 — Plan operativo digital Finados 2026
+
+- Se convirtió la estrategia histórica de Meta en un plan ejecutable desde el 25 de agosto hasta el 2 de noviembre de 2026, usando como supuesto de planificación una feria del 29 de octubre al 2 de noviembre.
+- Se registró el presupuesto de USD 4.000 exclusivamente para pauta en redes sociales: USD 300 expectativa, USD 600 revelaciones, USD 1.700 conversión, USD 1.000 urgencia, USD 200 servicio en vivo y USD 200 de reserva controlada.
+- Se documentaron sistema de contenidos, arquitectura Meta consolidada, gates de tracking, plan de medición e integración con influencers, radio, televisión y prensa, cuyos presupuestos permanecen separados y fuera de la administración digital.
+- Se interconectaron marketing, programación, entradas, producción, seguridad, finanzas, tecnología, servicio, riesgos, operación y cierre; también se transcribió el organigrama 2025 entregado por Alex como referencia y se propuso un RACI 2026 pendiente de ratificación.
+- Commit: incluido en `Diseñar plan operativo digital Finados 2026`.
+- Publicación externa: ninguna; no se accedió a Meta, no se activó pauta y no se modificaron cuentas, campañas, páginas ni sitios.
+- Riesgos: destino web todavía inseguro, tracking sin conciliar, fecha aún no ratificada para publicación y vacantes críticas de pauta, datos, comunidad y aprobación cultural/marca.
+- Pendiente: ratificar fecha pública y RACI el 26 de agosto; confirmar oferta, destino seguro, atención y compra de prueba antes del 2 de septiembre; aprobar expresamente cualquier activación.
+
 ### 2026-08-24 — Auditoría Meta 2021-2026 y estrategia digital de Finados
 
 - Se extrajeron de forma conservadora y en solo lectura 1.414 publicaciones públicas de `Finados Mushuc Runa` y `Carnavales Mushuc Runa`; se normalizaron fechas a `America/Guayaquil` y se analizaron eventos, fases, formatos, temas, concentración y duplicación.

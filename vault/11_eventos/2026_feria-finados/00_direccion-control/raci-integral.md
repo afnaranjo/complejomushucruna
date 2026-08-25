@@ -16,6 +16,8 @@ R = ejecuta · A = aprueba y responde · C = consultado · I = informado.
 
 ## Responsables por nombrar
 
+La referencia de equipo de marketing y una propuesta RACI para ratificar están en [[../05_marketing-comunicacion/2026-08-24_equipo-operativo-marketing-finados-2026_v01|Equipo operativo de marketing Finados 2026]]. No reemplaza las asignaciones integrales hasta su aprobación.
+
 | Frente | A | R principal | Reemplazo | Contacto laboral |
 |---|---|---|---|---|
 | Dirección integral | por asignar | por asignar |  |  |

@@ -11,4 +11,8 @@ confidencialidad: interno
 
 Calendario, mensajes, guiones, piezas, versiones, aprobaciones y enlaces finales de la comunicación de la feria.
 
+## Documento operativo
+
+- [[2026-08-24_sistema-contenidos-finados-2026_v01|Sistema de contenidos Finados 2026]]
+
 [[../README|Volver a marketing y comunicación]]

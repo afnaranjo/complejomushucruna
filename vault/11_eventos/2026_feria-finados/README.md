@@ -26,6 +26,12 @@ Este expediente es la fuente única de verdad de la feria. Aquí se conectan tod
 - [[../../05_audiencias-investigacion/01_reputacion-riesgos-y-voz-publica/README|Reputación, problemas y voz pública]]
 - [[../../05_audiencias-investigacion/03_inteligencia-competitiva/2026-08-24_mapa-competitivo-mushuc-runa_v01|Competencia y referentes para diferenciar la feria]]
 
+## Estrategia digital en ejecución interna
+
+- [[05_marketing-comunicacion/01_estrategia/2026-08-24_plan-operativo-digital-finados-2026_v01|Plan operativo digital · inicia 25 de agosto]]
+- [[05_marketing-comunicacion/03_pauta/2026-08-24_plan-pauta-social-usd4000-finados-2026_v01|Plan de pauta social · USD 4.000]]
+- [[05_marketing-comunicacion/2026-08-24_equipo-operativo-marketing-finados-2026_v01|Equipo operativo y responsabilidades por ratificar]]
+
 ## Frentes de trabajo
 
 | # | Frente | Pregunta que resuelve | Responsable |
