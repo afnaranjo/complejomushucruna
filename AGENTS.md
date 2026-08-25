@@ -314,3 +314,15 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Publicación externa: ninguna; no se accedió a Meta, no se desplegó, publicó, pautó, activó venta ni modificó ninguna página, cuenta, campaña, dominio o boletería.
 - Riesgos: el sistema visual continúa como propuesta interna hasta la aprobación cultural, operativa, de marca y dirección; siguen pendientes los derechos de archivo, la identidad maestra, la ratificación de fecha/oferta y la validación operativa de parqueaderos.
 - Pendiente: aprobar, ajustar o descartar la v03 hasta el 28 de agosto y completar todos los gates antes de convertirla en piezas públicas.
+
+### 2026-08-25 — Dirección de arte editorial de `ES TRADICIÓN` v04
+
+- Se reconstruyó la guía creativa completa como v04 de 40 diapositivas editables, después de diagnosticar que v03 conservaba demasiadas tarjetas, cápsulas y retículas repetidas.
+- La nueva dirección de arte adopta lenguaje de afiche editorial de feria: fotografía histórica a gran escala, `DIN Condensed` + `Avenir Next`, fondos crema/ciruela, franjas de luz, líneas como hilo visual, composiciones asimétricas y ritmo alternado para las diez semanas.
+- Las fotografías principales se recortaron para retirar logos históricos visibles; no se copiaron artistas, fechas, precios, patrocinadores ni la composición del afiche de referencia.
+- Se confirmó que `marketing-creative-director` ya estaba instalado en una versión más completa que el instalador compartido. Se validó el paquete y su salida JSON sin reemplazarlo ni degradarlo.
+- QA: 40 diapositivas inspeccionadas individualmente; render final revisado; prueba automática sin desbordes; apertura mediante LibreOffice convertida a PDF de 40 páginas.
+- Commit: incluido en `Elevar guía creativa ES TRADICIÓN a dirección de arte v04`.
+- Publicación externa: ninguna; no se accedió a Meta, no se activó pauta, no se publicó contenido y no se modificaron cuentas externas.
+- Riesgos: la plataforma, los derechos del archivo, las tipografías finales, fechas, oferta, cartel, parqueaderos y guía móvil siguen sujetos a aprobación o validación de sus frentes dueños.
+- Pendiente: aprobar, ajustar o descartar la v04 hasta el 28 de agosto; verificar derechos y manual de marca antes de producir piezas públicas.

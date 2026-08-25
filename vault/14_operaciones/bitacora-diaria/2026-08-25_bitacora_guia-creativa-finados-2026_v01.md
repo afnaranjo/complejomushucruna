@@ -41,6 +41,16 @@ Convertir la estrategia digital y la plataforma emocional de Feria de Finados 20
 - La urgencia comercial debe basarse únicamente en inventario real conciliado.
 - La ampliación de parqueaderos se trata como dato por verificar antes de publicarse: plano, capacidad, estado, accesos, rutas y señalética.
 
+## Actualización · dirección de arte v04
+
+- Se creó la [[../../11_eventos/2026_feria-finados/05_marketing-comunicacion/01_estrategia/2026-08-25_presentacion_guia-creativa-es-tradicion-finados-2026_v04.pptx|guía creativa integral `ES TRADICIÓN` v04]] y se reclasificaron v03 y v02 como antecedentes históricos.
+- Se diagnosticó que v03 dependía demasiado de tarjetas, cápsulas, gradientes y una misma retícula. V04 reconstruye la composición como afiche editorial de feria: fotografía de gran escala, tipografía condensada, franjas de color, líneas como hilo visual, contrastes de luz y siluetas distintas según el trabajo narrativo de la diapositiva.
+- Las semanas 1–10 alternan columna lateral y dirección de lectura; cada una conserva objetivo, acciones, prueba, gate y entregable sin repetir una plantilla de tablero.
+- Se usaron `DIN Condensed` para impacto y `Avenir Next` para lectura. Las fotografías de portada y show fueron recortadas para retirar marcas históricas visibles; no se añadieron logos ni datos del cartel.
+- El paquete `marketing-creative-director` solicitado por Alex ya estaba instalado en una versión más completa. Se validó sin reemplazarlo ni degradarlo; su validador aceptó un paquete creativo JSON de prueba.
+- QA: revisión individual de 40 diapositivas, render del PPTX exportado, prueba automática sin desbordes y conversión de apertura a PDF de 40 páginas.
+- Publicación externa: ninguna. No se consultó Meta, no se activó pauta, no se publicó contenido y no se modificó ninguna cuenta externa.
+
 ## Bloqueos y riesgos
 
 - Falta aprobación cultural, operativa, de marca y dirección.
@@ -61,5 +71,6 @@ Convertir la estrategia digital y la plataforma emocional de Feria de Finados 20
 - [[../../_inicio|Centro de mando]]
 - [[../../_memoria-del-proyecto|Memoria del proyecto]]
 - [[../../_pendientes|Pendientes]]
-- [[../../11_eventos/2026_feria-finados/05_marketing-comunicacion/01_estrategia/2026-08-25_presentacion_guia-creativa-es-tradicion-finados-2026_v03.pptx|Guía creativa ES TRADICIÓN v03 vigente]]
+- [[../../11_eventos/2026_feria-finados/05_marketing-comunicacion/01_estrategia/2026-08-25_presentacion_guia-creativa-es-tradicion-finados-2026_v04.pptx|Guía creativa ES TRADICIÓN v04 vigente]]
+- [[../../11_eventos/2026_feria-finados/05_marketing-comunicacion/01_estrategia/2026-08-25_presentacion_guia-creativa-es-tradicion-finados-2026_v03.pptx|Guía creativa ES TRADICIÓN v03 histórica]]
 - [[../../11_eventos/2026_feria-finados/05_marketing-comunicacion/01_estrategia/2026-08-25_plataforma-emocional-es-tradicion-finados-2026_v01|Plataforma emocional ES TRADICIÓN]]
