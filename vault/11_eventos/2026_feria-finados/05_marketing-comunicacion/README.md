@@ -17,6 +17,7 @@ Convierte el concepto, la programación y las ofertas aprobadas en demanda medib
 - [[01_estrategia/2026-08-24_plan-operativo-digital-finados-2026_v01|Plan operativo digital · 25 de agosto a 2 de noviembre]]
 - [[01_estrategia/2026-08-24_estrategia-competitiva-preventa-participacion-finados-2026_v01|Estrategia competitiva, preventa y participación]]
 - [[01_estrategia/2026-08-25_plataforma-emocional-es-tradicion-finados-2026_v01|Plataforma emocional ES TRADICIÓN]]
+- [[01_estrategia/2026-08-25_presentacion_guia-creativa-es-tradicion-finados-2026_v02.pptx|Guía creativa integral ES TRADICIÓN · presentación v02]]
 - [[01_estrategia/2026-08-25_plan-confidencial-revelacion-cartel-finados-2026_v01|Plan confidencial de revelación del cartel]]
 - [[2026-08-24_equipo-operativo-marketing-finados-2026_v01|Equipo operativo y RACI por ratificar]]
 - [[02_contenido/2026-08-24_sistema-contenidos-finados-2026_v01|Sistema de contenidos]]

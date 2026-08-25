@@ -289,3 +289,16 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Publicación externa: ninguna; no se desplegó, publicó, pautó ni modificó ninguna cuenta, página, dominio o boletería.
 - Riesgos: identidad visual, tipografías e imágenes siguen siendo conceptuales hasta recibir el manual de marca y aprobación cultural; fechas, cartel, precios y capacidades mantienen sus gates.
 - Pendiente: presentar la propuesta internamente, decidir `ES TRADICIÓN` hasta el 28 de agosto y reemplazar los visuales conceptuales por archivo autorizado cuando exista acceso y derechos verificados.
+
+### 2026-08-25 — Guía creativa integral `ES TRADICIÓN` v02
+
+- Se creó una presentación PowerPoint 16:9 de 40 diapositivas editables para dirección, marketing, diseño, audiovisual, comunicación y producción, con notas de fuentes y estado interno en revisión.
+- La guía define nostalgia luminosa, sistema visual, fotografía real, dirección musical, gramática audiovisual, tres piezas hero, pilares, formatos, calendario semanal del 25 de agosto al 2 de noviembre, guía móvil, flujo de aprobación y QA.
+- Se dejó fuera el presupuesto de pauta y todo nombre del cartel bajo embargo. La venta desde el 17 de septiembre queda como ventana propuesta y solo procede con contrato, oferta, capacidad, derechos, destino seguro, soporte y compra de prueba.
+- Se incorporaron el reconocimiento verificable y consentido de 4–6 visitantes frecuentes, la ampliación reportada de nuevas zonas de estacionamiento y un sistema de disponibilidad basado únicamente en inventario conciliado; se prohíbe simular agotados o contadores.
+- Se usaron cinco fotografías entregadas por Alex y una muestra pequeña de 16 miniaturas de la galería pública oficial, consultada una sola vez en modo lectura. No se utilizó el token, no se llamó a la API de Meta, no se hicieron extracciones masivas ni se modificó ningún activo externo.
+- Se inspeccionaron visualmente las 40 diapositivas y `slides_test.py` no detectó desbordamientos.
+- Commit: incluido en `Crear guía creativa integral ES TRADICIÓN v02`.
+- Publicación externa: ninguna; no se desplegó, publicó, pautó, activó venta ni modificó ninguna página, cuenta, campaña, dominio o boletería.
+- Riesgos: faltan aprobación cultural/operativa/de marca, derechos publicitarios del archivo, ratificación de fecha/oferta, plano y capacidad real de los parqueaderos nuevos y existentes, y criterios/consentimientos para reconocer visitantes frecuentes.
+- Pendiente: aprobar o corregir la guía hasta el 28 de agosto; validar derechos y parqueaderos hasta el 2 de septiembre; completar todos los gates antes de expectativa, venta o comunicación de disponibilidad.
