@@ -17,7 +17,8 @@ Objetivos, audiencias, posicionamiento, embudos, arquitectura de campañas, pres
 - [[2026-08-24_plan-operativo-digital-finados-2026_v01|Plan operativo digital del 25 de agosto al 2 de noviembre]]
 - [[2026-08-24_estrategia-competitiva-preventa-participacion-finados-2026_v01|Estrategia competitiva, preventa y participación]]
 - [[2026-08-25_plataforma-emocional-es-tradicion-finados-2026_v01|Plataforma emocional ES TRADICIÓN]]
-- [[2026-08-25_presentacion_guia-creativa-es-tradicion-finados-2026_v04.pptx|Guía creativa integral ES TRADICIÓN · v04 vigente · 40 diapositivas]] —dirección de arte de afiche editorial, fotografía histórica, ritmo semanal alternado y notas de fuentes; documento interno; no autoriza publicación—
+- [[2026-08-25_presentacion_guia-creativa-es-tradicion-finados-2026_v05.pptx|Guía creativa integral ES TRADICIÓN · v05 vigente · 40 diapositivas]] —rediseño editorial completo con lenguaje de feria contemporánea, fotografía histórica, composiciones variadas, guía móvil y notas preservadas; documento interno; no autoriza publicación—
+- [[2026-08-25_presentacion_guia-creativa-es-tradicion-finados-2026_v04.pptx|Guía creativa integral ES TRADICIÓN · v04 histórica]] —antecedente editorial conservado—
 - [[2026-08-25_presentacion_guia-creativa-es-tradicion-finados-2026_v03.pptx|Guía creativa integral ES TRADICIÓN · v03 histórica]] —antecedente colorido y teatral conservado—
 - [[2026-08-25_presentacion_guia-creativa-es-tradicion-finados-2026_v02.pptx|Guía creativa integral ES TRADICIÓN · v02 histórica]] —antecedente conservado—
 - [[2026-08-25_presentacion_enfoque-es-tradicion-finados-2026_v01.pptx|Presentación ejecutiva del enfoque ES TRADICIÓN]] —propuesta interna, no autoriza publicación—

@@ -326,3 +326,14 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Publicación externa: ninguna; no se accedió a Meta, no se activó pauta, no se publicó contenido y no se modificaron cuentas externas.
 - Riesgos: la plataforma, los derechos del archivo, las tipografías finales, fechas, oferta, cartel, parqueaderos y guía móvil siguen sujetos a aprobación o validación de sus frentes dueños.
 - Pendiente: aprobar, ajustar o descartar la v04 hasta el 28 de agosto; verificar derechos y manual de marca antes de producir piezas públicas.
+
+### 2026-08-25 — Reconstrucción profesional de `ES TRADICIÓN` v05
+
+- Se reconstruyó la guía creativa completa como v05 de 40 diapositivas editables, tomando v04 como antecedente de contenido y reemplazando su composición por un sistema editorial de feria más expresivo, variado y presentable ante dirección y el equipo creativo.
+- La dirección visual combina ciruela profunda, magenta, naranja, amarillo, turquesa y azul; fotografía histórica a gran escala; titulares condensados; números monumentales; franjas cromáticas y estructuras distintas por capítulo y semana. La diapositiva de fotografía se convirtió en un manifiesto visual y la guía móvil se representó como una PWA informativa sin backend.
+- Se preservaron las 40 notas del archivo fuente. No se añadieron logos, presupuesto de pauta, nombres del cartel bajo embargo, disponibilidad ficticia, token ni credenciales.
+- QA: las 40 diapositivas se renderizaron e inspeccionaron; `slides_test.py` terminó sin desbordamientos; el paquete contiene 40 diapositivas y 40 notas; el escaneo del contenido no detectó token, credenciales ni artistas bajo embargo.
+- Commit: incluido en `Rediseñar guía creativa ES TRADICIÓN v05`.
+- Publicación externa: ninguna; no se accedió a Meta, no se activó pauta, no se publicó contenido y no se modificaron cuentas, dominio, boletería ni servicios externos.
+- Riesgos: la v05 sigue siendo propuesta interna; identidad final, derechos del archivo, calendario público, oferta, parqueaderos, guía móvil y demás datos operativos requieren aprobación o validación de sus frentes dueños.
+- Pendiente: aprobar, ajustar o descartar la v05 hasta el 28 de agosto y verificar derechos/manual de marca antes de producir piezas públicas.
