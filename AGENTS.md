@@ -278,3 +278,14 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Publicación externa: ninguna; no se accedió a Meta, no se activó pauta, no se publicó contenido y no se modificaron páginas, campañas, cuentas, dominio o boletería.
 - Riesgos: la plataforma continúa pendiente de aprobación cultural, operativa y de marca; no se conocen todavía ubicación, derechos ni calidad del banco; la fecha pública y los responsables siguen sin ratificarse.
 - Pendiente: recibir acceso al banco el 26 de agosto, producir tres pilotos, decidir `ES TRADICIÓN` el 28 de agosto y ejecutar el gate del 2 de septiembre antes de cualquier salida.
+
+### 2026-08-25 — Presentación ejecutiva del enfoque `ES TRADICIÓN`
+
+- Se creó una presentación PowerPoint 16:9 de 12 diapositivas, editable y con notas del orador, para que dirección revise el enfoque estratégico de Finados 2026.
+- El relato conecta evidencia histórica, reporte interno, plataforma emocional, cinco jornadas, papel de la música, recuperación comercial, expectativa sin cartel, película `Nos llama`, pauta social de USD 4.000, gates y decisiones inmediatas.
+- Se generaron tres imágenes conceptuales de apoyo y se identificaron como propuestas no oficiales; la presentación no contiene artistas, contratos, correspondencias confidenciales ni oferta bajo embargo.
+- Se renderizaron e inspeccionaron todas las diapositivas; la prueba técnica no detectó desbordamientos y el PPTX final abrió y renderizó correctamente.
+- Commit: incluido en `Crear presentación ejecutiva ES TRADICIÓN Finados 2026`.
+- Publicación externa: ninguna; no se desplegó, publicó, pautó ni modificó ninguna cuenta, página, dominio o boletería.
+- Riesgos: identidad visual, tipografías e imágenes siguen siendo conceptuales hasta recibir el manual de marca y aprobación cultural; fechas, cartel, precios y capacidades mantienen sus gates.
+- Pendiente: presentar la propuesta internamente, decidir `ES TRADICIÓN` hasta el 28 de agosto y reemplazar los visuales conceptuales por archivo autorizado cuando exista acceso y derechos verificados.
