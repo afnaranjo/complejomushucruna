@@ -15,3 +15,4 @@ Almacena segmentos, necesidades, entrevistas, encuestas, recorridos de cliente, 
 
 - [[01_reputacion-riesgos-y-voz-publica/README|Reputación, riesgos y voz pública]]: críticas, fricciones, problemas históricos, reportes internos anonimizados y planes de mejora.
 - [[02_reputacion-fortalezas-y-voz-positiva/README|Fortalezas, experiencias positivas y eventos destacados]]: elogios, aspectos que conviene conservar, aportes internos positivos y evidencia favorable de eventos anteriores.
+- [[03_inteligencia-competitiva/README|Inteligencia competitiva]]: competencia regional/nacional, referentes latinoamericanos y mundiales, posicionamiento y hoja de ruta de diferenciación.

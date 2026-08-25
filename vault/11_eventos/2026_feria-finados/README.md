@@ -24,6 +24,7 @@ Este expediente es la fuente única de verdad de la feria. Aquí se conectan tod
 - [[00_direccion-control/registro-decisiones|Decisiones del proyecto]]
 - [[13_riesgos-contingencias/registro-riesgos|Riesgos y contingencias]]
 - [[../../05_audiencias-investigacion/01_reputacion-riesgos-y-voz-publica/README|Reputación, problemas y voz pública]]
+- [[../../05_audiencias-investigacion/03_inteligencia-competitiva/2026-08-24_mapa-competitivo-mushuc-runa_v01|Competencia y referentes para diferenciar la feria]]
 
 ## Frentes de trabajo
 

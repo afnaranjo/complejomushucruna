@@ -45,6 +45,7 @@ tags:
 - [[05_audiencias-investigacion/README|Audiencias e investigación]]
 - [[05_audiencias-investigacion/01_reputacion-riesgos-y-voz-publica/README|Reputación, riesgos y voz pública]]
 - [[05_audiencias-investigacion/02_reputacion-fortalezas-y-voz-positiva/README|Fortalezas, experiencias positivas y eventos destacados]]
+- [[05_audiencias-investigacion/03_inteligencia-competitiva/README|Competencia, referentes y diferenciación]]
 - [[06_oferta-experiencias/README|Oferta y experiencias]]
 
 ## Sistemas de marketing

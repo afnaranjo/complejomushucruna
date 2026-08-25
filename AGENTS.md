@@ -193,3 +193,15 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Publicación externa: ninguna; solo se consultaron fuentes públicas y no se modificaron cuentas, campañas ni sitios.
 - Riesgos: las superficies publicadas discrepan, varios resultados históricos carecen de cierre auditado y la presencia editorial directa en inglés, francés, alemán e italiano es limitada.
 - Pendiente: validar ficha técnica, posicionamiento y resultados con dirección y comunidades, y preparar información verificable en español, inglés y portugués.
+
+### 2026-08-24 — Inteligencia competitiva y diferenciación integral
+
+- Se investigaron competidores directos, sustitutos y referentes en Tungurahua, Ecuador, Latinoamérica y el mundo, con fuentes públicas y separación explícita entre hechos, históricos, datos por confirmar e hipótesis.
+- Se identificó al Parque Provincial de la Familia + Mega Expo Feria Finados como competencia directa prioritaria y a Baños como principal destino sustituto regional.
+- Se integró sin duplicar el mapa global de fortalezas del commit `9032db0`, incluido el parque de dinosaurios documentado por prensa internacional, cuya operación vigente sigue por confirmar.
+- Se documentó la hipótesis `Mushuc Runa — Territorio Vivo de los Andes`, con una hoja de ruta que prioriza confianza, servicio, gobierno cultural, pruebas y medición antes de infraestructura de alto capital.
+- Se detectó que la portada de `complejomushucruna.ec` redirigía a un sitio de apuestas en indonesio durante la consulta; se registró como riesgo crítico sin realizar cambios externos.
+- Commit: incluido en `Investigar competencia y diferenciación de Mushuc Runa`.
+- Publicación externa: ninguna; no se modificaron dominios, campañas, cuentas, boletería ni sitios.
+- Riesgos: dominio comprometido o mal redirigido por causa todavía desconocida; competencia directa en Finados; folclorización; bienestar animal; inversión prematura.
+- Pendiente: diagnóstico autorizado del dominio, visitas de campo, inventario y línea base operativa, validación cultural Chibuleo y aprobación/ajuste del concepto.
