@@ -2,7 +2,7 @@
 titulo: "Diccionario de datos Feria de Finados 2026"
 responsable: "analítica"
 estado: borrador
-ultima_actualizacion: 2026-08-24
+ultima_actualizacion: 2026-08-25
 fuente: interna
 confidencialidad: restringido
 tags: [feria-finados-2026, medicion]
@@ -29,6 +29,10 @@ tags: [feria-finados-2026, medicion]
 | vista_valida_creador | Visualización aceptada según plataforma y contrato, excluyendo fraude, promoción pagada no autorizada y señales artificiales | vistas | programa de creadores | plataforma/evidencia contractual | alianzas/datos | semanal/cierre |
 | uso_mapa | Apertura agregada del mapa o de una ficha de ubicación, sin identificar a la persona | eventos | guía móvil informativa | analítica mínima aprobada | tecnología/datos | diario |
 | discrepancia_guia | Diferencia confirmada entre mapa/agenda móvil y el recinto o programación operativa | incidentes | guía móvil informativa | servicio/QA | tecnología/operaciones | inmediata |
+| flujo_zona | Ingresos o cruces contabilizados en un acceso de zona y franja, sin tratar cada cruce como persona única | cruces | zonas comerciales de Finados 2026 | conteo manual/sensor aprobado | operaciones/datos | por hora |
+| venta_expositor_rango | Banda confidencial de venta neta declarada voluntariamente por una muestra de expositores | rango USD | muestra comercial Finados 2026 | encuesta/finanzas del expositor | expositores/datos | diario/cierre |
+| expositor_cubre_costos | Expositor de la muestra que declara ventas suficientes para cubrir sus costos directos de participación según definición acordada | porcentaje | muestra comercial Finados 2026 | encuesta confidencial | expositores/datos | cierre |
+| satisfaccion_expositor | Evaluación de ubicación, flujo, soporte, ventas y probabilidad de volver | escala/porcentaje | expositores Finados 2026 | encuesta | expositores/experiencia | diario/cierre |
 
 Las definiciones son preliminares hasta que los responsables aprueben alcance y sistemas.
 

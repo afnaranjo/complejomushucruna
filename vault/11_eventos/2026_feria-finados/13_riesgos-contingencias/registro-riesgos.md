@@ -2,7 +2,7 @@
 titulo: "Registro de riesgos Feria de Finados 2026"
 responsable: "dirección de riesgos"
 estado: borrador
-ultima_actualizacion: 2026-08-24
+ultima_actualizacion: 2026-08-25
 fuente: interna
 confidencialidad: restringido
 tags: [feria-finados-2026, riesgos]
@@ -41,5 +41,8 @@ Escala preliminar: probabilidad e impacto de 1 a 5. Prioridad = probabilidad × 
 | R-025 | Pago a creadores por vistas manipulables o sin techo | Promesa abierta por millón de visualizaciones | Fraude, sobrecosto, crisis y baja asistencia real | 3 | 4 | 12 | Fondo fijo, pagos máximos, vistas válidas, referidos de acceso, contrato y auditoría | Invalidar señales fraudulentas y detener bono conforme a bases | alianzas/finanzas/datos/legal | anomalías, costo o conversión | abierto |
 | R-026 | Guía móvil publica ubicación, horario o precio incorrecto | Fuente maestra vacía, mapa desactualizado o cambio operativo sin revisión | Visitantes perdidos, riesgo de seguridad y pérdida de confianza | 4 | 5 | 20 | Dueño por dato, versión fechada, prueba de campo y coincidencia con señalética | Retirar punto, publicar versión corregida y reforzar orientación física | tecnología/operaciones/programación | discrepancia reportada | abierto |
 | R-027 | Incentivos, colada o parqueadero generan aglomeración y congestión | Beneficio masivo sin cupos, franjas ni modelación | Filas, tráfico, incidentes y frustración | 4 | 5 | 20 | Cupos, franjas, varios puntos, rutas, inocuidad y simulación de demanda | Cerrar temporalmente, redirigir flujos y comunicar disponibilidad | operaciones/seguridad/servicio | fila, ocupación o tiempo de llegada | abierto |
+| R-028 | Alta atención digital sin flujo comprador ni ventas para expositores | Campaña centrada en alcance, premios o artistas sin rutas, curaduría, medición ni operación comercial | Puestos con ventas débiles, pérdida de confianza y menor renovación | 4 | 5 | 20 | Rutas comerciales, mapa, activaciones, panel de ventas, flujo por zona y promesa de feria como eje | Reprogramar flujo, reforzar zonas débiles, soporte comercial y cierre transparente | dirección/expositores/marketing/datos | flujo, ventas por rangos, satisfacción y renovación | abierto |
+| R-029 | Filtración o revelación prematura del cartel | Acceso amplio, embargo débil o presión por generar atención antes de cerrar contratos/oferta | Pérdida de novedad, incumplimiento, confusión y preventa defectuosa | 3 | 5 | 15 | Acceso restringido, gate contractual, calendario de embargo, paquetes versionados y aprobador único | Detener piezas dependientes, verificar contrato y aplicar protocolo de corrección | dirección/programación/marketing | archivo filtrado, publicación anticipada o dato sin aprobar | abierto |
+| R-030 | Tratar `confidencialidad: restringido` como si protegiera archivos en el repositorio público | Metadato documental confundido con control técnico de acceso | Filtración de cartel, contratos, datos o activos embargados | 4 | 5 | 20 | No almacenar secretos o embargo en Git; usar códigos y una fuente externa aprobada con acceso real | Retirar contenido, reemplazar el commit afectado con `--force-with-lease`, volver privado el remoto con autorización y solicitar purga del objeto no referenciado | dirección/tecnología/gobernanza | dato no público encontrado en Git | mitigación parcial: `main` limpio; objeto anterior aún resoluble por hash |
 
 Este registro no reemplaza matrices técnicas de seguridad, salud o cumplimiento.

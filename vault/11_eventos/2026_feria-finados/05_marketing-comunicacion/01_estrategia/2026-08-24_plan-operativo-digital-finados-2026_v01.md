@@ -2,7 +2,7 @@
 titulo: "Plan operativo digital Feria de Finados 2026"
 responsable: "coordinación de marketing y comunicación"
 estado: en-revision
-ultima_actualizacion: 2026-08-24
+ultima_actualizacion: 2026-08-25
 fuente: "decisiones de Alex Naranjo, auditoría histórica Meta 2021-2026 y expediente integral de la feria"
 confidencialidad: restringido
 tags: [feria-finados-2026, estrategia-digital, plan-operativo]
@@ -23,6 +23,8 @@ Este documento operacionaliza la [[2026-08-24_estrategia-digital-finados-2026_v0
 ## Tesis y prioridad
 
 > **La música atrae. La experiencia total diferencia. La confianza convierte. La operación cumple.**
+
+Plataforma emocional en desarrollo: **`ES TRADICIÓN`**. La música funciona como prueba y amplificación; no reemplaza la identidad de feria ni el resultado comercial de los expositores.
 
 Orden de prioridades:
 
@@ -53,6 +55,8 @@ Orden de prioridades:
 - Presupuestos de influencers y medios tradicionales: separados y fuera del control de pauta digital.
 - Entrada general de adulto: USD 3.
 - Acceso al megaescenario: pago adicional con precio por confirmar.
+- El cartel ya fue compartido para planificación interna, pero permanece confidencial y no está autorizado para publicación.
+- La dirección de desarrollo es recuperar una feria comercial y familiar sostenida por tradición; juegos, sorteos y artistas no serán la promesa principal.
 
 ### Por confirmar antes de publicar o vender
 
@@ -102,6 +106,7 @@ La reserva no es dinero libre. Solo se libera por resultado verificable, necesid
 - Aprobar la arquitectura comercial: general adultos USD 3, megaescenario adicional, combo y posibles pases.
 - Aprobar o descartar la convocatoria `Camino al Megaescenario` y reservar un slot real antes de prometerlo.
 - Crear inventario de videos, fotografías, testimonios y permisos de uso; no mover activos aprobados.
+- Aprobar, ajustar o descartar `ES TRADICIÓN`; confirmar gobierno cultural y mantener el cartel bajo embargo interno.
 
 ### 26 de agosto
 
@@ -125,6 +130,7 @@ La reserva no es dinero libre. Solo se libera por resultado verificable, necesid
 
 | Concepto | Tensión que resuelve | Prueba necesaria | Formato principal | CTA por etapa |
 |---|---|---|---|---|
+| ES TRADICIÓN | “No quiero otro evento genérico; quiero una razón que pertenezca a mi familia y territorio” | personas, prácticas, comercio y memoria aprobados | película hero + capítulos | conocer/guardar/elegir día |
 | Música que convoca | “Quiero saber si el evento vale el viaje” | artista/horario confirmado o archivo real autorizado | reel 9:16 | ver agenda/comprar |
 | Cinco días, varios planes | “No sé qué día o plan elegir” | itinerario real por público y día | video + carrusel | armar mi plan |
 | Territorio y comunidad | “Busco algo distinto, no otra feria genérica” | voces, oficios, gastronomía y contexto con autorización | microdocumental | conocer/guardar |
@@ -143,6 +149,8 @@ Reglas:
 - No convertir símbolos culturales en decoración; la aprobación comunitaria es un gate.
 
 El detalle de producción está en [[../02_contenido/2026-08-24_sistema-contenidos-finados-2026_v01|sistema de contenidos]].
+
+La plataforma, guiones, dirección de arte, mensajes y pruebas están en [[2026-08-25_plataforma-emocional-es-tradicion-finados-2026_v01|ES TRADICIÓN]]. La secuencia y el embargo de artistas están en [[2026-08-25_plan-confidencial-revelacion-cartel-finados-2026_v01|el plan confidencial del cartel]].
 
 La respuesta a eventos gratuitos, la recuperación de `Rey Pan`/`Srta. Colada Morada`, la convocatoria artística y la preventa se desarrollan en [[2026-08-24_estrategia-competitiva-preventa-participacion-finados-2026_v01|la estrategia competitiva y de participación]].
 

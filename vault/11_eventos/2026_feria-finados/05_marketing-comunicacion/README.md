@@ -2,7 +2,7 @@
 titulo: "Marketing y comunicación Feria de Finados 2026"
 responsable: "por asignar"
 estado: en-revision
-ultima_actualizacion: 2026-08-24
+ultima_actualizacion: 2026-08-25
 fuente: interna
 confidencialidad: interno
 tags: [feria-finados-2026, marketing]
@@ -16,6 +16,8 @@ Convierte el concepto, la programación y las ofertas aprobadas en demanda medib
 
 - [[01_estrategia/2026-08-24_plan-operativo-digital-finados-2026_v01|Plan operativo digital · 25 de agosto a 2 de noviembre]]
 - [[01_estrategia/2026-08-24_estrategia-competitiva-preventa-participacion-finados-2026_v01|Estrategia competitiva, preventa y participación]]
+- [[01_estrategia/2026-08-25_plataforma-emocional-es-tradicion-finados-2026_v01|Plataforma emocional ES TRADICIÓN]]
+- [[01_estrategia/2026-08-25_plan-confidencial-revelacion-cartel-finados-2026_v01|Plan confidencial de revelación del cartel]]
 - [[2026-08-24_equipo-operativo-marketing-finados-2026_v01|Equipo operativo y RACI por ratificar]]
 - [[02_contenido/2026-08-24_sistema-contenidos-finados-2026_v01|Sistema de contenidos]]
 - [[03_pauta/2026-08-24_plan-pauta-social-usd4000-finados-2026_v01|Pauta social · USD 4.000]]

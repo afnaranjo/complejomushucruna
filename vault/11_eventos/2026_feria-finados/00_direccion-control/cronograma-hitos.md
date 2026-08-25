@@ -2,7 +2,7 @@
 titulo: "Cronograma e hitos Feria de Finados 2026"
 responsable: "dirección integral de la feria"
 estado: borrador
-ultima_actualizacion: 2026-08-24
+ultima_actualizacion: 2026-08-25
 fuente: interna
 confidencialidad: restringido
 tags:
@@ -18,12 +18,14 @@ tags:
 |---|---|---|---|---|
 | Inicio del sprint digital | estrategia y presupuesto social definidos | 2026-08-25 | Edwin Masabanda, propuesto | programado |
 | G0 Constitución aprobada | dirección, fecha pública y responsables | 2026-08-26 | por asignar | pendiente |
+| Plataforma `ES TRADICIÓN` decidida | dirección, cultura, marca, comercio y operación | 2026-08-28 | dirección/marketing/comunidad | desarrollo creado; aprobación pendiente |
 | Alcance de guía móvil y concepto 200K decidido | definición de asistencia, producto y responsables | 2026-08-28 | dirección/experiencia/tecnología | alcance propuesto; aprobación operativa pendiente |
 | Bases y cupo de Camino al Megaescenario definidos | programación, producción, derechos, premio y reglas de votación | 2026-08-28 | dirección/programación | propuesta pendiente de aprobación |
 | Apertura propuesta de postulaciones artísticas | bases aprobadas y formulario probado | 2026-08-29 | programación/marketing | propuesta pendiente de aprobación |
 | Gate digital: destino y tracking probados | tecnología, ventas, pauta y datos | 2026-09-02 | por asignar | pendiente |
 | Plano base e inventario de puntos de guía móvil | producción, servicio, seguridad y tecnología | 2026-09-02 | por asignar | pendiente |
-| Expectativa digital | piezas aprobadas y medición | 2026-09-03 | marketing | programado |
+| Expectativa digital | piezas aprobadas y medición | 2026-09-03 | marketing | condicionada; no autoriza publicación |
+| Presentación propuesta de `ES TRADICIÓN` | plataforma, personas y derechos aprobados | 2026-09-03 | marketing/comunicación | condicionada; no autoriza publicación |
 | Cierre propuesto de postulaciones artísticas | convocatoria publicada | 2026-09-06 | programación/marketing | propuesta pendiente de aprobación |
 | Oferta de entradas y preventa aprobada | precio del megaescenario, capacidad, inclusiones, términos y canal seguro | 2026-09-07 | dirección/ventas/finanzas | pendiente |
 | Apertura propuesta de preventa | oferta aprobada, compra de prueba y conciliación | 2026-09-08 | ventas/marketing/datos | condicionada |
@@ -37,7 +39,8 @@ tags:
 | G2 Salida comercial | ofertas aprobadas | 2026-09-16 | por asignar | pendiente |
 | Mapa completo y agenda de prueba | programación y plano aprobados | 2026-09-16 | tecnología/operaciones | pendiente |
 | Resultado propuesto de Camino al Megaescenario | acta de puntajes, aceptación y contingencia | 2026-09-17 | dirección/programación | propuesta pendiente de aprobación |
-| Inicio de revelaciones | confirmaciones y activos aprobados | 2026-09-17 | marketing | programado |
+| Inicio de revelaciones | confirmaciones y activos aprobados | 2026-09-17 | marketing | condicionado; no autoriza publicación |
+| Primera revelación artística | contrato, día, precio total, derechos, destino y compra de prueba | 2026-09-17 | programación/ventas/marketing | confidencial y condicionada |
 | Venta de entradas habilitada | precios, plataforma, términos | 2026-10-01 | por asignar | pendiente |
 | G3 Conversión pública | programación, campaña, tracking | 2026-10-02 | por asignar | pendiente |
 | Guía móvil candidata con prueba offline | prueba de campo y accesibilidad | 2026-10-02 | tecnología/experiencia | pendiente |

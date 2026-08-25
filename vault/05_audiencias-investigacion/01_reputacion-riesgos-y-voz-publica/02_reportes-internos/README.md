@@ -2,7 +2,7 @@
 titulo: "Reportes internos anonimizados"
 responsable: "dirección integral / persona de confianza"
 estado: aprobado
-ultima_actualizacion: 2026-08-24
+ultima_actualizacion: 2026-08-25
 fuente: interna
 confidencialidad: restringido
 tags: [reportes-internos, riesgos, feria-finados-2026]
@@ -30,3 +30,7 @@ Aquí se sintetizan problemas que el personal conoce y que no aparecen públicam
 El reporte se utiliza para corregir sistemas y proteger la feria. No se usa para buscar culpables ni castigar a quien advierte un problema de buena fe.
 
 Usa [[plantilla-reporte-interno|la plantilla]] y [[preguntas-para-el-personal|las preguntas neutrales]].
+
+## Reportes recibidos
+
+- [[2026-08-25_reporte-interno_carnaval-2026_baja-asistencia-ventas_v01|RI-2026-001 · asistencia y ventas Carnaval 2026]] — E1, verificando.

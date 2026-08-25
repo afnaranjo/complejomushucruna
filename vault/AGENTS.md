@@ -2,7 +2,7 @@
 titulo: "Reglas obligatorias para IA dentro del vault"
 responsable: "dirección integral de la feria"
 estado: aprobado
-ultima_actualizacion: 2026-08-24
+ultima_actualizacion: 2026-08-25
 fuente: interna
 confidencialidad: interno
 tags:
@@ -33,8 +33,9 @@ tags:
 8. Si no sabes dónde ubicar algo, usa [[90_entrada-por-clasificar/README|Entrada por clasificar]] y formula una pregunta concreta.
 9. Antes de reorganizar, conserva el historial, corrige enlaces y registra el motivo.
 10. Nunca guardes credenciales, datos bancarios, documentos de identidad ni acusaciones personales identificables.
-11. Después de una sesión significativa, actualiza [[_memoria-del-proyecto|Memoria]], [[_pendientes|Pendientes]] y los registros de decisiones/riesgos afectados.
-12. Antes de terminar una tarea no trivial, valida, registra la bitácora, haz commit y push según las reglas del archivo raíz.
+11. Este repositorio es público. La etiqueta `restringido` no controla acceso: no guardes información bajo embargo, nombres de artistas todavía no anunciados, correspondencias código–artista, contratos, contactos privados ni activos restringidos. Usa códigos y referencia una fuente aprobada con acceso real.
+12. Después de una sesión significativa, actualiza [[_memoria-del-proyecto|Memoria]], [[_pendientes|Pendientes]] y los registros de decisiones/riesgos afectados.
+13. Antes de terminar una tarea no trivial, valida, registra la bitácora, haz commit y push según las reglas del archivo raíz.
 
 ## Enlaces de control
 

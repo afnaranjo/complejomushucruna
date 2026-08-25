@@ -94,6 +94,7 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Conserva el archivo fuente, la exportación final y la licencia o autorización de uso cuando corresponda.
 - No subas archivos binarios innecesarios o duplicados. Para videos y originales muy pesados, registra el enlace del almacenamiento oficial y su responsable.
 - Nunca guardes contraseñas, tokens, credenciales, llaves privadas ni datos personales sensibles.
+- El remoto `afnaranjo/complejomushucruna` es público según verificación del 2026-08-25. `confidencialidad: restringido` es una clasificación documental, no un control de acceso. Nunca guardes aquí información bajo embargo, nombres de artistas aún no anunciados, correspondencias código–artista, contratos, contactos privados ni activos restringidos; usa códigos y una referencia a la fuente de acceso controlado aprobada.
 
 ## Reorganización y eliminación
 
@@ -252,3 +253,16 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Publicación externa: ninguna; no se accedió a Meta, no se activó pauta, no se desplegó la guía, no se abrió convocatoria y no se modificaron cuentas o sitios.
 - Riesgos: la meta 200K aún no distingue visitas acumuladas de personas únicas; faltan aforo, plano, inventario georreferenciado, presupuesto tecnológico, cartel documentado, capacidad real de parqueaderos y plan de colada; el dominio oficial continúa inseguro.
 - Pendiente: ratificar calendario y definición de asistencia, importar programación y activos, aprobar las mecánicas, asignar responsables y validar capacidad/operación antes de publicar o construir.
+
+### 2026-08-25 — Plataforma emocional `ES TRADICIÓN` y revelación confidencial del cartel
+
+- Se desarrolló `ES TRADICIÓN` como plataforma emocional recomendada para recuperar identidad, confianza, comercio y pertenencia, con cinco capítulos de experiencia y un sistema audiovisual que empieza sin artistas.
+- Se diseñaron `Rutas ES TRADICIÓN` para conectar mapa, expositores, demostraciones, contenido y medición de flujo, ventas por rangos y satisfacción, sin prometer resultados comerciales individuales.
+- Se registró como evidencia E1 el reporte interno sobre baja asistencia y ventas de Carnaval 2026 y se separó de la señal digital/publicitaria y de las versiones públicas favorables hasta realizar una conciliación operativa y financiera.
+- Se comprobó que el repositorio remoto es público; por ello, los nombres actuales del cartel y la correspondencia código–artista se retiraron de Git. El plan conserva únicamente códigos, funciones, embargo y gates; el detalle nominal debe vivir en una fuente de acceso controlado aprobada fuera del repositorio.
+- Se definió una secuencia tentativa de revelaciones con gates de contrato, grafía, día, precio, capacidad, derechos, activos, destino y compra de prueba; no está autorizada para publicación ni expectativa.
+- Se actualizaron concepto, contenido, programación, expositores, riesgos, datos, decisiones, hitos, tablero, memoria, pendientes e índices de Obsidian.
+- Commit: incluido en `Desarrollar ES TRADICIÓN y plan de revelación Finados 2026`.
+- Publicación externa: ninguna campaña o pieza; no se accedió a Meta, no se activó pauta, no se reveló el cartel y no se modificaron páginas, campañas, cuentas, boletería, dominio o sitio. El commit se reescribió antes del cierre para que `origin/main` no contenga el inventario nominal compartido.
+- Riesgos: `ES TRADICIÓN` todavía requiere aprobación cultural, operativa y de marca; la retrospectiva de Carnaval no está conciliada; contratos, nombres oficiales, días, precios y derechos del cartel siguen pendientes; el dominio oficial continúa inseguro. Aunque `main` ya fue reemplazado sin el inventario nominal, GitHub todavía resuelve el objeto anterior por hash mientras el repositorio siga público.
+- Pendiente: con autorización de Alex, volver privado el repositorio y solicitar la purga del objeto no referenciado; aprobar o ajustar la plataforma hasta el 28 de agosto; conciliar Carnaval 2026 hasta el 2 de septiembre; completar los gates del cartel y las rutas comerciales antes del 7 de septiembre; desplazar cualquier revelación que no esté completamente validada.

@@ -2,7 +2,7 @@
 titulo: "Sistema de contenidos Feria de Finados 2026"
 responsable: "coordinación de diseño, audiovisual y comunicación"
 estado: en-revision
-ultima_actualizacion: 2026-08-24
+ultima_actualizacion: 2026-08-25
 fuente: "plan operativo digital y auditoría histórica Meta 2021-2026"
 confidencialidad: restringido
 tags: [feria-finados-2026, contenido, produccion-creativa]
@@ -18,21 +18,23 @@ Transformar datos aprobados de los frentes de la feria en contenido claro, compr
 
 | Fase | Convocatoria/música | Experiencia/familia | Cultura/territorio | Utilidad/confianza | Comercio/aliados |
 |---|---:|---:|---:|---:|---:|
-| Expectativa | 20% | 25% | 30% | 15% | 10% |
-| Revelaciones | 35% | 25% | 15% | 15% | 10% |
-| Conversión | 35% | 25% | 10% | 20% | 10% |
-| Urgencia | 30% | 20% | 5% | 35% | 10% |
-| En vivo | 25% | 20% | 10% | 40% | 5% |
+| Expectativa | 15% | 30% | 30% | 10% | 15% |
+| Revelaciones | 30% | 25% | 20% | 10% | 15% |
+| Conversión | 30% | 20% | 15% | 20% | 15% |
+| Urgencia | 25% | 20% | 10% | 30% | 15% |
+| En vivo | 20% | 20% | 15% | 30% | 15% |
 
 Los porcentajes orientan el portafolio; no obligan a publicar material débil.
 
 ## Propiedades participativas y comerciales
 
+- `ES TRADICIÓN`: plataforma maestra en desarrollo; conecta familia, memoria, feria, comercio y música. Ver [[../01_estrategia/2026-08-25_plataforma-emocional-es-tradicion-finados-2026_v01|documento creativo]].
+- `Rutas ES TRADICIÓN`: ubicación y descubrimiento de expositores por categoría, enlazadas con la guía móvil.
 - `Camino al Megaescenario`: convocatoria, finalistas, voto auditado y presentación del ganador.
 - `La tradición elige`: retorno propuesto de `Rey Pan` y `Srta. Colada Morada`, sujeto a aprobación cultural y de marca.
 - `Asegura tu noche`: preventa de combos y pases con precio total.
 - `Tu ruta por USD 3`: explicación de lo que incluye la entrada general, sin mezclar el costo adicional del megaescenario.
-- `Pase Dorado`: antecedente histórico de alta interacción; solo se reutiliza si existe objetivo comercial, bases y medición. No será el centro de la campaña.
+- `Pase/Boleto Dorado`: antecedente histórico de alta interacción y desgaste reportado; se retira como eje de Finados 2026. Cualquier uso futuro requeriría una decisión nueva, evidencia y medición comercial.
 
 ## Cadencia sostenible
 
@@ -59,6 +61,8 @@ Los porcentajes orientan el portafolio; no obligan a publicar material débil.
 | Recaps diarios | 5 | memoria y prueba social |
 
 Cada video se entrega en 9:16 con subtítulos y se recompone a 4:5 cuando vaya al feed. Las piezas informativas se prueban en tamaño móvil.
+
+Los cuatro videos hero se ordenan como: `Nos llama`, `Hacer feria`, `La canción que vuelve` y `Cinco capítulos`. El cartel permanece confidencial y se rige por [[../01_estrategia/2026-08-25_plan-confidencial-revelacion-cartel-finados-2026_v01|el plan de revelación]].
 
 ## Flujo de una pieza
 

@@ -2,7 +2,7 @@
 titulo: "Programación y atracciones Feria de Finados 2026"
 responsable: "por asignar"
 estado: borrador
-ultima_actualizacion: 2026-08-24
+ultima_actualizacion: 2026-08-25
 fuente: interna
 confidencialidad: restringido
 tags: [feria-finados-2026, programacion]
@@ -27,3 +27,4 @@ Marketing solo comunica elementos con estado `confirmado`, aprobación registrad
 ## Propuesta en revisión
 
 - [[2026-08-24_convocatoria-camino-megaescenario-finados-2026_v01|Camino al Megaescenario]]: convocatoria de talento con voto verificable, jurado y viabilidad técnica. No está autorizada para publicación.
+- [[../05_marketing-comunicacion/01_estrategia/2026-08-25_plan-confidencial-revelacion-cartel-finados-2026_v01|Plan confidencial de revelación del cartel]]: contiene códigos, embargo, gates y secuencia. Como este repositorio es público, no guarda nombres actuales, contratos ni la correspondencia código–artista. Ningún nombre está autorizado para publicación.

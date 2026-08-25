@@ -2,7 +2,7 @@
 titulo: "Arquitectura de experiencia y asistencia 200K Finados 2026"
 responsable: "dirección integral de la feria"
 estado: borrador
-ultima_actualizacion: 2026-08-24
+ultima_actualizacion: 2026-08-25
 fuente: "interna, auditoría Meta 2021-2026, reputación e inteligencia competitiva"
 confidencialidad: restringido
 tags:
@@ -18,15 +18,18 @@ tags:
 
 Finados 2026 no debe venderse como una suma de artistas. Debe convertirse en **la feria que cambia cada día, se recorre con intención y da una razón verificable para volver**.
 
-Sistema recomendado:
+Sistema recomendado, ajustado el 2026-08-25:
 
-- territorio de comunicación: **Cinco días, cinco formas de vivir Finados**;
+- plataforma emocional: **ES TRADICIÓN** —en desarrollo, todavía no autorizada para publicación—;
+- arquitectura de producto: **Cinco días, cinco formas de vivir Finados**;
 - producto de experiencia: **Pasaporte Vivo Mushuc** —nombre de trabajo sujeto a validación cultural y de marca—;
 - promesa funcional: **todo lo que puedes vivir, siempre fácil de encontrar**;
 - motor de asistencia: programación diferenciada + retorno entre días + recomendación validada + servicio confiable;
 - cierre narrativo: **200.000 historias vivas**, solo si acceso puede medir y Dirección autoriza el uso público de la cifra.
 
 La novedad no es una sola atracción. Es un sistema que conecta mapa, rutas, rituales diarios, tradición, feria, música, creadores, referidos y retorno. Los artistas atraen; la experiencia completa convierte y hace volver.
+
+La plataforma y el sistema audiovisual se desarrollan en [[../05_marketing-comunicacion/01_estrategia/2026-08-25_plataforma-emocional-es-tradicion-finados-2026_v01|ES TRADICIÓN]]. La prioridad comercial es que la feria vuelva a generar recorrido y oportunidad de venta para sus expositores.
 
 ## Estado de la evidencia
 
@@ -42,6 +45,7 @@ La novedad no es una sola atracción. Es un sistema que conecta mapa, rutas, rit
 | Pase Dorado 2025: 3.579 interacciones y 3.265 comentarios | histórico verificado en la auditoría Meta | activa participación, pero no prueba venta ni asistencia |
 | Reseñas señalan posibles fallas de orientación, baños, limpieza, movilidad y percepción de cobros | señal pública por verificar operacionalmente | no se debe prometer innovación sin auditar los básicos |
 | Competidores públicos pueden ofrecer programación gratuita | verificado para antecedentes; 2026 por confirmar | la defensa es experiencia, certeza, participación y valor total, no confrontación |
+| Carnaval 2026 tuvo baja asistencia y ventas de expositores; el Boleto/Pase Dorado se desgastó | reporte interno E1 transmitido por una persona que no estuvo presente | verificar con acceso, ventas, encuesta y cierre; no repetir el sorteo como eje |
 
 Fuente histórica local: [[../../../13_datos-medicion/2026-08-24_auditoria-meta-2021-2026/2026-08-24_informe-auditoria-meta-2021-2026_v01|Auditoría Meta 2021-2026]], consultada el 2026-08-24.
 
@@ -53,11 +57,12 @@ La ventana asumida del **29 de octubre al 2 de noviembre de 2026** cae de **juev
 
 | Territorio | Idea | Fortaleza | Riesgo | Uso recomendado |
 |---|---|---|---|---|
+| ES TRADICIÓN | Finados se vive como encuentro familiar, comercial, cultural y musical | breve, presente y emocional | apropiación o folclorización sin gobierno cultural | **plataforma maestra en desarrollo** |
 | La feria que tú completas | cada visitante arma rutas y completa el Pasaporte Vivo | participativo, familiar, medible | volverse una promoción de premios sin contenido | producto central |
 | Cada día cambia | cada jornada ofrece una personalidad y un motivo diferente | combate la concentración en días pico | prometer diferencias que operación no sostiene | arquitectura diaria |
 | 200.000 historias vivas | cada visita aporta a un gran relato colectivo | escala, orgullo y prueba social | usar una cifra no auditada o confundir visitas con personas | cierre narrativo condicionado |
 
-La recomendación integra los tres: **el pasaporte organiza**, **cada día cambia el motivo** y **la historia colectiva muestra el resultado**.
+La recomendación integra los territorios: **ES TRADICIÓN da significado**, **el pasaporte organiza**, **cada día cambia el motivo** y **la historia colectiva muestra el resultado**.
 
 ## Modelo de asistencia: objetivo, no pronóstico
 
@@ -117,11 +122,11 @@ Los porcentajes describen el énfasis de la promesa, no el reparto exacto de min
 
 | Jornada | Identidad propuesta | Mezcla | Ancla propia | Motivo para llegar temprano | Motivo para volver |
 |---|---|---:|---|---|---|
-| Día 1 | **Los Primeros** | feria/familia/comunidad | apertura del Pasaporte Vivo + ruta inaugural | `Mushuc Activo`: bailoterapia, danza familiar o actividad física gratuita dentro del acceso aprobado | beneficio de retorno validado y limitado |
-| Día 2 | **Sabores y Emprendedores** | 70 % feria / 30 % música | ruta gastronómica y comercial + reto de descubrimiento | degustaciones o demostraciones programadas | sello de ruta + siguiente capítulo del pasaporte |
-| Día 3 | **La Gran Noche** | 50 % feria / 50 % música | mayor momento musical + final participativa | agenda familiar diurna y experiencias antes del concierto | acceso a cierre de pasaporte, no descuento indiscriminado |
-| Día 4 | **Tradición Viva** | 70 % feria / 30 % música | Rey Pan, Srta. Colada Morada, juegos y relato aprobado | rutas culturales y familiares | progreso para reconocimiento final |
-| Día 5 | **25.000 Latidos Morados** | principalmente feria | colada morada, agradecimiento y cierre colectivo | entregas por franjas y zonas para evitar una sola fila | recuerdo compartible y llamado a la próxima edición |
+| Día 1 | **Volver es tradición** | feria/familia/comunidad | apertura del Pasaporte Vivo + ruta inaugural | `Mushuc Activo`: bailoterapia, danza familiar o actividad física gratuita dentro del acceso aprobado | beneficio de retorno validado y limitado |
+| Día 2 | **Descubrir lo nuestro es tradición** | 70 % feria / 30 % música | rutas gastronómicas, comerciales y demostraciones | historias de producto y hallazgos del mapa | sello de ruta + siguiente capítulo del pasaporte |
+| Día 3 | **Cantar juntos es tradición** | 50 % feria / 50 % música | mayor momento musical + feria activa antes del show | agenda familiar diurna y experiencias antes del concierto | acceso a cierre de pasaporte, no descuento indiscriminado |
+| Día 4 | **Compartir en familia es tradición** | 70 % feria / 30 % música | Rey Pan, Srta. Colada Morada, juegos y relato aprobado | rutas culturales y familiares | progreso para reconocimiento final |
+| Día 5 | **Recordar es tradición** | principalmente feria | `25.000 Latidos Morados`, memoria y cierre colectivo | entregas por franjas y zonas para evitar una sola fila | recuerdo compartible y llamado a la próxima edición |
 
 Los nombres son borradores. La distribución final depende del cartel ya seleccionado, los contratos, el mapa, los aforos y el gobierno cultural.
 

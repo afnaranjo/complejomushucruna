@@ -2,7 +2,7 @@
 titulo: "Eventos pasados destacados del Complejo Mushuc Runa"
 responsable: "investigación y experiencia"
 estado: en-revision
-ultima_actualizacion: 2026-08-24
+ultima_actualizacion: 2026-08-25
 fuente: publica
 confidencialidad: restringido
 tags:
@@ -28,6 +28,10 @@ Esta cronología prioriza lo que cada evento demuestra de forma favorable. No cl
 | 2025 — Quinta Expoferia de Carnaval | Renovación de atractivos y amplitud de oferta | *La Hora* documentó una programación con más de 500 emprendimientos, parque de dinosaurios, resbaladera gigante, desfiles interculturales, gastronomía y conciertos | Nota previa; las cifras de visitantes, empleo y capacidad eran proyecciones o declaraciones del organizador |
 | 2025 — Quinta Feria de Finados | Continuidad anual, automatización y programación musical por géneros | Prensa local registró la quinta edición, el sistema Mushuc Ticket y apoyo interinstitucional; la boletería archivó noches de rock, vallenato, cumbia, música sureña y música nacional | Confirma lanzamiento y programación; la cifra cercana a 300.000 visitantes no está respaldada por un cierre auditado |
 | 2026 — Sexta Expoferia Carnavales Mushuc Runa | Programación nacional e internacional y operación de cinco días | Un proveedor reportó miles de asistentes, agenda cultural, gastronómica y artística, y cerca de 500 personas en seguridad y control. La transmisión principal consultada en YouTube acumulaba más de 15.000 visualizaciones | Reporte de proveedor y métricas digitales observables; no equivalen a evaluación independiente ni asistencia física auditada |
+
+### Conflicto de fuentes sobre Carnaval 2026
+
+El 2026-08-25 se recibió un [[../../01_reputacion-riesgos-y-voz-publica/02_reportes-internos/2026-08-25_reporte-interno_carnaval-2026_baja-asistencia-ventas_v01|reporte interno E1]] que describe baja asistencia y ventas débiles para muchos expositores. Contrasta con el cierre positivo publicado por un proveedor. Ninguna versión cuenta todavía con entradas conciliadas, ventas de expositores, P&L o encuesta de cierre. No se clasificará la edición como éxito o fracaso hasta que dirección/finanzas/expositores resuelvan el conflicto con datos.
 
 ## Otros eventos que muestran versatilidad
 

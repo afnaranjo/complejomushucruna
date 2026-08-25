@@ -2,7 +2,7 @@
 titulo: "Centro integral Feria de Finados 2026"
 responsable: "dirección integral de la feria"
 estado: en-revision
-ultima_actualizacion: 2026-08-24
+ultima_actualizacion: 2026-08-25
 fuente: interna
 confidencialidad: interno
 tags:
@@ -29,6 +29,8 @@ Este expediente es la fuente única de verdad de la feria. Aquí se conectan tod
 ## Estrategia digital en ejecución interna
 
 - [[01_concepto-experiencia/2026-08-24_arquitectura-experiencia-asistencia-200k-finados-2026_v01|Arquitectura de experiencia y asistencia 200K]]
+- [[05_marketing-comunicacion/01_estrategia/2026-08-25_plataforma-emocional-es-tradicion-finados-2026_v01|Plataforma emocional ES TRADICIÓN]]
+- [[05_marketing-comunicacion/01_estrategia/2026-08-25_plan-confidencial-revelacion-cartel-finados-2026_v01|Plan confidencial del cartel]]
 - [[05_marketing-comunicacion/01_estrategia/2026-08-24_plan-operativo-digital-finados-2026_v01|Plan operativo digital · inicia 25 de agosto]]
 - [[05_marketing-comunicacion/01_estrategia/2026-08-24_estrategia-competitiva-preventa-participacion-finados-2026_v01|Estrategia competitiva, preventa y participación]]
 - [[05_marketing-comunicacion/03_pauta/2026-08-24_plan-pauta-social-usd4000-finados-2026_v01|Plan de pauta social · USD 4.000]]
