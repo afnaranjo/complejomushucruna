@@ -205,3 +205,15 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Publicación externa: ninguna; no se modificaron dominios, campañas, cuentas, boletería ni sitios.
 - Riesgos: dominio comprometido o mal redirigido por causa todavía desconocida; competencia directa en Finados; folclorización; bienestar animal; inversión prematura.
 - Pendiente: diagnóstico autorizado del dominio, visitas de campo, inventario y línea base operativa, validación cultural Chibuleo y aprobación/ajuste del concepto.
+
+### 2026-08-24 — Auditoría Meta 2021-2026 y estrategia digital de Finados
+
+- Se extrajeron de forma conservadora y en solo lectura 1.414 publicaciones públicas de `Finados Mushuc Runa` y `Carnavales Mushuc Runa`; se normalizaron fechas a `America/Guayaquil` y se analizaron eventos, fases, formatos, temas, concentración y duplicación.
+- Se recuperaron 13 meses parciales de pauta de `ExpoFeria Mushuc Runa`: USD 26.532,46 observados, 71,48 millones de impresiones, 431.866 clics de enlace y 6.959 conversaciones atribuidas. No representan gasto total histórico.
+- La extracción se detuvo inmediatamente al límite de la aplicación; el encabezado de cuenta reportó 0% de uso. No se hicieron reintentos posteriores, no se guardó el token, no se extrajeron comentarios individuales y no se cambió ningún activo de Meta.
+- Se crearon datos procesados, validaciones, notebook reproducible, informe ejecutivo HTML autónomo, informe canónico y una estrategia digital provisional para Finados 2026.
+- Los hallazgos principales son: video por encima de foto; música como gancho; utilidad operativa compartible; saturación de 35,8 publicaciones diarias durante Finados 2025; concentración de 25,8% del total en una pieza; medición de compra no comparable entre ediciones.
+- Commit: incluido en `Auditar Meta y definir estrategia digital Finados 2026`.
+- Publicación externa: ninguna; no se desplegó, publicó, pautó ni modificó páginas, anuncios, cuentas, dominios o boletería.
+- Riesgos: pauta incompleta, segunda cuenta pendiente, historial previo a agosto de 2023 no disponible por Insights, zona horaria publicitaria distinta, compras/leads sin conciliación y ausencia de sentimiento de comentarios.
+- Pendiente: esperar la restitución de cuota antes de otra extracción; obtener facturación y desglose de ambas cuentas; auditar tracking/boletería; confirmar presupuesto/oferta; aprobar o ajustar la estrategia con dirección, operación y comunidad.

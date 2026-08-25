@@ -1,0 +1,125 @@
+{
+  "api": "Meta Marketing API v26.0",
+  "desde": "2023-08-01",
+  "detencion": "Meta detuvo la consulta: HTTP 403; código 4; Application request limit reached",
+  "estado": "parcial-segura",
+  "extraido_utc": "2026-08-25T02:30:49+00:00",
+  "filas": {
+    "campanas": 0,
+    "pauta_campanas": 0,
+    "pauta_mensual": 13
+  },
+  "hasta": "2026-08-24",
+  "limitacion_historica": "Meta Ads Insights v26.0 rechazó rangos cuyo inicio supera 37 meses. El gasto anterior a 2023-08-01 requiere exportes históricos o facturación.",
+  "limite_solicitudes": 12,
+  "pausa_segundos": 3.0,
+  "privacidad": "No se guardaron credenciales ni datos personales.",
+  "registro_solicitudes": [
+    {
+      "http": 200,
+      "inicio_utc": "2026-08-25T02:30:23+00:00",
+      "numero": 1,
+      "ruta": "act_2943017486003206/insights",
+      "uso": {
+        "facebook-api-version": "v26.0",
+        "x-business-use-case-usage": {
+          "2943017486003206": [
+            {
+              "ads_api_access_tier": "development_access",
+              "call_count": 0,
+              "estimated_time_to_regain_access": 0,
+              "total_cputime": 0,
+              "total_time": 0,
+              "type": "ads_insights"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "http": 200,
+      "inicio_utc": "2026-08-25T02:30:29+00:00",
+      "numero": 2,
+      "ruta": "act_2943017486003206/insights",
+      "uso": {
+        "facebook-api-version": "v26.0",
+        "x-business-use-case-usage": {
+          "2943017486003206": [
+            {
+              "ads_api_access_tier": "development_access",
+              "call_count": 1,
+              "estimated_time_to_regain_access": 0,
+              "total_cputime": 1,
+              "total_time": 1,
+              "type": "ads_insights"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "http": 200,
+      "inicio_utc": "2026-08-25T02:30:33+00:00",
+      "numero": 3,
+      "ruta": "act_2943017486003206/insights",
+      "uso": {
+        "facebook-api-version": "v26.0",
+        "x-business-use-case-usage": {
+          "2943017486003206": [
+            {
+              "ads_api_access_tier": "development_access",
+              "call_count": 1,
+              "estimated_time_to_regain_access": 0,
+              "total_cputime": 1,
+              "total_time": 1,
+              "type": "ads_insights"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "http": 200,
+      "inicio_utc": "2026-08-25T02:30:40+00:00",
+      "numero": 4,
+      "ruta": "act_2943017486003206/insights",
+      "uso": {
+        "facebook-api-version": "v26.0",
+        "x-business-use-case-usage": {
+          "2943017486003206": [
+            {
+              "ads_api_access_tier": "development_access",
+              "call_count": 1,
+              "estimated_time_to_regain_access": 0,
+              "total_cputime": 1,
+              "total_time": 2,
+              "type": "ads_insights"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "http": 403,
+      "inicio_utc": "2026-08-25T02:30:45+00:00",
+      "numero": 5,
+      "ruta": "act_2943017486003206/insights",
+      "uso": {
+        "facebook-api-version": "v26.0",
+        "x-ad-account-usage": {
+          "acc_id_util_pct": 0,
+          "ads_api_access_tier": "development_access",
+          "reset_time_duration": 0
+        },
+        "x-app-usage": {
+          "call_count": 0,
+          "total_cputime": 0,
+          "total_time": 1
+        }
+      }
+    }
+  ],
+  "solicitudes_realizadas": 5,
+  "solo_lectura": true,
+  "umbral_uso_porcentaje": 10
+}

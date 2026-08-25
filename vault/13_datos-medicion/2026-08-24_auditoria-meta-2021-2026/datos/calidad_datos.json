@@ -1,0 +1,38 @@
+{
+  "publicaciones_fuente": 1414,
+  "ids_unicos": 1414,
+  "ids_duplicados": 0,
+  "mensajes_vacios": 72,
+  "publicaciones_en_eventos_clasificados": 1363,
+  "cobertura_por_pagina": {
+    "105221087662733": {
+      "pagina": "Carnavales Mushuc Runa",
+      "filas": 1017,
+      "primera_publicacion_utc": "2021-01-23T13:18:56+0000",
+      "ultima_publicacion_utc": "2026-03-13T23:35:53+0000"
+    },
+    "729780340226059": {
+      "pagina": "Finados Mushuc Runa ",
+      "filas": 397,
+      "primera_publicacion_utc": "2025-09-06T01:42:24+0000",
+      "ultima_publicacion_utc": "2025-11-19T01:00:53+0000"
+    }
+  },
+  "zona_horaria_publicaciones_fuente": "UTC",
+  "zona_horaria_analitica": "America/Guayaquil",
+  "advertencia": "Interacciones absolutas, sin alcance orgánico por publicación; no calcular tasa de engagement ni atribuir causalidad a la pauta.",
+  "pauta": {
+    "filas_mensuales": 13,
+    "cuentas_presentes": [
+      "ExpoFeria Mushuc Runa"
+    ],
+    "primera_fecha": "2023-12",
+    "ultima_fecha": "2026-03",
+    "estado_extraccion": "parcial-segura",
+    "detencion": "Meta detuvo la consulta: HTTP 403; código 4; Application request limit reached",
+    "limitacion_historica": "Meta Ads Insights v26.0 rechazó rangos cuyo inicio supera 37 meses. El gasto anterior a 2023-08-01 requiere exportes históricos o facturación.",
+    "cuenta_complejo_incluida": false,
+    "campanas_incluidas": false,
+    "advertencia": "No interpretar acciones atribuidas como ventas auditadas; configuración del píxel, ventana y deduplicación no fueron verificadas."
+  }
+}

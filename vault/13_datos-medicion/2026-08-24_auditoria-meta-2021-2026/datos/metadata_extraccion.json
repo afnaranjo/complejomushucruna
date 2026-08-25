@@ -1,0 +1,417 @@
+{
+  "api": "Meta Graph API v26.0",
+  "desde": "2021-01-01",
+  "detencion": "Máximo conservador de 20 solicitudes alcanzado",
+  "estado": "parcial-segura",
+  "extraido_utc": "2026-08-25T02:28:26+00:00",
+  "filas": {
+    "campanas": 0,
+    "paginas": 2,
+    "pauta_campanas": 0,
+    "pauta_mensual": 0,
+    "publicaciones": 1414
+  },
+  "hasta": "2026-08-24",
+  "limite_solicitudes": 20,
+  "pausa_segundos": 3.0,
+  "privacidad": "No se extrajeron comentarios individuales, nombres de usuarios ni credenciales. Los tokens se mantuvieron únicamente en memoria.",
+  "registro_solicitudes": [
+    {
+      "http": 200,
+      "inicio_utc": "2026-08-25T02:26:11+00:00",
+      "numero": 1,
+      "ruta": "me/accounts",
+      "uso": {
+        "facebook-api-version": "v26.0",
+        "x-app-usage": {
+          "call_count": 0,
+          "total_cputime": 0,
+          "total_time": 0
+        }
+      }
+    },
+    {
+      "http": 200,
+      "inicio_utc": "2026-08-25T02:26:15+00:00",
+      "numero": 2,
+      "ruta": "729780340226059",
+      "uso": {
+        "facebook-api-version": "v26.0",
+        "x-business-use-case-usage": {
+          "729780340226059": [
+            {
+              "call_count": 0,
+              "estimated_time_to_regain_access": 0,
+              "total_cputime": 0,
+              "total_time": 0,
+              "type": "pages"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "http": 200,
+      "inicio_utc": "2026-08-25T02:26:19+00:00",
+      "numero": 3,
+      "ruta": "729780340226059/posts",
+      "uso": {
+        "facebook-api-version": "v26.0",
+        "x-business-use-case-usage": {
+          "729780340226059": [
+            {
+              "call_count": 1,
+              "estimated_time_to_regain_access": 0,
+              "total_cputime": 1,
+              "total_time": 0,
+              "type": "pages"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "http": 200,
+      "inicio_utc": "2026-08-25T02:26:27+00:00",
+      "numero": 4,
+      "ruta": "729780340226059/posts",
+      "uso": {
+        "facebook-api-version": "v26.0",
+        "x-business-use-case-usage": {
+          "729780340226059": [
+            {
+              "call_count": 1,
+              "estimated_time_to_regain_access": 0,
+              "total_cputime": 1,
+              "total_time": 1,
+              "type": "pages"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "http": 200,
+      "inicio_utc": "2026-08-25T02:26:35+00:00",
+      "numero": 5,
+      "ruta": "729780340226059/posts",
+      "uso": {
+        "facebook-api-version": "v26.0",
+        "x-business-use-case-usage": {
+          "729780340226059": [
+            {
+              "call_count": 1,
+              "estimated_time_to_regain_access": 0,
+              "total_cputime": 1,
+              "total_time": 1,
+              "type": "pages"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "http": 200,
+      "inicio_utc": "2026-08-25T02:26:43+00:00",
+      "numero": 6,
+      "ruta": "729780340226059/posts",
+      "uso": {
+        "facebook-api-version": "v26.0",
+        "x-business-use-case-usage": {
+          "729780340226059": [
+            {
+              "call_count": 1,
+              "estimated_time_to_regain_access": 0,
+              "total_cputime": 1,
+              "total_time": 1,
+              "type": "pages"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "http": 200,
+      "inicio_utc": "2026-08-25T02:26:51+00:00",
+      "numero": 7,
+      "ruta": "729780340226059/posts",
+      "uso": {
+        "facebook-api-version": "v26.0",
+        "x-business-use-case-usage": {
+          "729780340226059": [
+            {
+              "call_count": 1,
+              "estimated_time_to_regain_access": 0,
+              "total_cputime": 1,
+              "total_time": 1,
+              "type": "pages"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "http": 200,
+      "inicio_utc": "2026-08-25T02:26:54+00:00",
+      "numero": 8,
+      "ruta": "105221087662733",
+      "uso": {
+        "facebook-api-version": "v26.0",
+        "x-business-use-case-usage": {
+          "105221087662733": [
+            {
+              "call_count": 0,
+              "estimated_time_to_regain_access": 0,
+              "total_cputime": 0,
+              "total_time": 0,
+              "type": "pages"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "http": 200,
+      "inicio_utc": "2026-08-25T02:26:57+00:00",
+      "numero": 9,
+      "ruta": "105221087662733/posts",
+      "uso": {
+        "facebook-api-version": "v26.0",
+        "x-business-use-case-usage": {
+          "105221087662733": [
+            {
+              "call_count": 1,
+              "estimated_time_to_regain_access": 0,
+              "total_cputime": 1,
+              "total_time": 1,
+              "type": "pages"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "http": 200,
+      "inicio_utc": "2026-08-25T02:27:05+00:00",
+      "numero": 10,
+      "ruta": "105221087662733/posts",
+      "uso": {
+        "facebook-api-version": "v26.0",
+        "x-business-use-case-usage": {
+          "105221087662733": [
+            {
+              "call_count": 1,
+              "estimated_time_to_regain_access": 0,
+              "total_cputime": 1,
+              "total_time": 1,
+              "type": "pages"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "http": 200,
+      "inicio_utc": "2026-08-25T02:27:15+00:00",
+      "numero": 11,
+      "ruta": "105221087662733/posts",
+      "uso": {
+        "facebook-api-version": "v26.0",
+        "x-business-use-case-usage": {
+          "105221087662733": [
+            {
+              "call_count": 1,
+              "estimated_time_to_regain_access": 0,
+              "total_cputime": 1,
+              "total_time": 1,
+              "type": "pages"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "http": 200,
+      "inicio_utc": "2026-08-25T02:27:24+00:00",
+      "numero": 12,
+      "ruta": "105221087662733/posts",
+      "uso": {
+        "facebook-api-version": "v26.0",
+        "x-business-use-case-usage": {
+          "105221087662733": [
+            {
+              "call_count": 1,
+              "estimated_time_to_regain_access": 0,
+              "total_cputime": 1,
+              "total_time": 1,
+              "type": "pages"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "http": 200,
+      "inicio_utc": "2026-08-25T02:27:32+00:00",
+      "numero": 13,
+      "ruta": "105221087662733/posts",
+      "uso": {
+        "facebook-api-version": "v26.0",
+        "x-business-use-case-usage": {
+          "105221087662733": [
+            {
+              "call_count": 1,
+              "estimated_time_to_regain_access": 0,
+              "total_cputime": 1,
+              "total_time": 1,
+              "type": "pages"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "http": 200,
+      "inicio_utc": "2026-08-25T02:27:42+00:00",
+      "numero": 14,
+      "ruta": "105221087662733/posts",
+      "uso": {
+        "facebook-api-version": "v26.0",
+        "x-business-use-case-usage": {
+          "105221087662733": [
+            {
+              "call_count": 1,
+              "estimated_time_to_regain_access": 0,
+              "total_cputime": 1,
+              "total_time": 1,
+              "type": "pages"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "http": 200,
+      "inicio_utc": "2026-08-25T02:27:51+00:00",
+      "numero": 15,
+      "ruta": "105221087662733/posts",
+      "uso": {
+        "facebook-api-version": "v26.0",
+        "x-business-use-case-usage": {
+          "105221087662733": [
+            {
+              "call_count": 1,
+              "estimated_time_to_regain_access": 0,
+              "total_cputime": 1,
+              "total_time": 1,
+              "type": "pages"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "http": 200,
+      "inicio_utc": "2026-08-25T02:27:59+00:00",
+      "numero": 16,
+      "ruta": "105221087662733/posts",
+      "uso": {
+        "facebook-api-version": "v26.0",
+        "x-business-use-case-usage": {
+          "105221087662733": [
+            {
+              "call_count": 1,
+              "estimated_time_to_regain_access": 0,
+              "total_cputime": 1,
+              "total_time": 1,
+              "type": "pages"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "http": 200,
+      "inicio_utc": "2026-08-25T02:28:06+00:00",
+      "numero": 17,
+      "ruta": "105221087662733/posts",
+      "uso": {
+        "facebook-api-version": "v26.0",
+        "x-business-use-case-usage": {
+          "105221087662733": [
+            {
+              "call_count": 1,
+              "estimated_time_to_regain_access": 0,
+              "total_cputime": 1,
+              "total_time": 1,
+              "type": "pages"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "http": 200,
+      "inicio_utc": "2026-08-25T02:28:15+00:00",
+      "numero": 18,
+      "ruta": "105221087662733/posts",
+      "uso": {
+        "facebook-api-version": "v26.0",
+        "x-business-use-case-usage": {
+          "105221087662733": [
+            {
+              "call_count": 1,
+              "estimated_time_to_regain_access": 0,
+              "total_cputime": 1,
+              "total_time": 1,
+              "type": "pages"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "http": 200,
+      "inicio_utc": "2026-08-25T02:28:21+00:00",
+      "numero": 19,
+      "ruta": "105221087662733/posts",
+      "uso": {
+        "facebook-api-version": "v26.0",
+        "x-business-use-case-usage": {
+          "105221087662733": [
+            {
+              "call_count": 1,
+              "estimated_time_to_regain_access": 0,
+              "total_cputime": 1,
+              "total_time": 1,
+              "type": "pages"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "http": 200,
+      "inicio_utc": "2026-08-25T02:28:25+00:00",
+      "numero": 20,
+      "ruta": "105221087662733/posts",
+      "uso": {
+        "facebook-api-version": "v26.0",
+        "x-business-use-case-usage": {
+          "105221087662733": [
+            {
+              "call_count": 1,
+              "estimated_time_to_regain_access": 0,
+              "total_cputime": 1,
+              "total_time": 1,
+              "type": "pages"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "solicitudes_realizadas": 20,
+  "solo_lectura": true,
+  "umbral_uso_porcentaje": 10
+}

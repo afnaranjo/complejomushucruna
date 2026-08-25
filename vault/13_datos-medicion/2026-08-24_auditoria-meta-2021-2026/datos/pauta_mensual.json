@@ -1,0 +1,2448 @@
+[
+  {
+    "account_id": "2943017486003206",
+    "account_name": "ExpoFeria Mushuc Runa",
+    "actions": [
+      {
+        "action_type": "web_in_store_purchase",
+        "value": "3"
+      },
+      {
+        "action_type": "omni_purchase",
+        "value": "3"
+      },
+      {
+        "action_type": "link_click",
+        "value": "7939"
+      },
+      {
+        "action_type": "initiate_checkout",
+        "value": "3"
+      },
+      {
+        "action_type": "offsite_purchase_add_20_s_calls",
+        "value": "3"
+      },
+      {
+        "action_type": "add_to_cart",
+        "value": "8"
+      },
+      {
+        "action_type": "offsite_conversion.fb_pixel_purchase",
+        "value": "3"
+      },
+      {
+        "action_type": "offsite_conversion.fb_pixel_initiate_checkout",
+        "value": "3"
+      },
+      {
+        "action_type": "offsite_conversion.fb_pixel_custom",
+        "value": "4"
+      },
+      {
+        "action_type": "offsite_initiate_checkout_add_20_s_calls",
+        "value": "3"
+      },
+      {
+        "action_type": "offsite_conversion.fb_pixel_add_to_cart",
+        "value": "8"
+      },
+      {
+        "action_type": "post_reaction",
+        "value": "4322"
+      },
+      {
+        "action_type": "offsite_content_view_add_20_s_calls",
+        "value": "58"
+      },
+      {
+        "action_type": "landing_page_view",
+        "value": "31"
+      },
+      {
+        "action_type": "onsite_web_lead",
+        "value": "2"
+      },
+      {
+        "action_type": "omni_landing_page_view",
+        "value": "31"
+      },
+      {
+        "action_type": "onsite_conversion.total_messaging_connection",
+        "value": "21"
+      },
+      {
+        "action_type": "post_engagement",
+        "value": "162953"
+      },
+      {
+        "action_type": "post_interaction_gross",
+        "value": "5112"
+      },
+      {
+        "action_type": "comment",
+        "value": "98"
+      },
+      {
+        "action_type": "onsite_web_app_purchase",
+        "value": "3"
+      },
+      {
+        "action_type": "page_engagement",
+        "value": "162951"
+      },
+      {
+        "action_type": "purchase",
+        "value": "3"
+      },
+      {
+        "action_type": "onsite_web_view_content",
+        "value": "58"
+      },
+      {
+        "action_type": "onsite_web_add_to_cart",
+        "value": "8"
+      },
+      {
+        "action_type": "post_interaction_net",
+        "value": "5112"
+      },
+      {
+        "action_type": "onsite_conversion.messaging_user_depth_2_message_send",
+        "value": "6"
+      },
+      {
+        "action_type": "onsite_conversion.messaging_first_reply",
+        "value": "14"
+      },
+      {
+        "action_type": "onsite_web_app_view_content",
+        "value": "58"
+      },
+      {
+        "action_type": "post",
+        "value": "530"
+      },
+      {
+        "action_type": "photo_view",
+        "value": "86"
+      },
+      {
+        "action_type": "view_content",
+        "value": "58"
+      },
+      {
+        "action_type": "onsite_conversion.post_save",
+        "value": "162"
+      },
+      {
+        "action_type": "onsite_conversion.post_net_comment",
+        "value": "98"
+      },
+      {
+        "action_type": "web_app_in_store_purchase",
+        "value": "3"
+      },
+      {
+        "action_type": "onsite_web_app_add_to_cart",
+        "value": "8"
+      },
+      {
+        "action_type": "onsite_conversion.post_net_save",
+        "value": "162"
+      },
+      {
+        "action_type": "onsite_conversion.post_net_like",
+        "value": "4322"
+      },
+      {
+        "action_type": "onsite_web_initiate_checkout",
+        "value": "3"
+      },
+      {
+        "action_type": "omni_initiated_checkout",
+        "value": "3"
+      },
+      {
+        "action_type": "omni_add_to_cart",
+        "value": "8"
+      },
+      {
+        "action_type": "lead",
+        "value": "2"
+      },
+      {
+        "action_type": "offsite_content_view_add_meta_leads",
+        "value": "58"
+      },
+      {
+        "action_type": "onsite_web_purchase",
+        "value": "3"
+      },
+      {
+        "action_type": "onsite_conversion.messaging_conversation_started_7d",
+        "value": "16"
+      },
+      {
+        "action_type": "offsite_add_to_cart_add_20_s_calls",
+        "value": "8"
+      },
+      {
+        "action_type": "video_view",
+        "value": "149814"
+      },
+      {
+        "action_type": "offsite_conversion.fb_pixel_lead",
+        "value": "2"
+      },
+      {
+        "action_type": "offsite_lead_add_20_s_calls",
+        "value": "2"
+      },
+      {
+        "action_type": "omni_view_content",
+        "value": "58"
+      },
+      {
+        "action_type": "offsite_conversion.fb_pixel_view_content",
+        "value": "58"
+      }
+    ],
+    "clicks": "28681",
+    "cpc": "0.013909",
+    "cpm": "0.305272",
+    "ctr": "2.194751",
+    "date_start": "2023-12-01",
+    "date_stop": "2023-12-31",
+    "expected_account_name": "ExpoFeria Mushuc Runa",
+    "frequency": "1.474213",
+    "impressions": "1306800",
+    "inline_link_clicks": "7939",
+    "reach": "886439",
+    "spend": "398.93"
+  },
+  {
+    "account_id": "2943017486003206",
+    "account_name": "ExpoFeria Mushuc Runa",
+    "actions": [
+      {
+        "action_type": "web_in_store_purchase",
+        "value": "7"
+      },
+      {
+        "action_type": "omni_purchase",
+        "value": "7"
+      },
+      {
+        "action_type": "link_click",
+        "value": "65531"
+      },
+      {
+        "action_type": "initiate_checkout",
+        "value": "1"
+      },
+      {
+        "action_type": "offsite_purchase_add_20_s_calls",
+        "value": "7"
+      },
+      {
+        "action_type": "add_to_cart",
+        "value": "1"
+      },
+      {
+        "action_type": "offsite_conversion.fb_pixel_purchase",
+        "value": "7"
+      },
+      {
+        "action_type": "offsite_conversion.fb_pixel_initiate_checkout",
+        "value": "1"
+      },
+      {
+        "action_type": "offsite_conversion.fb_pixel_custom",
+        "value": "23"
+      },
+      {
+        "action_type": "offsite_initiate_checkout_add_20_s_calls",
+        "value": "1"
+      },
+      {
+        "action_type": "offsite_conversion.fb_pixel_add_to_cart",
+        "value": "1"
+      },
+      {
+        "action_type": "post_reaction",
+        "value": "24242"
+      },
+      {
+        "action_type": "onsite_conversion.messaging_conversation_replied_7d",
+        "value": "1"
+      },
+      {
+        "action_type": "offsite_content_view_add_20_s_calls",
+        "value": "433"
+      },
+      {
+        "action_type": "landing_page_view",
+        "value": "17"
+      },
+      {
+        "action_type": "omni_landing_page_view",
+        "value": "17"
+      },
+      {
+        "action_type": "onsite_conversion.total_messaging_connection",
+        "value": "59"
+      },
+      {
+        "action_type": "post_engagement",
+        "value": "1203227"
+      },
+      {
+        "action_type": "like",
+        "value": "4"
+      },
+      {
+        "action_type": "post_interaction_gross",
+        "value": "28636"
+      },
+      {
+        "action_type": "comment",
+        "value": "778"
+      },
+      {
+        "action_type": "onsite_web_app_purchase",
+        "value": "7"
+      },
+      {
+        "action_type": "page_engagement",
+        "value": "1203215"
+      },
+      {
+        "action_type": "purchase",
+        "value": "7"
+      },
+      {
+        "action_type": "onsite_web_view_content",
+        "value": "433"
+      },
+      {
+        "action_type": "onsite_web_add_to_cart",
+        "value": "1"
+      },
+      {
+        "action_type": "post_interaction_net",
+        "value": "28636"
+      },
+      {
+        "action_type": "onsite_conversion.messaging_user_depth_2_message_send",
+        "value": "32"
+      },
+      {
+        "action_type": "onsite_conversion.messaging_first_reply",
+        "value": "53"
+      },
+      {
+        "action_type": "onsite_web_app_view_content",
+        "value": "433"
+      },
+      {
+        "action_type": "post",
+        "value": "2775"
+      },
+      {
+        "action_type": "photo_view",
+        "value": "362"
+      },
+      {
+        "action_type": "view_content",
+        "value": "433"
+      },
+      {
+        "action_type": "onsite_conversion.post_save",
+        "value": "841"
+      },
+      {
+        "action_type": "onsite_conversion.post_net_comment",
+        "value": "778"
+      },
+      {
+        "action_type": "web_app_in_store_purchase",
+        "value": "7"
+      },
+      {
+        "action_type": "onsite_web_app_add_to_cart",
+        "value": "1"
+      },
+      {
+        "action_type": "onsite_conversion.post_net_save",
+        "value": "841"
+      },
+      {
+        "action_type": "onsite_conversion.post_net_like",
+        "value": "24242"
+      },
+      {
+        "action_type": "onsite_web_initiate_checkout",
+        "value": "1"
+      },
+      {
+        "action_type": "omni_initiated_checkout",
+        "value": "1"
+      },
+      {
+        "action_type": "omni_add_to_cart",
+        "value": "1"
+      },
+      {
+        "action_type": "offsite_content_view_add_meta_leads",
+        "value": "433"
+      },
+      {
+        "action_type": "onsite_web_purchase",
+        "value": "7"
+      },
+      {
+        "action_type": "onsite_conversion.messaging_conversation_started_7d",
+        "value": "66"
+      },
+      {
+        "action_type": "offsite_add_to_cart_add_20_s_calls",
+        "value": "1"
+      },
+      {
+        "action_type": "video_view",
+        "value": "1108682"
+      },
+      {
+        "action_type": "omni_view_content",
+        "value": "433"
+      },
+      {
+        "action_type": "offsite_conversion.fb_pixel_view_content",
+        "value": "433"
+      }
+    ],
+    "clicks": "239642",
+    "cpc": "0.009451",
+    "cpm": "0.306237",
+    "ctr": "3.240375",
+    "date_start": "2024-01-01",
+    "date_stop": "2024-01-31",
+    "expected_account_name": "ExpoFeria Mushuc Runa",
+    "frequency": "3.547957",
+    "impressions": "7395503",
+    "inline_link_clicks": "65531",
+    "reach": "2084440",
+    "spend": "2264.78"
+  },
+  {
+    "account_id": "2943017486003206",
+    "account_name": "ExpoFeria Mushuc Runa",
+    "actions": [
+      {
+        "action_type": "web_in_store_purchase",
+        "value": "24"
+      },
+      {
+        "action_type": "omni_purchase",
+        "value": "24"
+      },
+      {
+        "action_type": "link_click",
+        "value": "42968"
+      },
+      {
+        "action_type": "initiate_checkout",
+        "value": "4"
+      },
+      {
+        "action_type": "offsite_purchase_add_20_s_calls",
+        "value": "24"
+      },
+      {
+        "action_type": "add_to_cart",
+        "value": "7"
+      },
+      {
+        "action_type": "offsite_conversion.fb_pixel_purchase",
+        "value": "24"
+      },
+      {
+        "action_type": "offsite_conversion.fb_pixel_initiate_checkout",
+        "value": "4"
+      },
+      {
+        "action_type": "offsite_conversion.fb_pixel_custom",
+        "value": "66"
+      },
+      {
+        "action_type": "offsite_initiate_checkout_add_20_s_calls",
+        "value": "4"
+      },
+      {
+        "action_type": "offsite_conversion.fb_pixel_add_to_cart",
+        "value": "7"
+      },
+      {
+        "action_type": "post_reaction",
+        "value": "15677"
+      },
+      {
+        "action_type": "onsite_conversion.messaging_conversation_replied_7d",
+        "value": "36"
+      },
+      {
+        "action_type": "offsite_content_view_add_20_s_calls",
+        "value": "2651"
+      },
+      {
+        "action_type": "landing_page_view",
+        "value": "95"
+      },
+      {
+        "action_type": "omni_landing_page_view",
+        "value": "95"
+      },
+      {
+        "action_type": "onsite_conversion.messaging_block",
+        "value": "1"
+      },
+      {
+        "action_type": "onsite_conversion.total_messaging_connection",
+        "value": "184"
+      },
+      {
+        "action_type": "post_engagement",
+        "value": "1350630"
+      },
+      {
+        "action_type": "like",
+        "value": "5"
+      },
+      {
+        "action_type": "post_interaction_gross",
+        "value": "18108"
+      },
+      {
+        "action_type": "comment",
+        "value": "377"
+      },
+      {
+        "action_type": "onsite_web_app_purchase",
+        "value": "24"
+      },
+      {
+        "action_type": "page_engagement",
+        "value": "1350635"
+      },
+      {
+        "action_type": "purchase",
+        "value": "24"
+      },
+      {
+        "action_type": "onsite_web_view_content",
+        "value": "2651"
+      },
+      {
+        "action_type": "onsite_web_add_to_cart",
+        "value": "7"
+      },
+      {
+        "action_type": "post_interaction_net",
+        "value": "18108"
+      },
+      {
+        "action_type": "onsite_conversion.messaging_user_depth_2_message_send",
+        "value": "79"
+      },
+      {
+        "action_type": "onsite_conversion.messaging_first_reply",
+        "value": "201"
+      },
+      {
+        "action_type": "onsite_web_app_view_content",
+        "value": "2651"
+      },
+      {
+        "action_type": "post",
+        "value": "1716"
+      },
+      {
+        "action_type": "photo_view",
+        "value": "11591"
+      },
+      {
+        "action_type": "view_content",
+        "value": "2651"
+      },
+      {
+        "action_type": "onsite_conversion.post_save",
+        "value": "338"
+      },
+      {
+        "action_type": "onsite_conversion.post_net_comment",
+        "value": "377"
+      },
+      {
+        "action_type": "web_app_in_store_purchase",
+        "value": "24"
+      },
+      {
+        "action_type": "onsite_web_app_add_to_cart",
+        "value": "7"
+      },
+      {
+        "action_type": "onsite_conversion.post_net_save",
+        "value": "338"
+      },
+      {
+        "action_type": "onsite_conversion.post_net_like",
+        "value": "15677"
+      },
+      {
+        "action_type": "onsite_web_initiate_checkout",
+        "value": "4"
+      },
+      {
+        "action_type": "omni_initiated_checkout",
+        "value": "4"
+      },
+      {
+        "action_type": "omni_add_to_cart",
+        "value": "7"
+      },
+      {
+        "action_type": "offsite_content_view_add_meta_leads",
+        "value": "2651"
+      },
+      {
+        "action_type": "onsite_web_purchase",
+        "value": "24"
+      },
+      {
+        "action_type": "onsite_conversion.messaging_conversation_started_7d",
+        "value": "227"
+      },
+      {
+        "action_type": "offsite_add_to_cart_add_20_s_calls",
+        "value": "7"
+      },
+      {
+        "action_type": "video_view",
+        "value": "1277963"
+      },
+      {
+        "action_type": "omni_view_content",
+        "value": "2651"
+      },
+      {
+        "action_type": "offsite_conversion.fb_pixel_view_content",
+        "value": "2651"
+      }
+    ],
+    "clicks": "200092",
+    "cpc": "0.013091",
+    "cpm": "0.428834",
+    "ctr": "3.275699",
+    "date_start": "2024-02-01",
+    "date_stop": "2024-02-29",
+    "expected_account_name": "ExpoFeria Mushuc Runa",
+    "frequency": "3.855797",
+    "impressions": "6108376",
+    "inline_link_clicks": "42968",
+    "reach": "1584206",
+    "spend": "2619.48"
+  },
+  {
+    "account_id": "2943017486003206",
+    "account_name": "ExpoFeria Mushuc Runa",
+    "actions": [
+      {
+        "action_type": "link_click",
+        "value": "1"
+      },
+      {
+        "action_type": "post_reaction",
+        "value": "969"
+      },
+      {
+        "action_type": "post_engagement",
+        "value": "268313"
+      },
+      {
+        "action_type": "post_interaction_gross",
+        "value": "1011"
+      },
+      {
+        "action_type": "comment",
+        "value": "13"
+      },
+      {
+        "action_type": "page_engagement",
+        "value": "268313"
+      },
+      {
+        "action_type": "post_interaction_net",
+        "value": "1011"
+      },
+      {
+        "action_type": "post",
+        "value": "28"
+      },
+      {
+        "action_type": "onsite_conversion.post_save",
+        "value": "1"
+      },
+      {
+        "action_type": "onsite_conversion.post_net_comment",
+        "value": "13"
+      },
+      {
+        "action_type": "onsite_conversion.post_net_save",
+        "value": "1"
+      },
+      {
+        "action_type": "onsite_conversion.post_net_like",
+        "value": "969"
+      },
+      {
+        "action_type": "video_view",
+        "value": "267301"
+      }
+    ],
+    "clicks": "8151",
+    "cpc": "0.018717",
+    "cpm": "0.418565",
+    "ctr": "2.236318",
+    "date_start": "2024-03-01",
+    "date_stop": "2024-03-31",
+    "expected_account_name": "ExpoFeria Mushuc Runa",
+    "frequency": "1.478501",
+    "impressions": "364483",
+    "inline_link_clicks": "1",
+    "reach": "246522",
+    "spend": "152.56"
+  },
+  {
+    "account_id": "2943017486003206",
+    "account_name": "ExpoFeria Mushuc Runa",
+    "actions": [
+      {
+        "action_type": "offsite_complete_registration_add_meta_leads",
+        "value": "1"
+      },
+      {
+        "action_type": "offsite_conversion.fb_pixel_add_to_wishlist",
+        "value": "1"
+      },
+      {
+        "action_type": "link_click",
+        "value": "8216"
+      },
+      {
+        "action_type": "omni_complete_registration",
+        "value": "1"
+      },
+      {
+        "action_type": "omni_add_to_wishlist",
+        "value": "1"
+      },
+      {
+        "action_type": "add_to_cart",
+        "value": "2"
+      },
+      {
+        "action_type": "offsite_conversion.fb_pixel_custom",
+        "value": "1"
+      },
+      {
+        "action_type": "offsite_conversion.fb_pixel_complete_registration",
+        "value": "1"
+      },
+      {
+        "action_type": "offsite_conversion.fb_pixel_add_to_cart",
+        "value": "2"
+      },
+      {
+        "action_type": "post_reaction",
+        "value": "17739"
+      },
+      {
+        "action_type": "onsite_conversion.messaging_conversation_replied_7d",
+        "value": "22"
+      },
+      {
+        "action_type": "offsite_content_view_add_20_s_calls",
+        "value": "171"
+      },
+      {
+        "action_type": "landing_page_view",
+        "value": "299"
+      },
+      {
+        "action_type": "omni_landing_page_view",
+        "value": "299"
+      },
+      {
+        "action_type": "onsite_conversion.messaging_block",
+        "value": "1"
+      },
+      {
+        "action_type": "onsite_conversion.total_messaging_connection",
+        "value": "1493"
+      },
+      {
+        "action_type": "rsvp",
+        "value": "854"
+      },
+      {
+        "action_type": "post_engagement",
+        "value": "952756"
+      },
+      {
+        "action_type": "like",
+        "value": "341"
+      },
+      {
+        "action_type": "post_interaction_gross",
+        "value": "20688"
+      },
+      {
+        "action_type": "comment",
+        "value": "386"
+      },
+      {
+        "action_type": "page_engagement",
+        "value": "953097"
+      },
+      {
+        "action_type": "onsite_web_view_content",
+        "value": "171"
+      },
+      {
+        "action_type": "complete_registration",
+        "value": "1"
+      },
+      {
+        "action_type": "onsite_web_add_to_cart",
+        "value": "2"
+      },
+      {
+        "action_type": "post_interaction_net",
+        "value": "20688"
+      },
+      {
+        "action_type": "onsite_conversion.messaging_user_depth_2_message_send",
+        "value": "628"
+      },
+      {
+        "action_type": "onsite_conversion.messaging_first_reply",
+        "value": "1332"
+      },
+      {
+        "action_type": "onsite_web_app_view_content",
+        "value": "171"
+      },
+      {
+        "action_type": "add_to_wishlist",
+        "value": "1"
+      },
+      {
+        "action_type": "post",
+        "value": "2249"
+      },
+      {
+        "action_type": "photo_view",
+        "value": "573"
+      },
+      {
+        "action_type": "offsite_complete_registration_add_20_s_calls",
+        "value": "1"
+      },
+      {
+        "action_type": "view_content",
+        "value": "171"
+      },
+      {
+        "action_type": "onsite_conversion.post_save",
+        "value": "314"
+      },
+      {
+        "action_type": "onsite_conversion.post_net_comment",
+        "value": "386"
+      },
+      {
+        "action_type": "onsite_conversion.messaging_user_depth_3_message_send",
+        "value": "239"
+      },
+      {
+        "action_type": "onsite_web_app_add_to_cart",
+        "value": "2"
+      },
+      {
+        "action_type": "onsite_conversion.post_net_save",
+        "value": "314"
+      },
+      {
+        "action_type": "onsite_conversion.post_net_like",
+        "value": "17739"
+      },
+      {
+        "action_type": "omni_add_to_cart",
+        "value": "2"
+      },
+      {
+        "action_type": "offsite_content_view_add_meta_leads",
+        "value": "171"
+      },
+      {
+        "action_type": "onsite_conversion.messaging_conversation_started_7d",
+        "value": "1604"
+      },
+      {
+        "action_type": "offsite_add_to_cart_add_20_s_calls",
+        "value": "2"
+      },
+      {
+        "action_type": "video_view",
+        "value": "923279"
+      },
+      {
+        "action_type": "omni_view_content",
+        "value": "171"
+      },
+      {
+        "action_type": "offsite_conversion.fb_pixel_view_content",
+        "value": "171"
+      }
+    ],
+    "clicks": "106485",
+    "cpc": "0.013198",
+    "cpm": "0.49273",
+    "ctr": "3.73326",
+    "date_start": "2025-01-01",
+    "date_stop": "2025-01-31",
+    "expected_account_name": "ExpoFeria Mushuc Runa",
+    "frequency": "1.943116",
+    "impressions": "2852333",
+    "inline_link_clicks": "8216",
+    "reach": "1467917",
+    "spend": "1405.43"
+  },
+  {
+    "account_id": "2943017486003206",
+    "account_name": "ExpoFeria Mushuc Runa",
+    "actions": [
+      {
+        "action_type": "onsite_conversion.lead",
+        "value": "4"
+      },
+      {
+        "action_type": "offsite_complete_registration_add_meta_leads",
+        "value": "4"
+      },
+      {
+        "action_type": "web_in_store_purchase",
+        "value": "14"
+      },
+      {
+        "action_type": "omni_purchase",
+        "value": "14"
+      },
+      {
+        "action_type": "link_click",
+        "value": "74993"
+      },
+      {
+        "action_type": "initiate_checkout",
+        "value": "4"
+      },
+      {
+        "action_type": "offsite_search_add_meta_leads",
+        "value": "4"
+      },
+      {
+        "action_type": "offsite_purchase_add_20_s_calls",
+        "value": "14"
+      },
+      {
+        "action_type": "add_to_cart",
+        "value": "8"
+      },
+      {
+        "action_type": "offsite_conversion.fb_pixel_purchase",
+        "value": "14"
+      },
+      {
+        "action_type": "offsite_conversion.fb_pixel_initiate_checkout",
+        "value": "4"
+      },
+      {
+        "action_type": "offsite_conversion.fb_pixel_custom",
+        "value": "7"
+      },
+      {
+        "action_type": "offsite_initiate_checkout_add_20_s_calls",
+        "value": "4"
+      },
+      {
+        "action_type": "offsite_conversion.fb_pixel_add_to_cart",
+        "value": "8"
+      },
+      {
+        "action_type": "post_reaction",
+        "value": "66683"
+      },
+      {
+        "action_type": "onsite_conversion.messaging_conversation_replied_7d",
+        "value": "42"
+      },
+      {
+        "action_type": "offsite_content_view_add_20_s_calls",
+        "value": "999"
+      },
+      {
+        "action_type": "landing_page_view",
+        "value": "135"
+      },
+      {
+        "action_type": "onsite_web_lead",
+        "value": "4"
+      },
+      {
+        "action_type": "omni_landing_page_view",
+        "value": "135"
+      },
+      {
+        "action_type": "onsite_conversion.total_messaging_connection",
+        "value": "803"
+      },
+      {
+        "action_type": "rsvp",
+        "value": "11"
+      },
+      {
+        "action_type": "post_engagement",
+        "value": "4181529"
+      },
+      {
+        "action_type": "like",
+        "value": "783"
+      },
+      {
+        "action_type": "post_interaction_gross",
+        "value": "73774"
+      },
+      {
+        "action_type": "comment",
+        "value": "1018"
+      },
+      {
+        "action_type": "onsite_web_app_purchase",
+        "value": "14"
+      },
+      {
+        "action_type": "page_engagement",
+        "value": "4182312"
+      },
+      {
+        "action_type": "purchase",
+        "value": "14"
+      },
+      {
+        "action_type": "onsite_web_view_content",
+        "value": "999"
+      },
+      {
+        "action_type": "onsite_web_add_to_cart",
+        "value": "8"
+      },
+      {
+        "action_type": "post_interaction_net",
+        "value": "73774"
+      },
+      {
+        "action_type": "onsite_conversion.messaging_user_depth_2_message_send",
+        "value": "269"
+      },
+      {
+        "action_type": "onsite_conversion.messaging_first_reply",
+        "value": "727"
+      },
+      {
+        "action_type": "onsite_web_app_view_content",
+        "value": "999"
+      },
+      {
+        "action_type": "post",
+        "value": "5133"
+      },
+      {
+        "action_type": "photo_view",
+        "value": "26996"
+      },
+      {
+        "action_type": "view_content",
+        "value": "999"
+      },
+      {
+        "action_type": "onsite_conversion.post_save",
+        "value": "940"
+      },
+      {
+        "action_type": "onsite_conversion.post_net_comment",
+        "value": "1018"
+      },
+      {
+        "action_type": "onsite_conversion.messaging_user_depth_3_message_send",
+        "value": "84"
+      },
+      {
+        "action_type": "web_app_in_store_purchase",
+        "value": "14"
+      },
+      {
+        "action_type": "onsite_web_app_add_to_cart",
+        "value": "8"
+      },
+      {
+        "action_type": "onsite_conversion.post_net_save",
+        "value": "940"
+      },
+      {
+        "action_type": "onsite_conversion.post_net_like",
+        "value": "66683"
+      },
+      {
+        "action_type": "onsite_web_initiate_checkout",
+        "value": "4"
+      },
+      {
+        "action_type": "onsite_conversion.messaging_user_depth_5_message_send",
+        "value": "1"
+      },
+      {
+        "action_type": "omni_initiated_checkout",
+        "value": "4"
+      },
+      {
+        "action_type": "omni_add_to_cart",
+        "value": "8"
+      },
+      {
+        "action_type": "lead",
+        "value": "4"
+      },
+      {
+        "action_type": "offsite_content_view_add_meta_leads",
+        "value": "1003"
+      },
+      {
+        "action_type": "onsite_web_purchase",
+        "value": "14"
+      },
+      {
+        "action_type": "onsite_conversion.messaging_conversation_started_7d",
+        "value": "758"
+      },
+      {
+        "action_type": "onsite_conversion.lead_grouped",
+        "value": "4"
+      },
+      {
+        "action_type": "offsite_add_to_cart_add_20_s_calls",
+        "value": "8"
+      },
+      {
+        "action_type": "video_view",
+        "value": "4005766"
+      },
+      {
+        "action_type": "omni_view_content",
+        "value": "999"
+      },
+      {
+        "action_type": "offsite_conversion.fb_pixel_view_content",
+        "value": "999"
+      }
+    ],
+    "clicks": "458911",
+    "cpc": "0.017068",
+    "cpm": "0.363849",
+    "ctr": "2.131743",
+    "date_start": "2025-02-01",
+    "date_stop": "2025-02-28",
+    "expected_account_name": "ExpoFeria Mushuc Runa",
+    "frequency": "5.072542",
+    "impressions": "21527499",
+    "inline_link_clicks": "74993",
+    "reach": "4243927",
+    "spend": "7832.75"
+  },
+  {
+    "account_id": "2943017486003206",
+    "account_name": "ExpoFeria Mushuc Runa",
+    "actions": [
+      {
+        "action_type": "onsite_conversion.lead",
+        "value": "1"
+      },
+      {
+        "action_type": "offsite_complete_registration_add_meta_leads",
+        "value": "1"
+      },
+      {
+        "action_type": "web_in_store_purchase",
+        "value": "11"
+      },
+      {
+        "action_type": "omni_purchase",
+        "value": "11"
+      },
+      {
+        "action_type": "link_click",
+        "value": "10190"
+      },
+      {
+        "action_type": "initiate_checkout",
+        "value": "2"
+      },
+      {
+        "action_type": "offsite_search_add_meta_leads",
+        "value": "1"
+      },
+      {
+        "action_type": "offsite_purchase_add_20_s_calls",
+        "value": "11"
+      },
+      {
+        "action_type": "add_to_cart",
+        "value": "11"
+      },
+      {
+        "action_type": "offsite_conversion.fb_pixel_purchase",
+        "value": "11"
+      },
+      {
+        "action_type": "offsite_conversion.fb_pixel_initiate_checkout",
+        "value": "2"
+      },
+      {
+        "action_type": "offsite_conversion.fb_pixel_custom",
+        "value": "1"
+      },
+      {
+        "action_type": "offsite_initiate_checkout_add_20_s_calls",
+        "value": "2"
+      },
+      {
+        "action_type": "offsite_conversion.fb_pixel_add_to_cart",
+        "value": "11"
+      },
+      {
+        "action_type": "post_reaction",
+        "value": "5185"
+      },
+      {
+        "action_type": "onsite_conversion.messaging_conversation_replied_7d",
+        "value": "22"
+      },
+      {
+        "action_type": "offsite_content_view_add_20_s_calls",
+        "value": "839"
+      },
+      {
+        "action_type": "landing_page_view",
+        "value": "16"
+      },
+      {
+        "action_type": "onsite_web_lead",
+        "value": "1"
+      },
+      {
+        "action_type": "omni_landing_page_view",
+        "value": "16"
+      },
+      {
+        "action_type": "onsite_conversion.total_messaging_connection",
+        "value": "83"
+      },
+      {
+        "action_type": "post_engagement",
+        "value": "491289"
+      },
+      {
+        "action_type": "like",
+        "value": "90"
+      },
+      {
+        "action_type": "post_interaction_gross",
+        "value": "5519"
+      },
+      {
+        "action_type": "comment",
+        "value": "70"
+      },
+      {
+        "action_type": "onsite_web_app_purchase",
+        "value": "11"
+      },
+      {
+        "action_type": "page_engagement",
+        "value": "491379"
+      },
+      {
+        "action_type": "purchase",
+        "value": "11"
+      },
+      {
+        "action_type": "onsite_web_view_content",
+        "value": "839"
+      },
+      {
+        "action_type": "onsite_web_add_to_cart",
+        "value": "11"
+      },
+      {
+        "action_type": "post_interaction_net",
+        "value": "5519"
+      },
+      {
+        "action_type": "onsite_conversion.messaging_user_depth_2_message_send",
+        "value": "34"
+      },
+      {
+        "action_type": "onsite_conversion.messaging_first_reply",
+        "value": "88"
+      },
+      {
+        "action_type": "onsite_web_app_view_content",
+        "value": "839"
+      },
+      {
+        "action_type": "post",
+        "value": "227"
+      },
+      {
+        "action_type": "photo_view",
+        "value": "4170"
+      },
+      {
+        "action_type": "view_content",
+        "value": "839"
+      },
+      {
+        "action_type": "onsite_conversion.post_save",
+        "value": "37"
+      },
+      {
+        "action_type": "onsite_conversion.post_net_comment",
+        "value": "70"
+      },
+      {
+        "action_type": "onsite_conversion.messaging_user_depth_3_message_send",
+        "value": "6"
+      },
+      {
+        "action_type": "web_app_in_store_purchase",
+        "value": "11"
+      },
+      {
+        "action_type": "onsite_web_app_add_to_cart",
+        "value": "11"
+      },
+      {
+        "action_type": "onsite_conversion.post_net_save",
+        "value": "37"
+      },
+      {
+        "action_type": "onsite_conversion.post_net_like",
+        "value": "5185"
+      },
+      {
+        "action_type": "onsite_web_initiate_checkout",
+        "value": "2"
+      },
+      {
+        "action_type": "onsite_conversion.messaging_user_depth_5_message_send",
+        "value": "4"
+      },
+      {
+        "action_type": "omni_initiated_checkout",
+        "value": "2"
+      },
+      {
+        "action_type": "omni_add_to_cart",
+        "value": "11"
+      },
+      {
+        "action_type": "lead",
+        "value": "1"
+      },
+      {
+        "action_type": "offsite_content_view_add_meta_leads",
+        "value": "840"
+      },
+      {
+        "action_type": "onsite_web_purchase",
+        "value": "11"
+      },
+      {
+        "action_type": "onsite_conversion.messaging_conversation_started_7d",
+        "value": "98"
+      },
+      {
+        "action_type": "onsite_conversion.lead_grouped",
+        "value": "1"
+      },
+      {
+        "action_type": "offsite_add_to_cart_add_20_s_calls",
+        "value": "11"
+      },
+      {
+        "action_type": "video_view",
+        "value": "471410"
+      },
+      {
+        "action_type": "omni_view_content",
+        "value": "839"
+      },
+      {
+        "action_type": "offsite_conversion.fb_pixel_view_content",
+        "value": "839"
+      }
+    ],
+    "clicks": "53602",
+    "cpc": "0.009178",
+    "cpm": "0.265465",
+    "ctr": "2.892399",
+    "date_start": "2025-03-01",
+    "date_stop": "2025-03-31",
+    "expected_account_name": "ExpoFeria Mushuc Runa",
+    "frequency": "1.841929",
+    "impressions": "1853202",
+    "inline_link_clicks": "10190",
+    "reach": "1006120",
+    "spend": "491.96"
+  },
+  {
+    "account_id": "2943017486003206",
+    "account_name": "ExpoFeria Mushuc Runa",
+    "actions": [
+      {
+        "action_type": "web_in_store_purchase",
+        "value": "199"
+      },
+      {
+        "action_type": "omni_purchase",
+        "value": "199"
+      },
+      {
+        "action_type": "offsite_conversion.fb_pixel_add_to_wishlist",
+        "value": "81"
+      },
+      {
+        "action_type": "link_click",
+        "value": "48548"
+      },
+      {
+        "action_type": "omni_add_to_wishlist",
+        "value": "81"
+      },
+      {
+        "action_type": "initiate_checkout",
+        "value": "147"
+      },
+      {
+        "action_type": "offsite_purchase_add_20_s_calls",
+        "value": "199"
+      },
+      {
+        "action_type": "offsite_conversion.fb_pixel_purchase",
+        "value": "199"
+      },
+      {
+        "action_type": "offsite_conversion.fb_pixel_initiate_checkout",
+        "value": "147"
+      },
+      {
+        "action_type": "offsite_conversion.fb_pixel_custom",
+        "value": "630"
+      },
+      {
+        "action_type": "offsite_initiate_checkout_add_20_s_calls",
+        "value": "147"
+      },
+      {
+        "action_type": "post_reaction",
+        "value": "26075"
+      },
+      {
+        "action_type": "onsite_conversion.messaging_conversation_replied_7d",
+        "value": "11"
+      },
+      {
+        "action_type": "offsite_content_view_add_20_s_calls",
+        "value": "4181"
+      },
+      {
+        "action_type": "landing_page_view",
+        "value": "18300"
+      },
+      {
+        "action_type": "onsite_web_lead",
+        "value": "212"
+      },
+      {
+        "action_type": "omni_landing_page_view",
+        "value": "18300"
+      },
+      {
+        "action_type": "onsite_conversion.messaging_block",
+        "value": "2"
+      },
+      {
+        "action_type": "onsite_conversion.total_messaging_connection",
+        "value": "1133"
+      },
+      {
+        "action_type": "post_engagement",
+        "value": "1471311"
+      },
+      {
+        "action_type": "like",
+        "value": "1026"
+      },
+      {
+        "action_type": "post_interaction_gross",
+        "value": "28470"
+      },
+      {
+        "action_type": "comment",
+        "value": "495"
+      },
+      {
+        "action_type": "onsite_web_app_purchase",
+        "value": "199"
+      },
+      {
+        "action_type": "page_engagement",
+        "value": "1472319"
+      },
+      {
+        "action_type": "purchase",
+        "value": "199"
+      },
+      {
+        "action_type": "onsite_web_view_content",
+        "value": "4181"
+      },
+      {
+        "action_type": "post_interaction_net",
+        "value": "28470"
+      },
+      {
+        "action_type": "onsite_conversion.messaging_user_depth_2_message_send",
+        "value": "603"
+      },
+      {
+        "action_type": "onsite_conversion.messaging_first_reply",
+        "value": "1054"
+      },
+      {
+        "action_type": "onsite_web_app_view_content",
+        "value": "4181"
+      },
+      {
+        "action_type": "add_to_wishlist",
+        "value": "81"
+      },
+      {
+        "action_type": "post",
+        "value": "1764"
+      },
+      {
+        "action_type": "photo_view",
+        "value": "5482"
+      },
+      {
+        "action_type": "view_content",
+        "value": "4181"
+      },
+      {
+        "action_type": "onsite_conversion.post_save",
+        "value": "136"
+      },
+      {
+        "action_type": "onsite_conversion.post_net_comment",
+        "value": "495"
+      },
+      {
+        "action_type": "onsite_conversion.messaging_user_depth_3_message_send",
+        "value": "463"
+      },
+      {
+        "action_type": "web_app_in_store_purchase",
+        "value": "199"
+      },
+      {
+        "action_type": "onsite_conversion.post_net_save",
+        "value": "136"
+      },
+      {
+        "action_type": "onsite_conversion.post_net_like",
+        "value": "26075"
+      },
+      {
+        "action_type": "onsite_web_initiate_checkout",
+        "value": "147"
+      },
+      {
+        "action_type": "omni_initiated_checkout",
+        "value": "147"
+      },
+      {
+        "action_type": "lead",
+        "value": "212"
+      },
+      {
+        "action_type": "offsite_content_view_add_meta_leads",
+        "value": "4181"
+      },
+      {
+        "action_type": "onsite_web_purchase",
+        "value": "199"
+      },
+      {
+        "action_type": "onsite_conversion.messaging_conversation_started_7d",
+        "value": "1070"
+      },
+      {
+        "action_type": "video_view",
+        "value": "1388793"
+      },
+      {
+        "action_type": "offsite_conversion.fb_pixel_lead",
+        "value": "212"
+      },
+      {
+        "action_type": "offsite_lead_add_20_s_calls",
+        "value": "212"
+      },
+      {
+        "action_type": "omni_view_content",
+        "value": "4181"
+      },
+      {
+        "action_type": "offsite_conversion.fb_pixel_view_content",
+        "value": "4181"
+      }
+    ],
+    "clicks": "165793",
+    "cpc": "0.020274",
+    "cpm": "0.488232",
+    "ctr": "2.408189",
+    "date_start": "2025-10-01",
+    "date_stop": "2025-10-31",
+    "expected_account_name": "ExpoFeria Mushuc Runa",
+    "frequency": "2.536406",
+    "impressions": "6884550",
+    "inline_link_clicks": "48548",
+    "reach": "2714293",
+    "spend": "3361.26"
+  },
+  {
+    "account_id": "2943017486003206",
+    "account_name": "ExpoFeria Mushuc Runa",
+    "actions": [
+      {
+        "action_type": "web_in_store_purchase",
+        "value": "22"
+      },
+      {
+        "action_type": "omni_purchase",
+        "value": "22"
+      },
+      {
+        "action_type": "link_click",
+        "value": "1313"
+      },
+      {
+        "action_type": "initiate_checkout",
+        "value": "30"
+      },
+      {
+        "action_type": "offsite_purchase_add_20_s_calls",
+        "value": "22"
+      },
+      {
+        "action_type": "offsite_conversion.fb_pixel_purchase",
+        "value": "22"
+      },
+      {
+        "action_type": "offsite_conversion.fb_pixel_initiate_checkout",
+        "value": "30"
+      },
+      {
+        "action_type": "offsite_conversion.fb_pixel_custom",
+        "value": "72"
+      },
+      {
+        "action_type": "offsite_initiate_checkout_add_20_s_calls",
+        "value": "30"
+      },
+      {
+        "action_type": "post_reaction",
+        "value": "2829"
+      },
+      {
+        "action_type": "offsite_content_view_add_20_s_calls",
+        "value": "413"
+      },
+      {
+        "action_type": "landing_page_view",
+        "value": "235"
+      },
+      {
+        "action_type": "onsite_web_lead",
+        "value": "36"
+      },
+      {
+        "action_type": "omni_landing_page_view",
+        "value": "235"
+      },
+      {
+        "action_type": "onsite_conversion.total_messaging_connection",
+        "value": "29"
+      },
+      {
+        "action_type": "post_engagement",
+        "value": "293588"
+      },
+      {
+        "action_type": "like",
+        "value": "41"
+      },
+      {
+        "action_type": "post_interaction_gross",
+        "value": "3059"
+      },
+      {
+        "action_type": "comment",
+        "value": "84"
+      },
+      {
+        "action_type": "onsite_web_app_purchase",
+        "value": "22"
+      },
+      {
+        "action_type": "page_engagement",
+        "value": "293629"
+      },
+      {
+        "action_type": "purchase",
+        "value": "22"
+      },
+      {
+        "action_type": "onsite_web_view_content",
+        "value": "413"
+      },
+      {
+        "action_type": "post_interaction_net",
+        "value": "3059"
+      },
+      {
+        "action_type": "onsite_conversion.messaging_user_depth_2_message_send",
+        "value": "14"
+      },
+      {
+        "action_type": "onsite_conversion.messaging_first_reply",
+        "value": "13"
+      },
+      {
+        "action_type": "onsite_web_app_view_content",
+        "value": "413"
+      },
+      {
+        "action_type": "post",
+        "value": "132"
+      },
+      {
+        "action_type": "photo_view",
+        "value": "553"
+      },
+      {
+        "action_type": "view_content",
+        "value": "413"
+      },
+      {
+        "action_type": "onsite_conversion.post_save",
+        "value": "14"
+      },
+      {
+        "action_type": "onsite_conversion.post_net_comment",
+        "value": "84"
+      },
+      {
+        "action_type": "onsite_conversion.messaging_user_depth_3_message_send",
+        "value": "7"
+      },
+      {
+        "action_type": "web_app_in_store_purchase",
+        "value": "22"
+      },
+      {
+        "action_type": "onsite_conversion.post_net_save",
+        "value": "14"
+      },
+      {
+        "action_type": "onsite_conversion.post_net_like",
+        "value": "2829"
+      },
+      {
+        "action_type": "onsite_web_initiate_checkout",
+        "value": "30"
+      },
+      {
+        "action_type": "omni_initiated_checkout",
+        "value": "30"
+      },
+      {
+        "action_type": "lead",
+        "value": "36"
+      },
+      {
+        "action_type": "offsite_content_view_add_meta_leads",
+        "value": "413"
+      },
+      {
+        "action_type": "onsite_web_purchase",
+        "value": "22"
+      },
+      {
+        "action_type": "onsite_conversion.messaging_conversation_started_7d",
+        "value": "13"
+      },
+      {
+        "action_type": "video_view",
+        "value": "288663"
+      },
+      {
+        "action_type": "offsite_conversion.fb_pixel_lead",
+        "value": "36"
+      },
+      {
+        "action_type": "offsite_lead_add_20_s_calls",
+        "value": "36"
+      },
+      {
+        "action_type": "omni_view_content",
+        "value": "413"
+      },
+      {
+        "action_type": "offsite_conversion.fb_pixel_view_content",
+        "value": "413"
+      }
+    ],
+    "clicks": "25147",
+    "cpc": "0.006767",
+    "cpm": "0.304474",
+    "ctr": "4.499656",
+    "date_start": "2025-11-01",
+    "date_stop": "2025-11-30",
+    "expected_account_name": "ExpoFeria Mushuc Runa",
+    "frequency": "2.133814",
+    "impressions": "558865",
+    "inline_link_clicks": "1313",
+    "reach": "261909",
+    "spend": "170.16"
+  },
+  {
+    "account_id": "2943017486003206",
+    "account_name": "ExpoFeria Mushuc Runa",
+    "actions": [
+      {
+        "action_type": "onsite_conversion.lead",
+        "value": "3"
+      },
+      {
+        "action_type": "offsite_complete_registration_add_meta_leads",
+        "value": "3"
+      },
+      {
+        "action_type": "link_click",
+        "value": "7021"
+      },
+      {
+        "action_type": "offsite_search_add_meta_leads",
+        "value": "3"
+      },
+      {
+        "action_type": "post_reaction",
+        "value": "9792"
+      },
+      {
+        "action_type": "onsite_conversion.messaging_conversation_replied_7d",
+        "value": "4"
+      },
+      {
+        "action_type": "offsite_content_view_add_20_s_calls",
+        "value": "1215"
+      },
+      {
+        "action_type": "landing_page_view",
+        "value": "2821"
+      },
+      {
+        "action_type": "onsite_web_lead",
+        "value": "3"
+      },
+      {
+        "action_type": "omni_landing_page_view",
+        "value": "2821"
+      },
+      {
+        "action_type": "onsite_conversion.total_messaging_connection",
+        "value": "33"
+      },
+      {
+        "action_type": "onsite_conversion.post_unlike",
+        "value": "330"
+      },
+      {
+        "action_type": "post_engagement",
+        "value": "596250"
+      },
+      {
+        "action_type": "like",
+        "value": "40"
+      },
+      {
+        "action_type": "post_interaction_gross",
+        "value": "10435"
+      },
+      {
+        "action_type": "comment",
+        "value": "97"
+      },
+      {
+        "action_type": "page_engagement",
+        "value": "596290"
+      },
+      {
+        "action_type": "onsite_web_view_content",
+        "value": "1215"
+      },
+      {
+        "action_type": "post_interaction_net",
+        "value": "10771"
+      },
+      {
+        "action_type": "post_uncomment",
+        "value": "6"
+      },
+      {
+        "action_type": "onsite_conversion.messaging_user_depth_2_message_send",
+        "value": "14"
+      },
+      {
+        "action_type": "onsite_conversion.messaging_first_reply",
+        "value": "26"
+      },
+      {
+        "action_type": "onsite_web_app_view_content",
+        "value": "1215"
+      },
+      {
+        "action_type": "post",
+        "value": "392"
+      },
+      {
+        "action_type": "photo_view",
+        "value": "301"
+      },
+      {
+        "action_type": "view_content",
+        "value": "1215"
+      },
+      {
+        "action_type": "onsite_conversion.post_save",
+        "value": "154"
+      },
+      {
+        "action_type": "onsite_conversion.post_net_comment",
+        "value": "103"
+      },
+      {
+        "action_type": "onsite_conversion.messaging_user_depth_3_message_send",
+        "value": "5"
+      },
+      {
+        "action_type": "onsite_conversion.post_net_save",
+        "value": "154"
+      },
+      {
+        "action_type": "onsite_conversion.post_net_like",
+        "value": "9462"
+      },
+      {
+        "action_type": "onsite_conversion.messaging_user_depth_5_message_send",
+        "value": "2"
+      },
+      {
+        "action_type": "lead",
+        "value": "3"
+      },
+      {
+        "action_type": "offsite_content_view_add_meta_leads",
+        "value": "1218"
+      },
+      {
+        "action_type": "onsite_conversion.messaging_conversation_started_7d",
+        "value": "32"
+      },
+      {
+        "action_type": "onsite_conversion.lead_grouped",
+        "value": "3"
+      },
+      {
+        "action_type": "video_view",
+        "value": "578493"
+      },
+      {
+        "action_type": "omni_view_content",
+        "value": "1215"
+      },
+      {
+        "action_type": "offsite_conversion.fb_pixel_view_content",
+        "value": "1215"
+      }
+    ],
+    "clicks": "44391",
+    "cpc": "0.01342",
+    "cpm": "0.280763",
+    "ctr": "2.092117",
+    "date_start": "2025-12-01",
+    "date_stop": "2025-12-31",
+    "expected_account_name": "ExpoFeria Mushuc Runa",
+    "frequency": "1.881151",
+    "impressions": "2121822",
+    "inline_link_clicks": "7021",
+    "reach": "1127938",
+    "spend": "595.73"
+  },
+  {
+    "account_id": "2943017486003206",
+    "account_name": "ExpoFeria Mushuc Runa",
+    "actions": [
+      {
+        "action_type": "link_click",
+        "value": "113423"
+      },
+      {
+        "action_type": "initiate_checkout",
+        "value": "1"
+      },
+      {
+        "action_type": "offsite_conversion.fb_pixel_initiate_checkout",
+        "value": "1"
+      },
+      {
+        "action_type": "offsite_initiate_checkout_add_20_s_calls",
+        "value": "1"
+      },
+      {
+        "action_type": "post_reaction",
+        "value": "36713"
+      },
+      {
+        "action_type": "onsite_conversion.messaging_conversation_replied_7d",
+        "value": "16"
+      },
+      {
+        "action_type": "offsite_content_view_add_20_s_calls",
+        "value": "2249"
+      },
+      {
+        "action_type": "landing_page_view",
+        "value": "60682"
+      },
+      {
+        "action_type": "omni_landing_page_view",
+        "value": "60682"
+      },
+      {
+        "action_type": "onsite_conversion.messaging_block",
+        "value": "3"
+      },
+      {
+        "action_type": "onsite_conversion.total_messaging_connection",
+        "value": "1388"
+      },
+      {
+        "action_type": "onsite_conversion.post_unlike",
+        "value": "1757"
+      },
+      {
+        "action_type": "post_engagement",
+        "value": "1910818"
+      },
+      {
+        "action_type": "like",
+        "value": "527"
+      },
+      {
+        "action_type": "post_interaction_gross",
+        "value": "40667"
+      },
+      {
+        "action_type": "comment",
+        "value": "500"
+      },
+      {
+        "action_type": "page_engagement",
+        "value": "1911345"
+      },
+      {
+        "action_type": "onsite_web_view_content",
+        "value": "2249"
+      },
+      {
+        "action_type": "post_interaction_net",
+        "value": "42481"
+      },
+      {
+        "action_type": "post_uncomment",
+        "value": "15"
+      },
+      {
+        "action_type": "onsite_conversion.messaging_user_depth_2_message_send",
+        "value": "489"
+      },
+      {
+        "action_type": "onsite_conversion.messaging_first_reply",
+        "value": "1233"
+      },
+      {
+        "action_type": "onsite_web_app_view_content",
+        "value": "2249"
+      },
+      {
+        "action_type": "post",
+        "value": "2238"
+      },
+      {
+        "action_type": "onsite_conversion.post_unsave",
+        "value": "42"
+      },
+      {
+        "action_type": "photo_view",
+        "value": "7506"
+      },
+      {
+        "action_type": "view_content",
+        "value": "2249"
+      },
+      {
+        "action_type": "onsite_conversion.post_save",
+        "value": "1216"
+      },
+      {
+        "action_type": "onsite_conversion.post_net_comment",
+        "value": "515"
+      },
+      {
+        "action_type": "onsite_conversion.messaging_user_depth_3_message_send",
+        "value": "248"
+      },
+      {
+        "action_type": "onsite_conversion.post_net_save",
+        "value": "1174"
+      },
+      {
+        "action_type": "onsite_conversion.post_net_like",
+        "value": "34956"
+      },
+      {
+        "action_type": "onsite_web_initiate_checkout",
+        "value": "1"
+      },
+      {
+        "action_type": "omni_initiated_checkout",
+        "value": "1"
+      },
+      {
+        "action_type": "offsite_content_view_add_meta_leads",
+        "value": "2249"
+      },
+      {
+        "action_type": "onsite_conversion.messaging_conversation_started_7d",
+        "value": "1280"
+      },
+      {
+        "action_type": "video_view",
+        "value": "1749222"
+      },
+      {
+        "action_type": "omni_view_content",
+        "value": "2249"
+      },
+      {
+        "action_type": "offsite_conversion.fb_pixel_view_content",
+        "value": "2249"
+      }
+    ],
+    "clicks": "268707",
+    "cpc": "0.011113",
+    "cpm": "0.322443",
+    "ctr": "2.901463",
+    "date_start": "2026-01-01",
+    "date_stop": "2026-01-31",
+    "expected_account_name": "ExpoFeria Mushuc Runa",
+    "frequency": "2.842739",
+    "impressions": "9261088",
+    "inline_link_clicks": "113423",
+    "reach": "3257804",
+    "spend": "2986.17"
+  },
+  {
+    "account_id": "2943017486003206",
+    "account_name": "ExpoFeria Mushuc Runa",
+    "actions": [
+      {
+        "action_type": "onsite_conversion.lead",
+        "value": "78"
+      },
+      {
+        "action_type": "offsite_complete_registration_add_meta_leads",
+        "value": "78"
+      },
+      {
+        "action_type": "link_click",
+        "value": "51723"
+      },
+      {
+        "action_type": "offsite_search_add_meta_leads",
+        "value": "78"
+      },
+      {
+        "action_type": "post_reaction",
+        "value": "32957"
+      },
+      {
+        "action_type": "onsite_conversion.messaging_conversation_replied_7d",
+        "value": "22"
+      },
+      {
+        "action_type": "landing_page_view",
+        "value": "13140"
+      },
+      {
+        "action_type": "onsite_web_lead",
+        "value": "78"
+      },
+      {
+        "action_type": "omni_landing_page_view",
+        "value": "13140"
+      },
+      {
+        "action_type": "onsite_conversion.messaging_block",
+        "value": "6"
+      },
+      {
+        "action_type": "onsite_conversion.total_messaging_connection",
+        "value": "1861"
+      },
+      {
+        "action_type": "onsite_conversion.post_unlike",
+        "value": "1364"
+      },
+      {
+        "action_type": "post_engagement",
+        "value": "2025666"
+      },
+      {
+        "action_type": "like",
+        "value": "369"
+      },
+      {
+        "action_type": "post_interaction_gross",
+        "value": "35578"
+      },
+      {
+        "action_type": "comment",
+        "value": "462"
+      },
+      {
+        "action_type": "page_engagement",
+        "value": "2026035"
+      },
+      {
+        "action_type": "onsite_conversion.messaging_welcome_message_view",
+        "value": "206"
+      },
+      {
+        "action_type": "post_interaction_net",
+        "value": "36969"
+      },
+      {
+        "action_type": "post_uncomment",
+        "value": "8"
+      },
+      {
+        "action_type": "onsite_conversion.messaging_user_depth_2_message_send",
+        "value": "701"
+      },
+      {
+        "action_type": "onsite_conversion.messaging_first_reply",
+        "value": "1688"
+      },
+      {
+        "action_type": "post",
+        "value": "1548"
+      },
+      {
+        "action_type": "onsite_conversion.post_unsave",
+        "value": "19"
+      },
+      {
+        "action_type": "photo_view",
+        "value": "14341"
+      },
+      {
+        "action_type": "onsite_conversion.post_save",
+        "value": "611"
+      },
+      {
+        "action_type": "onsite_conversion.post_net_comment",
+        "value": "470"
+      },
+      {
+        "action_type": "onsite_conversion.messaging_user_depth_3_message_send",
+        "value": "421"
+      },
+      {
+        "action_type": "onsite_conversion.post_net_save",
+        "value": "592"
+      },
+      {
+        "action_type": "onsite_conversion.post_net_like",
+        "value": "31593"
+      },
+      {
+        "action_type": "lead",
+        "value": "78"
+      },
+      {
+        "action_type": "offsite_content_view_add_meta_leads",
+        "value": "78"
+      },
+      {
+        "action_type": "onsite_conversion.messaging_conversation_started_7d",
+        "value": "1795"
+      },
+      {
+        "action_type": "onsite_conversion.lead_grouped",
+        "value": "78"
+      },
+      {
+        "action_type": "video_view",
+        "value": "1924024"
+      }
+    ],
+    "clicks": "213171",
+    "cpc": "0.01976",
+    "cpm": "0.377326",
+    "ctr": "1.909567",
+    "date_start": "2026-02-01",
+    "date_stop": "2026-02-28",
+    "expected_account_name": "ExpoFeria Mushuc Runa",
+    "frequency": "4.067467",
+    "impressions": "11163315",
+    "inline_link_clicks": "51723",
+    "reach": "2744537",
+    "spend": "4212.21"
+  },
+  {
+    "account_id": "2943017486003206",
+    "account_name": "ExpoFeria Mushuc Runa",
+    "actions": [
+      {
+        "action_type": "post_reaction",
+        "value": "1369"
+      },
+      {
+        "action_type": "onsite_conversion.post_unlike",
+        "value": "29"
+      },
+      {
+        "action_type": "post_engagement",
+        "value": "41060"
+      },
+      {
+        "action_type": "like",
+        "value": "7"
+      },
+      {
+        "action_type": "post_interaction_gross",
+        "value": "1520"
+      },
+      {
+        "action_type": "comment",
+        "value": "29"
+      },
+      {
+        "action_type": "page_engagement",
+        "value": "41067"
+      },
+      {
+        "action_type": "onsite_conversion.messaging_welcome_message_view",
+        "value": "1"
+      },
+      {
+        "action_type": "post_interaction_net",
+        "value": "1549"
+      },
+      {
+        "action_type": "post",
+        "value": "107"
+      },
+      {
+        "action_type": "photo_view",
+        "value": "108"
+      },
+      {
+        "action_type": "onsite_conversion.post_save",
+        "value": "15"
+      },
+      {
+        "action_type": "onsite_conversion.post_net_comment",
+        "value": "29"
+      },
+      {
+        "action_type": "onsite_conversion.post_net_save",
+        "value": "15"
+      },
+      {
+        "action_type": "onsite_conversion.post_net_like",
+        "value": "1340"
+      },
+      {
+        "action_type": "video_view",
+        "value": "39432"
+      }
+    ],
+    "clicks": "3913",
+    "cpc": "0.010488",
+    "cpm": "0.476467",
+    "ctr": "4.542921",
+    "date_start": "2026-03-01",
+    "date_stop": "2026-03-31",
+    "expected_account_name": "ExpoFeria Mushuc Runa",
+    "frequency": "1.233128",
+    "impressions": "86134",
+    "inline_link_clicks": "0",
+    "reach": "69850",
+    "spend": "41.04"
+  }
+]

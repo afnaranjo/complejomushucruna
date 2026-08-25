@@ -1,0 +1,9 @@
+evento,etiqueta,estado_evidencia,fecha_inicio,fecha_fin,publicaciones,dias_con_publicacion,publicaciones_por_dia_activo,interacciones_publicas_total,interacciones_mediana,interacciones_p25,interacciones_p75,reacciones_total,comentarios_total,compartidos_total,porcentaje_con_cta,porcentaje_con_precio,porcentaje_con_url,publicaciones_en_copias_repetidas,porcentaje_en_copias_repetidas
+finados-2021,Finados 2021,histórico; fechas verificadas en publicaciones,2021-10-30,2021-11-03,14,7,2.0,486,18.0,4.25,44.25,419,12,55,78.6,14.3,7.1,5,35.7
+carnaval-2022,Carnaval 2022,histórico; fechas verificadas en publicaciones,2022-02-25,2022-03-01,156,36,4.33,88943,101.5,41.0,294.25,69604,2024,17315,64.1,12.8,7.1,8,5.1
+finados-2022,Finados 2022,histórico; fechas verificadas en publicaciones,2022-11-02,2022-11-06,6,4,1.5,2376,131.5,16.0,291.25,1731,77,568,66.7,0.0,33.3,2,33.3
+carnaval-2023,Carnaval 2023,histórico; fechas verificadas en publicaciones,2023-02-17,2023-02-21,241,53,4.55,96138,99,40.0,325.0,79457,2413,14268,56.8,0.4,18.7,39,16.2
+carnaval-2024,Carnaval 2024,histórico planificado; ejecución/resultados por confirmar,2024-02-09,2024-02-13,123,46,2.67,89458,203,81.5,439.0,71152,3673,14633,54.5,2.4,20.3,17,13.8
+carnaval-2025,Carnaval 2025,histórico; fechas verificadas en publicaciones,2025-02-28,2025-03-04,128,51,2.51,71223,141.5,60.75,531.0,62213,2031,6979,14.8,0.0,24.2,8,6.2
+finados-2025,Finados 2025,histórico; fechas verificadas en publicaciones,2025-10-31,2025-11-04,430,56,7.68,110886,38.0,17.0,108.0,96998,6267,7621,36.7,2.3,17.4,72,16.7
+carnaval-2026,Carnaval 2026,histórico; fechas verificadas en publicaciones,2026-02-13,2026-02-17,265,72,3.68,109656,66,29.0,212.0,100920,2089,6647,38.9,2.6,15.1,13,4.9
