@@ -240,3 +240,15 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Publicación externa: ninguna; no se accedió a Meta, no se activó pauta, no se abrió convocatoria y no se habilitó venta.
 - Riesgos: precio/capacidad del megaescenario y cartel siguen sin confirmar; la programación pública 2026 de Municipio y Provincia no está verificada; el dominio oficial permanece inseguro.
 - Pendiente: aprobar o descartar las mecánicas propuestas, cerrar la oferta comercial y completar los gates antes de cobrar o pautar.
+
+### 2026-08-24 — Experiencia 200K, guía móvil y creadores Finados 2026
+
+- Se diseñó una arquitectura de experiencia y comercialización para el objetivo de 200.000 asistentes: cinco jornadas diferenciadas, `Pasaporte Vivo Mushuc`, retorno desde el día de menor demanda, `Mushuc Activo`, ritual diario, `25.000 Latidos Morados` y un modelo comercial conectado con visitantes, expositores y patrocinadores.
+- Se detectó que la ventana 29 de octubre–2 de noviembre de 2026 cae de jueves a lunes, mientras el patrón histórico recibido fue viernes–martes; el plan se mantiene por Día 1–Día 5 hasta ratificar el calendario y la programación.
+- Se documentó una guía móvil informativa del complejo como PWA estática sin backend, cuentas ni transacciones, con mapa, baños, comida, escenarios, ayuda, accesos, parqueaderos, agenda y contingencia offline. La IA se limita al trabajo interno de preparación/QA y no se propone chatbot en el MVP.
+- Se estructuró un programa de creadores y referidos con fondo fijo, pagos máximos, vistas válidas, calidad y visitas verificadas; se descartó prometer pagos abiertos por cada millón de vistas.
+- Se actualizaron acta, decisiones, hitos, riesgos, diccionario de datos, memoria, pendientes y mapas de navegación.
+- Commit: incluido en `Diseñar experiencia 200K y guía móvil Finados 2026`.
+- Publicación externa: ninguna; no se accedió a Meta, no se activó pauta, no se desplegó la guía, no se abrió convocatoria y no se modificaron cuentas o sitios.
+- Riesgos: la meta 200K aún no distingue visitas acumuladas de personas únicas; faltan aforo, plano, inventario georreferenciado, presupuesto tecnológico, cartel documentado, capacidad real de parqueaderos y plan de colada; el dominio oficial continúa inseguro.
+- Pendiente: ratificar calendario y definición de asistencia, importar programación y activos, aprobar las mecánicas, asignar responsables y validar capacidad/operación antes de publicar o construir.

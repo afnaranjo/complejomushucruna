@@ -13,4 +13,8 @@ Instituciones, comunidades, medios, creadores y aliados que amplifican la feria,
 
 Los presupuestos de influencers y aliados son externos al presupuesto digital y los administra cada responsable. La coordinación común se define en [[../04_pr-medios/2026-08-24_protocolo-integracion-medios-finados-2026_v01|el protocolo de integración]].
 
+## Documento vigente en revisión
+
+- [[2026-08-24_programa-creadores-referidos-finados-2026_v01|Programa de creadores y referidos]]
+
 [[../README|Volver a marketing y comunicación]]

@@ -28,9 +28,12 @@ Este expediente es la fuente única de verdad de la feria. Aquí se conectan tod
 
 ## Estrategia digital en ejecución interna
 
+- [[01_concepto-experiencia/2026-08-24_arquitectura-experiencia-asistencia-200k-finados-2026_v01|Arquitectura de experiencia y asistencia 200K]]
 - [[05_marketing-comunicacion/01_estrategia/2026-08-24_plan-operativo-digital-finados-2026_v01|Plan operativo digital · inicia 25 de agosto]]
 - [[05_marketing-comunicacion/01_estrategia/2026-08-24_estrategia-competitiva-preventa-participacion-finados-2026_v01|Estrategia competitiva, preventa y participación]]
 - [[05_marketing-comunicacion/03_pauta/2026-08-24_plan-pauta-social-usd4000-finados-2026_v01|Plan de pauta social · USD 4.000]]
+- [[05_marketing-comunicacion/05_alianzas-difusion/2026-08-24_programa-creadores-referidos-finados-2026_v01|Programa de creadores y referidos]]
+- [[10_tecnologia-datos/2026-08-24_guia-movil-informativa-sin-backend-finados-2026_v01|Guía móvil informativa sin backend]]
 - [[05_marketing-comunicacion/2026-08-24_equipo-operativo-marketing-finados-2026_v01|Equipo operativo y responsabilidades por ratificar]]
 
 ## Frentes de trabajo

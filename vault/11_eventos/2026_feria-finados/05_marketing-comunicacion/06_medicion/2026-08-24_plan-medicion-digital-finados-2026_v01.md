@@ -28,7 +28,7 @@ Cada pregunta tiene una fuente de verdad. Meta informa entrega y costo; analíti
 | CPA_real | gasto atribuible / compras reales conciliadas | cálculo | diario/semanal | datos/finanzas |
 | ingreso_neto | cobros menos descuentos y reembolsos | finanzas | diario | finanzas |
 | ROAS_conciliado | ingreso neto atribuible / gasto social | cálculo; solo tras conciliación | semanal/cierre | datos/finanzas |
-| visitante_validado | persona con entrada validada en acceso | control de acceso | por jornada | operación |
+| visita_validada | validación de acceso admitida; una misma persona puede producir una por cada jornada permitida | control de acceso | por jornada | operación |
 | satisfaccion | evaluación posvisita con método declarado | encuesta | diario/cierre | experiencia |
 | postulacion_valida | artista que cumple bases y documentación mínima | programación | por convocatoria | programación |
 | voto_verificado | voto aceptado después de controles de duplicación/fraude | sistema de votación | diario | datos |

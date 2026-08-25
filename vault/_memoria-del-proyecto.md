@@ -35,7 +35,7 @@ El equipo integral está organizando la Feria de Finados 2026 en el Complejo Int
 - Repositorio GitHub: conectado y sincronizado con `origin/main`.
 - Configuración base de Obsidian: creada.
 - Contexto público inicial del complejo: recopilado y marcado para revisión.
-- Alcance, metas y responsables integrales: por confirmar. La ventana de feria está aprobada como supuesto de planificación y la pauta social tiene un presupuesto confirmado de USD 4.000; faltan ratificación pública de fecha y presupuesto integral.
+- Alcance y responsables integrales: por confirmar. Alex fijó 200.000 asistentes como objetivo de planificación; falta definir si significa visitas acumuladas o personas únicas y comprobar aforo, movilidad y capacidad por jornada. La ventana de feria está aprobada como supuesto de planificación y la pauta social tiene un presupuesto confirmado de USD 4.000; faltan ratificación pública de fecha y presupuesto integral.
 - Línea base de reputación pública: creada; identifica atención, higiene, precios, movilidad, información, capacidad, accesibilidad, bienestar animal y carga laboral como temas a verificar.
 - Línea base positiva y entrada guiada: creadas en una carpeta separada y de alcance acotado; documentan una percepción visible mayoritariamente favorable, fortalezas culturales, familiares, comerciales, turísticas y deportivas, y eventos destacados de 2020 a 2026.
 - Mapa global de referencias positivas: creado tras una búsqueda en español, portugués, inglés, francés, alemán e italiano. La evidencia directa más fuerte fuera de Ecuador aparece en Brasil, España y Argentina y respalda identidad indígena, singularidad, escala, variedad, formación juvenil y capacidad para eventos. La conclusión es diferenciación internacional creíble, no fama mundial demostrada; la cobertura editorial directa en inglés y otros idiomas todavía es escasa.
@@ -49,6 +49,11 @@ El equipo integral está organizando la Feria de Finados 2026 en el Complejo Int
 - Evidencia participativa histórica: doce publicaciones de candidaturas y finalistas de `Rey Pan` y `Srta. Colada Morada` en la página principal de Finados 2025 acumularon 6.876 interacciones, con mediana de 358; la fase de conversión tuvo mediana de 40. La pregunta de artistas de 2022 logró 847 interacciones y 535 comentarios. Estos datos prueban capacidad de conversación, no venta.
 - Diseño seguro de convocatoria: [[11_eventos/2026_feria-finados/02_programacion-atracciones/2026-08-24_convocatoria-camino-megaescenario-finados-2026_v01|Camino al Megaescenario]] propone 40 % voto propio verificado, 40 % jurado artístico/cultural y 20 % viabilidad de producción/seguridad. Se descartó depender de “más likes gana” por fraude, desigualdad de audiencias, presión de plataforma y ausencia de señal comercial.
 - Arquitectura de oferta y preventa: documentada en [[11_eventos/2026_feria-finados/06_ventas-entradas/2026-08-24_arquitectura-oferta-preventa-finados-2026_v01|su expediente]]. Prioriza comprometer temprano la noche o combo con megaescenario; reservar solo una entrada general de USD 3 tiene alto riesgo de inasistencia. No se cobra hasta confirmar cartel contratado, precio total, capacidad, términos, canal seguro y compra de prueba.
+- Arquitectura de experiencia 200K: creada en [[11_eventos/2026_feria-finados/01_concepto-experiencia/2026-08-24_arquitectura-experiencia-asistencia-200k-finados-2026_v01|su documento canónico]]. Propone `Cinco días, cinco formas de vivir Finados`, un `Pasaporte Vivo Mushuc` como producto de recorrido, identidades por Día 1–Día 5, un incentivo limitado de retorno desde el día más débil, `Mushuc Activo`, un ritual diario y `25.000 Latidos Morados`. Todo sigue sujeto a capacidad, finanzas, operación y gobierno cultural.
+- Calendario: el patrón histórico entregado por Alex habla de viernes a martes, pero la ventana 2026 del 29 de octubre al 2 de noviembre cae de jueves a lunes. La mezcla se gestiona por Día 1–Día 5 hasta ratificar fechas y reconstruir la programación sobre el calendario real.
+- Programación artística: Alex informa que los artistas ya están seleccionados, pero el cartel, contratos, horarios y activos aprobados todavía no constan en el vault. No se debe fingir que el público decidirá artistas ya contratados; las preguntas participativas pueden enfocarse en canciones, rutas y experiencias.
+- Guía móvil: Alex aprobó el alcance de una guía informativa del complejo, inspirada en la orientación de parques temáticos, sin backend. La propuesta [[11_eventos/2026_feria-finados/10_tecnologia-datos/2026-08-24_guia-movil-informativa-sin-backend-finados-2026_v01|usa una PWA estática]] con mapa, baños, comida, escenarios, ayuda, parqueaderos, agenda y funcionamiento offline; no incluye cuentas, compras, control de acceso ni chatbot.
+- Creadores y boca a boca: se diseñó un [[11_eventos/2026_feria-finados/05_marketing-comunicacion/05_alianzas-difusion/2026-08-24_programa-creadores-referidos-finados-2026_v01|fondo fijo y medible]] en lugar de pagar sin límite por cada millón de vistas. Combina pago por trabajo, bono con techo, vistas válidas, calidad y visitas/referidos verificados. Su presupuesto permanece separado de los USD 4.000 de pauta social.
 - Competencia del feriado: en 2025 el Municipio de Ambato comunicó más de 1.300 espacios comerciales y programación artística en Shuyurco; la red provincial operó parques gratuitos y el Parque Provincial concentró la Mega Expo Feria. No se encontró una programación oficial 2026 publicada al corte del 2026-08-24, por lo que el evento municipal/provincial 2026 se gestiona como amenaza de probabilidad alta, no como hecho confirmado.
 - Distribución revisada de pauta social: USD 400 expectativa, USD 800 revelaciones/preventa, USD 1.600 conversión, USD 800 urgencia, USD 200 servicio en vivo y USD 200 de reserva controlada. Dentro de esos rubros, la promoción de participación tiene un máximo de USD 200; la venta/preventa concentra USD 3.400. Meta es el canal pagado inicial para evitar fragmentación; otra plataforma requiere hipótesis, activos y medición propios.
 - Sistema digital interconectado: se documentaron contenido, pauta, medición, integración con medios/influencers y las entregas entre los 16 frentes de la feria. Ningún presupuesto externo de medios o creadores se mezcló con la pauta social.
@@ -62,9 +67,9 @@ El equipo integral está organizando la Feria de Finados 2026 en el Complejo Int
 ## Información que necesitamos recibir de Alex y del equipo
 
 - Ratificación pública de la ventana 29 de octubre–2 de noviembre y fechas exactas de montaje/desmontaje.
-- Objetivos, aforo, metas de ingresos/asistencia y presupuesto integral; pauta social ya cuenta con USD 4.000 confirmados.
+- Aforo, definición de la meta de 200.000 —visitas acumuladas, personas únicas o ambas—, metas de ingresos y presupuesto integral; pauta social ya cuenta con USD 4.000 confirmados.
 - Organigrama real y responsables de aprobación.
-- Avances, contratos, compromisos, artistas, expositores, patrocinadores y proveedores.
+- Cartel artístico ya seleccionado según Alex, contratos, horarios, días, escenarios, restricciones y activos autorizados; además de avances de expositores, patrocinadores y proveedores.
 - Oferta comercial, precios, entradas, canales oficiales y activos existentes.
 - Precio, capacidad, fechas e inclusiones del megaescenario; precio infantil; reingreso, estacionamiento, cargos, descuentos y política de cambios/devoluciones.
 - Aprobación, ajuste o descarte de `Camino al Megaescenario`, `Rey Pan`, `Srta. Colada Morada` y el posible paraguas `La tradición elige`; cada activación necesita bases, premios/contratos, derechos, jurado, protección de datos y capacidad operativa.
@@ -76,10 +81,13 @@ El equipo integral está organizando la Feria de Finados 2026 en el Complejo Int
 - Exportes de facturación Meta 2021-2026, desglose campaña/conjunto/anuncio de ambas cuentas y una nueva ventana de consulta cuando se restablezca la cuota de la aplicación.
 - Auditoría y conciliación de píxel, Conversion API, UTMs, boletería y caja, incluida una compra de prueba extremo a extremo.
 - Ratificación del plan operativo digital, arquitectura de páginas, embudo, mezcla editorial, dirección creativa y gates antes de activar pauta.
+- Plano georreferenciado, inventario de baños/comida/ayuda/accesos/parqueaderos, agenda completa y responsable de la guía móvil sin backend.
+- Capacidad e inventario verificados de los más de 10.000 parqueaderos reportados y de los 25.000 vasos de colada morada, con distribución, inocuidad y control de filas.
+- Aprobación o descarte de `Pasaporte Vivo Mushuc`, `Los Primeros Vuelven`, `Mushuc Activo`, el ritual diario y el programa de creadores/referidos.
 
 ## Próxima revisión
 
-El 25 de agosto se inicia expectativa y, si existe un destino seguro, un registro prioritario sin cobro. Hasta el 28 de agosto se debe aprobar o descartar `Camino al Megaescenario`. Antes del 7 de septiembre deben quedar cerrados el precio total, capacidad, cartel contractual, términos, destino y medición; solo después puede habilitarse la preventa propuesta para el 8 de septiembre. La pauta sigue condicionada a destino seguro, tracking probado y capacidad de respuesta.
+El 25 de agosto se inicia trabajo interno de expectativa; no se publica ni pauta sin destino seguro y aprobación. Hasta el 28 de agosto se debe decidir el concepto 200K, el alcance operativo de la guía móvil y `Camino al Megaescenario`. Antes del 7 de septiembre deben quedar cerrados el precio total, capacidad, cartel contractual, términos, destino y medición; solo después puede habilitarse la preventa propuesta para el 8 de septiembre. La pauta sigue condicionada a destino seguro, tracking probado y capacidad de respuesta.
 
 ## Enlaces
 
@@ -94,3 +102,6 @@ El 25 de agosto se inicia expectativa y, si existe un destino seguro, un registr
 - [[11_eventos/2026_feria-finados/06_ventas-entradas/2026-08-24_arquitectura-oferta-preventa-finados-2026_v01|Arquitectura de oferta y preventa]]
 - [[11_eventos/2026_feria-finados/02_programacion-atracciones/2026-08-24_convocatoria-camino-megaescenario-finados-2026_v01|Camino al Megaescenario]]
 - [[11_eventos/2026_feria-finados/05_marketing-comunicacion/03_pauta/2026-08-24_plan-pauta-social-usd4000-finados-2026_v01|Plan de pauta social USD 4.000]]
+- [[11_eventos/2026_feria-finados/01_concepto-experiencia/2026-08-24_arquitectura-experiencia-asistencia-200k-finados-2026_v01|Arquitectura de experiencia y asistencia 200K]]
+- [[11_eventos/2026_feria-finados/10_tecnologia-datos/2026-08-24_guia-movil-informativa-sin-backend-finados-2026_v01|Guía móvil informativa sin backend]]
+- [[11_eventos/2026_feria-finados/05_marketing-comunicacion/05_alianzas-difusion/2026-08-24_programa-creadores-referidos-finados-2026_v01|Programa de creadores y referidos]]

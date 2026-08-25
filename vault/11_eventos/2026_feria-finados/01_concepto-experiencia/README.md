@@ -12,6 +12,10 @@ tags: [feria-finados-2026, concepto]
 
 Define propósito, público, promesa, tema, narrativa, identidad de la edición, zonas, momentos memorables y criterios culturales.
 
+## Documento vigente en revisión
+
+- [[2026-08-24_arquitectura-experiencia-asistencia-200k-finados-2026_v01|Arquitectura de experiencia y asistencia 200K]]
+
 ## Entregables mínimos
 
 - Brief y concepto rector aprobados.

@@ -12,6 +12,11 @@ tags: [feria-finados-2026, tecnologia, datos]
 
 Diseña la arquitectura de sitio, formularios, CRM, venta, pagos, control de acceso, conectividad, analítica, dashboard, privacidad, soporte y continuidad.
 
+## Producto confirmado en alcance
+
+- [[2026-08-24_guia-movil-informativa-sin-backend-finados-2026_v01|Guía móvil informativa sin backend]]
+- [[diccionario-datos|Diccionario de datos]]
+
 ## Entregables mínimos
 
 - Mapa de sistemas, dueños e integraciones.
