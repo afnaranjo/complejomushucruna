@@ -2,7 +2,7 @@
 titulo: "Decisiones Feria de Finados 2026"
 responsable: "dirección integral de la feria"
 estado: en-revision
-ultima_actualizacion: 2026-08-25
+ultima_actualizacion: 2026-08-26
 fuente: interna
 confidencialidad: restringido
 tags:
@@ -25,5 +25,6 @@ tags:
 | FF26-DEC-009 | 2026-08-25 | Mantener el cartel 2026 fuera de toda comunicación pública mientras se define cuándo y cómo revelar cada artista | Proteger confidencialidad, contratos, valor de las revelaciones y coherencia con la preventa | Alex Naranjo | dirección, programación, marketing, ventas, producción, medios y aliados | aprobada; ningún nombre está autorizado para publicación |
 | FF26-DEC-010 | 2026-08-25 | Desarrollar Finados 2026 desde la identidad de feria comercial y tradición, no desde juegos mecánicos, sorteos o cartelera como promesa principal | Recuperar asistencia, ventas de expositores, pertenencia y preferencia frente a otros eventos del feriado | Alex Naranjo | todos | aprobada para desarrollo; `ES TRADICIÓN` y su ejecución requieren aprobación cultural, de marca y operativa antes de publicar |
 | FF26-DEC-011 | 2026-08-25 | No almacenar en este repositorio público el cartel nominal no anunciado, contratos, contactos, activos embargados ni correspondencias código–artista | La clasificación `restringido` de Obsidian no implementa control de acceso | instrucción de no revelar de Alex + verificación técnica del remoto | dirección, programación, marketing, producción, tecnología | vigente; usar códigos en Git y fuente de acceso controlado fuera del repositorio |
+| FF26-DEC-012 | 2026-08-26 | Usar únicamente `FINADOS 2026 · ES TRADICIÓN` como denominación de campaña; no comunicar número de edición | Mantener una identidad directa, presente y centrada en tradición sin introducir numeración no deseada | Alex Naranjo | todos | aprobada para el desarrollo interno; la publicación de la plataforma continúa sujeta a aprobación cultural, operativa y de marca |
 
 Las decisiones de una reunión se trasladan aquí cuando estén confirmadas. Si reemplazan otra decisión, no la borres: cambia su estado a `reemplazada` y enlaza la nueva.

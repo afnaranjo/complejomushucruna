@@ -13,6 +13,7 @@ Registro breve de avances, decisiones, bloqueos y próximos pasos. Obsidian crea
 
 ## Entradas recientes
 
+- [[2026-08-26_bitacora_guia-creativa-operativa-finados-2026_v02|2026-08-26 · Guía creativa y operativa FINADOS 2026 · ES TRADICIÓN v07]]
 - [[2026-08-26_bitacora_guia-creativa-operativa-finados-2026_v01|2026-08-26 · Guía creativa y operativa ES TRADICIÓN v06]]
 - [[2026-08-25_bitacora_guia-creativa-finados-2026_v01|2026-08-25 · Guía creativa integral ES TRADICIÓN]]
 

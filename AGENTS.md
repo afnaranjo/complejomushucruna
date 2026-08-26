@@ -364,3 +364,15 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Publicación externa: ninguna; no se accedió a Meta, no se activó pauta, no se publicó, no se reveló el cartel, no se desplegó la guía móvil y no se modificó ninguna cuenta o servicio externo.
 - Riesgos: la v06 sigue en revisión; faltan aprobación cultural/operativa/de marca, derechos del archivo, manual de marca, ratificación de fechas/oferta/cartel, plano y capacidad de parqueaderos, datos de colada y construcción de la PWA.
 - Pendiente: aprobar o corregir la v06 hasta el 28 de agosto, ratificar RACI/suplentes/SLA y resolver los gates del 2 de septiembre antes de cualquier salida pública.
+
+### 2026-08-26 — Guía creativa y operativa `FINADOS 2026 · ES TRADICIÓN` v07
+
+- Se amplió y refactorizó la guía a 45 diapositivas editables para explicar diferenciadores históricos, experiencia familiar, cinco capítulos, cinco películas hero, seis motores orgánicos, calendario semanal, revelaciones, PWA, operación en vivo y medición.
+- Se incorporaron `Rostros de Finados 2026`, un reto audiovisual con jurado y premio fijo, participación familiar, recuerdos, descubrimientos, `Rey Pan`, `Srta. Colada Morada`, movilización y retorno. El hito de un millón de vistas quedó limitado a un piloto cerrado para creadores contratados, con bono máximo y auditoría; se prohíbe el pago abierto.
+- Se añadieron edad/elegibilidad, permisos separados para participar/publicar/pautar, protección de menores, datos mínimos, antifraude, actas, impuestos, reclamos, límites y conciliación.
+- Se registró la decisión `FF26-DEC-012`: la denominación es `FINADOS 2026 · ES TRADICIÓN`, sin número de edición.
+- QA: 45 diapositivas renderizadas e inspeccionadas; 45 notas con fuentes; prueba automática sin desbordamientos; apertura correcta en LibreOffice como PDF de 45 páginas; escaneo sin credenciales, número de edición ni cartel bajo embargo.
+- Commit: incluido en `Integrar motores orgánicos en guía ES TRADICIÓN v07`.
+- Publicación externa: ninguna; no se accedió a Meta, no se publicó, pautó, abrió convocatoria, habilitó venta, desplegó la guía móvil ni modificó ninguna cuenta o servicio externo.
+- Riesgos: la v07 sigue en revisión; faltan aprobación cultural/operativa/de marca, manual y derechos, bases/premios/privacidad de las mecánicas, y validación 2026 de colada, estacionamiento, zonas, atractivos, seguridad, programación y asistencia.
+- Pendiente: aprobar o corregir la v07 hasta el 28 de agosto y resolver todos los controles antes de cualquier salida pública.
