@@ -376,3 +376,14 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Publicación externa: ninguna; no se accedió a Meta, no se publicó, pautó, abrió convocatoria, habilitó venta, desplegó la guía móvil ni modificó ninguna cuenta o servicio externo.
 - Riesgos: la v07 sigue en revisión; faltan aprobación cultural/operativa/de marca, manual y derechos, bases/premios/privacidad de las mecánicas, y validación 2026 de colada, estacionamiento, zonas, atractivos, seguridad, programación y asistencia.
 - Pendiente: aprobar o corregir la v07 hasta el 28 de agosto y resolver todos los controles antes de cualquier salida pública.
+
+### 2026-08-26 — Guía creativa y operativa acumulativa `FINADOS 2026 · ES TRADICIÓN` v08
+
+- Se creó una versión acumulativa de 59 diapositivas editables que recupera de v06 el modelo operativo, la cadencia semanal, el flujo de aprobación, la gramática audiovisual, el sistema cromático y el cierre medible, y conserva de v07 los diferenciadores históricos, cinco películas hero, seis motores orgánicos y controles de participación.
+- La PWA informativa se convirtió en un capítulo minucioso de diez diapositivas: propósito y límites, arquitectura de información, mapa y capas, agenda y rutas, ubicación manual/GPS opcional, offline/versionado, ayuda/accesibilidad/respaldo físico, gobierno de datos, arquitectura estática/privacidad/rollback, cronograma y pruebas de éxito.
+- Se mantuvo el alcance sin backend, cuentas, pagos, reservas, control de acceso, tiempo real, push, chatbot ni tiendas; la ubicación es opcional y local, y la guía no sustituye señalética, mapa impreso, personal ni altavoces.
+- QA: 59 diapositivas renderizadas e inspeccionadas; 59 notas con `[Estado]` y `[Sources]`; `slides_test.py` sin desbordamientos; control de fidelidad de plantilla con cero incidencias; apertura correcta en LibreOffice como PDF de 59 páginas; escaneo sin credenciales, presupuesto visible, número de edición ni cartel bajo embargo.
+- Commit: incluido en `Restituir guía integral y detallar app en v08`.
+- Publicación externa: ninguna; no se accedió a Meta, no se publicó, pautó, vendió, reveló el cartel, desplegó la PWA ni modificó ninguna cuenta o servicio externo.
+- Riesgos: la v08 sigue en revisión; faltan aprobación cultural/operativa/de marca, manual y derechos, datos 2026 validados y, para la PWA, dueño, presupuesto separado, plano, inventario georreferenciado, destino HTTPS seguro, prueba de campo y protocolo de actualización/rollback.
+- Pendiente: aprobar o corregir la v08 hasta el 28 de agosto y completar los gates de datos, operación, tecnología, marca y privacidad antes de cualquier salida pública o despliegue.
