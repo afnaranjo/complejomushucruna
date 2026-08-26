@@ -350,3 +350,17 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Publicación externa: ninguna; no se cargaron tareas a Bitrix, no se accedió a Meta, no se desplegó, publicó, pautó ni modificó ninguna cuenta o servicio externo.
 - Riesgos: responsables históricos no equivalen automáticamente al equipo 2026; dos identidades/grafías requieren confirmación; las 73 tareas no deben migrarse a Bitrix hasta ratificar RACI, fechas, capacidad y suplentes.
 - Pendiente: revisar la asignación propuesta hasta el 28 de agosto, trasladar solo el plan aprobado a Bitrix y retomar la presentación v05 conectándola con esta matriz.
+
+### 2026-08-26 — Guía creativa y operativa `ES TRADICIÓN` v06
+
+- Se reconstruyó la guía como una presentación editable de 40 diapositivas para explicar la campaña y dirigir la ejecución semanal de todos los frentes conectados.
+- El relato integra decisión estratégica, aprendizajes, plataforma emocional, customer journey, cinco capítulos, sistema visual/sonoro/audiovisual, cuatro piezas hero, cinco pilares editoriales, mapa maestro, diez semanas, operación en vivo, cierre y gates éticos.
+- Las diez semanas se cruzaron con los 17 paquetes y 73 entregables de la matriz 2026; cada una distingue lo que ve el público, entregables, dependencias habilitantes y evidencia/gate de cierre.
+- Se incluyeron el protocolo de revelaciones desde la ventana tentativa del 17 de septiembre, el cartel por jornada desde la ventana tentativa del 2 de octubre y la ruta completa de la PWA: plano, prototipo, prueba de campo, versión offline, QR/señalética, lanzamiento propuesto y simulacro.
+- La dirección creativa usa color teatral y ferial, fotografía humana, tipografía condensada y dramaturgia sonora de gran espectáculo sin copiar repertorio, vestuario, escena o identidad protegida.
+- No se incluyeron nombres del equipo, nombres del cartel, logos, presupuesto de pauta, escasez simulada, token ni credenciales.
+- QA: las 40 diapositivas se renderizaron e inspeccionaron; se corrigió el único desborde del mapa maestro y `slides_test.py` finalizó sin contenido fuera del lienzo.
+- Commit: incluido en `Reconstruir guía creativa y operativa ES TRADICIÓN v06`.
+- Publicación externa: ninguna; no se accedió a Meta, no se activó pauta, no se publicó, no se reveló el cartel, no se desplegó la guía móvil y no se modificó ninguna cuenta o servicio externo.
+- Riesgos: la v06 sigue en revisión; faltan aprobación cultural/operativa/de marca, derechos del archivo, manual de marca, ratificación de fechas/oferta/cartel, plano y capacidad de parqueaderos, datos de colada y construcción de la PWA.
+- Pendiente: aprobar o corregir la v06 hasta el 28 de agosto, ratificar RACI/suplentes/SLA y resolver los gates del 2 de septiembre antes de cualquier salida pública.

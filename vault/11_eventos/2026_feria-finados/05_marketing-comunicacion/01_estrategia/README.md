@@ -2,7 +2,7 @@
 titulo: "Estrategia de marketing de la feria"
 responsable: "líder de marketing"
 estado: borrador
-ultima_actualizacion: 2026-08-25
+ultima_actualizacion: 2026-08-26
 fuente: interna
 confidencialidad: restringido
 ---
@@ -17,7 +17,8 @@ Objetivos, audiencias, posicionamiento, embudos, arquitectura de campañas, pres
 - [[2026-08-24_plan-operativo-digital-finados-2026_v01|Plan operativo digital del 25 de agosto al 2 de noviembre]]
 - [[2026-08-24_estrategia-competitiva-preventa-participacion-finados-2026_v01|Estrategia competitiva, preventa y participación]]
 - [[2026-08-25_plataforma-emocional-es-tradicion-finados-2026_v01|Plataforma emocional ES TRADICIÓN]]
-- [[2026-08-25_presentacion_guia-creativa-es-tradicion-finados-2026_v05.pptx|Guía creativa integral ES TRADICIÓN · v05 vigente · 40 diapositivas]] —rediseño editorial completo con lenguaje de feria contemporánea, fotografía histórica, composiciones variadas, guía móvil y notas preservadas; documento interno; no autoriza publicación—
+- [[2026-08-26_presentacion_guia-creativa-operativa-es-tradicion-finados-2026_v06.pptx|Guía creativa y operativa ES TRADICIÓN · v06 vigente · 40 diapositivas]] —dirección creativa, customer journey, cinco capítulos, cuatro piezas hero, calendario semanal conectado con los 17 paquetes/73 entregables, revelaciones, guía móvil, operación en vivo, cierre y gates; documento interno; no autoriza publicación—
+- [[2026-08-25_presentacion_guia-creativa-es-tradicion-finados-2026_v05.pptx|Guía creativa integral ES TRADICIÓN · v05 histórica]] —antecedente editorial conservado—
 - [[2026-08-25_presentacion_guia-creativa-es-tradicion-finados-2026_v04.pptx|Guía creativa integral ES TRADICIÓN · v04 histórica]] —antecedente editorial conservado—
 - [[2026-08-25_presentacion_guia-creativa-es-tradicion-finados-2026_v03.pptx|Guía creativa integral ES TRADICIÓN · v03 histórica]] —antecedente colorido y teatral conservado—
 - [[2026-08-25_presentacion_guia-creativa-es-tradicion-finados-2026_v02.pptx|Guía creativa integral ES TRADICIÓN · v02 histórica]] —antecedente conservado—
