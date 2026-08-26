@@ -2,7 +2,7 @@
 titulo: "Centro de mando"
 responsable: "dirección integral de la feria"
 estado: aprobado
-ultima_actualizacion: 2026-08-25
+ultima_actualizacion: 2026-08-26
 fuente: interna
 confidencialidad: interno
 tags:
@@ -27,7 +27,10 @@ tags:
 - [[11_eventos/2026_feria-finados/05_marketing-comunicacion/03_pauta/2026-08-24_plan-pauta-social-usd4000-finados-2026_v01|Pauta social USD 4.000]]
 - [[11_eventos/2026_feria-finados/01_concepto-experiencia/2026-08-24_arquitectura-experiencia-asistencia-200k-finados-2026_v01|Arquitectura de experiencia y asistencia 200K]]
 - [[11_eventos/2026_feria-finados/05_marketing-comunicacion/01_estrategia/2026-08-25_plataforma-emocional-es-tradicion-finados-2026_v01|Plataforma emocional ES TRADICIÓN]]
-- [[11_eventos/2026_feria-finados/05_marketing-comunicacion/01_estrategia/2026-08-25_presentacion_guia-creativa-es-tradicion-finados-2026_v04.pptx|Guía creativa integral ES TRADICIÓN · presentación v04 vigente]]
+- [[11_eventos/2026_feria-finados/05_marketing-comunicacion/01_estrategia/2026-08-25_presentacion_guia-creativa-es-tradicion-finados-2026_v05.pptx|Guía creativa integral ES TRADICIÓN · presentación v05 vigente]]
+- [[11_eventos/2026_feria-finados/05_marketing-comunicacion/2026-08-26_analisis-tareas-historicas-y-sistema-operativo-finados-2026_v01|Análisis de 188 tareas históricas y sistema operativo 2026]]
+- [[11_eventos/2026_feria-finados/05_marketing-comunicacion/2026-08-26_matriz-operativa-equipo-finados-2026_v01.xlsx|Matriz operativa editable del equipo]]
+- [[11_eventos/2026_feria-finados/05_marketing-comunicacion/01_estrategia/2026-08-25_presentacion_guia-creativa-es-tradicion-finados-2026_v04.pptx|Guía creativa integral ES TRADICIÓN · presentación v04 histórica]]
 - [[11_eventos/2026_feria-finados/05_marketing-comunicacion/01_estrategia/2026-08-25_presentacion_guia-creativa-es-tradicion-finados-2026_v03.pptx|Guía creativa integral ES TRADICIÓN · presentación v03 histórica]]
 - [[11_eventos/2026_feria-finados/05_marketing-comunicacion/01_estrategia/2026-08-25_presentacion_guia-creativa-es-tradicion-finados-2026_v02.pptx|Guía creativa integral ES TRADICIÓN · presentación v02 histórica]]
 - [[11_eventos/2026_feria-finados/05_marketing-comunicacion/01_estrategia/2026-08-25_presentacion_enfoque-es-tradicion-finados-2026_v01.pptx|Presentación ejecutiva del enfoque ES TRADICIÓN]]

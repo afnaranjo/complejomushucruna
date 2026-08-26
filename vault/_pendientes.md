@@ -2,7 +2,7 @@
 titulo: "Pendientes ejecutivos"
 responsable: "dirección integral de la feria"
 estado: en-revision
-ultima_actualizacion: 2026-08-25
+ultima_actualizacion: 2026-08-26
 fuente: interna
 confidencialidad: interno
 tags:
@@ -24,6 +24,9 @@ tags:
 - [ ] Definir si 200.000 significa visitas acumuladas, personas únicas o ambas; validar aforo por hora/zona, movilidad y sistema de acceso. Responsable: dirección/operaciones/seguridad/datos. Fecha: 2026-08-28.
 - [ ] Confirmar presupuesto integral, metas comerciales, aforo y modelo de ingresos. La pauta social ya tiene USD 4.000 confirmados y registrados. Responsable: dirección/finanzas. Fecha: por definir.
 - [ ] Ratificar el [[11_eventos/2026_feria-finados/05_marketing-comunicacion/2026-08-24_equipo-operativo-marketing-finados-2026_v01|RACI digital]] y nombrar responsables de pauta, analítica/tracking, community management, aprobación cultural/marca y enlace con boletería. Responsable: dirección/Edwin Masabanda. Fecha: 2026-08-26.
+- [x] Preservar y analizar las 188 tareas históricas de `Expoferia Mushuc Runa`, identificar carga y frentes por responsable, sanitizar enlaces/contactos y convertirlas en 17 paquetes y 73 entregables 2026 en la [[11_eventos/2026_feria-finados/05_marketing-comunicacion/2026-08-26_matriz-operativa-equipo-finados-2026_v01.xlsx|matriz operativa]]. Responsable: marketing/estrategia/datos. Completado: 2026-08-26.
+- [ ] Revisar y aprobar la [[11_eventos/2026_feria-finados/05_marketing-comunicacion/2026-08-26_analisis-tareas-historicas-y-sistema-operativo-finados-2026_v01|migración operativa 2026]] antes de cargarla a Bitrix: ratificar responsables, suplentes, aprobadores, capacidad semanal, fechas y evidencia de cierre. No copiar las 188 microtareas tal como estaban. Responsable: dirección/Edwin Masabanda/dueños de frente. Fecha: 2026-08-28.
+- [ ] Confirmar la identidad y vigencia 2026 de los responsables que aparecen en el exporte histórico; resolver `Edwin Masa Sisa` y la grafía `Diegu/Diego Flores` sin inferir equivalencias. Responsable: coordinación/recursos humanos o dirección. Fecha: 2026-08-28.
 - [ ] Confirmar destino oficial seguro, oferta, precios, inventario, canal de conversión y capacidad de respuesta. Responsable: dirección/ventas/tecnología/servicio. Fecha: 2026-09-02.
 - [ ] Aprobar, ajustar o descartar la [[11_eventos/2026_feria-finados/05_marketing-comunicacion/01_estrategia/2026-08-25_plataforma-emocional-es-tradicion-finados-2026_v01|plataforma emocional `ES TRADICIÓN`]], su promesa `Cinco días para volver a encontrarnos`, los cinco capítulos, la dirección audiovisual y las rutas comerciales. No publicar antes de aprobación cultural, operativa y de marca. Responsable: dirección/marketing/comunidad/experiencia/operaciones. Fecha: 2026-08-28.
 - [ ] Aprobar, ajustar o descartar la [[11_eventos/2026_feria-finados/05_marketing-comunicacion/01_estrategia/2026-08-25_presentacion_guia-creativa-es-tradicion-finados-2026_v05.pptx|guía creativa integral `ES TRADICIÓN` v05]]: dirección editorial de feria contemporánea, paleta viva, fotografía histórica, sonido, tres piezas hero, calendario semanal, guía móvil, prueba social y reglas de disponibilidad. Responsable: dirección/marketing/diseño/audiovisual/producción/comunidad. Fecha: 2026-08-28.

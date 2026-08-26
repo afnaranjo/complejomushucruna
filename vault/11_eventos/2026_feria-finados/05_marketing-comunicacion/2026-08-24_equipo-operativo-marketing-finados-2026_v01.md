@@ -2,8 +2,8 @@
 titulo: "Equipo operativo de marketing Feria de Finados 2026"
 responsable: "coordinación de marketing y comunicación"
 estado: en-revision
-ultima_actualizacion: 2026-08-24
-fuente: "organigrama Estructura finados 2025 entregado por Alex Naranjo el 2026-08-24"
+ultima_actualizacion: 2026-08-26
+fuente: "organigrama Estructura finados 2025 y exporte Bitrix Expoferia Mushuc Runa"
 confidencialidad: restringido
 tags: [feria-finados-2026, equipo, raci, marketing]
 ---
@@ -13,6 +13,16 @@ tags: [feria-finados-2026, equipo, raci, marketing]
 ## Alcance de la fuente
 
 La imagen entregada por Alex se titula `Estructura finados 2025`. Alex la presentó como referencia del equipo para planificar 2026. Los nombres y flechas se transcriben; la vigencia, apellidos incompletos, disponibilidad, reemplazos y atribuciones 2026 deben ratificarse.
+
+El 26 de agosto se incorporó una segunda fuente histórica: 188 tareas de `Expoferia Mushuc Runa` creadas entre el 11 y el 30 de octubre de 2025. La [[2026-08-26_analisis-tareas-historicas-y-sistema-operativo-finados-2026_v01|lectura completa]] y la [[2026-08-26_matriz-operativa-equipo-finados-2026_v01.xlsx|matriz editable]] muestran carga, cierres, frentes y una propuesta consolidada para 2026. Esta fuente no sustituye la ratificación del organigrama actual.
+
+## Evidencia de carga histórica
+
+- 167 tareas figuraban completadas, 14 pendientes y 7 en progreso.
+- Una cuenta responsable concentró 114 tareas —60,6 % del total—; esto exige separar coordinación, ejecución, aprobación y respaldo.
+- La mediana entre creación y vencimiento fue de 1,38 días; 68 de 154 cierres comparables quedaron después del plazo.
+- Solo 25 tareas tenían jerarquía padre y 160 carecían de etiquetas.
+- La migración 2026 propuesta usa 17 paquetes y 73 entregables con gate y evidencia; no copia las 188 microtareas de forma literal.
 
 ## Estructura observada
 
@@ -72,5 +82,7 @@ R = ejecuta · A = aprueba/responde · C = consultado · I = informado.
 
 - [[README|Marketing y comunicación]]
 - [[01_estrategia/2026-08-24_plan-operativo-digital-finados-2026_v01|Plan operativo digital]]
+- [[2026-08-26_analisis-tareas-historicas-y-sistema-operativo-finados-2026_v01|Análisis de tareas históricas y sistema operativo 2026]]
+- [[2026-08-26_matriz-operativa-equipo-finados-2026_v01.xlsx|Matriz operativa del equipo 2026]]
 - [[../../../02_equipo-stakeholders/directorio-y-raci|Directorio general]]
 - [[../00_direccion-control/raci-integral|RACI integral de la feria]]

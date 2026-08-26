@@ -337,3 +337,16 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Publicación externa: ninguna; no se accedió a Meta, no se activó pauta, no se publicó contenido y no se modificaron cuentas, dominio, boletería ni servicios externos.
 - Riesgos: la v05 sigue siendo propuesta interna; identidad final, derechos del archivo, calendario público, oferta, parqueaderos, guía móvil y demás datos operativos requieren aprobación o validación de sus frentes dueños.
 - Pendiente: aprobar, ajustar o descartar la v05 hasta el 28 de agosto y verificar derechos/manual de marca antes de producir piezas públicas.
+
+### 2026-08-26 — Memoria operativa de 188 tareas y plan de equipo Finados 2026
+
+- Se procesó completo el exporte Bitrix de `Expoferia Mushuc Runa`: 188 tareas creadas entre el 11 y el 30 de octubre de 2025, con 167 completadas, 14 pendientes y 7 en progreso.
+- Se documentaron la concentración de 114 tareas en una cuenta, la mediana de 1,38 días entre creación y vencimiento, 68 cierres tardíos entre 154 comparables, 160 tareas sin etiqueta y solo 25 con jerarquía padre.
+- Se preservaron las 188 filas en una matriz sanitizada y se mapearon a 17 paquetes; el plan 2026 consolida 73 entregables con responsable, apoyo, aprobador, gate, fecha y evidencia de cierre.
+- Se creó una nota canónica interconectada con estrategia, experiencia 200K, preventa, pauta, guía móvil, creadores, auditoría Meta y presentación v05. También se actualizaron equipo, índices, memoria y pendientes.
+- El exporte crudo no se versionó porque contiene enlaces y datos de contacto y el remoto es público. La matriz omite URL, correos y teléfonos en siete filas; no contiene tokens, credenciales ni información nominal nueva del cartel 2026.
+- QA: libro XLSX de siete hojas importado nuevamente, fórmulas inspeccionadas sin `#REF!`, `#DIV/0!`, `#VALUE!`, `#NAME?` o `#N/A`; las siete hojas se renderizaron y revisaron visualmente.
+- Commit: incluido en `Integrar memoria operativa y tareas Finados 2026`.
+- Publicación externa: ninguna; no se cargaron tareas a Bitrix, no se accedió a Meta, no se desplegó, publicó, pautó ni modificó ninguna cuenta o servicio externo.
+- Riesgos: responsables históricos no equivalen automáticamente al equipo 2026; dos identidades/grafías requieren confirmación; las 73 tareas no deben migrarse a Bitrix hasta ratificar RACI, fechas, capacidad y suplentes.
+- Pendiente: revisar la asignación propuesta hasta el 28 de agosto, trasladar solo el plan aprobado a Bitrix y retomar la presentación v05 conectándola con esta matriz.

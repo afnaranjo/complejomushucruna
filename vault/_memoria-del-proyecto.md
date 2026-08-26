@@ -2,7 +2,7 @@
 titulo: "Memoria del proyecto"
 responsable: "dirección integral de la feria"
 estado: en-revision
-ultima_actualizacion: 2026-08-25
+ultima_actualizacion: 2026-08-26
 fuente: interna
 confidencialidad: interno
 tags:
@@ -69,6 +69,7 @@ El equipo integral está organizando la Feria de Finados 2026 en el Complejo Int
 - Distribución revisada de pauta social: USD 400 expectativa, USD 800 revelaciones/preventa, USD 1.600 conversión, USD 800 urgencia, USD 200 servicio en vivo y USD 200 de reserva controlada. Dentro de esos rubros, la promoción de participación tiene un máximo de USD 200; la venta/preventa concentra USD 3.400. Meta es el canal pagado inicial para evitar fragmentación; otra plataforma requiere hipótesis, activos y medición propios.
 - Sistema digital interconectado: se documentaron contenido, pauta, medición, integración con medios/influencers y las entregas entre los 16 frentes de la feria. Ningún presupuesto externo de medios o creadores se mezcló con la pauta social.
 - Equipo de marketing: se transcribió el organigrama `Estructura finados 2025` entregado por Alex y se propuso un RACI 2026 pendiente de ratificación. Permanecen como vacantes críticas la compra de medios, analítica/tracking, community management, aprobación cultural/marca y enlace con boletería.
+- Memoria operativa de tareas 2025: se analizó el exporte completo de 188 tareas de `Expoferia Mushuc Runa` en la [[11_eventos/2026_feria-finados/05_marketing-comunicacion/2026-08-26_analisis-tareas-historicas-y-sistema-operativo-finados-2026_v01|nota canónica]] y se creó la [[11_eventos/2026_feria-finados/05_marketing-comunicacion/2026-08-26_matriz-operativa-equipo-finados-2026_v01.xlsx|matriz operativa]]. Las tareas fueron creadas entre el 11 y el 30 de octubre de 2025; 167 figuraban completadas, 14 pendientes y 7 en progreso. La mediana creación→vencimiento fue 1,38 días, 68 de 154 cierres comparables ocurrieron después del plazo y una sola cuenta concentró 114 tareas —60,6 %—. Para 2026 se conservaron las 188 filas, se sanitizaron siete con URL/correos/teléfonos, se mapearon a 17 paquetes y se consolidaron en 73 entregables con responsable, apoyo, aprobador, gate y evidencia. El exporte crudo no se versionó y no contiene información nueva del cartel 2026.
 - Seguridad de Meta: la extracción fue `GET` de solo lectura, con pausa y límites conservadores. Se detuvo al primer error de cuota de aplicación; el uso de la cuenta publicitaria reportó 0%. No se guardaron credenciales, no se extrajeron comentarios individuales y no se modificó ningún activo.
 - Configuración publicitaria por revisar: ambas cuentas accesibles reportan moneda USD y zona horaria `America/Los_Angeles`; el análisis histórico deberá normalizar fechas y cortes diarios a `America/Guayaquil` sin cambiar la configuración de las cuentas.
 - Inteligencia competitiva v01: completada con competencia regional y nacional, referentes de Latinoamérica y del mundo, amenazas, brechas y prácticas transferibles. El competidor directo prioritario es el conjunto Parque Provincial de la Familia + Mega Expo Feria Finados; Baños es el principal destino sustituto regional.
@@ -115,7 +116,10 @@ El 25 de agosto inicia el desarrollo interno, sin revelar el cartel, publicar ni
 - [[11_eventos/2026_feria-finados/05_marketing-comunicacion/01_estrategia/2026-08-24_estrategia-digital-finados-2026_v01|Estrategia digital Finados 2026]]
 - [[11_eventos/2026_feria-finados/05_marketing-comunicacion/01_estrategia/2026-08-24_plan-operativo-digital-finados-2026_v01|Plan operativo digital Finados 2026]]
 - [[11_eventos/2026_feria-finados/05_marketing-comunicacion/01_estrategia/2026-08-25_plataforma-emocional-es-tradicion-finados-2026_v01|Plataforma emocional ES TRADICIÓN]]
-- [[11_eventos/2026_feria-finados/05_marketing-comunicacion/01_estrategia/2026-08-25_presentacion_guia-creativa-es-tradicion-finados-2026_v04.pptx|Guía creativa integral ES TRADICIÓN · presentación v04 vigente]]
+- [[11_eventos/2026_feria-finados/05_marketing-comunicacion/01_estrategia/2026-08-25_presentacion_guia-creativa-es-tradicion-finados-2026_v04.pptx|Guía creativa integral ES TRADICIÓN · presentación v04 histórica]]
+- [[11_eventos/2026_feria-finados/05_marketing-comunicacion/01_estrategia/2026-08-25_presentacion_guia-creativa-es-tradicion-finados-2026_v05.pptx|Guía creativa integral ES TRADICIÓN · presentación v05 vigente]]
+- [[11_eventos/2026_feria-finados/05_marketing-comunicacion/2026-08-26_analisis-tareas-historicas-y-sistema-operativo-finados-2026_v01|Análisis de tareas históricas y sistema operativo 2026]]
+- [[11_eventos/2026_feria-finados/05_marketing-comunicacion/2026-08-26_matriz-operativa-equipo-finados-2026_v01.xlsx|Matriz operativa del equipo Finados 2026]]
 - [[11_eventos/2026_feria-finados/05_marketing-comunicacion/01_estrategia/2026-08-25_presentacion_guia-creativa-es-tradicion-finados-2026_v03.pptx|Guía creativa integral ES TRADICIÓN · presentación v03 histórica]]
 - [[11_eventos/2026_feria-finados/05_marketing-comunicacion/01_estrategia/2026-08-25_presentacion_guia-creativa-es-tradicion-finados-2026_v02.pptx|Guía creativa integral ES TRADICIÓN · presentación v02 histórica]]
 - [[11_eventos/2026_feria-finados/05_marketing-comunicacion/02_contenido/2026-08-25_calendario-expectativa-es-tradicion-finados-2026_v01|Calendario de expectativa ES TRADICIÓN]]
