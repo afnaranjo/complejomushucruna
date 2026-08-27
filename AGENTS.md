@@ -427,3 +427,15 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Seguridad: la credencial no se guardó ni versionó; los temporales de implementación se retiraron al cerrar. No se cargaron cartel, contratos, contactos ni información bajo embargo.
 - Riesgos: permisos mínimos, zona horaria y plantillas predeterminadas requieren validación manual; el sistema aún no contiene el cronopost real ni responsables personales definitivos.
 - Pendiente: invitar cuentas, probar permisos por rol y `America/Guayaquil` desde dos cuentas, confirmar responsables y poblar el cronopost solo desde el calendario controlado autorizado.
+
+### 2026-08-27 — Réplica aislada del centro de mando Notion
+
+- Se localizó por título exacto la página nueva y vacía asignada por Alex y se construyó únicamente dentro de ella; no se abrió contenido, renombró, archivó ni modificó ninguna página preexistente del nuevo espacio.
+- La réplica contiene siete fuentes conectadas, 26 vistas directas curadas y 11 vistas enlazadas. Notion también crea una tabla inicial automática por fuente, que no se cuenta entre las vistas curadas.
+- Se conservaron siete registros sintéticos aislados por `Tipo de registro = Prueba`: una campaña, un activo, dos tareas y tres publicaciones. La verificación independiente confirmó cero registros operativos y los estados, alertas, puntualidad y offset `-05:00` esperados.
+- La aplicación se detuvo de forma segura ante dos validaciones de Notion, reanudó sin duplicar y adoptó fórmulas tipadas, propiedades calculadas secuenciales y reconciliación restringida a objetos propios. `Fase` en `Publicaciones` quedó como selección directa porque Notion no admite rollup sobre rollup.
+- Commit: incluido en `Documentar réplica aislada del centro de mando Notion`.
+- Publicación externa: únicamente configuración interna autorizada en la página nueva de Notion; no se publicó, pautó, vendió, programó ni desplegó contenido en redes, Meta, web, boletería u otro canal público.
+- Seguridad: la credencial solo se introdujo en sesiones silenciosas y temporales; no se guardó ni versionó. No se cargaron cartel, contratos, contactos ni información bajo embargo.
+- Riesgos: permisos mínimos, zona horaria, cuentas definitivas, plantillas y responsables siguen pendientes de validación manual antes de cargar el cronopost real.
+- Pendiente: probar permisos por rol y `America/Guayaquil` desde dos cuentas, confirmar responsables y poblar la réplica solo desde el calendario controlado autorizado.

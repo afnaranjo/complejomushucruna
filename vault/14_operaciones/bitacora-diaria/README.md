@@ -13,6 +13,7 @@ Registro breve de avances, decisiones, bloqueos y próximos pasos. Obsidian crea
 
 ## Entradas recientes
 
+- [[2026-08-27_bitacora_replicacion-aislada-notion-finados-2026_v01|2026-08-27 · Réplica aislada de Notion Finados 2026]]
 - [[2026-08-27_bitacora_adenda-v09-y-flujo-creativo-finados-2026_v01|2026-08-27 · Adenda V09 y flujo creativo]]
 - [[2026-08-26_bitacora_guia-creativa-operativa-finados-2026_v03|2026-08-26 · Guía creativa y operativa FINADOS 2026 · ES TRADICIÓN v08]]
 - [[2026-08-26_bitacora_guia-creativa-operativa-finados-2026_v02|2026-08-26 · Guía creativa y operativa FINADOS 2026 · ES TRADICIÓN v07]]

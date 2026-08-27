@@ -15,6 +15,9 @@ tags:
 
 # Implementación del sistema Notion de cronopost Finados 2026
 
+> [!info] Alcance histórico
+> Esta nota documenta la primera implementación en el espacio autorizado originalmente, incluidas sus diez muestras archivadas. La réplica posterior, creada sin tocar páginas existentes del nuevo espacio, está documentada por separado en [[2026-08-27_replicacion-aislada-notion-cronopost-finados-2026_v01|Réplica aislada del sistema Notion]].
+
 > [!success] Resultado
 > El sistema quedó implementado y verificado dentro del único espacio autorizado de Notion, `Finados 2026`. Organiza trabajo interno; no publica automáticamente en redes ni autoriza revelar fechas, artistas, precios, cupos, promociones o información bajo embargo.
 

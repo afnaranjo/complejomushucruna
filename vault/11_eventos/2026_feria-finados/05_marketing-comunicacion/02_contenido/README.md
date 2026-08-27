@@ -18,6 +18,7 @@ Calendario, mensajes, guiones, piezas, versiones, aprobaciones y enlaces finales
 - [[../01_estrategia/2026-08-27_adenda-guia-creativa-operativa-es-tradicion-finados-2026_v09|Adenda V09 · requisitos para el futuro cronopost]]
 - [[2026-08-27_diseno-sistema-notion-cronopost-finados-2026_v01|Diseño del sistema Notion de cronopost, publicación y centro de mando Community]]
 - [[2026-08-27_implementacion-notion-cronopost-finados-2026_v01|Implementación verificada del sistema Notion]]
+- [[2026-08-27_replicacion-aislada-notion-cronopost-finados-2026_v01|Réplica aislada en la nueva página autorizada de Notion]]
 - [[2026-08-27_plan-implementacion-notion-cronopost-finados-2026_v01|Plan de implementación ejecutado]]
 
 [[../README|Volver a marketing y comunicación]]
