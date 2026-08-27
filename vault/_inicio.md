@@ -33,6 +33,7 @@ tags:
 - [[11_eventos/2026_feria-finados/05_marketing-comunicacion/01_estrategia/2026-08-26_presentacion_guia-creativa-operativa-es-tradicion-finados-2026_v06.pptx|Guía creativa y operativa ES TRADICIÓN · presentación v06 histórica]]
 - [[11_eventos/2026_feria-finados/05_marketing-comunicacion/2026-08-26_analisis-tareas-historicas-y-sistema-operativo-finados-2026_v01|Análisis de 188 tareas históricas y sistema operativo 2026]]
 - [[11_eventos/2026_feria-finados/05_marketing-comunicacion/2026-08-26_matriz-operativa-equipo-finados-2026_v01.xlsx|Matriz operativa editable del equipo]]
+- [[11_eventos/2026_feria-finados/05_marketing-comunicacion/02_contenido/2026-08-27_diseno-sistema-notion-cronopost-finados-2026_v01|Diseño del sistema Notion de cronopost, publicación y centro de mando Community]]
 - [[11_eventos/2026_feria-finados/05_marketing-comunicacion/01_estrategia/2026-08-25_presentacion_guia-creativa-es-tradicion-finados-2026_v05.pptx|Guía creativa integral ES TRADICIÓN · presentación v05 histórica]]
 - [[11_eventos/2026_feria-finados/05_marketing-comunicacion/01_estrategia/2026-08-25_presentacion_guia-creativa-es-tradicion-finados-2026_v04.pptx|Guía creativa integral ES TRADICIÓN · presentación v04 histórica]]
 - [[11_eventos/2026_feria-finados/05_marketing-comunicacion/01_estrategia/2026-08-25_presentacion_guia-creativa-es-tradicion-finados-2026_v03.pptx|Guía creativa integral ES TRADICIÓN · presentación v03 histórica]]

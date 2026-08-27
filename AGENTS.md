@@ -401,3 +401,16 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Publicación externa: únicamente el push autorizado al repositorio; no se accedió a Meta, no se publicó, pautó, vendió, transmitió, desplegó la PWA ni modificó ninguna cuenta o servicio externo.
 - Riesgos: el remoto es público; la táctica y el organigrama nominal se versionan por instrucción expresa de Alex, pero el cartel y la programación controlada no. Los pilotos siguen bloqueados por aprobación jurídica, financiera, cultural, operativa y de datos.
 - Pendiente: convertir el cronopost a fechas autorizadas desde la fuente controlada; completar RACI y suplentes; poblar inventario/ledger; decidir pilotos V09, plataforma, guía móvil y experiencia 200K; generar presentación V09 solo cuando Alex lo solicite.
+
+### 2026-08-27 — Diseño del sistema Notion de cronopost y publicación
+
+- Se auditó en modo lectura el espacio autorizado `Finados 2026` y se confirmó que contiene cinco bases iniciales y páginas de muestra reutilizables; no se inspeccionó ni modificó otro espacio.
+- Se diseñó una arquitectura de siete bases que separa campañas, producción, publicaciones, activos, equipo, decisiones e ideas. Una tarea puede originar varias publicaciones, cada una con red, fecha, hora, copy, responsable, enlace y resultado propios.
+- Se especificó la landing `Community · Qué publicar y cuándo`, con vistas de hoy, listas para programar, timeline, calendario, pendientes por red, alertas, realizadas y rendimiento; también se definieron Kanban, Gantt, dependencias, semáforos y métricas ponderadas.
+- La revisión técnica endureció gates de dato, embargo, derechos, cultura, comercial, operación y destino digital; añadió control de versiones por red, seguridad sin campos ocultos, reprogramaciones trazables, zona horaria `America/Guayaquil` y denominadores explícitos de KPI.
+- La especificación incluye migración reversible, archivo sin borrado de las muestras, modelo híbrido Persona + Equipo, registro de prueba excluido de KPIs y pruebas de aceptación funcional, horaria y de confidencialidad.
+- No se modificó Notion todavía: la especificación escrita debe ser revisada antes de redactar y ejecutar el plan de implementación. La credencial utilizada para la auditoría no se guardó, copió ni versionó.
+- Commit: incluido en `Diseñar sistema Notion de cronopost y publicación`.
+- Publicación externa: ninguna; no se publicó contenido, no se activaron campañas y no se modificaron Meta, boletería, dominio ni otros servicios.
+- Riesgos: faltan cuentas de Notion y responsables definitivos de Community, datos y aprobación; las capacidades de escritura deben demostrarse solo con el registro de prueba; el repositorio es público y no puede contener información bajo embargo.
+- Pendiente: revisión de Alex, plan de implementación, configuración limitada a `Finados 2026`, QA del flujo producción→publicación y documentación final antes de cargar el cronopost real.
