@@ -2,7 +2,7 @@
 titulo: "Estrategia digital provisional Feria de Finados 2026"
 responsable: "líder de marketing"
 estado: en-revision
-ultima_actualizacion: 2026-08-24
+ultima_actualizacion: 2026-08-27
 fuente: "auditoría histórica Meta 2021-2026 y contexto interno"
 confidencialidad: restringido
 ---
@@ -11,11 +11,11 @@ confidencialidad: restringido
 
 ## Estado de esta propuesta
 
-Esta es una **directriz avanzada para decisión**, no una campaña aprobada. Alex definió USD 4.000 exclusivamente para pauta social, el inicio interno el 25 de agosto y la ventana del 29 de octubre al 2 de noviembre como supuesto de planificación. La fecha pública, meta comercial, oferta, precios, aforo, artistas, atractivos, dominio, responsables y activos de marca siguen por confirmar. Nada de este documento autoriza publicación, pauta, cambio de cuenta o despliegue.
+Esta es una **directriz avanzada para decisión**, no una campaña aprobada. Alex definió USD 4.000 exclusivamente para pauta social y el inicio interno el 25 de agosto. El supuesto inicial de fechas fue reemplazado el 2026-08-27 por una programación en fuente controlada; esta estrategia debe rebaselinarse antes de ejecutar. La fecha pública, meta comercial, oferta, precios, aforo, artistas, atractivos, dominio, responsables y activos de marca siguen por confirmar. Nada de este documento autoriza publicación, pauta, cambio de cuenta o despliegue.
 
 Evidencia base: [[../../../../13_datos-medicion/2026-08-24_auditoria-meta-2021-2026/2026-08-24_informe-auditoria-meta-2021-2026_v01|auditoría histórica de Meta 2021-2026]].
 
-Ejecución: [[2026-08-24_plan-operativo-digital-finados-2026_v01|plan operativo digital del 25 de agosto al 2 de noviembre]].
+Ejecución: [[2026-08-24_plan-operativo-digital-finados-2026_v01|plan operativo digital iniciado el 25 de agosto]], pendiente de rebaseline.
 
 ## 1. Tesis estratégica
 
@@ -111,7 +111,7 @@ Contenido mínimo:
 
 ## 5. Embudo por fases
 
-Para planificación, `D0` es el 29 de octubre de 2026. Dirección debe ratificar la fecha antes de su comunicación pública.
+Para planificación vigente, `D0` es el Día 1 de la fuente controlada. Dirección debe autorizar la fecha antes de su comunicación pública.
 
 ### D-65 a D-57 · Fundamentos · 25 de agosto a 2 de septiembre
 
@@ -127,7 +127,7 @@ Contenido:
 
 Pauta: 0%. Esta etapa trabaja orgánico, producción y validación.
 
-### D-56 a D-43 · Expectativa · 3 a 16 de septiembre
+### D-56 a D-43 · Expectativa
 
 Objetivo: convertir interés en intención de visita.
 
@@ -141,13 +141,13 @@ Contenido:
 
 Pauta planificada: 10%, USD 400.
 
-### D-42 a D-28 · Revelaciones · 17 de septiembre a 1 de octubre
+### D-42 a D-28 · Revelaciones
 
 Objetivo: transformar atención en intención mediante confirmaciones escalonadas, itinerarios y prueba real.
 
 Pauta planificada: 20%, USD 800.
 
-### D-27 a D-8 · Conversión · 2 a 21 de octubre
+### D-27 a D-8 · Conversión
 
 Objetivo: vender entradas o registrar intención verificable.
 
@@ -162,7 +162,7 @@ Contenido:
 
 Pauta planificada: 40%, USD 1.600.
 
-### D-7 a D-1 · Urgencia útil · 22 a 28 de octubre
+### D-7 a D-1 · Urgencia útil
 
 Objetivo: cerrar decisión sin saturar.
 
@@ -176,7 +176,7 @@ Contenido:
 
 Pauta planificada: 20%, USD 800.
 
-### D0 a D+4 · Experiencia y servicio · 29 de octubre a 2 de noviembre
+### D0 a D+4 · Experiencia y servicio · Día 1–Día 5
 
 Objetivo: orientar, proteger reputación y capturar prueba social.
 

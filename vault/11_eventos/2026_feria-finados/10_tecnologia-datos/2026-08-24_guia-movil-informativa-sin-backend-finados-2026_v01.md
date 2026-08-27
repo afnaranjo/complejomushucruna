@@ -2,7 +2,7 @@
 titulo: "Guía móvil informativa sin backend Finados 2026"
 responsable: "tecnología y experiencia"
 estado: borrador
-ultima_actualizacion: 2026-08-24
+ultima_actualizacion: 2026-08-27
 fuente: "solicitud de Alex Naranjo, evidencia histórica y referencias oficiales"
 confidencialidad: interno
 tags:
@@ -172,12 +172,14 @@ Aunque el producto no busque datos personales, cualquier medición o permiso de 
 | 2026-08-28 | responsable, nombre del producto y alcance aprobados | G0 |
 | 2026-09-02 | plano base, inventario de puntos y taxonomía | tecnología + operación |
 | 2026-09-09 | prototipo navegable con una zona real | prueba interna |
-| 2026-09-16 | mapa completo y agenda de prueba | G2 |
-| 2026-09-25 | prueba de campo con familias y personal | experiencia |
-| 2026-10-02 | versión candidata, offline y accesibilidad | G3 |
-| 2026-10-14 | datos finales, señalética y QR coordinados | producción |
-| 2026-10-21 | guía final aprobada | G4 |
-| 2026-10-28 | simulacro de orientación y contingencia | G5 |
+| D-43 | mapa completo y agenda de prueba | G2 |
+| D-34 | prueba de campo con familias y personal | experiencia |
+| D-27 | versión candidata, offline y accesibilidad | G3 |
+| D-15 | datos finales, señalética y QR coordinados | producción |
+| D-8 | guía final aprobada | G4 |
+| D-1 | simulacro de orientación y contingencia | G5 |
+
+`D0 = Día 1`; la conversión a fechas exactas se hace únicamente desde la fuente controlada y con autorización de Dirección.
 
 ## Prueba de éxito
 

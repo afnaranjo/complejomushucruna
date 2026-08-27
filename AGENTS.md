@@ -387,3 +387,17 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Publicación externa: ninguna; no se accedió a Meta, no se publicó, pautó, vendió, reveló el cartel, desplegó la PWA ni modificó ninguna cuenta o servicio externo.
 - Riesgos: la v08 sigue en revisión; faltan aprobación cultural/operativa/de marca, manual y derechos, datos 2026 validados y, para la PWA, dueño, presupuesto separado, plano, inventario georreferenciado, destino HTTPS seguro, prueba de campo y protocolo de actualización/rollback.
 - Pendiente: aprobar o corregir la v08 hasta el 28 de agosto y completar los gates de datos, operación, tecnología, marca y privacidad antes de cualquier salida pública o despliegue.
+
+### 2026-08-27 — Adenda V09, flujo creativo y rebaseline seguro de Finados 2026
+
+- Se creó la adenda acumulativa V09 sin modificar ni generar diapositivas: la v08 permanece como última presentación visual y la V09 conserva su PWA, profundidad operativa, motores, cronograma y controles.
+- Se incorporaron seis motores orgánicos unificados, 2x1 limitado del Día 1, bundle con entrada general incluida, expectativa controlada, lives, comunidades, carrusel territorial, `De emprendedor a influencer`, Plaza de la Luna condicionada y un customer journey ampliado.
+- Se documentó el flujo confirmado del equipo: Andrés Flores ingresa requerimientos; Cristian Nuñez administra diseño; Andrés Naula dirige audiovisual/animación y seguimiento; Are Morales articula áreas; Iván coordina producción. Aprobadores, suplentes y vacantes continúan como gates.
+- El supuesto anterior de calendario quedó reemplazado; todos los hitos compartibles usan `D0 = Día 1`. Las fechas exactas, nombres, países, costos, imagen y correspondencias del cartel permanecen fuera de Git en fuente controlada.
+- Se separaron promociones de tarifas preferenciales legales, se prohibió la escasez simulada y se creó un forecast de planificación más un ledger append-only de cortes. Mientras no exista inventario real conciliado con ID, alcance, vigencia, aprobador y validación de Datos, no se puede comunicar disponibilidad ni agotados.
+- Se actualizaron estrategia, contenido, pauta, oferta, medición, datos, RACI, decisiones, riesgos, cronograma, tablero, memoria, pendientes e índices de Obsidian.
+- QA: `git diff --check` limpio; 40 archivos revisados, 38 Markdown, 410 enlaces wiki válidos, metadatos y CSV consistentes, sin fechas heredadas activas, binarios, credenciales ni datos del cartel bajo embargo.
+- Commit: incluido en `Registrar adenda V09 y flujo creativo Finados 2026`.
+- Publicación externa: únicamente el push autorizado al repositorio; no se accedió a Meta, no se publicó, pautó, vendió, transmitió, desplegó la PWA ni modificó ninguna cuenta o servicio externo.
+- Riesgos: el remoto es público; la táctica y el organigrama nominal se versionan por instrucción expresa de Alex, pero el cartel y la programación controlada no. Los pilotos siguen bloqueados por aprobación jurídica, financiera, cultural, operativa y de datos.
+- Pendiente: convertir el cronopost a fechas autorizadas desde la fuente controlada; completar RACI y suplentes; poblar inventario/ledger; decidir pilotos V09, plataforma, guía móvil y experiencia 200K; generar presentación V09 solo cuando Alex lo solicite.

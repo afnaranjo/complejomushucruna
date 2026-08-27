@@ -2,7 +2,7 @@
 titulo: "Plan integral de marketing Feria de Finados 2026"
 responsable: "líder de marketing"
 estado: en-revision
-ultima_actualizacion: 2026-08-24
+ultima_actualizacion: 2026-08-27
 fuente: interna
 confidencialidad: restringido
 tags: [feria-finados-2026, plan-marketing]
@@ -10,7 +10,7 @@ tags: [feria-finados-2026, plan-marketing]
 
 # Plan integral de marketing
 
-El frente digital se operacionaliza en [[01_estrategia/2026-08-24_plan-operativo-digital-finados-2026_v01|el plan del 25 de agosto al 2 de noviembre]]. La inversión confirmada es USD 4.000 exclusivamente para pauta social; medios tradicionales e influencers administran presupuestos separados.
+El frente digital se operacionaliza en [[01_estrategia/2026-08-24_plan-operativo-digital-finados-2026_v01|el plan iniciado el 25 de agosto]], que debe rebaselinarse contra el calendario confirmado en fuente controlada. La inversión confirmada es USD 4.000 exclusivamente para pauta social; medios tradicionales e influencers administran presupuestos separados.
 
 ## Resultados que debe producir
 
@@ -34,7 +34,7 @@ El frente digital se operacionaliza en [[01_estrategia/2026-08-24_plan-operativo
 
 ## Preguntas que bloquean la activación pública
 
-- ¿Dirección ratificó como públicas las fechas asumidas del 29 de octubre al 2 de noviembre?
+- ¿Dirección autorizó una versión pública de las fechas confirmadas en la fuente controlada?
 - ¿Cuáles son metas y audiencias aprobadas?
 - ¿Qué productos se venden y cuál es su jerarquía?
 - ¿Qué programación y atractivos están confirmados?

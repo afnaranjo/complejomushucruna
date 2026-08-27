@@ -2,7 +2,7 @@
 titulo: "Plan confidencial de revelación del cartel Finados 2026"
 responsable: "dirección de programación y marketing"
 estado: borrador
-ultima_actualizacion: 2026-08-25
+ultima_actualizacion: 2026-08-27
 fuente: "dirección interna; detalle nominal fuera de Git"
 confidencialidad: restringido
 tags:
@@ -40,17 +40,17 @@ No revelar el cartel para “levantar” una campaña sin identidad. Primero se 
 
 | Fecha propuesta | Acción | Artista/tipo | Condición indispensable | Resultado buscado |
 |---|---|---|---|---|
-| 25 ago–2 sep | definición y producción interna | ninguno | contratos/inventario, fecha y oferta en revisión | ordenar narrativa y activos |
-| 3 sep | presentar `ES TRADICIÓN` | ninguno | plataforma y personas aprobadas | reconocimiento emocional |
-| 8–10 sep | presentar cinco capítulos/rutas | ninguno | arquitectura diaria real | elección de jornada sin depender del cartel |
-| 17 sep | Revelación 1 | **ancla de mayor ajuste cultural y poder de preventa; ART-01 como hipótesis** | contrato, día, precio total y compra de prueba | abrir conversión con la prueba más fuerte |
-| 21 sep | Revelación 2 | **puente andino-romántico; ART-02 como hipótesis** | mismo gate | ampliar generaciones y parejas |
-| 24 sep | Revelación 3 | capítulo de nostalgia ecuatoriana; ART-03/ART-04 si se confirman | identidad, repertorio, derechos y día | activar memoria nacional y familia adulta |
-| 27 sep | Revelación 4 | capítulo popular/bailable | identificar ART-05/06/07 y definir audiencia | ampliar alcance sin diluir tradición |
-| 30 sep | Revelación 5 | capítulo familiar/complementario | identificar ART-08 y confirmar formato | completar razones diurnas/familiares |
-| 2 oct | cartel completo por jornada | todos los confirmados | contratos, programación y precio por producto | iniciar conversión intensiva |
-| 8–15 oct | invitaciones y canciones con historia | artistas confirmados | clips autorizados y lineamiento común | profundizar deseo, no repetir afiches |
-| 21 oct | agenda final | todos | horarios, mapa, cambios y contingencia | facilitar decisión y llegada |
+| fundamentos internos | definición y producción interna | ninguno | contratos/inventario, fecha y oferta en revisión | ordenar narrativa y activos |
+| D-56 | presentar `ES TRADICIÓN` | ninguno | plataforma y personas aprobadas | reconocimiento emocional |
+| D-51 a D-49 | presentar cinco capítulos/rutas | ninguno | arquitectura diaria real | elección de jornada sin depender del cartel |
+| D-42 | Revelación 1 | **ancla de mayor ajuste cultural y poder de preventa; ART-01 como hipótesis** | contrato, jornada, precio total y compra de prueba | abrir conversión con la prueba más fuerte |
+| D-38 | Revelación 2 | **puente andino-romántico; ART-02 como hipótesis** | mismo gate | ampliar generaciones y parejas |
+| D-35 | Revelación 3 | capítulo de nostalgia ecuatoriana; ART-03/ART-04 si se confirman | identidad, repertorio, derechos y jornada | activar memoria nacional y familia adulta |
+| D-32 | Revelación 4 | capítulo popular/bailable | identificar ART-05/06/07 y definir audiencia | ampliar alcance sin diluir tradición |
+| D-29 | Revelación 5 | capítulo familiar/complementario | identificar ART-08 y confirmar formato | completar razones diurnas/familiares |
+| D-27 | cartel completo por jornada | todos los confirmados | contratos, programación y precio por producto | iniciar conversión intensiva |
+| D-21 a D-14 | invitaciones y canciones con historia | artistas confirmados | clips autorizados y lineamiento común | profundizar deseo, no repetir afiches |
+| D-8 | agenda final | todos | horarios, mapa, cambios y contingencia | facilitar decisión y llegada |
 
 Las fechas se desplazan si el gate no pasa. No se compensa un retraso revelando datos incompletos.
 

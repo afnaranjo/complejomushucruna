@@ -2,7 +2,7 @@
 titulo: "Alianzas de difusión Feria de Finados 2026"
 responsable: "responsable de alianzas de marketing"
 estado: borrador
-ultima_actualizacion: 2026-08-24
+ultima_actualizacion: 2026-08-27
 fuente: interna
 confidencialidad: restringido
 ---
@@ -16,5 +16,6 @@ Los presupuestos de influencers y aliados son externos al presupuesto digital y 
 ## Documento vigente en revisión
 
 - [[2026-08-24_programa-creadores-referidos-finados-2026_v01|Programa de creadores y referidos]]
+- [[../01_estrategia/2026-08-27_adenda-guia-creativa-operativa-es-tradicion-finados-2026_v09|Adenda V09 · comunidades, embajadores y De emprendedor a influencer]]
 
 [[../README|Volver a marketing y comunicación]]

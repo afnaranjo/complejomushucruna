@@ -2,7 +2,7 @@
 titulo: "Acta de constitución Feria de Finados 2026"
 responsable: "dirección integral de la feria"
 estado: borrador
-ultima_actualizacion: 2026-08-25
+ultima_actualizacion: 2026-08-27
 fuente: interna
 confidencialidad: restringido
 tags:
@@ -19,7 +19,7 @@ Diseñar, comercializar, promocionar, producir y operar integralmente la Feria d
 ## Supuestos aprobados para planificación
 
 - Inicio del trabajo digital: 2026-08-25.
-- Ventana operativa de feria: 2026-10-29 a 2026-11-02.
+- Programación de feria: confirmada en una fuente de acceso controlado. Este repositorio público usa Día 1–Día 5; las fechas exactas requieren autorización antes de incorporarse a una versión pública.
 - Presupuesto: USD 4.000 exclusivamente para pauta en redes sociales.
 - Influencers, radio, televisión y prensa administran presupuestos separados; el frente digital coordina mensaje, calendario y medición.
 - Entrada general para adultos: USD 3.
@@ -29,7 +29,7 @@ Diseñar, comercializar, promocionar, producir y operar integralmente la Feria d
 - Dirección de posicionamiento: recuperar la identidad de feria comercial, familiar y cultural desde la tradición; `ES TRADICIÓN` se desarrolla como plataforma, pero no se publica sin aprobación cultural, de marca y operativa.
 - Cartel artístico: información confidencial; ningún nombre está autorizado para difusión hasta pasar contratos, programación, oferta, derechos y embargo.
 
-La ventana de feria todavía requiere ratificación de Dirección antes de ser comunicada como fecha pública oficial.
+La programación interna está confirmada; la versión publicable de fechas todavía requiere autorización de Dirección.
 
 ## Por confirmar con dirección
 

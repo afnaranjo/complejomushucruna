@@ -2,7 +2,7 @@
 titulo: "Plataforma emocional ES TRADICIÓN Finados 2026"
 responsable: "dirección de marketing y comunicación"
 estado: borrador
-ultima_actualizacion: 2026-08-25
+ultima_actualizacion: 2026-08-27
 fuente: "dirección interna, auditoría Meta 2021-2026, investigación histórica y cultural"
 confidencialidad: restringido
 tags:
@@ -138,7 +138,7 @@ La estructura se mantiene por Día 1–Día 5 hasta ratificar las fechas públic
 | Día 4 | **Compartir en familia es tradición** | sostener jornada completa | actividades familiares, sabores y programación equilibrada | parejas, padres, niños y adultos mayores |
 | Día 5 | **Recordar es tradición** | cerrar con identidad, comercio y gratitud | colada morada, guaguas, memoria y cierre colectivo aprobados | emoción serena, tradición viva y agradecimiento |
 
-El Día 5 coincide con el 2 de noviembre únicamente si la ventana 29 de octubre–2 de noviembre queda ratificada.
+La fecha exacta del Día 5 proviene de la programación confirmada en fuente controlada y no se publica hasta autorización de Dirección.
 
 ## Recuperar la feria para los negocios
 
@@ -268,10 +268,10 @@ Alternativa más editorial: `Fraunces + Manrope`; se usa solo si pruebas móvile
 | Fase | Promesa | Prueba | CTA | Cartel |
 |---|---|---|---|---|
 | fundamentos · 25 ago–2 sep | la feria vuelve a su identidad | historia 2021–2025, personas y prácticas aprobadas | aprobar/registrarse internamente | confidencial |
-| expectativa · 3–16 sep | `ES TRADICIÓN` | película `Nos llama`, feria y comunidad | `Conoce la historia` / `Muy pronto` | sin nombres |
-| revelaciones · 17 sep–1 oct | la música amplifica una tradición que ya existe | artista contratado y contenido autorizado | `Elige tu día` / preventa probada | secuencial, no completo |
-| conversión · 2–21 oct | cinco capítulos y un plan claro | cartel por jornada, rutas, precios e inclusiones | `Compra` / `Arma tu recorrido` | cartel completo y por día |
-| urgencia útil · 22–28 oct | sabes qué vivir y cómo llegar | agenda, mapa, disponibilidad y servicio | `Consulta la guía` | recordatorio, no nuevas sorpresas críticas |
+| expectativa · D-56 a D-43 | `ES TRADICIÓN` | película `Nos llama`, feria y comunidad | `Conoce la historia` / `Muy pronto` | sin nombres |
+| revelaciones · D-42 a D-28 | la música amplifica una tradición que ya existe | artista contratado y contenido autorizado | `Elige tu día` / preventa probada | secuencial, no completo |
+| conversión · D-27 a D-8 | cinco capítulos y un plan claro | cartel por jornada, rutas, precios e inclusiones | `Compra` / `Arma tu recorrido` | cartel completo y por día |
+| urgencia útil · D-7 a D-1 | sabes qué vivir y cómo llegar | agenda, mapa, disponibilidad y servicio | `Consulta la guía` | recordatorio, no nuevas sorpresas críticas |
 | en vivo | la promesa es visible | experiencia real, ventas, servicio y ambiente | `Ven hoy` / `Mira qué sigue` | orientación por jornada |
 
 El calendario confidencial se encuentra en [[2026-08-25_plan-confidencial-revelacion-cartel-finados-2026_v01|Plan de revelación del cartel]].

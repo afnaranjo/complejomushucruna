@@ -2,7 +2,7 @@
 titulo: "Plan de pauta social USD 4.000 Feria de Finados 2026"
 responsable: "responsable de medios pagados"
 estado: en-revision
-ultima_actualizacion: 2026-08-24
+ultima_actualizacion: 2026-08-27
 fuente: "decisión de Alex Naranjo y auditoría histórica Meta 2021-2026"
 confidencialidad: restringido
 tags: [feria-finados-2026, pauta-social, meta-ads, presupuesto]
@@ -26,13 +26,13 @@ Con este presupuesto se usa una estructura consolidada: una campaña por resulta
 
 | Fase | Fechas | Días | Presupuesto | Ritmo orientativo | Resultado |
 |---|---|---:|---:|---:|---|
-| Expectativa | 3–16 sep | 14 | USD 400 | USD 28,57/día | participación, registro y primera preventa |
-| Revelaciones | 17 sep–1 oct | 15 | USD 800 | USD 53,33/día | ganador, artistas y preventa por noche |
-| Conversión | 2–21 oct | 20 | USD 1.600 | USD 80,00/día | compras o conversaciones calificadas |
-| Urgencia útil | 22–28 oct | 7 | USD 800 | USD 114,29/día | cierre y planificación de visita |
-| Servicio en vivo | 29 oct–2 nov | 5 | USD 200 | USD 40,00/día | información operativa cercana |
+| Expectativa | D-56 a D-43 | 14 | USD 400 | USD 28,57/día | participación, registro y primera preventa |
+| Revelaciones | D-42 a D-28 | 15 | USD 800 | USD 53,33/día | confirmaciones aprobadas y preventa por jornada/localidad |
+| Conversión | D-27 a D-8 | 20 | USD 1.600 | USD 80,00/día | compras o conversaciones calificadas |
+| Urgencia útil | D-7 a D-1 | 7 | USD 800 | USD 114,29/día | cierre y planificación de visita |
+| Servicio en vivo | Día 1–Día 5; fechas controladas | 5 | USD 200 | USD 40,00/día | información operativa cercana |
 | Reserva controlada | por liberar | — | USD 200 | — | ganadora o contingencia aprobada |
-| **Total** | 3 sep–2 nov | 61 | **USD 4.000** | — | — |
+| **Total** | D-56 a D+4 | 61 | **USD 4.000** | — | — |
 
 El ritmo diario es una guía de control, no una obligación automática. Se ajusta sin exceder el total y con decisión registrada.
 
@@ -40,7 +40,7 @@ El ritmo diario es una guía de control, no una obligación automática. Se ajus
 
 ### Campaña A · Participación · máximo USD 200
 
-- Periodo: 3–15 de septiembre.
+- Periodo: D-56 a D-44.
 - Función: amplificar `Camino al Megaescenario` y conducir a voto/registro propio.
 - Distribución: los finalistas y sus comunidades deben aportar la mayor parte del alcance orgánico.
 - KPI: postulaciones válidas, votos verificados, registros consentidos y ventas posteriores por enlace.
@@ -48,7 +48,7 @@ El ritmo diario es una guía de control, no una obligación automática. Se ajus
 
 ### Campaña B · Preventa/resultado · USD 3.400
 
-- Periodo: 3 de septiembre–28 de octubre, activada por etapas.
+- Periodo: D-56 a D-1, activada por etapas y sujeta a los gates.
 - Objetivo A: venta/compra si el evento está validado y conciliado.
 - Objetivo B: conversación calificada o visita útil si la compra no es técnicamente confiable.
 - Públicos: prospección principal y retargeting con profundidad comprobada.
@@ -58,7 +58,7 @@ El ritmo diario es una guía de control, no una obligación automática. Se ajus
 
 ### Campaña C · Servicio · USD 200
 
-- Periodo: 29 de octubre–2 de noviembre.
+- Periodo: Día 1–Día 5; fechas exactas en fuente controlada.
 - Geografía: cercanía y rutas aprobadas.
 - Mensajes: horarios, accesos, agenda del día, movilidad y cambios confirmados.
 - No se usa para encubrir fallas operativas ni divulgar incidentes sin fuente autorizada.
@@ -121,7 +121,7 @@ Si no pasa, se usa un resultado intermedio y se declara. El historial de 221 com
 
 ## Reglas de optimización
 
-- Revisar presupuesto y entrega a diario; tomar decisiones formales dos veces por semana hasta el 21 de octubre y a diario desde el 22.
+- Revisar presupuesto y entrega a diario; tomar decisiones formales dos veces por semana hasta D-8 y a diario desde D-7.
 - Calcular métricas agregadas desde sumas, no promediar porcentajes de anuncios.
 - No declarar ganador solo por CTR o mensajes baratos.
 - Escalar cuando la calidad, capacidad e indicador comercial estén estables.
@@ -131,7 +131,7 @@ Si no pasa, se usa un resultado intermedio y se declara. El historial de 221 com
 
 El costo máximo por compra solo se fija cuando ventas/finanzas entreguen precio, margen, capacidad y meta. Sin esa cifra no se promete ROAS.
 
-La estrategia prioriza asegurar compradores antes del 15 de octubre, porque en 2025 las principales agendas públicas de Finados se hicieron visibles durante octubre. No se aumenta inversión temprana si la boletería o la oferta no están listas.
+La estrategia prioriza asegurar compradores antes de D-14, porque en 2025 las principales agendas públicas de Finados se hicieron visibles cerca del evento. No se aumenta inversión temprana si la boletería o la oferta no están listas.
 
 ## Control diario
 

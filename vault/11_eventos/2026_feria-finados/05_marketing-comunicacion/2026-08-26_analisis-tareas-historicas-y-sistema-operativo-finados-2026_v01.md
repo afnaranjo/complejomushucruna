@@ -2,7 +2,7 @@
 titulo: "Análisis de tareas históricas y sistema operativo Finados 2026"
 responsable: "coordinación general de marketing"
 estado: en-revision
-ultima_actualizacion: 2026-08-26
+ultima_actualizacion: 2026-08-27
 fuente: "exporte Bitrix Expoferia Mushuc Runa recibido el 2026-08-26"
 confidencialidad: interno
 tags: [feria-finados-2026, tareas, bitrix, equipo, raci, operacion]
@@ -123,7 +123,7 @@ El contexto trabajado no vive únicamente en este archivo; se conserva sin dupli
 | Tema trabajado | Fuente canónica |
 |---|---|
 | presupuesto exclusivo de USD 4.000 para pauta social; medios e influencers fuera de ese presupuesto | [[03_pauta/2026-08-24_plan-pauta-social-usd4000-finados-2026_v01|Plan de pauta social]] |
-| ventana asumida 29 de octubre–2 de noviembre, objetivo 200.000 y cinco jornadas diferenciadas | [[../01_concepto-experiencia/2026-08-24_arquitectura-experiencia-asistencia-200k-finados-2026_v01|Arquitectura de experiencia 200K]] |
+| calendario inicial reemplazado por fuente controlada, objetivo 200.000 y cinco jornadas diferenciadas | [[../01_concepto-experiencia/2026-08-24_arquitectura-experiencia-asistencia-200k-finados-2026_v01|Arquitectura de experiencia 200K]] |
 | entrada adulta USD 3, megaescenario adicional y preventa condicionada | [[../06_ventas-entradas/2026-08-24_arquitectura-oferta-preventa-finados-2026_v01|Oferta y preventa]] |
 | competencia gratuita del feriado, recuperación comercial y participación verificable | [[01_estrategia/2026-08-24_estrategia-competitiva-preventa-participacion-finados-2026_v01|Estrategia competitiva y preventa]] |
 | plataforma emocional, tradición, recuerdo y cinco capítulos | [[01_estrategia/2026-08-25_plataforma-emocional-es-tradicion-finados-2026_v01|Plataforma ES TRADICIÓN]] |

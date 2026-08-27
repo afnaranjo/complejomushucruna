@@ -2,7 +2,7 @@
 titulo: "Arquitectura de experiencia y asistencia 200K Finados 2026"
 responsable: "dirección integral de la feria"
 estado: borrador
-ultima_actualizacion: 2026-08-25
+ultima_actualizacion: 2026-08-27
 fuente: "interna, auditoría Meta 2021-2026, reputación e inteligencia competitiva"
 confidencialidad: restringido
 tags:
@@ -51,7 +51,7 @@ Fuente histórica local: [[../../../13_datos-medicion/2026-08-24_auditoria-meta-
 
 ## Alerta de calendario
 
-La ventana asumida del **29 de octubre al 2 de noviembre de 2026** cae de **jueves a lunes**. El relato recibido de viernes a martes corresponde a un patrón histórico, no al calendario 2026. Hasta ratificar fechas, programación y permisos, este plan utiliza **Día 1 a Día 5** y no nombres de semana en comunicaciones públicas.
+La ventana asumida inicialmente fue reemplazada el 2026-08-27 por una programación confirmada en fuente controlada. Hasta que Dirección autorice una versión pública y se rebaselinen programación, permisos y cronopost, este plan utiliza **Día 1 a Día 5** y no fechas ni nombres de semana.
 
 ## Tres territorios creativos evaluados
 
@@ -130,6 +130,8 @@ Los porcentajes describen el énfasis de la promesa, no el reparto exacto de min
 
 Los nombres son borradores. La distribución final depende del cartel ya seleccionado, los contratos, el mapa, los aforos y el gobierno cultural.
 
+`Plaza de la Luna` puede funcionar como experiencia transversal de Finados y encontrar su cierre natural en `Recordar es tradición`. No se asignan rituales, símbolos ni actividades hasta que representantes culturales legítimos co-diseñen y aprueben relato, atribución, remuneración, límites de grabación, capacidad y seguridad.
+
 ## Motores de experiencia
 
 ### 1. Pasaporte Vivo Mushuc
@@ -158,6 +160,7 @@ El Día 1 necesita el incentivo más fuerte porque históricamente sería el de 
 
 Opciones para prueba financiera:
 
+- `Primer Día en Compañía`: 2x1 limitado del Día 1, con SKU, cupo, términos, antifraude y conciliación;
 - 50 % en la entrada general de una jornada elegida;
 - combo familiar o beneficio de aliado con mayor valor percibido que USD 1,50;
 - transporte o parqueadero reservado con cupo, si movilidad lo autoriza;
@@ -179,7 +182,11 @@ Una sesión de bailoterapia, danza familiar o movimiento guiado en el megaescena
 
 Crear un momento de ocho a doce minutos a una hora constante: **Encendido del Territorio** —nombre provisional—. Integra saludo, música, luz, danza y la revelación del reto del siguiente día. Debe ser producible todos los días, independiente del artista principal y aprobado culturalmente.
 
-### 5. 25.000 Latidos Morados
+### 5. Plaza de la Luna
+
+Nombre de trabajo para una experiencia cultural de Finados. Su diseño requiere co-gobierno cultural legítimo, consentimiento, portadores remunerados, reglas sobre símbolos/idioma/saberes, horarios, aforo, accesibilidad, evacuación y un beneficio claro para la comunidad. Marketing comunica el resultado autorizado; no inventa ceremonias ni usa una estética ancestral genérica.
+
+### 6. 25.000 Latidos Morados
 
 La colada morada ya es un activo potente, pero debe pasar de cifra promocional a experiencia confiable:
 
@@ -247,11 +254,12 @@ Ningún concepto compensa fallas básicas. Antes de comunicar “experiencia ún
 ## Decisiones requeridas
 
 1. Definir si 200.000 significa visitas acumuladas, personas únicas o ambas.
-2. Ratificar fechas públicas y reconstruir la mezcla por Día 1–Día 5 sobre el calendario real.
+2. Autorizar una versión pública del calendario controlado y reconstruir la mezcla por Día 1–Día 5.
 3. Entregar cartel, contratos, horarios y activos aprobados.
 4. Aprobar, ajustar o descartar el territorio y el Pasaporte Vivo.
-5. Elegir el beneficio del Día 1 después de comparar costo, capacidad y congestión.
+5. Elegir el beneficio del Día 1 —2x1 limitado, retorno u otra opción— después de comparar incremento, costo, margen, capacidad y congestión.
 6. Confirmar inventario de colada, capacidad de parqueaderos y condiciones de distribución.
 7. Asignar dueños de experiencia, servicio, movilidad, tecnología y medición.
+8. Co-diseñar o descartar Plaza de la Luna con representantes culturales legítimos antes de producirla o comunicarla.
 
-Relacionados: [[README|Concepto y experiencia]] · [[../10_tecnologia-datos/2026-08-24_guia-movil-informativa-sin-backend-finados-2026_v01|Guía móvil informativa]] · [[../05_marketing-comunicacion/05_alianzas-difusion/2026-08-24_programa-creadores-referidos-finados-2026_v01|Creadores y referidos]] · [[../13_riesgos-contingencias/registro-riesgos|Riesgos]]
+Relacionados: [[README|Concepto y experiencia]] · [[../05_marketing-comunicacion/01_estrategia/2026-08-27_adenda-guia-creativa-operativa-es-tradicion-finados-2026_v09|Adenda V09]] · [[../10_tecnologia-datos/2026-08-24_guia-movil-informativa-sin-backend-finados-2026_v01|Guía móvil informativa]] · [[../05_marketing-comunicacion/05_alianzas-difusion/2026-08-24_programa-creadores-referidos-finados-2026_v01|Creadores y referidos]] · [[../13_riesgos-contingencias/registro-riesgos|Riesgos]]

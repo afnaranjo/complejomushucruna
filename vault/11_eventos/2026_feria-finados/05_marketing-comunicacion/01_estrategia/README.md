@@ -2,7 +2,7 @@
 titulo: "Estrategia de marketing de la feria"
 responsable: "líder de marketing"
 estado: borrador
-ultima_actualizacion: 2026-08-26
+ultima_actualizacion: 2026-08-27
 fuente: interna
 confidencialidad: restringido
 ---
@@ -14,10 +14,11 @@ Objetivos, audiencias, posicionamiento, embudos, arquitectura de campañas, pres
 ## Documento vigente en revisión
 
 - [[2026-08-24_estrategia-digital-finados-2026_v01|Estrategia digital provisional Feria de Finados 2026]]
-- [[2026-08-24_plan-operativo-digital-finados-2026_v01|Plan operativo digital del 25 de agosto al 2 de noviembre]]
+- [[2026-08-24_plan-operativo-digital-finados-2026_v01|Plan operativo digital iniciado el 25 de agosto · pendiente rebaseline]]
 - [[2026-08-24_estrategia-competitiva-preventa-participacion-finados-2026_v01|Estrategia competitiva, preventa y participación]]
 - [[2026-08-25_plataforma-emocional-es-tradicion-finados-2026_v01|Plataforma emocional ES TRADICIÓN]]
-- [[2026-08-26_presentacion_guia-creativa-operativa-es-tradicion-finados-2026_v08.pptx|Guía creativa y operativa ES TRADICIÓN · v08 vigente · 59 diapositivas]] —versión acumulativa que restituye la profundidad operativa de v06, conserva los motores orgánicos de v07 y desarrolla la PWA informativa en un capítulo minucioso de diez diapositivas: contrato de producto, navegación, mapa, agenda, ubicación, offline, ayuda, accesibilidad, gobierno de datos, arquitectura, cronograma y medición; documento interno; no autoriza publicación—
+- [[2026-08-27_adenda-guia-creativa-operativa-es-tradicion-finados-2026_v09|Adenda V09 · especificación acumulativa vigente]] —incorpora promociones controladas, inventario real, seis motores unificados, comunidades, expositores, lives, experiencia cultural, expectativa internacional, customer journey y flujo de cronopost; la v08 permanece como última presentación visual y no autoriza ejecución—
+- [[2026-08-26_presentacion_guia-creativa-operativa-es-tradicion-finados-2026_v08.pptx|Guía creativa y operativa ES TRADICIÓN · última presentación visual v08 · 59 diapositivas]] —versión acumulativa que restituye la profundidad operativa de v06, conserva los motores orgánicos de v07 y desarrolla la PWA informativa en un capítulo minucioso de diez diapositivas: contrato de producto, navegación, mapa, agenda, ubicación, offline, ayuda, accesibilidad, gobierno de datos, arquitectura, cronograma y medición; documento interno; no autoriza publicación—
 - [[2026-08-26_presentacion_guia-creativa-operativa-es-tradicion-finados-2026_v07.pptx|Guía creativa y operativa ES TRADICIÓN · v07 histórica]] —antecedente de 45 diapositivas con motores orgánicos y controles conservado—
 - [[2026-08-26_presentacion_guia-creativa-operativa-es-tradicion-finados-2026_v06.pptx|Guía creativa y operativa ES TRADICIÓN · v06 histórica]] —antecedente operativo de 40 diapositivas conservado—
 - [[2026-08-25_presentacion_guia-creativa-es-tradicion-finados-2026_v05.pptx|Guía creativa integral ES TRADICIÓN · v05 histórica]] —antecedente editorial conservado—

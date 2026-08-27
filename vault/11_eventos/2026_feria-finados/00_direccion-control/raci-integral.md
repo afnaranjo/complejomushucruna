@@ -2,7 +2,7 @@
 titulo: "RACI integral Feria de Finados 2026"
 responsable: "dirección integral de la feria"
 estado: borrador
-ultima_actualizacion: 2026-08-24
+ultima_actualizacion: 2026-08-27
 fuente: interna
 confidencialidad: restringido
 tags:
@@ -16,7 +16,7 @@ R = ejecuta · A = aprueba y responde · C = consultado · I = informado.
 
 ## Responsables por nombrar
 
-La referencia de equipo de marketing y una propuesta RACI para ratificar están en [[../05_marketing-comunicacion/2026-08-24_equipo-operativo-marketing-finados-2026_v01|Equipo operativo de marketing Finados 2026]]. No reemplaza las asignaciones integrales hasta su aprobación.
+La referencia del equipo y el flujo creativo confirmado están en [[../05_marketing-comunicacion/2026-08-24_equipo-operativo-marketing-finados-2026_v01|Equipo operativo de marketing Finados 2026]]. Las interfaces de cronopost fueron confirmadas el 2026-08-27; no reemplazan las asignaciones integrales ni los aprobadores que siguen pendientes.
 
 | Frente | A | R principal | Reemplazo | Contacto laboral |
 |---|---|---|---|---|
@@ -37,6 +37,20 @@ La referencia de equipo de marketing y una propuesta RACI para ratificar están 
 | Operación en vivo | por asignar | por asignar |  |  |
 | Cierre | por asignar | por asignar |  |  |
 
+## Flujo operativo confirmado de marketing y creatividad
+
+| Trabajo | A | R | C | I | Estado |
+|---|---|---|---|---|---|
+| ingreso de requerimiento de arte/video y cronopost | dueño del objetivo por ratificar | Andrés Flores | Are Morales, dueño del dato | Andrés Naula | interfaz confirmada |
+| priorización y asignación de diseño gráfico | Cristian Nuñez | Cristian/Karen/Diego según asignación | Andrés Naula, Andrés Flores | Are Morales | confirmado |
+| video, animación y seguimiento creativo | Andrés Naula | Andrés Naula | Cristian Nuñez, Iván, Andrés Flores | Are Morales, Edwin | confirmado |
+| producción y equipos de cámara | Iván | Iván/Leo Sailema según asignación | Andrés Naula, Are Morales | Andrés Flores | confirmado |
+| coordinación transversal de comunicación | Are Morales | Are Morales | coordinaciones pares y dueños de dato | Edwin | función confirmada; alcance formal por ratificar |
+| aprobación de datos, oferta, derechos y cultura | aprobador por frente | dueño del dato por nombrar | comunicación, creatividad, comercial/legal según pieza | equipo ejecutor | pendiente crítico |
+| programación, publicación, comunidad y cierre de medición | coordinación de comunicación por ratificar | community/traffic por nombrar | Andrés Flores, datos | equipo | pendiente crítico |
+
+Regla de contacto: ningún frente asigna directamente trabajo a Karen Velastegui o Diego Flores; toda solicitud gráfica entra por Cristian Nuñez. Video y animación entran por Andrés Naula.
+
 ## Decisiones críticas
 
 | Decisión | Dirección | Marketing | Comercial | Operaciones | Finanzas | Seguridad | Datos |
@@ -47,5 +61,16 @@ La referencia de equipo de marketing y una propuesta RACI para ratificar están 
 | Lanzamiento de campaña | A | R | C | C | C | C | R |
 | Plano, aforo y flujos | I | C | C | R | I | A/R | C |
 | Apertura de venta | A | C | R | C | R | C | R |
+| Aprobar 2x1, bundle y reglas de acumulación | A | C | R | C | R | I | C |
+| Calcular y conciliar disponibilidad por producto/jornada/localidad | I | I | A/R | C | C | I | R |
+| Publicar disponibilidad o agotado ya conciliado | I | A/R | C | I | I | I | C |
+| Aprobar Plaza de la Luna y experiencia cultural | A con gate cultural | C | I | R | C | R | I |
+| Autorizar live previo | I | A/R | C | R | C | C | C |
+| Activar comunidades, embajadores y expositores | I | A/R | C | C | C | I | C |
+| Medir comunidades, embajadores y expositores | I | C | C | I | I | I | A/R |
 | Activar contingencia | I | C | I | R | I | A/R | I |
 | Cierre financiero | I | I | C | C | A/R | I | C |
+
+La aprobación de Plaza de la Luna exige además un aprobador cultural legítimo, todavía por nombrar; la tabla no permite sustituirlo con Marketing u Operaciones.
+
+Para disponibilidad, Comercial emite el `corte_id` y su vigencia; Datos valida fórmula y fuente; Marketing publica únicamente el estado aprobado y lo retira o revalida al vencer. Mientras falten los A/R nominales o cualquiera de esos campos, el handoff permanece bloqueado.

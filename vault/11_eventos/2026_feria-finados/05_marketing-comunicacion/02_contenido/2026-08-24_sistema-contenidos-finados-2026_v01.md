@@ -2,8 +2,8 @@
 titulo: "Sistema de contenidos Feria de Finados 2026"
 responsable: "coordinación de diseño, audiovisual y comunicación"
 estado: en-revision
-ultima_actualizacion: 2026-08-25
-fuente: "plan operativo digital y auditoría histórica Meta 2021-2026"
+ultima_actualizacion: 2026-08-27
+fuente: "plan operativo digital, auditoría histórica Meta 2021-2026 y adenda V09"
 confidencialidad: restringido
 tags: [feria-finados-2026, contenido, produccion-creativa]
 ---
@@ -12,7 +12,7 @@ tags: [feria-finados-2026, contenido, produccion-creativa]
 
 ## Función
 
-Transformar datos aprobados de los frentes de la feria en contenido claro, comprobable, útil y adaptable a orgánico, pauta, aliados y atención. Este sistema ejecuta el [[../01_estrategia/2026-08-24_plan-operativo-digital-finados-2026_v01|plan operativo digital]].
+Transformar datos aprobados de los frentes de la feria en contenido claro, comprobable, útil y adaptable a orgánico, pauta, aliados y atención. Este sistema ejecuta el [[../01_estrategia/2026-08-24_plan-operativo-digital-finados-2026_v01|plan operativo digital]] y la [[../01_estrategia/2026-08-27_adenda-guia-creativa-operativa-es-tradicion-finados-2026_v09|adenda V09]].
 
 ## Mezcla editorial por fase
 
@@ -34,15 +34,20 @@ Los porcentajes orientan el portafolio; no obligan a publicar material débil.
 - `La tradición elige`: retorno propuesto de `Rey Pan` y `Srta. Colada Morada`, sujeto a aprobación cultural y de marca.
 - `Asegura tu noche`: preventa de combos y pases con precio total.
 - `Tu ruta por USD 3`: explicación de lo que incluye la entrada general, sin mezclar el costo adicional del megaescenario.
+- `Primer Día en Compañía`: piloto 2x1 del Día 1, limitado y no acumulable por defecto.
+- `Conversaciones ES TRADICIÓN`: lives previos con guion, derechos, moderación, CTA y respaldo.
+- `De emprendedor a influencer`: piezas de puestos evaluadas por calidad, retención, visitas verificadas y cumplimiento.
+- Comunidades y embajadores: kits versionados, administradores autorizados, códigos y frecuencia anti-spam.
+- Plaza de la Luna: nombre de trabajo condicionado a co-gobierno cultural, consentimiento, remuneración y operación.
 - `Pase/Boleto Dorado`: antecedente histórico de alta interacción y desgaste reportado; se retira como eje de Finados 2026. Cualquier uso futuro requeriría una decisión nueva, evidencia y medición comercial.
 
 ## Cadencia sostenible
 
-- 25 de agosto–16 de septiembre: 4 piezas principales por semana.
-- 17 de septiembre–1 de octubre: 5 piezas principales por semana.
-- 2–21 de octubre: 7 a 10 piezas principales por semana, máximo dos por día.
-- 22–28 de octubre: 1 a 2 piezas principales por día según utilidad.
-- 29 de octubre–2 de noviembre: 4 a 6 piezas principales por día; cobertura ligera en historias.
+- D-65 a D-43: 4 piezas principales por semana.
+- D-42 a D-28: 5 piezas principales por semana.
+- D-27 a D-8: 7 a 10 piezas principales por semana, máximo dos por día.
+- D-7 a D-1: 1 a 2 piezas principales por día según utilidad.
+- Día 1–Día 5, con fechas tomadas de la fuente controlada: 4 a 6 piezas principales por día; cobertura ligera en historias.
 - Información crítica o de seguridad queda fuera del techo y se fija cuando corresponda.
 
 ## Paquete mínimo de producción
@@ -68,14 +73,17 @@ La producción diaria, las ocho piezas de expectativa, la curaduría del banco h
 
 ## Flujo de una pieza
 
-1. El frente dueño registra el dato, estado y evidencia.
-2. Comunicación redacta una sola idea y CTA.
-3. Diseño/audiovisual produce el maestro y sus adaptaciones.
-4. Comunicación verifica ortografía, nombres, fecha, precio, enlaces y contexto.
-5. El frente dueño valida el dato; marca/cultura y seguridad intervienen cuando corresponda.
-6. El aprobador digital autoriza publicación o pauta.
-7. Se asignan ID, UTM, versión, fecha y responsable.
-8. Se registra resultado y decisión: escalar, iterar, detener o archivar.
+1. El frente dueño entrega dato, estado, evidencia y aprobador.
+2. Andrés Flores registra el brief y el cronopost.
+3. Si es arte, enruta a Cristian Nuñez; si es video/animación, a Andrés Naula.
+4. Cristian distribuye únicamente dentro de su equipo; Andrés Naula coordina audiovisual y, con Iván, equipos/producción.
+5. Andrés Naula da seguimiento al plazo y Are Morales articula dependencias entre áreas.
+6. Comunicación verifica una idea, CTA, ortografía, nombres, fecha, precio, enlaces y contexto.
+7. El dueño valida el dato; marca/cultura, comercial, derechos y seguridad intervienen cuando corresponda.
+8. El aprobador autoriza publicación o pauta y se asignan ID, UTM, versión, ventana y responsable.
+9. Se registra resultado y decisión: escalar, iterar, detener o archivar.
+
+La cadena nominal y sus límites están en [[../2026-08-24_equipo-operativo-marketing-finados-2026_v01|Equipo operativo de marketing]].
 
 ## Brief obligatorio
 
@@ -120,8 +128,8 @@ Además se comprueba:
 ## Nomenclatura
 
 ```text
-2026-09-17_video_finados-musica-meta-reel_v01.mp4
-2026-10-22_carrusel_finados-guia-llegada-instagram_v02.png
+YYYY-MM-DD_video_finados-musica-meta-reel_v01.mp4
+YYYY-MM-DD_carrusel_finados-guia-llegada-instagram_v02.png
 ```
 
 Los borradores viven en el expediente de marketing o en [[../../../../10_creatividad/README|Creatividad]]. Solo versiones aprobadas y reutilizables pasan a [[../../../../15_activos/README|Activos]].
@@ -130,5 +138,7 @@ Los borradores viven en el expediente de marketing o en [[../../../../10_creativ
 
 - [[README|Índice de contenido de la feria]]
 - [[../03_pauta/2026-08-24_plan-pauta-social-usd4000-finados-2026_v01|Plan de pauta]]
+- [[../01_estrategia/2026-08-27_adenda-guia-creativa-operativa-es-tradicion-finados-2026_v09|Adenda V09]]
+- [[../2026-08-24_equipo-operativo-marketing-finados-2026_v01|Equipo operativo y cronopost]]
 - [[../../02_programacion-atracciones/README|Programación]]
 - [[../../12_servicio-experiencia/README|Servicio y experiencia]]

@@ -2,7 +2,7 @@
 titulo: "Directorio y RACI"
 responsable: "líder de marketing"
 estado: borrador
-ultima_actualizacion: 2026-08-24
+ultima_actualizacion: 2026-08-27
 fuente: interna
 confidencialidad: restringido
 ---
@@ -38,4 +38,4 @@ R = ejecuta · A = aprueba y responde por el resultado · C = consultado · I = 
 
 ## Feria de Finados 2026
 
-El organigrama histórico entregado por Alex y la propuesta de responsabilidades digitales están en [[../11_eventos/2026_feria-finados/05_marketing-comunicacion/2026-08-24_equipo-operativo-marketing-finados-2026_v01|Equipo operativo de marketing Finados 2026]]. Los nombres no reemplazan este directorio hasta que el equipo ratifique sus atribuciones para 2026.
+El organigrama, las funciones confirmadas el 2026-08-27 y los pendientes de aprobación están en [[../11_eventos/2026_feria-finados/05_marketing-comunicacion/2026-08-24_equipo-operativo-marketing-finados-2026_v01|Equipo operativo de marketing Finados 2026]]. Se confirmaron las interfaces de requerimiento, diseño, audiovisual, comunicación y producción; el directorio integral todavía necesita aprobadores, suplentes, contactos laborales y disponibilidad.

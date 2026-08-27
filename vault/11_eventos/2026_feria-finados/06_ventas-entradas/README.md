@@ -2,7 +2,7 @@
 titulo: "Ventas y entradas Feria de Finados 2026"
 responsable: "por asignar"
 estado: borrador
-ultima_actualizacion: 2026-08-24
+ultima_actualizacion: 2026-08-27
 fuente: interna
 confidencialidad: restringido
 tags: [feria-finados-2026, entradas]
@@ -17,6 +17,8 @@ Define productos, precios, cupos, descuentos, canales, medios de pago, términos
 - Entrada general de adulto: USD 3, confirmada por Alex para planificación.
 - Megaescenario: acceso adicional pagado; precio, aforo y condiciones pendientes.
 - [[2026-08-24_arquitectura-oferta-preventa-finados-2026_v01|Arquitectura de oferta y preventa]]: combo, pases, lotes, transparencia y gates comerciales.
+- [[forecast-entradas.csv|Forecast de entradas]]: plantilla de planificación; no autoriza estados de disponibilidad.
+- [[ledger-cortes-inventario.csv|Ledger append-only de cortes]]: evidencia obligatoria para comunicar disponibilidad, liberaciones o agotados.
 
 ## Entregables mínimos
 
@@ -26,3 +28,4 @@ Define productos, precios, cupos, descuentos, canales, medios de pago, términos
 - Manual de atención y excepciones.
 - Diseño de acceso, validación y contingencia offline.
 - Conciliación diaria con finanzas y aforo.
+- Cortes de inventario con ID, alcance, vigencia, aprobador e historial.

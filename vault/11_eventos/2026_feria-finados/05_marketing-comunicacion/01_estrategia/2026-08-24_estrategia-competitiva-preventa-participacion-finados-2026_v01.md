@@ -2,7 +2,7 @@
 titulo: "Estrategia competitiva, preventa y participación Feria de Finados 2026"
 responsable: "coordinación de marketing y dirección integral"
 estado: en-revision
-ultima_actualizacion: 2026-08-24
+ultima_actualizacion: 2026-08-27
 fuente: "auditoría Meta 2021-2026, reputación, fortalezas, inteligencia competitiva y decisiones de Alex Naranjo"
 confidencialidad: restringido
 tags: [feria-finados-2026, competencia, preventa, participacion, artistas]
@@ -169,7 +169,7 @@ La preventa no debe concentrarse en descontar el ingreso general de USD 3. El co
 - agenda e itinerario para compradores;
 - comunicación del precio total, cargos y condiciones antes del pago.
 
-Meta propuesta: asegurar preventa acumulada por cada noche del megaescenario de 15% de capacidad al 30 de septiembre, 35% al 15 de octubre y 60% al 28 de octubre. Son gates para aprobación, no metas oficiales.
+Meta propuesta: asegurar preventa acumulada por cada jornada/localidad del megaescenario de 15% de capacidad en D-29, 35% en D-14 y 60% en D-1. Son gates para aprobación, no metas oficiales.
 
 La oferta completa está en [[../../06_ventas-entradas/2026-08-24_arquitectura-oferta-preventa-finados-2026_v01|arquitectura de oferta y preventa]].
 
@@ -192,16 +192,16 @@ No usar “desde USD 3” en un anuncio de artista si el acceso a ese concierto 
 
 | Fecha | Acción | Conversión | Dependencia |
 |---|---|---|---|
-| 25–28 ago | bases, jurado, landing, oferta, privacidad y tracking | registro prioritario interno/prueba | Dirección, programación, ventas y tecnología |
-| 29 ago–6 sep | convocatoria de artistas + registro prioritario del público | postulación / registro con consentimiento | bases aprobadas |
-| 7–8 sep | validación y producción de finalistas | audiencia de espera | contratos y derechos |
-| 9–15 sep | voto público de `Camino al Megaescenario` | voto → registro → preventa | sistema antifraude y venta operativa |
-| 16 sep | cierre, auditoría de votos y jurado | lista de compradores/interesados por noche | datos y programación |
-| 17 sep | anuncio del ganador + primera revelación fuerte | preventa por noche/combo | artista y precio confirmados |
-| 18 sep–1 oct | primera ola de preventa | compra | inventario y tracking |
-| 2–15 oct | revelaciones por género y experiencia | compra por noche | programación confirmada |
-| 16–28 oct | comparación de valor, prueba social y urgencia real | compra/planificación | disponibilidad real |
-| 29 oct–2 nov | servicio, cobertura y venta del día con capacidad | acceso/experiencia | centro de control |
+| D-65 a D-63 | bases, jurado, destino, oferta, privacidad y tracking | registro prioritario interno/prueba | Dirección, programación, ventas y tecnología |
+| D-62 a D-53 | convocatoria de artistas + registro prioritario del público | postulación / registro con consentimiento | bases aprobadas |
+| D-52 a D-51 | validación y producción de finalistas | audiencia de espera | contratos y derechos |
+| D-50 a D-44 | voto público de `Camino al Megaescenario` | voto → registro → preventa | sistema antifraude y venta operativa |
+| D-43 | cierre, auditoría de votos y jurado | lista de compradores/interesados por jornada | datos y programación |
+| D-42 | anuncio del ganador + primera revelación fuerte | preventa por jornada/combo | artista y precio confirmados |
+| D-41 a D-28 | primera ola de preventa | compra | inventario y tracking |
+| D-27 a D-14 | revelaciones por género y experiencia | compra por jornada | programación confirmada |
+| D-13 a D-1 | comparación de valor, prueba social y urgencia real | compra/planificación | disponibilidad real |
+| Día 1–Día 5; fechas controladas | servicio, cobertura y venta del día con capacidad | acceso/experiencia | centro de control |
 
 ## Pauta y distribución orgánica
 

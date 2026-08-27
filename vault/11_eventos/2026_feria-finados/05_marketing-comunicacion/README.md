@@ -2,7 +2,7 @@
 titulo: "Marketing y comunicación Feria de Finados 2026"
 responsable: "por asignar"
 estado: en-revision
-ultima_actualizacion: 2026-08-26
+ultima_actualizacion: 2026-08-27
 fuente: interna
 confidencialidad: interno
 tags: [feria-finados-2026, marketing]
@@ -14,14 +14,16 @@ Convierte el concepto, la programación y las ofertas aprobadas en demanda medib
 
 ## Centro operativo 2026
 
-- [[01_estrategia/2026-08-24_plan-operativo-digital-finados-2026_v01|Plan operativo digital · 25 de agosto a 2 de noviembre]]
+- [[01_estrategia/2026-08-24_plan-operativo-digital-finados-2026_v01|Plan operativo digital · iniciado el 25 de agosto · pendiente rebaseline]]
 - [[01_estrategia/2026-08-24_estrategia-competitiva-preventa-participacion-finados-2026_v01|Estrategia competitiva, preventa y participación]]
 - [[01_estrategia/2026-08-25_plataforma-emocional-es-tradicion-finados-2026_v01|Plataforma emocional ES TRADICIÓN]]
-- [[01_estrategia/2026-08-25_presentacion_guia-creativa-es-tradicion-finados-2026_v04.pptx|Guía creativa integral ES TRADICIÓN · presentación v04 vigente]]
+- [[01_estrategia/2026-08-27_adenda-guia-creativa-operativa-es-tradicion-finados-2026_v09|Adenda V09 · requisitos acumulativos vigentes]]
+- [[01_estrategia/2026-08-26_presentacion_guia-creativa-operativa-es-tradicion-finados-2026_v08.pptx|Guía creativa y operativa ES TRADICIÓN · última presentación visual]]
+- [[01_estrategia/2026-08-25_presentacion_guia-creativa-es-tradicion-finados-2026_v04.pptx|Guía creativa integral ES TRADICIÓN · presentación v04 histórica]]
 - [[01_estrategia/2026-08-25_presentacion_guia-creativa-es-tradicion-finados-2026_v03.pptx|Guía creativa integral ES TRADICIÓN · presentación v03 histórica]]
 - [[01_estrategia/2026-08-25_presentacion_guia-creativa-es-tradicion-finados-2026_v02.pptx|Guía creativa integral ES TRADICIÓN · presentación v02 histórica]]
 - [[01_estrategia/2026-08-25_plan-confidencial-revelacion-cartel-finados-2026_v01|Plan confidencial de revelación del cartel]]
-- [[2026-08-24_equipo-operativo-marketing-finados-2026_v01|Equipo operativo y RACI por ratificar]]
+- [[2026-08-24_equipo-operativo-marketing-finados-2026_v01|Equipo operativo, flujo de cronopost confirmado y RACI por completar]]
 - [[2026-08-26_analisis-tareas-historicas-y-sistema-operativo-finados-2026_v01|Análisis de 188 tareas históricas y sistema operativo 2026]]
 - [[2026-08-26_matriz-operativa-equipo-finados-2026_v01.xlsx|Matriz operativa editable · 17 paquetes y 73 tareas 2026]]
 - [[02_contenido/2026-08-24_sistema-contenidos-finados-2026_v01|Sistema de contenidos]]

@@ -2,7 +2,7 @@
 titulo: "Programa de creadores y referidos Finados 2026"
 responsable: "alianzas de marketing"
 estado: borrador
-ultima_actualizacion: 2026-08-24
+ultima_actualizacion: 2026-08-27
 fuente: "auditoría Meta 2021-2026, decisiones internas y lineamientos de plataformas"
 confidencialidad: restringido
 tags:
@@ -44,6 +44,44 @@ No exigir únicamente número de seguidores. Evaluar:
 - ausencia de compra evidente de interacción.
 
 El programa histórico de postulaciones puede conservarse porque Alex reporta una respuesta alta, pero debe registrarse el número real de aspirantes, seleccionados, piezas y resultados para probarlo.
+
+## Ampliación V09: expositores y comunidades
+
+### De emprendedor a influencer
+
+Cada expositor participante produce una pieza breve con su historia, producto, ubicación y razón para visitarlo. El premio debe ser fijo, aprobado y publicado en las bases. No gana automáticamente el video con más reproducciones.
+
+Puntaje propuesto:
+
+- 30 % historia, claridad y calidad creativa;
+- 25 % retención y alcance válido;
+- 25 % visitas verificadas al puesto mediante código, QR o registro conciliado;
+- 20 % exactitud, derechos, entrega y cumplimiento.
+
+Se deben separar dos reconocimientos —mejor historia y mayor movilización verificada— o normalizar categorías y desempeño contra la línea base de cada cuenta. Así el tamaño previo de audiencia no decide el resultado.
+
+Abrir un QR no prueba una visita. La visita se valida una sola vez en el puesto o punto aprobado, con deduplicación, antifraude y datos mínimos. Las bases cierran elegibilidad, voluntariedad, plazo, premio/impuestos, empates, conflictos del jurado, reclamos, privacidad y licencia de uso.
+
+### Comunidades que traen a su gente
+
+El piloto trabaja con grupos y administradores autorizados. La autorización permite publicar en el grupo; no equivale al consentimiento individual de sus integrantes:
+
+1. adhesión voluntaria y relación documentada;
+2. kit versionado con hechos, piezas y CTA;
+3. código o enlace por comunidad;
+4. frecuencia máxima y regla anti-spam;
+5. beneficio fijo y transparente si corresponde;
+6. conciliación de referidos válidos e incidencias.
+
+Cada publicación comunitaria debe revelar de forma visible si el administrador, aliado o comunidad recibe dinero, entradas, premios, canje u otro incentivo por difundir. Antes del piloto también se fijan plazo de conservación, canal de baja y umbral numérico de pausa por quejas; sin estos tres datos el grupo no se activa.
+
+Se prohíben scraping, altas automáticas y mensajes directos sin opt-in. Deben existir baja, plazo de conservación/acceso a datos y pausa por quejas. Una persona con horarios, cuotas, turnos o funciones operativas es personal o proveedor, no un embajador gratuito; una autoridad cultural tampoco se confunde con un aliado de difusión.
+
+### Rostros y participación familiar
+
+`Rostros de Finados 2026` puede convocar representantes con criterios, beneficios, derechos y relación claros. Evitar `la imagen de la feria más grande del país` hasta validar ese superlativo; el llamado seguro es `¿Quieres ser uno de los rostros de FINADOS 2026?`.
+
+`Mi familia es tradición` puede activar fotografías o recuerdos mediante jurado o sorteo documentado. Participar, publicar y pautar son consentimientos distintos; menores requieren autorización del representante y protección de datos.
 
 ## Misiones de contenido
 
@@ -146,4 +184,4 @@ Escala ilustrativa, pendiente de finanzas:
 5. Responsable contractual, de contenidos y de conciliación.
 6. Derechos de reutilización y exclusividad.
 
-Relacionados: [[README|Alianzas de difusión]] · [[../01_estrategia/2026-08-24_estrategia-competitiva-preventa-participacion-finados-2026_v01|Estrategia competitiva]] · [[../../01_concepto-experiencia/2026-08-24_arquitectura-experiencia-asistencia-200k-finados-2026_v01|Arquitectura 200K]] · [[../../10_tecnologia-datos/2026-08-24_guia-movil-informativa-sin-backend-finados-2026_v01|Guía móvil]]
+Relacionados: [[README|Alianzas de difusión]] · [[../01_estrategia/2026-08-27_adenda-guia-creativa-operativa-es-tradicion-finados-2026_v09|Adenda V09]] · [[../01_estrategia/2026-08-24_estrategia-competitiva-preventa-participacion-finados-2026_v01|Estrategia competitiva]] · [[../../01_concepto-experiencia/2026-08-24_arquitectura-experiencia-asistencia-200k-finados-2026_v01|Arquitectura 200K]] · [[../../10_tecnologia-datos/2026-08-24_guia-movil-informativa-sin-backend-finados-2026_v01|Guía móvil]]

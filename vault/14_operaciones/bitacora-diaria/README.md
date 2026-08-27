@@ -2,7 +2,7 @@
 titulo: "Bitácora diaria"
 responsable: "dirección integral de la feria"
 estado: aprobado
-ultima_actualizacion: 2026-08-26
+ultima_actualizacion: 2026-08-27
 fuente: interna
 confidencialidad: interno
 ---
@@ -13,6 +13,7 @@ Registro breve de avances, decisiones, bloqueos y próximos pasos. Obsidian crea
 
 ## Entradas recientes
 
+- [[2026-08-27_bitacora_adenda-v09-y-flujo-creativo-finados-2026_v01|2026-08-27 · Adenda V09 y flujo creativo]]
 - [[2026-08-26_bitacora_guia-creativa-operativa-finados-2026_v03|2026-08-26 · Guía creativa y operativa FINADOS 2026 · ES TRADICIÓN v08]]
 - [[2026-08-26_bitacora_guia-creativa-operativa-finados-2026_v02|2026-08-26 · Guía creativa y operativa FINADOS 2026 · ES TRADICIÓN v07]]
 - [[2026-08-26_bitacora_guia-creativa-operativa-finados-2026_v01|2026-08-26 · Guía creativa y operativa ES TRADICIÓN v06]]

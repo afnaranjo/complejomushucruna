@@ -2,7 +2,7 @@
 titulo: "Convocatoria propuesta Camino al Megaescenario Finados 2026"
 responsable: "programación, producción y marketing"
 estado: en-revision
-ultima_actualizacion: 2026-08-24
+ultima_actualizacion: 2026-08-27
 fuente: "propuesta de Alex Naranjo, antecedentes Camino a la fama y auditoría Meta 2021-2026"
 confidencialidad: restringido
 tags: [feria-finados-2026, artistas, convocatoria, participacion]
@@ -28,13 +28,13 @@ Solo puede usarse si Programación reserva el espacio y aprueba contrato, remune
 
 | Etapa | Fechas | Salida |
 |---|---|---|
-| diseño y aprobación | 25–28 ago | bases, jurado, slot, formulario, privacidad y QA |
-| postulaciones | 29 ago–6 sep | expedientes válidos |
-| revisión | 7–8 sep | 8–12 finalistas |
-| voto y contenidos | 9–15 sep | voto validado, tráfico y registros |
-| auditoría y jurado | 16 sep | resultado documentado |
-| anuncio | 17 sep | ganador, contrato y primera pieza de preventa |
-| preparación | 18 sep–28 oct | ensayos, rider, contenido y venta de la noche |
+| diseño y aprobación | D-65 a D-63 | bases, jurado, slot, formulario, privacidad y QA |
+| postulaciones | D-62 a D-53 | expedientes válidos |
+| revisión | D-52 a D-51 | 8–12 finalistas |
+| voto y contenidos | D-50 a D-44 | voto validado, tráfico y registros |
+| auditoría y jurado | D-43 | resultado documentado |
+| anuncio | D-42 | ganador, contrato y primera pieza de preventa |
+| preparación | D-41 a D-1 | ensayos, rider, contenido y venta de la jornada |
 | presentación | fecha por asignar | apertura en megaescenario |
 
 ## Requisitos de postulación propuestos

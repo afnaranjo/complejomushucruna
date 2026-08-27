@@ -1,6 +1,6 @@
-fecha,tipo_entrada,cupo,precio,meta_unidades,venta_unidades,ingreso_bruto,descuentos,reembolsos,ingreso_neto,fuente,ultima_actualizacion
-2026-10-29,entrada-general-adulto,,3,,,,,,,Alex Naranjo - precio confirmado para planificación,2026-08-24
-2026-10-30,entrada-general-adulto,,3,,,,,,,Alex Naranjo - precio confirmado para planificación,2026-08-24
-2026-10-31,entrada-general-adulto,,3,,,,,,,Alex Naranjo - precio confirmado para planificación,2026-08-24
-2026-11-01,entrada-general-adulto,,3,,,,,,,Alex Naranjo - precio confirmado para planificación,2026-08-24
-2026-11-02,entrada-general-adulto,,3,,,,,,,Alex Naranjo - precio confirmado para planificación,2026-08-24
+dia_evento,fecha_controlada,producto_id,lote_id,tipo_entrada,localidad,cupo_autorizado,ventas_brutas_unidades,devoluciones_unidades,devoluciones_reintegradas_inventario,ventas_netas_unidades,reservas_vigentes,cortesias,bloqueos,contingencia,inventario_vendible,alcance_estado,estado_disponibilidad,hora_corte,precio,meta_unidades,ingreso_bruto,descuentos,reembolsos,ingreso_neto,fuente,ultima_actualizacion
+dia-1,,general-adulto-dia1,,entrada-general-adulto,general,,,,,,,,,,,,,,3,,,,,,Alex Naranjo - precio confirmado para planificación; fecha cupo lotes y cortes pendientes de fuente controlada,2026-08-27
+dia-2,,general-adulto-dia2,,entrada-general-adulto,general,,,,,,,,,,,,,,3,,,,,,Alex Naranjo - precio confirmado para planificación; fecha cupo lotes y cortes pendientes de fuente controlada,2026-08-27
+dia-3,,general-adulto-dia3,,entrada-general-adulto,general,,,,,,,,,,,,,,3,,,,,,Alex Naranjo - precio confirmado para planificación; fecha cupo lotes y cortes pendientes de fuente controlada,2026-08-27
+dia-4,,general-adulto-dia4,,entrada-general-adulto,general,,,,,,,,,,,,,,3,,,,,,Alex Naranjo - precio confirmado para planificación; fecha cupo lotes y cortes pendientes de fuente controlada,2026-08-27
+dia-5,,general-adulto-dia5,,entrada-general-adulto,general,,,,,,,,,,,,,,3,,,,,,Alex Naranjo - precio confirmado para planificación; fecha cupo lotes y cortes pendientes de fuente controlada,2026-08-27

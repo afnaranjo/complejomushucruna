@@ -2,7 +2,7 @@
 titulo: "Programación y atracciones Feria de Finados 2026"
 responsable: "por asignar"
 estado: borrador
-ultima_actualizacion: 2026-08-25
+ultima_actualizacion: 2026-08-27
 fuente: interna
 confidencialidad: restringido
 tags: [feria-finados-2026, programacion]
@@ -28,3 +28,5 @@ Marketing solo comunica elementos con estado `confirmado`, aprobación registrad
 
 - [[2026-08-24_convocatoria-camino-megaescenario-finados-2026_v01|Camino al Megaescenario]]: convocatoria de talento con voto verificable, jurado y viabilidad técnica. No está autorizada para publicación.
 - [[../05_marketing-comunicacion/01_estrategia/2026-08-25_plan-confidencial-revelacion-cartel-finados-2026_v01|Plan confidencial de revelación del cartel]]: contiene códigos, embargo, gates y secuencia. Como este repositorio es público, no guarda nombres actuales, contratos ni la correspondencia código–artista. Ningún nombre está autorizado para publicación.
+- [[../05_marketing-comunicacion/01_estrategia/2026-08-27_adenda-guia-creativa-operativa-es-tradicion-finados-2026_v09|Adenda V09]]: incorpora `Plaza de la Luna` como nombre de trabajo para una experiencia cultural de Finados. Solo avanza con co-gobierno cultural legítimo, consentimiento, remuneración, atribución, capacidad y operación aprobados.
+- `Conversaciones ES TRADICIÓN`: serie previa de lives con talento local, expositores, visitantes frecuentes, servicio y portadores autorizados. Artistas solo participan después de su gate de revelación; cada live necesita derechos, guion, moderación, CTA, prueba técnica y protocolo de corte.

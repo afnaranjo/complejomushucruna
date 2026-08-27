@@ -2,7 +2,7 @@
 titulo: "Plan operativo digital Feria de Finados 2026"
 responsable: "coordinación de marketing y comunicación"
 estado: en-revision
-ultima_actualizacion: 2026-08-25
+ultima_actualizacion: 2026-08-27
 fuente: "decisiones de Alex Naranjo, auditoría histórica Meta 2021-2026 y expediente integral de la feria"
 confidencialidad: restringido
 tags: [feria-finados-2026, estrategia-digital, plan-operativo]
@@ -12,9 +12,7 @@ tags: [feria-finados-2026, estrategia-digital, plan-operativo]
 
 ## Decisión ejecutiva
 
-La estrategia comienza a ejecutarse internamente el **martes 25 de agosto de 2026** y trabaja con una ventana operativa asumida de feria del **jueves 29 de octubre al lunes 2 de noviembre de 2026**.
-
-Esta ventana está aprobada como supuesto de planificación. No queda autorizada para publicación hasta que Dirección confirme que es la fecha pública oficial.
+La estrategia comenzó a ejecutarse internamente el **martes 25 de agosto de 2026**. La ventana operativa asumida originalmente fue reemplazada el 2026-08-27 por una programación confirmada en una fuente de acceso controlado; este repositorio público usa **Día 1–Día 5** y fechas relativas a `D0 = Día 1` hasta que Dirección autorice una versión pública.
 
 El presupuesto de **USD 4.000** se destina exclusivamente a pauta en redes sociales. Influencers, radio, televisión y prensa tienen presupuestos propios administrados por sus responsables; marketing digital coordina narrativa, calendario, enlaces y evidencia, pero no administra ni descuenta esos valores de los USD 4.000.
 
@@ -50,7 +48,7 @@ Orden de prioridades:
 ### Confirmado por Alex para este plan
 
 - Inicio del trabajo digital: 2026-08-25.
-- Ventana operativa asumida: 2026-10-29 a 2026-11-02.
+- La programación está confirmada en la fuente controlada; las fechas exactas no se registran en este repositorio público. Para coordinación se usa Día 1–Día 5.
 - Pauta social: USD 4.000.
 - Presupuestos de influencers y medios tradicionales: separados y fuera del control de pauta digital.
 - Entrada general de adulto: USD 3.
@@ -85,14 +83,14 @@ Si el evento `purchase` no pasa una compra de prueba completa, la campaña no se
 
 | Fase | Fechas | Objetivo | Salida obligatoria | Pauta |
 |---|---|---|---|---:|
-| 0. Fundamentos | 25 ago–2 sep | Dejar listo gobierno, activos, destino, tracking y respuesta | fuente única, responsables, QA, tres conceptos piloto | USD 0 |
-| 1. Expectativa | 3–16 sep | Construir públicos y participación sin depender solo del cartel | convocatoria/voto, registro prioritario y memoria | USD 400 |
-| 2. Revelaciones | 17 sep–1 oct | Transformar atención en preventa | ganador, confirmaciones, itinerarios y primeros lotes | USD 800 |
-| 3. Conversión | 2–21 oct | Asegurar compradores antes de la presión competitiva tardía | producto por noche, precio total, prueba y CTA | USD 1.600 |
-| 4. Urgencia útil | 22–28 oct | Cerrar decisión y reducir fricción | agenda final, disponibilidad real, movilidad y FAQ | USD 800 |
-| 5. Feria en vivo | 29 oct–2 nov | Orientar, proteger reputación y capturar prueba social | información fijada, alertas, recap diario | USD 200 |
+| 0. Fundamentos | inicio interno 25 ago; reprogramar pendientes | Dejar listo gobierno, activos, destino, tracking y respuesta | fuente única, responsables, QA, tres conceptos piloto | USD 0 |
+| 1. Expectativa | D-56 a D-43 | Construir públicos y participación sin depender solo del cartel | convocatoria/voto, registro prioritario y memoria | USD 400 |
+| 2. Revelaciones | D-42 a D-28 | Transformar atención en preventa | confirmaciones, itinerarios y primeros lotes aprobados | USD 800 |
+| 3. Conversión | D-27 a D-8 | Asegurar compradores antes de la presión competitiva tardía | producto por jornada/localidad, precio total, prueba y CTA | USD 1.600 |
+| 4. Urgencia útil | D-7 a D-1 | Cerrar decisión y reducir fricción | agenda final, disponibilidad real, movilidad y FAQ | USD 800 |
+| 5. Feria en vivo | Día 1–Día 5; fechas controladas | Orientar, proteger reputación y capturar prueba social | información fijada, alertas, recap diario | USD 200 |
 | Reserva controlada | por liberar | Reforzar una señal demostrada o cubrir contingencia | decisión registrada con motivo y KPI | USD 200 |
-| **Total** | 3 sep–2 nov |  |  | **USD 4.000** |
+| **Total** | D-56 a D+4 |  |  | **USD 4.000** |
 
 La reserva no es dinero libre. Solo se libera por resultado verificable, necesidad operativa o cambio aprobado; si no existe una señal confiable, no se gasta por cumplir el presupuesto.
 
@@ -124,7 +122,7 @@ La reserva no es dinero libre. Solo se libera por resultado verificable, necesid
 
 - Publicar orgánicamente solo las piezas que superen aprobación.
 - Medir retención, compartidos, guardados, preguntas e intención; no declarar ganador por likes.
-- Elegir los conceptos que entran a pauta el 3 de septiembre.
+- Elegir los conceptos que podrán entrar en la primera ventana pagada aprobada, únicamente después de superar los gates.
 
 ## Sistema creativo
 
@@ -182,7 +180,7 @@ Detalle: [[../04_pr-medios/2026-08-24_protocolo-integracion-medios-finados-2026_
 
 ## Equipo y gobierno
 
-La estructura visual entregada por Alex corresponde a “Estructura finados 2025” y se usa como referencia de equipo. El mapeo 2026 y las responsabilidades digitales deben ratificarse antes del 26 de agosto.
+La estructura visual entregada por Alex corresponde a “Estructura finados 2025” y se usa como referencia de equipo. El 27 de agosto Alex confirmó el flujo operativo de solicitudes, coordinación y seguimiento descrito en el expediente del equipo; aún deben ratificarse los aprobadores finales y los roles marcados `por confirmar`.
 
 Cadena observada: Luis Lara → Andrés Naranjo → Edwin Masabanda, con Alex Naranjo en asesoría a Edwin. Desde Edwin se coordinan diseño/audiovisual, comunicación y producción.
 
@@ -221,12 +219,12 @@ Si falla G-D2 o G-D3, no se activa pauta de conversión. Si falla un dato de G-D
 
 ## Ritmo de gestión
 
-- Hasta el 1 de octubre: comité digital semanal de 30 minutos.
-- Del 2 al 21 de octubre: lunes y jueves, 30 minutos.
-- Del 22 al 28 de octubre: corte diario de 15 minutos.
-- Del 29 de octubre al 2 de noviembre: enlace permanente con el centro de control y dos cortes formales al día.
-- 3 de noviembre: corte preliminar.
-- 2 de diciembre: cierre conciliado y aprendizajes.
+- Desde el arranque hasta D-28: comité digital semanal de 30 minutos.
+- De D-27 a D-8: lunes y jueves, 30 minutos.
+- De D-7 a D-1: corte diario de 15 minutos.
+- Del Día 1 al Día 5, según la fuente controlada: enlace permanente con el centro de control y dos cortes formales al día.
+- D+5: corte preliminar.
+- Día 5 + 30 días: cierre conciliado y aprendizajes.
 
 ## Criterio de éxito
 
