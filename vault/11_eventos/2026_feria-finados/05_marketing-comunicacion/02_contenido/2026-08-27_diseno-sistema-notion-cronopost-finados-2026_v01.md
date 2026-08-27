@@ -1,7 +1,7 @@
 ---
 titulo: "Diseño del sistema Notion de cronopost y publicación Finados 2026"
 responsable: "marketing, comunidad y datos"
-estado: en-revision
+estado: aprobado
 ultima_actualizacion: 2026-08-27
 fuente: interna
 confidencialidad: interno
@@ -17,7 +17,7 @@ tags:
 # Diseño del sistema Notion de cronopost y publicación Finados 2026
 
 > [!important] Estado de este documento
-> Alex aprobó la dirección funcional en conversación el 2026-08-27. Esta especificación escrita queda en revisión antes de modificar Notion. No autoriza publicaciones, campañas, revelaciones, ventas ni el uso de información bajo embargo.
+> Alex aprobó la dirección funcional y autorizó dejar el sistema listo el 2026-08-27. La implementación y su QA quedaron registrados en [[2026-08-27_implementacion-notion-cronopost-finados-2026_v01|el acta de implementación]]. Esta aprobación no autoriza publicaciones, campañas, revelaciones, ventas ni el uso de información bajo embargo.
 
 ## 1. Decisión central
 
@@ -576,8 +576,10 @@ El responsable y aprobador no se inventarán. Se asignarán únicamente si sus c
 - [Data source properties](https://developers.notion.com/reference/property-object): tipos exactos de propiedad, incluidas fecha, fórmula, relación, resumen e identificador único.
 - [Update a data source](https://developers.notion.com/reference/update-a-data-source): cambios de esquema y capacidades requeridas.
 
-## 19. Gate previo a implementación
+## 19. Cierre de implementación
 
-Alex debe revisar esta especificación escrita y confirmar que representa el flujo esperado. Después se redactará el plan de implementación, se ejecutará únicamente dentro de `Finados 2026`, se validará con el caso `PRUEBA` y se documentará el resultado antes de cargar el cronopost real.
+La arquitectura fue implementada únicamente dentro de `Finados 2026` y validada con siete registros `PRUEBA`. La realización práctica usa rollups nativos para avance de campaña y rendimiento; la fase se normaliza en producción antes de heredarse en publicaciones, y `Estado operativo` conserva el diagnóstico detallado mientras `Alerta` prioriza programación, vencimiento y cierre incompleto.
+
+Antes de cargar el cronopost real todavía se deben probar permisos mínimos y zona horaria desde dos cuentas, invitar a los responsables confirmados y recibir la versión autorizada del calendario controlado. Consulta [[2026-08-27_implementacion-notion-cronopost-finados-2026_v01|Implementación del sistema Notion de cronopost Finados 2026]].
 
 [[../README|Volver a marketing y comunicación]]

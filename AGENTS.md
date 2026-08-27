@@ -414,3 +414,16 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Publicación externa: ninguna; no se publicó contenido, no se activaron campañas y no se modificaron Meta, boletería, dominio ni otros servicios.
 - Riesgos: faltan cuentas de Notion y responsables definitivos de Community, datos y aprobación; las capacidades de escritura deben demostrarse solo con el registro de prueba; el repositorio es público y no puede contener información bajo embargo.
 - Pendiente: revisión de Alex, plan de implementación, configuración limitada a `Finados 2026`, QA del flujo producción→publicación y documentación final antes de cargar el cronopost real.
+
+### 2026-08-27 — Implementación del centro de mando Notion Finados 2026
+
+- Se configuró únicamente el espacio autorizado `Finados 2026`: landing de mando, siete fuentes conectadas, 26 vistas directas y 11 vistas enlazadas para campañas, producción, publicaciones, activos, equipo, decisiones e ideas.
+- Se separó cada entregable de producción de sus publicaciones por red, fecha y hora; se añadieron dependencias, Gantt, calendarios, estados, alertas, gates, trazabilidad de versiones y rendimiento por responsable mediante rollups nativos.
+- Se ejecutaron siete registros sintéticos aislados de los KPI: una campaña, un activo, dos tareas y tres publicaciones. Una publicación de prueba simuló el cierre mediante un dominio reservado; no se programó ni publicó contenido real.
+- Las diez páginas iniciales de muestra se archivaron de forma reversible en la papelera de Notion. No hubo eliminación permanente.
+- QA: verificación independiente de solo lectura finalizada sin advertencias; tarea completa lista para Community, alerta por falta de publicación hija, estados `Programada`, `Lista para programar` y `Publicada`, alerta de programación, puntualidad y rollup de producción confirmados.
+- Commit: incluido en `Implementar centro de mando Notion Finados 2026`.
+- Publicación externa: únicamente la configuración interna autorizada de Notion y el push solicitado al repositorio; no se publicó, pautó, vendió, programó ni desplegó contenido en redes, Meta, web, boletería u otro canal público.
+- Seguridad: la credencial no se guardó ni versionó; los temporales de implementación se retiraron al cerrar. No se cargaron cartel, contratos, contactos ni información bajo embargo.
+- Riesgos: permisos mínimos, zona horaria y plantillas predeterminadas requieren validación manual; el sistema aún no contiene el cronopost real ni responsables personales definitivos.
+- Pendiente: invitar cuentas, probar permisos por rol y `America/Guayaquil` desde dos cuentas, confirmar responsables y poblar el cronopost solo desde el calendario controlado autorizado.

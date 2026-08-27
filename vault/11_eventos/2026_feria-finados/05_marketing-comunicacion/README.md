@@ -29,6 +29,7 @@ Convierte el concepto, la programación y las ofertas aprobadas en demanda medib
 - [[02_contenido/2026-08-24_sistema-contenidos-finados-2026_v01|Sistema de contenidos]]
 - [[02_contenido/2026-08-25_calendario-expectativa-es-tradicion-finados-2026_v01|Calendario de expectativa ES TRADICIÓN · 25 de agosto–16 de septiembre]]
 - [[02_contenido/2026-08-27_diseno-sistema-notion-cronopost-finados-2026_v01|Diseño del sistema Notion de cronopost, publicación y landing de Community]]
+- [[02_contenido/2026-08-27_implementacion-notion-cronopost-finados-2026_v01|Implementación verificada del sistema Notion]]
 - [[03_pauta/2026-08-24_plan-pauta-social-usd4000-finados-2026_v01|Pauta social · USD 4.000]]
 - [[04_pr-medios/2026-08-24_protocolo-integracion-medios-finados-2026_v01|Integración de medios e influencers]]
 - [[06_medicion/2026-08-24_plan-medicion-digital-finados-2026_v01|Medición digital]]

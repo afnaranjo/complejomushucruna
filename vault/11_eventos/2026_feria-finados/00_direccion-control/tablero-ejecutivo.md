@@ -29,7 +29,7 @@ tags:
 | Tecnología y datos | amarillo | Probar destino, inventario por localidad, UTMs, códigos, registro, voto y conversión | 2026-09-02 | Modelo de venta, fuente de inventario, voto verificable y dominio seguro | por asignar |
 | Personal y proveedores | gris | Inventario de recursos | por definir | Plan operativo | por asignar |
 | Servicio y experiencia | gris | Mapa de recorrido | por definir | Concepto/planos | por asignar |
-| Riesgos | amarillo | Asignar dueños y controles de R-031 a R-035 | 2026-09-02 | Promociones, inventario, lives, cronopost y comunidades sin gate operativo | por asignar |
+| Riesgos | amarillo | Asignar dueños y controles de R-031 a R-036 | 2026-09-02 | Promociones, inventario, lives, cronopost, comunidades y configuración humana de Notion sin gate operativo | por asignar |
 | Operación en vivo | gris | Modelo de centro de control | por definir | Plan operativo | por asignar |
 | Cierre | amarillo | Conciliar retrospectiva Carnaval 2026 y fijar línea base | 2026-09-02 | Accesos, caja, ventas y satisfacción de expositores pendientes | por asignar |
 
