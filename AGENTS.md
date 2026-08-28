@@ -452,3 +452,14 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Seguridad: la credencial se introdujo solo en sesiones silenciosas y temporales; no se guardó ni versionó. No se registraron IDs o URL privadas de Notion ni información del cartel bajo embargo.
 - Riesgos: el filtro `me`, los permisos mínimos y la zona horaria todavía deben probarse desde cuentas reales del equipo; el estado expandido de la barra lateral depende de la preferencia local de cada usuario.
 - Pendiente: probar permisos por rol y `America/Guayaquil` desde dos cuentas, confirmar responsables y cargar tareas reales solo desde el calendario controlado autorizado.
+
+### 2026-08-28 — Paquete de línea visual Finados 2026
+
+- Se descargaron mediante acceso autorizado de solo lectura y se versionaron, por instrucción expresa de Alex, cinco PDF de la línea visual de Finados 2026: guía de identidad, afiche, dos variantes de redes y moodboard.
+- Los archivos quedaron juntos en el expediente de contenido del evento, con nombres normalizados y un índice que registra originales, páginas, SHA-256, función, estado y restricciones. No se duplicaron en `15_activos/` porque la aprobación final y los derechos siguen pendientes.
+- Alex confirmó `¡LEGADO QUE NOS UNE!` como eslogan gráfico oficial y `ES TRADICIÓN` como plataforma comunicativa para videos, reels, anuncios y contenidos; la arquitectura quedó registrada en FF26-DEC-019 y en una nota canónica enlazada con V09. El afiche contiene `30 oct / 3 nov`, rango autorizado para versionado en Git mediante FF26-DEC-018.
+- QA: cinco PDF renderizados e inspeccionados; ninguno está cifrado, contiene JavaScript, adjuntos, credenciales, contratos, contactos o nombres del cartel. Se registraron como riesgos los rostros sin licencia documentada, la fuente personalizada pendiente y la discrepancia cromática del moodboard.
+- Commit: incluido en `Versionar línea visual de Finados 2026`.
+- Publicación externa: únicamente push autorizado al repositorio público; no se publicó campaña, no se modificó Notion, Meta, boletería, dominio ni ningún canal público.
+- Riesgos: derechos y consentimientos por acreditar; paleta, tipografías y archivos maestros por aprobar; el cartel y la programación detallada continúan bajo embargo.
+- Pendiente: completar la aprobación técnica de la línea visual y construir el cronopost de expectativa en el chat antes de cargarlo en Notion.

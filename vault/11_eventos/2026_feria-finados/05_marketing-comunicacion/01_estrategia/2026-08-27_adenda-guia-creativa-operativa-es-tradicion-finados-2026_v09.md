@@ -1,23 +1,35 @@
 ---
-titulo: "Adenda V09 de la guía creativa y operativa FINADOS 2026 · ES TRADICIÓN"
+titulo: "Adenda V09 de la guía creativa y operativa Finados 2026"
 responsable: "marketing, estrategia y creatividad"
 estado: en-revision
-ultima_actualizacion: 2026-08-27
-fuente: "aprobación de Alex Naranjo, guía v08, estructura operativa confirmada e insumos internos del 2026-08-27"
+ultima_actualizacion: 2026-08-28
+fuente: "aprobación de Alex Naranjo, guía v08, estructura operativa confirmada, insumos internos del 2026-08-27 y arquitectura verbal del 2026-08-28"
 confidencialidad: restringido
 tags:
   - feria-finados-2026
   - es-tradicion
+  - legado-que-nos-une
   - direccion-creativa
   - cronopost
   - participacion
   - preventa
 ---
 
-# Adenda V09 · `FINADOS 2026 · ES TRADICIÓN`
+# Adenda V09 · Finados 2026
 
 > [!important] Contrato de versión
 > La [[2026-08-26_presentacion_guia-creativa-operativa-es-tradicion-finados-2026_v08.pptx|presentación v08]] continúa siendo la última presentación visual y no se modifica en esta etapa. Esta adenda es la **especificación acumulativa V09 aprobada para estructuración interna**: conserva íntegramente la v08 y añade requisitos para el futuro cronopost y una eventual presentación v09. No autoriza publicación, pauta, venta, convocatoria, revelación, transmisión ni despliegue.
+
+## 0. Arquitectura verbal aprobada
+
+Desde el 2026-08-28 rige la [[2026-08-28_arquitectura-verbal-finados-2026_v01|arquitectura verbal canónica]]:
+
+- **eslogan gráfico oficial del evento:** `¡LEGADO QUE NOS UNE!`;
+- **plataforma comunicativa:** `ES TRADICIÓN`, para videos, reels, anuncios, stories, lives, hooks, guiones y familias de mensajes;
+- **cierre audiovisual:** identificador del evento + eslogan oficial + CTA o dato confirmado;
+- **regla:** `ES TRADICIÓN` no reemplaza el eslogan ni se usa como segundo lockup de igual jerarquía.
+
+La denominación `FINADOS 2026 · ES TRADICIÓN` de la v08 queda como antecedente histórico. Toda pieza nueva derivada de la V09 debe aplicar la arquitectura aprobada sin borrar la profundidad estratégica de `ES TRADICIÓN`.
 
 ## 1. Resultado que debe producir la V09
 

@@ -2,7 +2,7 @@
 titulo: "Cronograma e hitos Feria de Finados 2026"
 responsable: "dirección integral de la feria"
 estado: borrador
-ultima_actualizacion: 2026-08-27
+ultima_actualizacion: 2026-08-28
 fuente: interna
 confidencialidad: restringido
 tags:
@@ -22,7 +22,7 @@ tags:
 | Pilotos comerciales, lives, comunidades y Plaza de la Luna decididos | oferta, finanzas, cultura, derechos, datos y operación | 2026-09-02 | dirección y frentes dueños | pendientes; no publicar |
 | G0 Constitución aprobada | dirección, fecha pública y responsables | 2026-08-28, reprogramado | por asignar | venció el objetivo inicial; pendiente |
 | Banco histórico accesible y primera matriz | ubicación, dueño, acceso y permisos de curaduría | 2026-08-28, reprogramado | Andrés Naula/producción, propuesto | venció el objetivo inicial; pendiente |
-| Plataforma `ES TRADICIÓN` decidida | dirección, cultura, marca, comercio y operación | 2026-08-28 | dirección/marketing/comunidad | desarrollo creado; aprobación pendiente |
+| Arquitectura verbal decidida | definición de identidad y plataforma | 2026-08-28 | dirección/marketing/marca | completado: `¡LEGADO QUE NOS UNE!` eslogan gráfico; `ES TRADICIÓN` plataforma comunicativa |
 | Tres pilotos de expectativa revisados | selects históricos, derechos preliminares, edición y sonido | 2026-08-28 | audiovisual/comunicación | calendario creado; producción pendiente |
 | Alcance de guía móvil y concepto 200K decidido | definición de asistencia, producto y responsables | 2026-08-28 | dirección/experiencia/tecnología | alcance propuesto; aprobación operativa pendiente |
 | Bases y cupo de Camino al Megaescenario definidos | programación, producción, derechos, premio y reglas de votación | 2026-08-28 | dirección/programación | propuesta pendiente de aprobación |
@@ -31,7 +31,7 @@ tags:
 | Gate Go/No-Go de expectativa | plataforma, derechos, QA 6C, canal y moderación | 2026-09-02 | dirección/Edwin | condicionado; no autoriza publicación automática |
 | Plano base e inventario de puntos de guía móvil | producción, servicio, seguridad y tecnología | 2026-09-02 | por asignar | pendiente |
 | Expectativa digital | piezas aprobadas y medición | D-56 | marketing | condicionada; no autoriza publicación |
-| Presentación propuesta de `ES TRADICIÓN` | plataforma, personas y derechos aprobados | D-56 | marketing/comunicación | condicionada; no autoriza publicación |
+| Presentación pública de la plataforma `ES TRADICIÓN` | ejecución, personas y derechos aprobados; cierre con eslogan oficial | D-56 | marketing/comunicación | condicionada; no autoriza publicación |
 | Cierre propuesto de postulaciones artísticas | convocatoria publicada | D-53 | programación/marketing | propuesta pendiente de aprobación |
 | Oferta de entradas y preventa aprobada | precio del megaescenario, capacidad, inclusiones, términos y canal seguro | D-52 | dirección/ventas/finanzas | pendiente |
 | Apertura propuesta de preventa | oferta aprobada, compra de prueba y conciliación | D-51 | ventas/marketing/datos | condicionada |

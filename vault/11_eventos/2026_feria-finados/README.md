@@ -2,7 +2,7 @@
 titulo: "Centro integral Feria de Finados 2026"
 responsable: "dirección integral de la feria"
 estado: en-revision
-ultima_actualizacion: 2026-08-27
+ultima_actualizacion: 2026-08-28
 fuente: interna
 confidencialidad: interno
 tags:
@@ -30,6 +30,7 @@ Este expediente es la fuente única de verdad de la feria. Aquí se conectan tod
 
 - [[01_concepto-experiencia/2026-08-24_arquitectura-experiencia-asistencia-200k-finados-2026_v01|Arquitectura de experiencia y asistencia 200K]]
 - [[05_marketing-comunicacion/01_estrategia/2026-08-25_plataforma-emocional-es-tradicion-finados-2026_v01|Plataforma emocional ES TRADICIÓN]]
+- [[05_marketing-comunicacion/01_estrategia/2026-08-28_arquitectura-verbal-finados-2026_v01|Arquitectura verbal aprobada · `¡LEGADO QUE NOS UNE!` + `ES TRADICIÓN`]]
 - [[05_marketing-comunicacion/01_estrategia/2026-08-27_adenda-guia-creativa-operativa-es-tradicion-finados-2026_v09|Adenda V09 · especificación acumulativa vigente]]
 - [[05_marketing-comunicacion/01_estrategia/2026-08-26_presentacion_guia-creativa-operativa-es-tradicion-finados-2026_v08.pptx|Guía creativa y operativa ES TRADICIÓN · última presentación visual]]
 - [[05_marketing-comunicacion/01_estrategia/2026-08-25_presentacion_guia-creativa-es-tradicion-finados-2026_v05.pptx|Guía creativa integral ES TRADICIÓN · presentación v05 histórica]]

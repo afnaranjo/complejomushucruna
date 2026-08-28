@@ -2,7 +2,7 @@
 titulo: "Marketing y comunicación Feria de Finados 2026"
 responsable: "por asignar"
 estado: en-revision
-ultima_actualizacion: 2026-08-27
+ultima_actualizacion: 2026-08-28
 fuente: interna
 confidencialidad: interno
 tags: [feria-finados-2026, marketing]
@@ -17,6 +17,7 @@ Convierte el concepto, la programación y las ofertas aprobadas en demanda medib
 - [[01_estrategia/2026-08-24_plan-operativo-digital-finados-2026_v01|Plan operativo digital · iniciado el 25 de agosto · pendiente rebaseline]]
 - [[01_estrategia/2026-08-24_estrategia-competitiva-preventa-participacion-finados-2026_v01|Estrategia competitiva, preventa y participación]]
 - [[01_estrategia/2026-08-25_plataforma-emocional-es-tradicion-finados-2026_v01|Plataforma emocional ES TRADICIÓN]]
+- [[01_estrategia/2026-08-28_arquitectura-verbal-finados-2026_v01|Arquitectura verbal aprobada · eslogan gráfico `¡LEGADO QUE NOS UNE!` y plataforma comunicativa `ES TRADICIÓN`]]
 - [[01_estrategia/2026-08-27_adenda-guia-creativa-operativa-es-tradicion-finados-2026_v09|Adenda V09 · requisitos acumulativos vigentes]]
 - [[01_estrategia/2026-08-26_presentacion_guia-creativa-operativa-es-tradicion-finados-2026_v08.pptx|Guía creativa y operativa ES TRADICIÓN · última presentación visual]]
 - [[01_estrategia/2026-08-25_presentacion_guia-creativa-es-tradicion-finados-2026_v04.pptx|Guía creativa integral ES TRADICIÓN · presentación v04 histórica]]
@@ -30,6 +31,7 @@ Convierte el concepto, la programación y las ofertas aprobadas en demanda medib
 - [[02_contenido/2026-08-25_calendario-expectativa-es-tradicion-finados-2026_v01|Calendario de expectativa ES TRADICIÓN · 25 de agosto–16 de septiembre]]
 - [[02_contenido/2026-08-27_diseno-sistema-notion-cronopost-finados-2026_v01|Diseño del sistema Notion de cronopost, publicación y landing de Community]]
 - [[02_contenido/2026-08-27_implementacion-notion-cronopost-finados-2026_v01|Implementación verificada del sistema Notion]]
+- [[02_contenido/01_linea-visual/2026-08-28_indice_linea-visual-finados-2026_multicanal_v01|Paquete visual recibido desde Notion · en revisión]]
 - [[03_pauta/2026-08-24_plan-pauta-social-usd4000-finados-2026_v01|Pauta social · USD 4.000]]
 - [[04_pr-medios/2026-08-24_protocolo-integracion-medios-finados-2026_v01|Integración de medios e influencers]]
 - [[06_medicion/2026-08-24_plan-medicion-digital-finados-2026_v01|Medición digital]]

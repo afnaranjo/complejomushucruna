@@ -2,7 +2,7 @@
 titulo: "Acta de constitución Feria de Finados 2026"
 responsable: "dirección integral de la feria"
 estado: borrador
-ultima_actualizacion: 2026-08-27
+ultima_actualizacion: 2026-08-28
 fuente: interna
 confidencialidad: restringido
 tags:
@@ -26,7 +26,7 @@ Diseñar, comercializar, promocionar, producir y operar integralmente la Feria d
 - El acceso al megaescenario se comercializa adicionalmente; precio, capacidad, noches e inclusiones siguen por confirmar.
 - Objetivo de planificación: 200.000 asistentes; antes de publicarlo y usarlo como compromiso se debe definir si significa visitas acumuladas o personas únicas y validar la capacidad por día, hora y zona.
 - Producto digital: guía móvil informativa con mapa y ubicaciones, sin backend, cuentas ni transacciones; implementación y costo aún pendientes.
-- Dirección de posicionamiento: recuperar la identidad de feria comercial, familiar y cultural desde la tradición; `ES TRADICIÓN` se desarrolla como plataforma, pero no se publica sin aprobación cultural, de marca y operativa.
+- Dirección de posicionamiento: recuperar la identidad de feria comercial, familiar y cultural desde la tradición. `¡LEGADO QUE NOS UNE!` es el eslogan gráfico oficial y `ES TRADICIÓN` la plataforma comunicativa para videos, reels, anuncios y contenidos; cada ejecución mantiene sus gates culturales, de marca, operativos y editoriales.
 - Cartel artístico: información confidencial; ningún nombre está autorizado para difusión hasta pasar contratos, programación, oferta, derechos y embargo.
 
 La programación interna está confirmada; la versión publicable de fechas todavía requiere autorización de Dirección.

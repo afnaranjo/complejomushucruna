@@ -2,8 +2,8 @@
 titulo: "Calendario de expectativa ES TRADICIÓN Finados 2026"
 responsable: "coordinación de marketing, comunicación y audiovisual"
 estado: en-revision
-ultima_actualizacion: 2026-08-25
-fuente: "dirección interna, banco histórico reportado y auditoría Meta 2021-2026"
+ultima_actualizacion: 2026-08-28
+fuente: "dirección interna, banco histórico reportado, auditoría Meta 2021-2026 y arquitectura verbal aprobada"
 confidencialidad: interno
 tags:
   - feria-finados-2026
@@ -46,9 +46,10 @@ Cada pieza debe contener:
 2. una escena humana auténtica del archivo;
 3. una prueba de familia, feria, territorio o encuentro;
 4. una sola frase breve;
-5. el cierre ES TRADICIÓN.
+5. un cierre gráfico con `Mushuc Runa · Finados 2026` y `¡LEGADO QUE NOS UNE!`.
 
 No mostramos nostalgia vacía. Mostramos una tradición viva que vuelve a reunirnos.
+ES TRADICIÓN dirige el relato; ¡LEGADO QUE NOS UNE! firma la identidad gráfica.
 ```
 
 Pregunta de control para cada propuesta:
@@ -139,12 +140,12 @@ Cadencia: cuatro piezas principales por semana. Historias complementan; no repit
 
 | ID / fecha propuesta | Pieza | Hook | Material | Cierre/CTA | KPI primario | Condición |
 |---|---|---|---|---|---|---|
-| EXP-01 · 3 sep | hero `Nos llama` · 45–60 s | `Hay fechas que no solo llegan. Nos llaman.` | familia + preparación + llegada + feria + escala | `FINADOS MUSHUC RUNA 2026 · ES TRADICIÓN · Muy pronto` | retención 50 %/95 % y compartidos con contexto | plataforma, archivo, personas y audio aprobados |
+| EXP-01 · 3 sep | hero `Nos llama` · 45–60 s | `Hay fechas que no solo llegan. Nos llaman.` | familia + preparación + llegada + feria + escala | `MUSHUC RUNA · FINADOS 2026 · ¡LEGADO QUE NOS UNE! · Muy pronto` | retención 50 %/95 % y compartidos con contexto | plataforma, archivo, personas y audio aprobados |
 | EXP-02 · 5 sep | reel `Volver` · 15–20 s | `Hay lugares a los que no se llega. Se vuelve.` | carretera, entrada, abrazo y primeras miradas | `Volver es tradición` | retención y compartidos | escenas correctamente fechadas |
 | EXP-03 · 7 sep | carrusel `Lo que vuelve contigo` | `Un sabor. Una canción. Una persona.` | 5 detalles de archivo | `¿Qué recuerdo vuelve contigo?` | guardados y respuestas cualitativas | moderación y derechos listos |
 | EXP-04 · 9 sep | reel `Hacer feria` · 30–45 s | `Una feria vive cuando sus historias se encuentran.` | expositor, proceso, producto y visitante | `Hacer feria es tradición` | guardados y consultas de expositores | no prometer ventas ni puestos 2026 no confirmados |
 | EXP-05 · 11 sep | reel `Descubrir` · 15–20 s | `Siempre hay algo que no habías visto.` | sabores, artesanía, detalles y recorridos | `Descubrir lo nuestro es tradición` | finalización y guardados | solo categorías históricas; no oferta vigente inventada |
-| EXP-06 · 13 sep | montaje `Años que nos reúnen` · 20–30 s | `Cambian los años. Hay encuentros que permanecen.` | archivo fechado 2021–2025 | `ES TRADICIÓN` | recuerdo de campaña y comentarios con memoria | años y contexto comprobados |
+| EXP-06 · 13 sep | montaje `Años que nos reúnen` · 20–30 s | `Cambian los años. Hay encuentros que permanecen.` | archivo fechado 2021–2025 | relato `ES TRADICIÓN`; cierre `¡LEGADO QUE NOS UNE!` | recuerdo de campaña y comentarios con memoria | años y contexto comprobados |
 | EXP-07 · 15 sep | pieza sonora `La canción antes de la canción` · 15 s | afinación + respiración + público, sin melodía identificable | instrumentos, luces y público histórico | `Cantar juntos es tradición` | reproducción completa | sin artista, pista protegida ni pista reconocible |
 | EXP-08 · 16 sep | reel/carrusel `Cinco capítulos` | `Volver · Descubrir · Cantar · Compartir · Recordar` | cinco escenas, una por capítulo | `Cinco días para volver a encontrarnos` | elección/interés por capítulo | no asignar oferta u horario no confirmado |
 

@@ -2,7 +2,7 @@
 titulo: "Tablero ejecutivo Feria de Finados 2026"
 responsable: "dirección integral de la feria"
 estado: borrador
-ultima_actualizacion: 2026-08-27
+ultima_actualizacion: 2026-08-28
 fuente: interna
 confidencialidad: restringido
 tags:
@@ -12,12 +12,12 @@ tags:
 
 # Tablero ejecutivo
 
-Último corte: 2026-08-27.
+Último corte: 2026-08-28.
 
 | Frente | Semáforo | Hito siguiente | Fecha | Bloqueo/decisión | Responsable |
 |---|---|---|---|---|---|
 | Dirección y control | amarillo | Autorizar calendario público y convertir cronopost/montaje desde fuente controlada | 2026-08-28 | Hitos compartibles ya están en D0; G0 y aprobadores incompletos; no copiar embargo a Git | por asignar |
-| Concepto y experiencia | amarillo | Aprobar `ES TRADICIÓN` y decidir Plaza de la Luna con gobierno cultural | 2026-08-28 | Aprobador cultural, marca, remuneración y operación pendientes | por asignar |
+| Concepto y experiencia | amarillo | Validar ejecuciones de `ES TRADICIÓN` y decidir Plaza de la Luna con gobierno cultural | 2026-08-28 | Arquitectura verbal aprobada: `¡LEGADO QUE NOS UNE!` eslogan gráfico y `ES TRADICIÓN` plataforma comunicativa; aprobador cultural, remuneración y operación pendientes | por asignar |
 | Programación | amarillo | Rebaselinar fuente controlada y cerrar gates de revelación/lives | 2026-09-07 | Contratos, grafías, derechos, activos y autorización pública pendientes; no revelar | por asignar |
 | Expositores | amarillo | Diseñar `Rutas ES TRADICIÓN` y `De emprendedor a influencer` | 2026-09-07 | Plano, bases, premio, códigos, medición y retrospectiva pendientes | por asignar |
 | Patrocinios | gris | Diseñar inventario comercial | por definir | Audiencia y activos | por asignar |

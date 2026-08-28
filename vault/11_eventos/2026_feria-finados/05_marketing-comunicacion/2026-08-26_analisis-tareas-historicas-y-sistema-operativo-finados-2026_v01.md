@@ -2,8 +2,8 @@
 titulo: "Análisis de tareas históricas y sistema operativo Finados 2026"
 responsable: "coordinación general de marketing"
 estado: en-revision
-ultima_actualizacion: 2026-08-27
-fuente: "exporte Bitrix Expoferia Mushuc Runa recibido el 2026-08-26"
+ultima_actualizacion: 2026-08-28
+fuente: "exporte Bitrix Expoferia Mushuc Runa recibido el 2026-08-26 y arquitectura verbal confirmada el 2026-08-28"
 confidencialidad: interno
 tags: [feria-finados-2026, tareas, bitrix, equipo, raci, operacion]
 ---
@@ -99,7 +99,7 @@ Las 188 tareas se conservaron y se mapearon a 17 paquetes. El plan 2026 usa 73 e
 | Paquete | Uso 2026 |
 |---|---|
 | `F26-01-GOB` | gobierno, calendario, RACI, tablero y aprobaciones |
-| `F26-02-MARCA` | `ES TRADICIÓN`, key visual y plantillas maestras |
+| `F26-02-MARCA` | eslogan gráfico `¡LEGADO QUE NOS UNE!`, plataforma comunicativa `ES TRADICIÓN`, key visual y plantillas maestras |
 | `F26-03-PAT` | auspiciantes, activos, beneficios y pruebas |
 | `F26-04-EXP` | stands, expositores, rutas y comercio |
 | `F26-05-ENT` | oferta, preventa, boletería, puntos y disponibilidad |

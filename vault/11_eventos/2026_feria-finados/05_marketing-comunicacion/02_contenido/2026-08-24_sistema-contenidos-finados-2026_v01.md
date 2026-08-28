@@ -2,8 +2,8 @@
 titulo: "Sistema de contenidos Feria de Finados 2026"
 responsable: "coordinación de diseño, audiovisual y comunicación"
 estado: en-revision
-ultima_actualizacion: 2026-08-27
-fuente: "plan operativo digital, auditoría histórica Meta 2021-2026 y adenda V09"
+ultima_actualizacion: 2026-08-28
+fuente: "plan operativo digital, auditoría histórica Meta 2021-2026, adenda V09 y arquitectura verbal aprobada"
 confidencialidad: restringido
 tags: [feria-finados-2026, contenido, produccion-creativa]
 ---
@@ -13,6 +13,15 @@ tags: [feria-finados-2026, contenido, produccion-creativa]
 ## Función
 
 Transformar datos aprobados de los frentes de la feria en contenido claro, comprobable, útil y adaptable a orgánico, pauta, aliados y atención. Este sistema ejecuta el [[../01_estrategia/2026-08-24_plan-operativo-digital-finados-2026_v01|plan operativo digital]] y la [[../01_estrategia/2026-08-27_adenda-guia-creativa-operativa-es-tradicion-finados-2026_v09|adenda V09]].
+
+## Arquitectura de marca y comunicación
+
+- `¡LEGADO QUE NOS UNE!` es el eslogan gráfico oficial del evento.
+- `ES TRADICIÓN` es la plataforma comunicativa: organiza hooks, guiones, series, videos, reels, anuncios, stories y lives.
+- En motion, `ES TRADICIÓN` conduce el relato y el cierre usa identificador + `¡LEGADO QUE NOS UNE!` + CTA aprobado.
+- En piezas estáticas, `ES TRADICIÓN` puede aportar el titular o ángulo, pero no reemplaza la firma gráfica oficial.
+
+Fuente canónica: [[../01_estrategia/2026-08-28_arquitectura-verbal-finados-2026_v01|Arquitectura verbal Finados 2026]].
 
 ## Mezcla editorial por fase
 
@@ -28,7 +37,7 @@ Los porcentajes orientan el portafolio; no obligan a publicar material débil.
 
 ## Propiedades participativas y comerciales
 
-- `ES TRADICIÓN`: plataforma maestra en desarrollo; conecta familia, memoria, feria, comercio y música. Ver [[../01_estrategia/2026-08-25_plataforma-emocional-es-tradicion-finados-2026_v01|documento creativo]].
+- `ES TRADICIÓN`: plataforma comunicativa aprobada; conecta familia, memoria, feria, comercio y música. Ver [[../01_estrategia/2026-08-25_plataforma-emocional-es-tradicion-finados-2026_v01|documento creativo]].
 - `Rutas ES TRADICIÓN`: ubicación y descubrimiento de expositores por categoría, enlazadas con la guía móvil.
 - `Camino al Megaescenario`: convocatoria, finalistas, voto auditado y presentación del ganador.
 - `La tradición elige`: retorno propuesto de `Rey Pan` y `Srta. Colada Morada`, sujeto a aprobación cultural y de marca.

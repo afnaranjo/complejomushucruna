@@ -2,7 +2,7 @@
 titulo: "Centro de mando"
 responsable: "dirección integral de la feria"
 estado: aprobado
-ultima_actualizacion: 2026-08-27
+ultima_actualizacion: 2026-08-28
 fuente: interna
 confidencialidad: interno
 tags:
@@ -27,7 +27,9 @@ tags:
 - [[11_eventos/2026_feria-finados/05_marketing-comunicacion/03_pauta/2026-08-24_plan-pauta-social-usd4000-finados-2026_v01|Pauta social USD 4.000]]
 - [[11_eventos/2026_feria-finados/01_concepto-experiencia/2026-08-24_arquitectura-experiencia-asistencia-200k-finados-2026_v01|Arquitectura de experiencia y asistencia 200K]]
 - [[11_eventos/2026_feria-finados/05_marketing-comunicacion/01_estrategia/2026-08-25_plataforma-emocional-es-tradicion-finados-2026_v01|Plataforma emocional ES TRADICIÓN]]
+- [[11_eventos/2026_feria-finados/05_marketing-comunicacion/01_estrategia/2026-08-28_arquitectura-verbal-finados-2026_v01|Arquitectura verbal aprobada · `¡LEGADO QUE NOS UNE!` eslogan gráfico + `ES TRADICIÓN` plataforma comunicativa]]
 - [[11_eventos/2026_feria-finados/05_marketing-comunicacion/01_estrategia/2026-08-27_adenda-guia-creativa-operativa-es-tradicion-finados-2026_v09|Adenda V09 · requisitos acumulativos vigentes]]
+- [[11_eventos/2026_feria-finados/05_marketing-comunicacion/02_contenido/01_linea-visual/2026-08-28_indice_linea-visual-finados-2026_multicanal_v01|Paquete de línea visual Finados 2026 · en revisión]]
 - [[11_eventos/2026_feria-finados/05_marketing-comunicacion/01_estrategia/2026-08-26_presentacion_guia-creativa-operativa-es-tradicion-finados-2026_v08.pptx|Guía creativa y operativa ES TRADICIÓN · última presentación visual v08]]
 - [[11_eventos/2026_feria-finados/05_marketing-comunicacion/01_estrategia/2026-08-26_presentacion_guia-creativa-operativa-es-tradicion-finados-2026_v07.pptx|Guía creativa y operativa ES TRADICIÓN · presentación v07 histórica]]
 - [[11_eventos/2026_feria-finados/05_marketing-comunicacion/01_estrategia/2026-08-26_presentacion_guia-creativa-operativa-es-tradicion-finados-2026_v06.pptx|Guía creativa y operativa ES TRADICIÓN · presentación v06 histórica]]

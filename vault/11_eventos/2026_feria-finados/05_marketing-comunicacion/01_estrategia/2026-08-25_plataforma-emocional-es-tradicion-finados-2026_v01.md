@@ -1,9 +1,9 @@
 ---
 titulo: "Plataforma emocional ES TRADICIÓN Finados 2026"
 responsable: "dirección de marketing y comunicación"
-estado: borrador
-ultima_actualizacion: 2026-08-27
-fuente: "dirección interna, auditoría Meta 2021-2026, investigación histórica y cultural"
+estado: en-revision
+ultima_actualizacion: 2026-08-28
+fuente: "dirección interna, auditoría Meta 2021-2026, investigación histórica y cultural; rol comunicativo confirmado el 2026-08-28"
 confidencialidad: restringido
 tags:
   - feria-finados-2026
@@ -14,14 +14,18 @@ tags:
 
 # Plataforma emocional `ES TRADICIÓN`
 
-## Decisión estratégica recomendada
+> [!important] Rol confirmado
+> `ES TRADICIÓN` es la **plataforma comunicativa y narrativa** para videos, reels, anuncios, stories, lives y contenidos. El eslogan gráfico oficial del evento es `¡LEGADO QUE NOS UNE!`. Consulta la [[2026-08-28_arquitectura-verbal-finados-2026_v01|arquitectura verbal aprobada]].
 
-La plataforma central debe ser:
+## Decisión estratégica confirmada
+
+La identidad y la plataforma conviven así:
 
 ```text
-FINADOS MUSHUC RUNA 2026
-ES TRADICIÓN
+MUSHUC RUNA · FINADOS 2026
+¡LEGADO QUE NOS UNE!
 
+Plataforma comunicativa: ES TRADICIÓN
 Cinco días para volver a encontrarnos.
 ```
 
@@ -33,7 +37,7 @@ Cinco días para volver a encontrarnos.
 - convierte los cinco días en capítulos de una misma historia;
 - puede sostener llamados específicos: `Volver es tradición`, `Hacer feria es tradición`, `Cantar juntos es tradición`.
 
-No está autorizada para publicación hasta que Dirección y el gobierno cultural aprueben el territorio, la redacción, el uso de símbolos, las personas participantes y la fecha pública.
+Su función estratégica está aprobada. Cada ejecución continúa bloqueada hasta que Dirección y el gobierno cultural aprueben la redacción concreta, el uso de símbolos, las personas participantes, los derechos y los datos publicables.
 
 ## El problema que debe resolver
 
@@ -79,7 +83,7 @@ La tradición profunda pertenece a las familias y comunidades. Fuentes oficiales
 
 | Territorio | Promesa | Hook | Fortaleza | Riesgo | Decisión |
 |---|---|---|---|---|---|
-| `ES TRADICIÓN` | aquí Finados se vive como encuentro familiar, comercial, cultural y musical | “Hay fechas que no solo llegan. Nos llaman.” | corto, presente, extensible y emocional | apropiarse de una tradición sin gobierno cultural | **recomendado como plataforma maestra** |
+| `ES TRADICIÓN` | aquí Finados se vive como encuentro familiar, comercial, cultural y musical | “Hay fechas que no solo llegan. Nos llaman.” | corto, presente, extensible y emocional | apropiarse de una tradición sin gobierno cultural | **aprobado como plataforma comunicativa** |
 | `Volvemos a encontrarnos` | la feria reúne a quienes han construido recuerdos en ella | “Hay lugares a los que no se va por primera vez: se vuelve.” | cálido y familiar | genérico y menos comercial | línea de manifiesto y película principal |
 | `La feria vuelve a ser feria` | recuperar comercio, descubrimiento y trato humano | “Una feria vive cuando sus puestos venden y sus pasillos se recorren.” | enfrenta directamente febrero | puede sonar defensivo o admitir fracaso en público | principio interno y campaña para expositores |
 | `Cinco días, cinco formas de vivir Finados` | cada jornada tiene una razón distinta | “No tienes que elegir un solo plan.” | organiza la asistencia | funciona como arquitectura, no como emoción central | soporte de producto y agenda |
@@ -88,12 +92,13 @@ La tradición profunda pertenece a las familias y comunidades. Fuentes oficiales
 
 ### Jerarquía
 
-1. **Marca/evento:** `Finados Mushuc Runa 2026`.
-2. **Plataforma:** `ES TRADICIÓN`.
-3. **Promesa:** `Cinco días para volver a encontrarnos`.
-4. **Capítulos:** frases específicas por momento o audiencia.
-5. **Prueba:** personas, prácticas, puestos, artistas, servicios y experiencias reales.
-6. **Acción:** proporcional a la fase.
+1. **Marca/evento:** `Mushuc Runa · Finados 2026`.
+2. **Eslogan gráfico oficial:** `¡LEGADO QUE NOS UNE!`.
+3. **Plataforma comunicativa:** `ES TRADICIÓN`.
+4. **Promesa:** `Cinco días para volver a encontrarnos`.
+5. **Capítulos:** frases específicas por momento o audiencia.
+6. **Prueba:** personas, prácticas, puestos, artistas, servicios y experiencias reales.
+7. **Acción:** proporcional a la fase.
 
 ### Familia de mensajes
 
@@ -188,7 +193,7 @@ Objetivo: presentar `ES TRADICIÓN` sin artistas, precios ni atracciones no conf
 | 20–33 s | pan, tejido, producto, primera conversación de compra, comida compartida | “A descubrir lo que otras manos hacen. A caminar sin apuro. A compartir.” | devolver protagonismo a la feria |
 | 33–45 s | luces encendiéndose; músico prepara instrumento; familia y jóvenes cantan | “A escuchar esas canciones que ya sabemos de memoria.” | introducir música sin revelar cartel |
 | 45–55 s | colada servida; tres generaciones; plano general del complejo | “Porque una tradición no se mira desde lejos. Se vive. Se comparte. Se deja a quienes vienen después.” | resolución emocional |
-| 55–60 s | título limpio | `FINADOS MUSHUC RUNA 2026` / `ES TRADICIÓN` / `Muy pronto` | memoria de campaña |
+| 55–60 s | cierre gráfico limpio | `MUSHUC RUNA · FINADOS 2026` / `¡LEGADO QUE NOS UNE!` / `Muy pronto` | firma oficial y recuerdo de campaña |
 
 Condiciones:
 
@@ -240,7 +245,7 @@ Tomar de grandes espectáculos la **dramaturgia emocional** —anticipación, de
 - audio de entorno como hilo: cuchara, pasos, conversaciones, papel, instrumento y aplauso;
 - evitar banco genérico, sonrisas dirigidas, disfraces culturales y exceso de cámara lenta.
 
-### Paleta propuesta, no oficial
+### Paleta de prototipo histórica, no oficial
 
 - morado profundo: memoria y colada, sin ocupar todas las piezas;
 - tierra/ocre: trabajo, producto y territorio;
@@ -248,15 +253,15 @@ Tomar de grandes espectáculos la **dramaturgia emocional** —anticipación, de
 - azul noche: música y escenario;
 - blanco cálido: aire, lectura y honestidad.
 
-Debe ajustarse al manual y activos oficiales cuando sean entregados.
+Esta paleta precede al [[../02_contenido/01_linea-visual/2026-08-28_indice_linea-visual-finados-2026_multicanal_v01|paquete visual recibido]] y no debe gobernar nuevas piezas. Diseño debe usar el paquete actual y resolver sus controles cromáticos antes de publicar.
 
 ### Tipografía propuesta, no oficial
 
-Ruta elegida para prototipo, sujeta a manual y licencia:
+Ruta elegida para el prototipo histórico, sujeta a manual y licencia. El eslogan `¡LEGADO QUE NOS UNE!` debe aplicarse desde su arte maestro autorizado y no recrearse con esta tipografía:
 
 | Rol | Familia | Peso | Tratamiento |
 |---|---|---:|---|
-| plataforma `ES TRADICIÓN` | Bitter | ExtraBold/Black 800–900 | mayúsculas, tracking -1 %, interlineado 90 %, alineación izquierda o centrada según plano |
+| tratamiento narrativo `ES TRADICIÓN` | Bitter | ExtraBold/Black 800–900 | mayúsculas, tracking -1 %, interlineado 90 %, alineación izquierda o centrada según plano |
 | títulos de capítulos | Bitter | Bold 700 | caja mixta, interlineado 100 % |
 | información, precio y CTA | Source Sans 3 | Semibold 600 | máxima legibilidad, cifras claras |
 | cuerpo/subtítulos | Source Sans 3 | Regular/Medium 400–500 | contraste alto y máximo dos líneas por bloque |
