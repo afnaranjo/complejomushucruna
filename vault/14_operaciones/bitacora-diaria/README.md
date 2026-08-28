@@ -13,6 +13,8 @@ Registro breve de avances, decisiones, bloqueos y próximos pasos. Obsidian crea
 
 ## Entradas recientes
 
+- [[2026-08-28_bitacora_correccion-roles-dependencias-bitrix-finados-2026_v01|2026-08-28 · Corrección de roles y dependencias en Bitrix]]
+- [[2026-08-28_bitacora_carga-semana-1-bitrix-finados-2026_v01|2026-08-28 · Carga de Semana 1 en Bitrix]]
 - [[2026-08-28_bitacora_linea-visual-finados-2026_v01|2026-08-28 · Línea visual Finados 2026]]
 - [[2026-08-27_bitacora_replicacion-aislada-notion-finados-2026_v01|2026-08-27 · Réplica aislada de Notion Finados 2026]]
 - [[2026-08-27_bitacora_adenda-v09-y-flujo-creativo-finados-2026_v01|2026-08-27 · Adenda V09 y flujo creativo]]

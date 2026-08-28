@@ -92,6 +92,19 @@ Programación/publicación condicionada → medición → evidencia de cierre
 9. Diego Flores y Andrés Flores son personas y funciones distintas.
 10. Ningún pedido verbal o mensaje aislado reemplaza la tarea registrada.
 
+## Traducción del flujo a roles de Bitrix
+
+- `Creador/propietario del requerimiento`: Andrés Flores registra el brief, sigue la entrega y prepara la publicación; no reemplaza al ejecutor de diseño o audiovisual.
+- `Responsable`: la persona o cuenta operativa confirmada que ejecuta el recurso. En gráfica corresponde a la jefatura de Cristian Núñez; Alex confirmó que Cristian opera en Bitrix mediante el usuario visible `Luis Chango`. En audiovisual se usa únicamente la cuenta cuyo vínculo haya sido confirmado, sin inferir identidades por apellidos parecidos.
+- `Participante`: apoyo que produce una parte del entregable bajo la coordinación del responsable; Karen y Diego no reciben pedidos directos fuera de Cristian.
+- `Observador`: seguimiento sin ejecución. Alex debe observar todas las tareas; Andrés Flores observa todo arte, diseño y animación que origina; Luis Chango mantiene la visibilidad indicada por Dirección. Cuando una misma cuenta es responsable, esa responsabilidad ya le da participación directa aunque Bitrix también la muestre entre auditores.
+- Las dependencias entre gráfica y audiovisual se registran en la herramienta y no quedan como acuerdos verbales.
+- Cuando audiovisual puede avanzar por separado, la relación recomendada es `Fin → Fin`: concepto, storyboard, selección de material, audio, timing, animatic y pruebas pueden empezar; placas, tipografía, overlays, end card y exportación final esperan el paquete gráfico aprobado.
+- La relación Gantt ordena fechas, pero el cierre operativo también debe estar escrito en la descripción y el checklist; no se asume que Bitrix bloquee técnicamente una finalización.
+- Ninguna cuenta con nombre parecido sustituye a otra persona sin confirmación expresa de Dirección.
+
+La aplicación concreta de estas reglas para Semana 1 quedó registrada en la [[../../../14_operaciones/bitacora-diaria/2026-08-28_bitacora_correccion-roles-dependencias-bitrix-finados-2026_v01|bitácora de corrección de roles y dependencias]].
+
 ## Delegación puntual del sprint 28–30 de agosto
 
 La instrucción directa de Alex define los responsables de este sprint sin condicionarlos a una herramienta:

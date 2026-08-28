@@ -539,3 +539,15 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Seguridad: la conexión usó el mecanismo OAuth existente; ninguna credencial, token, enlace de invitación o identificador privado fue copiado al repositorio.
 - Riesgos: la asignación es temporal; faltan ejecutores definitivos, archivos finales, gates, aprobaciones y autorización externa antes de tocar perfiles o publicar.
 - Pendiente: incorporar y reasignar a Cristian Núñez y Andrés Naula, completar entregables y gates, y decidir explícitamente el destino histórico de las filas ya existentes en Notion.
+
+### 2026-08-28 — Corrección de roles y dependencias de Semana 1 en Bitrix
+
+- Se corrigieron las cuatro tareas existentes sin borrarlas, recrearlas ni duplicarlas: Alex confirmó que Cristian Núñez opera en Bitrix mediante el usuario visible `Luis Chango`; esa cuenta quedó responsable de avatar y portadas, Karen Velasteguí como apoyo gráfico, y `EDWIN NAULA` como responsable de los dos Reels.
+- Andrés Flores conserva creación, propiedad y seguimiento del requerimiento y figura como auditor, pero ya no como ejecutor. Alex Naranjo y Luis Chango mantienen visibilidad en las cuatro tareas.
+- Se registraron dos dependencias Gantt `Fin → Fin` desde el sistema de portadas hacia el cierre de cada Reel. La preproducción audiovisual puede avanzar; las placas, tipografía, overlays, end card y exportación final esperan el paquete gráfico aprobado.
+- QA: consulta independiente confirmó responsables, creador, auditores, apoyo, fechas, estados, 41 pasos accionables de checklist y dos relaciones `finish_finish` exactas. Reel Pista 02 ya estaba en progreso, aunque su columna Kanban todavía muestra `Nuevo`.
+- Commit: incluido en `Corregir responsables y dependencias en Bitrix`.
+- Publicación externa: solo configuración interna autorizada de las cuatro tareas en Bitrix y push al repositorio; no se modificó Notion, no se cambió ningún perfil y no se programó, publicó o pautó contenido.
+- Seguridad: no se borró nada en Bitrix y no se versionaron credenciales, enlaces privados, identificadores internos ni datos del cartel bajo embargo.
+- Riesgos: Andrés Naula todavía no tiene una cuenta asignable confirmada y no debe confundirse con `EDWIN NAULA`; siguen pendientes archivos finales, gates y autorización externa.
+- Pendiente: agregar a Andrés Naula como observador cuando su cuenta exista, alinear el Kanban de Reel Pista 02 con su estado real y completar los gates antes de cualquier publicación.
