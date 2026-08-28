@@ -513,3 +513,16 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Publicación externa: ninguna; solo consulta interna de Notion y push al repositorio. No se crearon cuentas, no se cambiaron asignaciones, no se grabó, programó, publicó o pautó contenido.
 - Riesgos: identidad Andres/Alejandro y relación Andrés/Edwin por confirmar; Are sin cuenta asignable; Community sin titular/suplente; derechos, consentimiento, compatibilidad laboral, embargo y gates de salida pendientes.
 - Pendiente: confirmar identidades, habilitar cuentas necesarias, ejecutar las pruebas y selección hasta el 30 de agosto, entregar el paquete gráfico el 29 y obtener autorización externa antes de cualquier salida.
+
+### 2026-08-28 — Corrección operativa del cronopost sin dependencia de herramientas
+
+- Se corrigió el sprint del 28 al 30 de agosto con los nombres indicados directamente por Alex: Are Morales custodia el relato, Alejandro Flores coordina y busca al rostro recurrente, Cristian Núñez dirige la gráfica y Andrés Naula dirige el audiovisual.
+- Se preparó para diseño un maestro y tres variantes 9:16 de `Pista 01`, con jerarquías, cierres, restricciones de embargo y QA 6C; el rostro titular y su suplente deben quedar elegidos el 30 a las 14:00 mediante una rúbrica común y consentimiento.
+- Se estructuró la secuencia TikTok del sábado `15:30 → 16:15 → 19:00` para las líneas de trabajo `Archivo Finados MR`, `Somos Finados MR` y `Finados Mushuc Runa`. Todas deben revelar su vínculo con el evento; se prohíben perfiles falsos, astroturfing y una historia de filtración inexistente.
+- Se incorporó el manifiesto de legado, familias, regreso y orientación futura, con el cierre `Mushuc Runa · Finados 2026` + `Finados 2026 es tradición.` + `¡LEGADO QUE NOS UNE!`. Cifras, superlativos, parqueaderos, turismo, escenas, guía móvil y anécdotas personales permanecen condicionados a evidencia y aprobación.
+- Se actualizaron cronopost, equipo operativo, RACI, decisión FF26-DEC-022, hitos, riesgos, memoria, pendientes y bitácora diaria. La planificación actual no depende de Notion o Bitrix y no modifica esos sistemas.
+- Commit: incluido en `Ajustar cronopost operativo de Semana 1`.
+- Publicación externa: únicamente el push solicitado al repositorio; no se crearon cuentas, no se grabó, programó, publicó o pautó contenido y no se modificó ninguna plataforma externa.
+- Seguridad: el cambio no contiene credenciales de subida, tokens, URL privadas, contactos, contratos, artistas o correspondencias bajo embargo.
+- Riesgos: Community titular/suplente, dueños y recuperación de cuentas, consentimiento, derechos, compatibilidad laboral, embargo, validación de afirmaciones y autorización externa siguen pendientes.
+- Pendiente: ejecutar la alineación del equipo, recibir el primer corte gráfico, probar tres candidatos, elegir titular/suplente y decidir Go/No-Go antes de cualquier salida.

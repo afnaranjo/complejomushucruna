@@ -3,7 +3,7 @@ titulo: "Equipo operativo de marketing Feria de Finados 2026"
 responsable: "coordinación de marketing y comunicación"
 estado: en-revision
 ultima_actualizacion: 2026-08-28
-fuente: "organigramas entregados por Alex, confirmación operativa del 2026-08-27, exporte histórico Bitrix Expoferia Mushuc Runa y auditoría de asignabilidad de Notion del 2026-08-28"
+fuente: "organigramas entregados por Alex, confirmación operativa del 2026-08-27, instrucción directa del 2026-08-28 y memoria histórica del equipo"
 confidencialidad: restringido
 tags: [feria-finados-2026, equipo, raci, marketing, cronopost]
 ---
@@ -92,16 +92,16 @@ Programación/publicación condicionada → medición → evidencia de cierre
 9. Diego Flores y Andrés Flores son personas y funciones distintas.
 10. Ningún pedido verbal o mensaje aislado reemplaza la tarea registrada.
 
-## Asignabilidad real observada en Notion · 2026-08-28
+## Delegación puntual del sprint 28–30 de agosto
 
-La consulta de solo lectura a `Cronopost y Producción` mostró como personas asignables a Cristian Núñez, Edwin Naula, Andres Flores, Karen Velasteguí Viteri, Diego Flores, Luis Chango y la cuenta administrativa. No se modificó ninguna tarea.
+La instrucción directa de Alex define los responsables de este sprint sin condicionarlos a una herramienta:
 
-- `Alejandro Flores` no aparece; `Andres Flores` sí. Para el sprint del 28–30 se usa Andres Flores como coordinador asignable, sujeto a que Alex confirme que esa fue la persona a la que se refería.
-- Las dos tareas audiovisuales vigentes de Semana 1 están asignadas a **Edwin Naula**. El RACI canónico identifica a **Andrés Naula** como coordinación audiovisual; no se asume que sean la misma persona ni se reemplaza un nombre por otro sin confirmación de Dirección.
-- Are Morales no aparece como persona asignable. Conserva la responsabilidad funcional de articulación y relato; Andres Flores registra la tarea hasta que Notion habilite la cuenta de Are.
-- Karen y Diego siguen recibiendo trabajo únicamente por Cristian, aunque Notion permita seleccionarlos.
+- **Are Morales:** custodia el relato, comprende la campaña y alinea a Cristian y Andrés;
+- **Alejandro Flores:** coordina el cronopost, busca al rostro recurrente y solicita la pieza gráfica;
+- **Cristian Núñez:** dirige la ejecución gráfica y distribuye internamente el trabajo de diseño;
+- **Andrés Naula:** dirige las pruebas de cámara y el paquete audiovisual.
 
-El plan puntual y su matriz de responsabilidades están en [[02_contenido/2026-08-28_cronopost_ampliacion-semana-1-rostro-tiktok-finados-2026_v01|Cronopost ampliado Semana 1]].
+Esta delegación puntual no modifica por sí sola el organigrama general. El plan, los horarios y las evidencias están en [[02_contenido/2026-08-28_cronopost_ampliacion-semana-1-rostro-tiktok-finados-2026_v01|Cronopost operativo Semana 1]].
 
 ## RACI operativo confirmado para el cronopost
 

@@ -1,7 +1,7 @@
 ---
 titulo: "Bitácora 2026-08-28 · Cronopost rostro y TikTok Semana 1"
 responsable: "Are Morales y coordinación de marketing y comunicación"
-estado: en-revision
+estado: archivado
 ultima_actualizacion: 2026-08-28
 fuente: interna
 confidencialidad: interno
@@ -9,6 +9,9 @@ tags: [bitacora, feria-finados-2026, cronopost, tiktok, talento]
 ---
 
 # 2026-08-28 · Cronopost rostro y TikTok Semana 1
+
+> [!warning] Registro reemplazado
+> Esta lectura operativa fue reemplazada por [[2026-08-28_bitacora_cronopost-actividades-semana-1_v02|la corrección v02]], que usa los responsables indicados directamente por Alex y no depende de Notion o Bitrix. Se conserva solo como trazabilidad histórica.
 
 ## Objetivo del día
 

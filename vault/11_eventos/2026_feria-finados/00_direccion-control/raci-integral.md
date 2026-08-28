@@ -55,14 +55,14 @@ Regla de contacto: ningún frente asigna directamente trabajo a Karen Velastegui
 
 | Trabajo | A | R | C | I | Estado |
 |---|---|---|---|---|---|
-| coherencia del relato `ES TRADICIÓN` y cierre `¡LEGADO QUE NOS UNE!` | Are Morales | Are Morales | Andres Flores, Cristian Núñez, audiovisual | Dirección | aprobado para estructuración interna |
-| shortlist y coordinación del rostro recurrente | Are Morales | Andres Flores | Operaciones/Personal, audiovisual | Dirección | vence 2026-08-30; consentimiento obligatorio |
-| pruebas audiovisuales comparables | Andrés Naula, coordinación funcional por confirmar | Edwin Naula, asignable en Notion | Iván/Leo, Are, Andres | Dirección | diferencia de identidad/acceso pendiente de confirmar |
-| portada/primer fotograma de `Pista 01` | Cristian Núñez | Cristian o diseñador asignado por él | Are, Andres, audiovisual | Dirección | no es una publicación adicional |
-| arquitectura de tres líneas TikTok transparentes | Are Morales | Andres Flores | Cristian, Edwin, Community por nombrar | Dirección | no crear cuentas hasta cerrar gobierno y seguridad |
-| publicación y moderación | Dirección + aprobadores de gate | Community por nombrar | Are, Andres, diseño, audiovisual | equipo | bloqueada sin responsable y autorización externa |
+| coherencia del relato, cierre `Finados 2026 es tradición` y eslogan `¡LEGADO QUE NOS UNE!` | Are Morales | Are Morales | Alejandro Flores, Cristian Núñez, Andrés Naula | Dirección | aprobado para estructuración interna |
+| búsqueda, shortlist y coordinación del rostro recurrente | Are Morales | Alejandro Flores | Operaciones/Personal, Andrés Naula | Dirección | vence 2026-08-30 14:00; consentimiento obligatorio |
+| pruebas audiovisuales comparables | Andrés Naula | Andrés Naula | Operaciones/Personal, Are, Alejandro | Dirección | tres pruebas internas; no publicar |
+| maestro y tres variantes 9:16 de `Pista 01` | Cristian Núñez | Cristian o diseñador asignado por él | Are, Alejandro, Andrés | Dirección | primer corte el 2026-08-29 11:00 |
+| arquitectura de tres líneas TikTok transparentes | Are Morales | Alejandro Flores | Cristian, Andrés, Community por nombrar | Dirección | tres fichas y secuencia del sábado; no crear cuentas sin autorización |
+| publicación y moderación | Dirección + aprobadores de gate | Community por nombrar | Are, Alejandro, Cristian, Andrés | equipo | bloqueada sin autorización externa y gates completos |
 
-Notion permite asignar a Andres Flores, Cristian Núñez, Edwin Naula, Karen Velasteguí Viteri, Diego Flores y Luis Chango. Are Morales y Andrés Naula no aparecen actualmente como personas asignables; su responsabilidad funcional no debe fingirse como una asignación técnica. Véase [[../05_marketing-comunicacion/02_contenido/2026-08-28_cronopost_ampliacion-semana-1-rostro-tiktok-finados-2026_v01|cronopost ampliado]].
+La delegación de este sprint usa exactamente los nombres indicados por Alex y no depende de la asignabilidad de una herramienta. Véase [[../05_marketing-comunicacion/02_contenido/2026-08-28_cronopost_ampliacion-semana-1-rostro-tiktok-finados-2026_v01|cronopost operativo]].
 
 ## Decisiones críticas
 

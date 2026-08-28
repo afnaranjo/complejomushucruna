@@ -97,7 +97,7 @@ Antes de tocar perfiles o publicar cualquiera de los dos Reels deben estar en ap
 
 Si falta un gate, la tarea permanece preparada en cronopost pero no pasa a `programada`.
 
-La [[2026-08-28_cronopost_ampliacion-semana-1-rostro-tiktok-finados-2026_v01|ampliación operativa del 28–30 de agosto]] añade búsqueda y prueba de un rostro recurrente, alineación narrativa de Are Morales y un paquete transparente para TikTok. Es trabajo interno: **no aumenta la cadencia pública**, no crea una tercera publicación, no autoriza cuentas falsas y no cambia los dos Reels aprobados.
+La [[2026-08-28_cronopost_ampliacion-semana-1-rostro-tiktok-finados-2026_v01|ampliación operativa del 28–30 de agosto]] añade la búsqueda y prueba de un rostro recurrente, alineación narrativa de Are Morales y una secuencia TikTok propuesta para el sábado `15:30 → 16:15 → 19:00`. Las dos primeras salidas serían adelantos de líneas editoriales autorizadas y la tercera la pieza oficial completa. Es trabajo interno: no crea cuentas, no autoriza perfiles falsos y no cambia el Reel del domingo; cada salida adicional requiere un Go/No-Go externo expreso.
 
 ## Respuesta ejecutiva
 
