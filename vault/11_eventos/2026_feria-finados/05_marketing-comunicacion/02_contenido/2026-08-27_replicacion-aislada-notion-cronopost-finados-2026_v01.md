@@ -37,9 +37,34 @@ La réplica contiene las siete fuentes conectadas del diseño aprobado:
 6. `Reuniones y Decisiones`;
 7. `Bandeja de Ideas`.
 
-El aplicador creó 26 vistas directas curadas y 11 vistas enlazadas para el centro de mando. Notion genera además una tabla inicial automática al crear cada fuente; esas tablas del sistema no se contabilizan entre las 26 vistas curadas.
+El aplicador creó inicialmente 26 vistas directas curadas y 11 vistas enlazadas para el centro de mando. Notion generó además una tabla inicial automática en cada una de las siete fuentes; esas tablas del sistema no se contabilizaron entre las 26 vistas curadas.
+
+Después de comparar la réplica con la referencia visual aprobada, se corrigió únicamente la navegación de `Cronopost y Producción`. Su tabla inicial se renombró `All tasks` y se añadieron `My tasks` y `99 · QA · Pruebas`. El estado final contiene 35 vistas directas en las siete fuentes: las 26 operativas originales, seis tablas iniciales todavía automáticas, `All tasks`, `My tasks` y la vista QA. Las 11 vistas enlazadas de la landing permanecieron intactas.
 
 La arquitectura separa el entregable de producción de cada salida por red. Una tarea puede generar varias publicaciones, cada una con canal, formato, copy, CTA, destino, activo, versión, aprobación, horario, responsable, enlace y métricas propios.
+
+## Corrección de navegación según la referencia
+
+La auditoría previa confirmó que las siete fuentes ya eran bases de página completa (`is_inline = false`); no fue necesario crear páginas contenedoras, mover bases ni convertir su modalidad. La diferencia real estaba en la navegación visible de `Cronopost y Producción`.
+
+La corrección autorizada dejó el icono `🎨` y estas 12 vistas, en este orden exacto:
+
+1. `All tasks`;
+2. `My tasks`;
+3. `00 · Maestro`;
+4. `01 · Kanban de producción`;
+5. `02 · Gantt de producción`;
+6. `03 · Entregas`;
+7. `04 · Por campaña y fase`;
+8. `05 · Por responsable`;
+9. `06 · Bloqueadas y vencidas`;
+10. `07 · Listas para Community`;
+11. `08 · Cerradas`;
+12. `99 · QA · Pruebas`.
+
+`My tasks` filtra `Tipo de registro = Operativo` y `Responsable contiene me`. `99 · QA · Pruebas` filtra `Tipo de registro = Prueba`. `All tasks` permanece sin filtros. El estado expandido de la lista en la barra lateral es una preferencia de interfaz de cada usuario, no una propiedad controlable por la API.
+
+No se modificó ninguna fila ni propiedad. Las nueve vistas operativas preexistentes de Cronopost conservaron identidad, filtros, ordenamientos, configuración y fuente; también se verificaron sin cambios las 18 bases hijas de la raíz, las otras seis fuentes y las 11 vistas enlazadas.
 
 ## Ajustes de compatibilidad confirmados
 
@@ -68,7 +93,9 @@ La verificación independiente confirmó:
 | Control | Resultado |
 |---|---:|
 | fuentes propias | 7 |
-| vistas directas curadas | 26 |
+| vistas directas totales | 35 |
+| vistas operativas directas originales conservadas | 26 |
+| vistas directas en `Cronopost y Producción` | 12 |
 | vistas enlazadas | 11 |
 | registros sintéticos | 7 |
 | registros operativos | 0 |
@@ -78,6 +105,8 @@ La verificación independiente confirmó:
 | publicaciones QA | 3 |
 
 También se comprobaron los estados calculados `Programada`, `Lista para programar` y `Publicada`, la alerta `Falta programar`, el cierre sintético, la puntualidad y el uso de fecha con offset `-05:00`. Los enlaces de prueba usan dominios reservados `.invalid`; no representan activos ni publicaciones reales.
+
+La primera verificación posterior a la corrección se negó a declarar éxito porque Notion devolvió el identificador de la propiedad `Responsable` decodificado respecto del esquema. Un diagnóstico de solo lectura y salida sanitizada confirmó que el filtro era correcto; el verificador normalizó ambas representaciones y una segunda auditoría completa terminó con `ESTADO_VERIFICADO`. No se repitió ninguna mutación.
 
 ## Seguridad y límites
 
@@ -99,6 +128,8 @@ También se comprobaron los estados calculados `Programada`, `Lista para program
 
 - [Create a database — Notion API](https://developers.notion.com/reference/create-database), consulta: 2026-08-27.
 - [Working with views — Notion API](https://developers.notion.com/guides/data-apis/working-with-views), consulta: 2026-08-27.
+- [Update a view — Notion API](https://developers.notion.com/reference/update-a-view), consulta: 2026-08-27.
+- [Update a database — Notion API](https://developers.notion.com/reference/update-database), consulta: 2026-08-27.
 - [Update data source properties — Notion API](https://developers.notion.com/reference/update-data-source-properties), consulta: 2026-08-27.
 - [Formula syntax & functions — Notion](https://www.notion.com/help/formula-syntax), consulta: 2026-08-27.
 

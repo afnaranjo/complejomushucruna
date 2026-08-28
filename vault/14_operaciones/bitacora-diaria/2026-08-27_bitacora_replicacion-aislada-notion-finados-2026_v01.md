@@ -24,6 +24,7 @@ Replicar el centro de mando de producción, cronopost y publicación en una pág
 - Se confirmó la página nueva `APLICADOR NUEVO · FINADOS 2026` y que estaba vacía antes de la primera escritura.
 - Se creó una landing interna con flujo producción → aprobación → programación → publicación → medición.
 - Se construyeron siete fuentes propias, 26 vistas directas curadas y 11 vistas enlazadas.
+- Se comparó la navegación final con la referencia visual. Las siete fuentes ya eran bases de página completa; `Cronopost y Producción` se completó con icono `🎨`, `All tasks`, `My tasks` y `99 · QA · Pruebas`, sin crear contenedores adicionales.
 - Se configuraron relaciones bidireccionales, dependencias, Kanban, Gantt, calendarios, timeline, alertas, gates, versiones, reprogramación, métricas y rendimiento.
 - Se mantuvo una fila por entregable de producción y una fila independiente por salida, red, fecha y hora.
 - Se incorporaron siete pruebas sintéticas separadas de los registros operativos.
@@ -35,12 +36,15 @@ Replicar el centro de mando de producción, cronopost y publicación en una pág
 - Notion rechazó un rollup de fase sobre otro rollup. `Fase` en `Publicaciones` se convirtió en una selección directa con las siete etapas normalizadas.
 - Las propiedades calculadas quedaron divididas en operaciones secuenciales y reanudables.
 - El reconciliador acepta solo una coincidencia exacta dentro de la raíz o fuente propia; ante ambigüedad aborta sin escribir.
+- La primera comprobación posterior a la corrección visual quedó en estado no verificado porque la API devolvió decodificado el identificador de `Responsable`. El diagnóstico sanitizado confirmó que el filtro era correcto; se normalizó la comparación y no se repitieron mutaciones.
 
 ## Validación
 
 - Aplicador: sintaxis correcta y 5/5 pruebas offline aprobadas antes de la escritura.
 - Revisión independiente: `GO` antes de aplicar y después de cada ajuste contractual.
-- Verificación final de solo lectura: 7 fuentes, 26 vistas directas curadas, 11 enlazadas, 7 registros QA y 0 registros operativos.
+- Verificación final de solo lectura: 7 fuentes de página completa, 35 vistas directas totales, 26 vistas operativas originales conservadas, 11 enlazadas, 7 registros QA y 0 registros operativos.
+- `Cronopost y Producción`: 12 vistas en el orden exacto `All tasks`, `My tasks`, `00`–`08`, `99 · QA · Pruebas`; `All tasks` sin filtro, `My tasks` con registros operativos del usuario actual y QA con registros de prueba.
+- Integridad: 0 filas y 0 propiedades modificadas; las 9 vistas operativas de Cronopost, las 18 bases hijas y las 11 vistas enlazadas conservaron identidad y configuración.
 - Estados calculados confirmados: `Programada`, `Lista para programar` y `Publicada`.
 - Alertas y puntualidad confirmadas; fecha de prueba conservó offset `-05:00`.
 - Credenciales y temporales retirados al cerrar; ninguna credencial quedó en Git o en el vault.

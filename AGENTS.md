@@ -439,3 +439,16 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Seguridad: la credencial solo se introdujo en sesiones silenciosas y temporales; no se guardó ni versionó. No se cargaron cartel, contratos, contactos ni información bajo embargo.
 - Riesgos: permisos mínimos, zona horaria, cuentas definitivas, plantillas y responsables siguen pendientes de validación manual antes de cargar el cronopost real.
 - Pendiente: probar permisos por rol y `America/Guayaquil` desde dos cuentas, confirmar responsables y poblar la réplica solo desde el calendario controlado autorizado.
+
+### 2026-08-27 — Corrección de navegación de Cronopost en la réplica Notion
+
+- Se comparó la página nueva `APLICADOR NUEVO · FINADOS 2026` con la referencia visual entregada por Alex. La auditoría confirmó que las siete fuentes ya eran bases de página completa, por lo que no se crearon páginas contenedoras ni se movió ninguna base.
+- Se corrigió únicamente `Cronopost y Producción`: icono `🎨`, renombre de `Default view` a `All tasks`, creación de `My tasks` después de esta y creación de `99 · QA · Pruebas` al final. El orden final contiene 12 vistas: `All tasks`, `My tasks`, `00`–`08` y QA.
+- `My tasks` filtra registros operativos cuyo responsable contiene al usuario actual; QA filtra `Tipo de registro = Prueba`. `All tasks` permanece sin filtros.
+- QA: verificación completa de solo lectura con 18 bases hijas intactas, 12 vistas de Cronopost en orden exacto, 9 vistas operativas preexistentes sin cambios, 63 propiedades conservadas, 0 filas modificadas y 0 propiedades modificadas. El sistema suma 35 vistas directas y mantiene 11 enlazadas.
+- La primera verificación rechazó el cierre porque Notion devolvió decodificado el identificador de la propiedad `Responsable`; un diagnóstico sanitizado confirmó el filtro correcto, se normalizó la comparación y la segunda auditoría terminó con `ESTADO_VERIFICADO`. No se repitió ninguna mutación.
+- Commit: incluido en `Corregir navegación de Cronopost en Notion`.
+- Publicación externa: únicamente configuración interna autorizada en la página nueva de Notion y el push al repositorio; no se publicó, pautó, vendió, programó ni desplegó contenido en canales públicos.
+- Seguridad: la credencial se introdujo solo en sesiones silenciosas y temporales; no se guardó ni versionó. No se registraron IDs o URL privadas de Notion ni información del cartel bajo embargo.
+- Riesgos: el filtro `me`, los permisos mínimos y la zona horaria todavía deben probarse desde cuentas reales del equipo; el estado expandido de la barra lateral depende de la preferencia local de cada usuario.
+- Pendiente: probar permisos por rol y `America/Guayaquil` desde dos cuentas, confirmar responsables y cargar tareas reales solo desde el calendario controlado autorizado.
