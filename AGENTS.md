@@ -476,3 +476,15 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Publicación externa: únicamente el push autorizado al repositorio; no se modificó Notion, Meta, perfiles, portadas, publicaciones, pauta, boletería, dominio ni otro canal público.
 - Riesgos: faltan activos finales, validación de marca, derechos, revisión de inferencia, embargo, audio, QA por red, Community titular/suplente y autorización externa antes de tocar perfiles o publicar.
 - Pendiente: cerrar el gate urgente de Semana 1, cargarla en Notion solo con autorización y diseñar la Semana 2 sin retirar las decisiones aprobadas.
+
+### 2026-08-28 — Carga controlada de Semana 1 en Notion
+
+- Con autorización expresa de Alex, se crearon en la única fuente compartida `Cronopost y Producción` cuatro tareas operativas de Semana 1: avatar maestro, sistema de portadas, Reel de seis banderas y Reel de siluetas.
+- Las cuatro quedaron verificadas como `Tipo de registro = Operativo`, `Estado de producción = Solicitada`, producción no terminada, fechas límite y canales correctos. Las tres filas preexistentes no se editaron, archivaron ni eliminaron.
+- La fuente `Publicaciones` no está compartida con la integración vigente. Para conservar la ejecución aprobada, cada tarea de Reel incluye en su cuerpo las tres salidas por Facebook, Instagram y TikTok; las seis filas hijas independientes quedan pendientes hasta recibir acceso.
+- Seguridad: la credencial se introdujo únicamente en una sesión silenciosa y temporal; no se guardó, imprimió ni versionó. Los scripts temporales se retiraron al cerrar.
+- QA: consulta posterior confirmó exactamente las cuatro tareas y sus campos operativos; la carga es idempotente por título y no se tocó ninguna página ajena.
+- Commit: incluido en `Cargar Semana 1 en cronopost Notion`.
+- Publicación externa: solo configuración interna autorizada en Notion y push al repositorio; no se modificaron perfiles ni se programó, publicó o pautó contenido en Facebook, Instagram, TikTok, Meta, web o boletería.
+- Riesgos: siguen pendientes permisos por rol, validación horaria desde dos cuentas, responsables definitivos, activos, derechos, embargo, QA por red y autorización externa de salida.
+- Pendiente: compartir `Publicaciones`, crear y relacionar las seis filas por red, completar los gates y diseñar la Semana 2 sin retirar la Semana 1 aprobada.

@@ -72,7 +72,7 @@ Desde octubre la portada no cambia por artista, promoción o jornada. Las noveda
 
 ### Paquete preparado para `Cronopost y Producción`
 
-La carga futura en Notion debe crear cuatro tareas de producción y seis publicaciones hijas. **Todavía no se cargan ni programan** hasta que Alex autorice la escritura y se validen permisos, zona horaria y responsables.
+Alex autorizó la escritura el 2026-08-28. Se crearon y verificaron en la fuente compartida `Cronopost y Producción` las cuatro tareas de producción siguientes, todas como `Operativo / Solicitada`, sin marcar producción terminada y sin modificar las tres filas preexistentes. La integración no tiene acceso a la fuente `Publicaciones`; por ello, las seis salidas por red quedaron descritas dentro de las dos tareas de Reel y no se crearon como filas hijas separadas.
 
 | Tarea de producción | Tipo | Canales destino | Entregable | Dependencias mínimas |
 |---|---|---|---|---|
@@ -81,7 +81,7 @@ La carga futura en Notion debe crear cuatro tareas de producción y seis publica
 | producir Reel Pista 01 · seis banderas | reel/motion | Facebook, Instagram, TikTok | máster limpio + tres exportaciones nativas + miniaturas | escenario autorizado, embargo, derechos, audio, marca y QA |
 | producir Reel Pista 02 · siluetas | reel/motion | Facebook, Instagram, TikTok | máster limpio + tres exportaciones nativas + miniaturas | material no identificable, embargo, derechos, audio, marca y QA |
 
-Cada Reel origina tres filas en `Publicaciones`, una por red, con su archivo exacto, copy mínimo, aprobación, hora en `America/Guayaquil`, responsable Community y medición independiente. La actualización de avatar y portada se registra como configuración de identidad, no como una tercera publicación principal de la Semana 1.
+Cada Reel debe originar tres filas en `Publicaciones`, una por red, con su archivo exacto, copy mínimo, aprobación, hora en `America/Guayaquil`, responsable Community y medición independiente. Esta normalización queda pendiente hasta que esa fuente se comparta con la integración. Mientras tanto, las fechas, horas, canales y salidas aprobadas permanecen visibles en el cuerpo de cada tarea de Reel. La actualización de avatar y portada se registra como configuración de identidad, no como una tercera publicación principal de la Semana 1.
 
 ### Gate urgente de salida
 
