@@ -488,3 +488,15 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Publicación externa: solo configuración interna autorizada en Notion y push al repositorio; no se modificaron perfiles ni se programó, publicó o pautó contenido en Facebook, Instagram, TikTok, Meta, web o boletería.
 - Riesgos: siguen pendientes permisos por rol, validación horaria desde dos cuentas, responsables definitivos, activos, derechos, embargo, QA por red y autorización externa de salida.
 - Pendiente: compartir `Publicaciones`, crear y relacionar las seis filas por red, completar los gates y diseñar la Semana 2 sin retirar la Semana 1 aprobada.
+
+### 2026-08-28 — Diagnóstico funcional de vistas de Cronopost en Notion
+
+- Se auditaron en modo de solo lectura las 12 vistas vinculadas a la única fuente compartida `Cronopost y Producción`; todas apuntan al mismo origen y las cuatro tareas reales contienen los responsables agregados manualmente.
+- `01 · Kanban de producción` devuelve correctamente los cinco registros operativos visibles, pero su tarjeta no declara `Responsable` como propiedad visible. El dato existe y solo está oculto en esa presentación.
+- `My tasks` devuelve cero porque usa el filtro rápido `Responsable contiene me` creado por una integración interna. La documentación oficial de Notion confirma que `me` no representa a un usuario en conexiones internas. La vista también agrupa por `Estado histórico (muestra)` y no guarda el filtro principal `Tipo de registro = Operativo`.
+- `All tasks` conserva el campo y ordenamiento histórico de la muestra. Las otras vistas operativas consultadas apuntan a la fuente correcta y sus conteos coinciden con los filtros actuales.
+- No se cambió Notion durante el diagnóstico. La credencial se introdujo solo en sesiones silenciosas y temporales, no se guardó ni versionó, y los scripts temporales se retiraron.
+- Commit: incluido en `Diagnosticar vistas de cronopost Notion`.
+- Publicación externa: únicamente consultas internas autorizadas de Notion y push al repositorio; no se publicó, programó o pautó contenido ni se modificaron redes, Meta, web o boletería.
+- Riesgos: `My tasks` no es operativa hasta recrear el filtro dinámico desde una cuenta humana; una fila operativa sin título requiere identificación antes de archivarla; los responsables y permisos todavía deben probarse desde dos cuentas.
+- Pendiente: corregir las tres vistas, definir valores predeterminados, ejecutar una prueba cruzada Alex/segunda cuenta y archivar la fila vacía únicamente de forma reversible si se confirma que no contiene trabajo válido.

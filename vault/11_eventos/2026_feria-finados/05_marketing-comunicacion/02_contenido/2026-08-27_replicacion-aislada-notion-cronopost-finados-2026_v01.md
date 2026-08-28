@@ -2,7 +2,7 @@
 titulo: "Réplica aislada del sistema Notion de cronopost Finados 2026"
 responsable: "marketing, comunidad, datos y tecnología"
 estado: cerrado
-ultima_actualizacion: 2026-08-27
+ultima_actualizacion: 2026-08-28
 fuente: interna
 confidencialidad: interno
 tags:
@@ -62,7 +62,10 @@ La corrección autorizada dejó el icono `🎨` y estas 12 vistas, en este orden
 11. `08 · Cerradas`;
 12. `99 · QA · Pruebas`.
 
-`My tasks` filtra `Tipo de registro = Operativo` y `Responsable contiene me`. `99 · QA · Pruebas` filtra `Tipo de registro = Prueba`. `All tasks` permanece sin filtros. El estado expandido de la lista en la barra lateral es una preferencia de interfaz de cada usuario, no una propiedad controlable por la API.
+La intención documentada para `My tasks` fue filtrar `Tipo de registro = Operativo` y `Responsable contiene me`. La auditoría posterior corrigió esa afirmación: la implementación guardó únicamente el filtro rápido de responsable y no el filtro principal de tipo. `99 · QA · Pruebas` filtra `Tipo de registro = Prueba`. `All tasks` permanece sin filtro principal. El estado expandido de la lista en la barra lateral es una preferencia de interfaz de cada usuario, no una propiedad controlable por la API.
+
+> [!warning] Corrección posterior · 2026-08-28
+> Una [[2026-08-28_auditoria-funcional-vistas-cronopost-notion_v01|auditoría funcional con tareas reales]] demostró que esta validación comprobó la forma guardada, pero no el comportamiento humano. `My tasks` usa un filtro rápido `Responsable contiene me` creado por una integración interna; Notion no asocia `me` a una persona en ese tipo de conexión y la vista devuelve cero. También agrupa por `Estado histórico (muestra)`. El Kanban sí recibe las tareas y responsables, pero oculta `Responsable` en sus tarjetas. Las correcciones siguen pendientes y no se aplicaron durante el diagnóstico.
 
 No se modificó ninguna fila ni propiedad. Las nueve vistas operativas preexistentes de Cronopost conservaron identidad, filtros, ordenamientos, configuración y fuente; también se verificaron sin cambios las 18 bases hijas de la raíz, las otras seis fuentes y las 11 vistas enlazadas.
 
@@ -132,6 +135,7 @@ La primera verificación posterior a la corrección se negó a declarar éxito p
 - [Update a database — Notion API](https://developers.notion.com/reference/update-database), consulta: 2026-08-27.
 - [Update data source properties — Notion API](https://developers.notion.com/reference/update-data-source-properties), consulta: 2026-08-27.
 - [Formula syntax & functions — Notion](https://www.notion.com/help/formula-syntax), consulta: 2026-08-27.
+- [Filtro relativo `me` para propiedades Persona — Notion API](https://developers.notion.com/page/changelog), consulta: 2026-08-28.
 
 ## Conexiones
 
