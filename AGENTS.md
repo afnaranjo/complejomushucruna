@@ -526,3 +526,16 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Seguridad: el cambio no contiene credenciales de subida, tokens, URL privadas, contactos, contratos, artistas o correspondencias bajo embargo.
 - Riesgos: Community titular/suplente, dueños y recuperación de cuentas, consentimiento, derechos, compatibilidad laboral, embargo, validación de afirmaciones y autorización externa siguen pendientes.
 - Pendiente: ejecutar la alineación del equipo, recibir el primer corte gráfico, probar tres candidatos, elegir titular/suplente y decidir Go/No-Go antes de cualquier salida.
+
+### 2026-08-28 — Carga de Semana 1 en el Collab FINADOS 2026 de Bitrix
+
+- Alex trasladó la operación de las cuatro actividades de Semana 1 desde Notion al Collab interno `FINADOS 2026` de Bitrix. Después del cambio de destino no se modificó Notion.
+- Se verificó que el Collab estaba activo, con Kanban `Nuevo → En progreso → Terminado` y sin tareas. Luego se crearon exactamente cuatro: avatar maestro, sistema de portadas, Reel Pista 01 de seis banderas autorizadas y Reel Pista 02 de siluetas.
+- Las cuatro quedaron en `Nuevo`, con fechas límite del 29 y 30 de agosto, prioridad alta, control de cierre, bloqueo de cambio de fecha, medición de tiempo, auditores y 41 pasos de checklist. Las tareas exigen adjuntar maestros, exportaciones, miniaturas, aprobaciones y evidencias dentro de Bitrix.
+- Andrés Flores quedó como responsable temporal y creador funcional; Karen Velasteguí apoya las dos tareas de diseño; Alex Naranjo y Luis Chango auditan. Cristian Núñez y Andrés Naula no eran miembros asignables y deben incorporarse antes de reasignar.
+- QA: consulta posterior confirmó cuatro títulos únicos, cero duplicados, responsable, creador, auditores, apoyo, fechas, etapa, controles, descripciones y checklists correctos.
+- Commit: incluido en `Registrar carga de Semana 1 en Bitrix`.
+- Publicación externa: solo configuración interna autorizada de tareas en Bitrix y push al repositorio; no se cambió ningún perfil, no se programó, publicó o pautó contenido y no se modificaron CRM, permisos, miembros ni otros proyectos.
+- Seguridad: la conexión usó el mecanismo OAuth existente; ninguna credencial, token, enlace de invitación o identificador privado fue copiado al repositorio.
+- Riesgos: la asignación es temporal; faltan ejecutores definitivos, archivos finales, gates, aprobaciones y autorización externa antes de tocar perfiles o publicar.
+- Pendiente: incorporar y reasignar a Cristian Núñez y Andrés Naula, completar entregables y gates, y decidir explícitamente el destino histórico de las filas ya existentes en Notion.
