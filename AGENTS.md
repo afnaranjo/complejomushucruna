@@ -463,3 +463,16 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Publicación externa: únicamente push autorizado al repositorio público; no se publicó campaña, no se modificó Notion, Meta, boletería, dominio ni ningún canal público.
 - Riesgos: derechos y consentimientos por acreditar; paleta, tipografías y archivos maestros por aprobar; el cartel y la programación detallada continúan bajo embargo.
 - Pendiente: completar la aprobación técnica de la línea visual y construir el cronopost de expectativa en el chat antes de cargarlo en Notion.
+
+### 2026-08-28 — Semana 1 y sistema de portadas Finados 2026
+
+- Alex aprobó una apertura editorial mínima para la Semana 1: actualización de avatar y portada de expectativa, Reel de seis banderas autorizadas el sábado 29 a las 19:00 y Reel de siluetas no identificables el domingo 30 a las 19:00.
+- Se eliminaron de esta semana las Stories explicativas, encuestas, concursos, emparejamientos y publicaciones adicionales. Cada Reel muestra la pista y termina con una sola pregunta; Community no confirma ni niega identidades.
+- Se definió un avatar estable para toda la campaña y un sistema de portada por expectativa, revelaciones y venta. Desde el 1 de octubre se mantiene una portada final estable con datos duraderos hasta el cierre del evento.
+- El calendario canónico prepara cuatro tareas de `Cronopost y Producción` y seis publicaciones hijas, una por Reel y red. No se cargaron todavía en Notion porque faltan autorización de escritura, permisos, zona horaria y cuentas definitivas.
+- Se actualizaron calendario, V09, decisión FF26-DEC-020, hitos, memoria y pendientes. El repositorio conserva únicamente la referencia `seis banderas autorizadas`; no contiene países, artistas, correspondencias, token ni credenciales.
+- QA: `git diff --check` limpio; fechas del 29 y 30 verificadas como sábado y domingo; escaneo del diff sin credenciales ni nombres del cartel bajo embargo.
+- Commit: incluido en `Definir Semana 1 y sistema de portadas Finados 2026`.
+- Publicación externa: únicamente el push autorizado al repositorio; no se modificó Notion, Meta, perfiles, portadas, publicaciones, pauta, boletería, dominio ni otro canal público.
+- Riesgos: faltan activos finales, validación de marca, derechos, revisión de inferencia, embargo, audio, QA por red, Community titular/suplente y autorización externa antes de tocar perfiles o publicar.
+- Pendiente: cerrar el gate urgente de Semana 1, cargarla en Notion solo con autorización y diseñar la Semana 2 sin retirar las decisiones aprobadas.

@@ -143,6 +143,8 @@ Si después de un agotado se liberan reservas, devoluciones o un cupo nuevo apro
 
 ## 6. Expectativa, territorios y revelaciones
 
+El detalle semanal vigente se mantiene en el [[../02_contenido/2026-08-25_calendario-expectativa-es-tradicion-finados-2026_v01|calendario canónico de expectativa]]. La decisión del 2026-08-28 redujo únicamente la Semana 1 a identidad de perfil y dos Reels; no modifica por sí sola la Semana 2 ni los principios de esta adenda.
+
 ### 6.1 Secuencia de expectativa
 
 1. **Conversación:** `¿Quién crees que viene?` y respuestas abiertas moderadas.

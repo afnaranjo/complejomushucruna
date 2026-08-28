@@ -17,6 +17,86 @@ tags:
 > [!warning] Alcance
 > Este es un plan de producción y publicación condicionada. No autoriza publicación, pauta, fecha oficial, precio, cartel ni promesa operativa. Cada salida pública necesita aprobación registrada.
 
+## Decisión vigente · Semana 1 · 28–30 de agosto
+
+Alex aprobó el 2026-08-28 una apertura editorial mínima para la Semana 1. Esta decisión **reemplaza únicamente para el 28–30 de agosto** las propuestas anteriores de recuerdos, carruseles, preguntas adicionales y secuencias de Stories. No modifica automáticamente la Semana 2 ni el resto de la V09.
+
+La Semana 1 contiene **dos publicaciones principales y una actualización de identidad**:
+
+| Momento | Acción | Canales | Función | Estado |
+|---|---|---|---|---|
+| antes del Reel del sábado 29 | actualizar foto de perfil y portada de expectativa | avatar en Facebook, Instagram y TikTok; portada únicamente donde la plataforma admita banner, inicialmente Facebook | señalar el inicio de Finados 2026 sin crear una publicación editorial adicional | aprobada para preparación; ejecución externa condicionada |
+| sábado 29 · 19:00 | Reel de seis banderas autorizadas descendiendo sobre el megaescenario real | Facebook, Instagram y TikTok, con carga nativa por red | abrir conversación sobre la escala internacional | aprobado para cronopost; publicación condicionada |
+| domingo 30 · 19:00 | Reel de presencias o siluetas no identificables | Facebook, Instagram y TikTok, con carga nativa por red | profundizar el misterio sin explicar la mecánica | aprobado para cronopost; publicación condicionada |
+
+No se crearán Stories explicativas, encuestas, concursos, premios, emparejamientos bandera–figura ni publicaciones adicionales para sostener artificialmente la conversación. La comunidad existente hará la interpretación; Community modera sin confirmar ni negar nombres.
+
+### Foto de perfil
+
+- se cambia una sola vez al abrir la Semana 1 y se mantiene estable hasta el cierre del evento;
+- utiliza el identificador simplificado `FINADOS 2026`, reconocible en miniatura;
+- aplica la paleta y los activos maestros aprobados;
+- no incorpora cartel, fechas, precio, banderas, CTA ni el eslogan completo, porque perderían legibilidad a tamaño pequeño;
+- no se cambia por cada revelación, promoción o jornada.
+
+### Sistema de portada por fases
+
+La portada funciona como **indicador de etapa**, no como afiche acumulativo. Cada versión conserva la misma grilla, tipografía, paleta, textura y firma gráfica; solo cambia el mensaje principal y el visual de fase.
+
+| Fase de portada | Vigencia | Contenido obligatorio | Contenido que no debe aparecer |
+|---|---|---|---|
+| expectativa | desde la apertura de Semana 1 hasta la primera revelación autorizada | `FINADOS 2026`, `¡LEGADO QUE NOS UNE!`, motivo de legado humano o hilo luminoso y una vista auténtica del complejo; `Muy pronto` solo si no existe una fecha pública aprobada | artistas, siluetas reconocibles, precios, agenda y datos embargados |
+| revelaciones | desde la primera revelación autorizada hasta la apertura de venta | identidad del evento y únicamente elementos nominales o visuales ya liberados; el evento mantiene mayor jerarquía que una figura individual | nombres no revelados, correspondencias país–artista, cartel completo prematuro o pistas falsas |
+| venta | desde la apertura real de venta hasta el 30 de septiembre | identidad, eslogan, fechas y ubicación autorizadas y CTA de venta; el destino debe ser seguro y estar probado | precio, disponibilidad, localidad o urgencia sin corte vigente y conciliado |
+| portada final estable | desde el 1 de octubre hasta el cierre del evento | key visual definitivo, `FINADOS 2026`, `¡LEGADO QUE NOS UNE!`, fechas y ubicación confirmadas; solo datos duraderos | contadores, agotados, cambios diarios, agenda extensa, precios variables o cualquier dato que obligue a sustituir la portada |
+
+Desde octubre la portada no cambia por artista, promoción o jornada. Las novedades viven en publicaciones fijadas, agenda y piezas de servicio; la portada final conserva reconocimiento hasta los últimos días. Cada exportación debe recomponerse para la zona segura vigente de la plataforma y probarse en escritorio y móvil antes de aprobar.
+
+### Reel del sábado · seis banderas
+
+- **idea:** el megaescenario real permanece oscuro; seis banderas autorizadas descienden como textiles teatrales y activan progresivamente la luz;
+- **texto en pantalla:** únicamente el cierre `¿A quién imaginas en Finados 2026?`;
+- **cierre gráfico:** `FINADOS 2026` + `¡LEGADO QUE NOS UNE!`;
+- **audio:** diseño sonoro original o licenciado, sin música reconocible de artistas;
+- **regla de embargo:** en Git solo consta `seis banderas autorizadas`; países, identidades y correspondencias permanecen en la fuente controlada;
+- **adaptación:** Instagram y Facebook pueden usar el mismo montaje base con carga nativa; TikTok necesita una apertura más inmediata, sin alterar la idea.
+
+### Reel del domingo · siluetas
+
+- **idea:** varias presencias aparecen entre contraluz, tela, humo o reflejos; la identidad permanece imposible de confirmar;
+- **texto en pantalla:** únicamente `¿Quién crees que viene?`;
+- **cierre gráfico:** `FINADOS 2026` + `¡LEGADO QUE NOS UNE!`;
+- **audio:** ambiente original de tela, viento, luz y pulso; no usar música de artistas;
+- **no explicar:** no escribir `hoy llegan las sombras`, no numerar figuras, no pedir respuestas en orden y no relacionar cada presencia con una bandera;
+- **no revelar por forma:** evitar instrumento, vestuario, peinado, pose, logotipo, número contable de integrantes o encuadre que permita inferir una identidad no autorizada.
+
+### Paquete preparado para `Cronopost y Producción`
+
+La carga futura en Notion debe crear cuatro tareas de producción y seis publicaciones hijas. **Todavía no se cargan ni programan** hasta que Alex autorice la escritura y se validen permisos, zona horaria y responsables.
+
+| Tarea de producción | Tipo | Canales destino | Entregable | Dependencias mínimas |
+|---|---|---|---|---|
+| preparar avatar maestro Finados 2026 | arte | Facebook, Instagram, TikTok | maestro editable + exportaciones por plataforma | activos oficiales, marca, legibilidad móvil y aprobación |
+| diseñar sistema de portadas por fases | arte | Facebook inicialmente; otros banners solo si aplican | expectativa + plantillas de revelación, venta y octubre estable | key visual, arquitectura verbal, zona segura y gates de cada fase |
+| producir Reel Pista 01 · seis banderas | reel/motion | Facebook, Instagram, TikTok | máster limpio + tres exportaciones nativas + miniaturas | escenario autorizado, embargo, derechos, audio, marca y QA |
+| producir Reel Pista 02 · siluetas | reel/motion | Facebook, Instagram, TikTok | máster limpio + tres exportaciones nativas + miniaturas | material no identificable, embargo, derechos, audio, marca y QA |
+
+Cada Reel origina tres filas en `Publicaciones`, una por red, con su archivo exacto, copy mínimo, aprobación, hora en `America/Guayaquil`, responsable Community y medición independiente. La actualización de avatar y portada se registra como configuración de identidad, no como una tercera publicación principal de la Semana 1.
+
+### Gate urgente de salida
+
+Antes de tocar perfiles o publicar cualquiera de los dos Reels deben estar en aprobado:
+
+- marca y arquitectura verbal;
+- dato y embargo de todas las pistas;
+- derechos de escenario, imágenes, animación y audio;
+- revisión de inferencia para comprobar que ninguna figura revele una identidad;
+- exportaciones, miniaturas, copy y QA 6C por red;
+- Community titular y suplente, protocolo de moderación y medición;
+- autorización externa expresa de Dirección.
+
+Si falta un gate, la tarea permanece preparada en cronopost pero no pasa a `programada`.
+
 ## Respuesta ejecutiva
 
 Existe contexto suficiente para empezar a trabajar desde el 25 de agosto. No hace falta esperar el cartel para construir expectativa.
@@ -25,7 +105,7 @@ Lo que ya está definido para desarrollo:
 
 - **topic maestro:** `ES TRADICIÓN`;
 - **promesa de apoyo:** `Cinco días para volver a encontrarnos`;
-- **trabajo de expectativa:** recordar por qué las familias vuelven, no anunciar todavía qué artistas vienen;
+- **trabajo de expectativa:** recordar por qué las familias vuelven y, en la excepción aprobada de Semana 1, abrir misterio con pistas visuales sin anunciar identidades;
 - **fuente visual:** banco histórico de videos y fotografías de ediciones anteriores, reportado por Alex;
 - **lenguaje:** documental, humano, sensorial y cinematográfico;
 - **progresión:** detalle íntimo → encuentro → feria → escala → emoción colectiva;
@@ -41,7 +121,7 @@ TOPIC DE CAMPAÑA: ES TRADICIÓN
 Durante la expectativa no vamos a revelar el cartel ni a vender una lista de atracciones.
 Vamos a despertar memoria, orgullo y deseo de volver.
 
-Cada pieza debe contener:
+Salvo las dos pistas visuales aprobadas para la Semana 1, cada pieza debe contener:
 1. un sonido real que active un recuerdo;
 2. una escena humana auténtica del archivo;
 3. una prueba de familia, feria, territorio o encuentro;
@@ -124,8 +204,8 @@ Regla: los primeros 1–2 segundos deben funcionar con un sonido reconocible; la
 | 26 ago | conocer el material real | inventariar años, formatos, emociones, derechos y calidad; seleccionar 80–120 candidatos sin mover originales | matriz del banco + carpeta de selects por enlace | Andrés Naula / producción |
 | 27 ago | probar tres entradas emocionales | montar tres pilotos de 15–20 s: A familia/memoria, B feria/comercio, C música sin artista | 3 rough cuts 9:16 con sonido provisional | audiovisual + comunicación |
 | 28 ago | elegir lenguaje | revisión cultural, marca, verdad y 6C; aprobar/ajustar `ES TRADICIÓN` y un piloto rector | acta Go/Iterar/Detener + keyframe rector | Dirección / marca-cultura |
-| 29 ago | construir historia central | editar primer armado de `Nos llama`; ordenar detalle → encuentro → escala; diseñar arco sonoro | corte v01 de 45–60 s | Andrés Naula / Leo Sailema |
-| 30 ago | construir sistema visual | key visual, end card, rótulo de archivo, lower thirds y tratamiento de color | kit maestro 9:16 y guía de uso | Cristian / Karen / Diego |
+| 29 ago | ejecutar apertura mínima condicionada | cerrar avatar y portada de expectativa; producir y validar Reel de seis banderas; publicar únicamente con gate y autorización externa | identidad lista + tres variantes nativas del Reel + evidencia de aprobación | Andrés Naula / Cristian / comunicación; aprobadores por completar |
+| 30 ago | ejecutar segunda pista condicionada | producir y validar Reel de siluetas; moderar sin explicar ni confirmar nombres; medir el primer corte | tres variantes nativas + registro de moderación y medición | Andrés Naula / comunicación / Community por nombrar |
 | 31 ago | crear derivados | producir versiones 30 s, 15 s y 6 s; recomponer 4:5; redactar copies y subtítulos | paquete multiformato v01 | diseño + audiovisual + comunicación |
 | 1 sep | validar publicación | revisar derechos, rostros, música, ortografía, contraste, zonas seguras, datos y CTA | matriz QA 6C + lista de correcciones | comunicación / legal-marca / datos |
 | 2 sep | gate de salida | aprobar piezas, canal, fecha/hora, respuesta y medición; confirmar si se usa `Muy pronto` o fecha ratificada | paquete aprobado + calendario cargable | Dirección / Edwin |
