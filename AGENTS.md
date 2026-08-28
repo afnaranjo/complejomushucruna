@@ -500,3 +500,16 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Publicación externa: únicamente consultas internas autorizadas de Notion y push al repositorio; no se publicó, programó o pautó contenido ni se modificaron redes, Meta, web o boletería.
 - Riesgos: `My tasks` no es operativa hasta recrear el filtro dinámico desde una cuenta humana; una fila operativa sin título requiere identificación antes de archivarla; los responsables y permisos todavía deben probarse desde dos cuentas.
 - Pendiente: corregir las tres vistas, definir valores predeterminados, ejecutar una prueba cruzada Alex/segunda cuenta y archivar la fila vacía únicamente de forma reversible si se confirma que no contiene trabajo válido.
+
+### 2026-08-28 — Cronopost ampliado: rostro recurrente y TikTok transparente
+
+- Se auditó en modo de solo lectura la asignabilidad de `Cronopost y Producción`: Notion muestra a Andres Flores, Cristian Núñez, Edwin Naula, Karen Velasteguí Viteri, Diego Flores y Luis Chango. No muestra a Alejandro Flores, Are Morales ni Andrés Naula; no se modificó ninguna tarea o asignación.
+- Se creó un cronopost interno del 28 al 30 de agosto con 18 actividades, responsables, horas, gates y evidencias para elegir un rostro recurrente titular y suplente, solicitar a Cristian la portada de `Pista 01` y ordenar tres líneas editoriales TikTok.
+- Are Morales quedó como responsable funcional de coherencia narrativa; Andres Flores registra y coordina; Cristian administra diseño; Edwin Naula es el ejecutor audiovisual visible en Notion. La relación entre Andrés Naula y Edwin Naula queda pendiente de confirmación y no se infiere equivalencia.
+- La idea de “filtrar” un post se convirtió en un adelanto autorizado. Se prohíben cuentas falsas, suplantación, astroturfing y afirmaciones de filtración inexistente. La pieza alimenta el Reel ya aprobado del sábado y no crea una tercera publicación en Semana 1.
+- Se bloquearon hasta validación las afirmaciones sobre tamaño nacional, más de diez parqueaderos, turismo o prensa internacional, escenas temáticas, disponibilidad de la app y pedidos de mano en archivo.
+- Se actualizaron calendario, RACI, equipo operativo, decisión FF26-DEC-021, hitos, riesgos R-037–R-039, memoria, pendientes, índice de contenido y bitácora diaria.
+- Commit: incluido en `Planificar rostro recurrente y TikTok transparente`.
+- Publicación externa: ninguna; solo consulta interna de Notion y push al repositorio. No se crearon cuentas, no se cambiaron asignaciones, no se grabó, programó, publicó o pautó contenido.
+- Riesgos: identidad Andres/Alejandro y relación Andrés/Edwin por confirmar; Are sin cuenta asignable; Community sin titular/suplente; derechos, consentimiento, compatibilidad laboral, embargo y gates de salida pendientes.
+- Pendiente: confirmar identidades, habilitar cuentas necesarias, ejecutar las pruebas y selección hasta el 30 de agosto, entregar el paquete gráfico el 29 y obtener autorización externa antes de cualquier salida.

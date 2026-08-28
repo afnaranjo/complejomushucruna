@@ -97,6 +97,8 @@ Antes de tocar perfiles o publicar cualquiera de los dos Reels deben estar en ap
 
 Si falta un gate, la tarea permanece preparada en cronopost pero no pasa a `programada`.
 
+La [[2026-08-28_cronopost_ampliacion-semana-1-rostro-tiktok-finados-2026_v01|ampliación operativa del 28–30 de agosto]] añade búsqueda y prueba de un rostro recurrente, alineación narrativa de Are Morales y un paquete transparente para TikTok. Es trabajo interno: **no aumenta la cadencia pública**, no crea una tercera publicación, no autoriza cuentas falsas y no cambia los dos Reels aprobados.
+
 ## Respuesta ejecutiva
 
 Existe contexto suficiente para empezar a trabajar desde el 25 de agosto. No hace falta esperar el cartel para construir expectativa.

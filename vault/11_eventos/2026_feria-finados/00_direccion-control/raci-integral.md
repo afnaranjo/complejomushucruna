@@ -2,7 +2,7 @@
 titulo: "RACI integral Feria de Finados 2026"
 responsable: "dirección integral de la feria"
 estado: borrador
-ultima_actualizacion: 2026-08-27
+ultima_actualizacion: 2026-08-28
 fuente: interna
 confidencialidad: restringido
 tags:
@@ -50,6 +50,19 @@ La referencia del equipo y el flujo creativo confirmado están en [[../05_market
 | programación, publicación, comunidad y cierre de medición | coordinación de comunicación por ratificar | community/traffic por nombrar | Andrés Flores, datos | equipo | pendiente crítico |
 
 Regla de contacto: ningún frente asigna directamente trabajo a Karen Velastegui o Diego Flores; toda solicitud gráfica entra por Cristian Nuñez. Video y animación entran por Andrés Naula.
+
+### Sprint 28–30 · rostro recurrente y TikTok
+
+| Trabajo | A | R | C | I | Estado |
+|---|---|---|---|---|---|
+| coherencia del relato `ES TRADICIÓN` y cierre `¡LEGADO QUE NOS UNE!` | Are Morales | Are Morales | Andres Flores, Cristian Núñez, audiovisual | Dirección | aprobado para estructuración interna |
+| shortlist y coordinación del rostro recurrente | Are Morales | Andres Flores | Operaciones/Personal, audiovisual | Dirección | vence 2026-08-30; consentimiento obligatorio |
+| pruebas audiovisuales comparables | Andrés Naula, coordinación funcional por confirmar | Edwin Naula, asignable en Notion | Iván/Leo, Are, Andres | Dirección | diferencia de identidad/acceso pendiente de confirmar |
+| portada/primer fotograma de `Pista 01` | Cristian Núñez | Cristian o diseñador asignado por él | Are, Andres, audiovisual | Dirección | no es una publicación adicional |
+| arquitectura de tres líneas TikTok transparentes | Are Morales | Andres Flores | Cristian, Edwin, Community por nombrar | Dirección | no crear cuentas hasta cerrar gobierno y seguridad |
+| publicación y moderación | Dirección + aprobadores de gate | Community por nombrar | Are, Andres, diseño, audiovisual | equipo | bloqueada sin responsable y autorización externa |
+
+Notion permite asignar a Andres Flores, Cristian Núñez, Edwin Naula, Karen Velasteguí Viteri, Diego Flores y Luis Chango. Are Morales y Andrés Naula no aparecen actualmente como personas asignables; su responsabilidad funcional no debe fingirse como una asignación técnica. Véase [[../05_marketing-comunicacion/02_contenido/2026-08-28_cronopost_ampliacion-semana-1-rostro-tiktok-finados-2026_v01|cronopost ampliado]].
 
 ## Decisiones críticas
 

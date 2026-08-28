@@ -16,6 +16,7 @@ Calendario, mensajes, guiones, piezas, versiones, aprobaciones y enlaces finales
 - [[2026-08-24_sistema-contenidos-finados-2026_v01|Sistema de contenidos Finados 2026]]
 - [[../01_estrategia/2026-08-28_arquitectura-verbal-finados-2026_v01|Arquitectura verbal aprobada · `¡LEGADO QUE NOS UNE!` + `ES TRADICIÓN`]]
 - [[2026-08-25_calendario-expectativa-es-tradicion-finados-2026_v01|Calendario de expectativa ES TRADICIÓN]]
+- [[2026-08-28_cronopost_ampliacion-semana-1-rostro-tiktok-finados-2026_v01|Cronopost ampliado Semana 1 · rostro recurrente y TikTok transparente]]
 - [[../01_estrategia/2026-08-27_adenda-guia-creativa-operativa-es-tradicion-finados-2026_v09|Adenda V09 · requisitos para el futuro cronopost]]
 - [[2026-08-27_diseno-sistema-notion-cronopost-finados-2026_v01|Diseño del sistema Notion de cronopost, publicación y centro de mando Community]]
 - [[2026-08-27_implementacion-notion-cronopost-finados-2026_v01|Implementación verificada del sistema Notion]]
