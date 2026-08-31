@@ -180,11 +180,17 @@ function backupRemote(config) {
   });
 }
 
+function scpLocalPath(path) {
+  const normalized = path.replaceAll('\\', '/');
+  if (process.platform !== 'win32') return normalized;
+  return normalized.replace(/^([A-Za-z]):/, (_, drive) => `/${drive.toLowerCase()}`);
+}
+
 function uploadDist(config) {
   const target = `${config.DEPLOY_SSH_USER}@${config.DEPLOY_SSH_HOST}:${config.DEPLOY_REMOTE_ROOT}/`;
   const scpArgs = sshBaseArgs(config);
   scpArgs[scpArgs.indexOf('-p')] = '-P';
-  run('scp', [...scpArgs, '-r', `${join(websiteRoot, 'dist')}/.`, target], {
+  run('scp', [...scpArgs, '-r', `${scpLocalPath(join(websiteRoot, 'dist'))}/.`, target], {
     silent: true,
     label: 'La transferencia de archivos',
   });
