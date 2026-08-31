@@ -30,6 +30,11 @@ export async function buildSite(outputDirectory = join(websiteRoot, 'dist')) {
     await writeFile(target, `${renderLayout(page)}\n`, 'utf8');
   }
 
+  const sitemapEntries = pages
+    .map((page) => `  <url><loc>https://complejomushucruna.com${page.route}</loc></url>`)
+    .join('\n');
+  await writeFile(join(output, 'sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${sitemapEntries}\n</urlset>\n`, 'utf8');
+
   await mkdir(join(output, 'assets'), { recursive: true });
   await cp(join(websiteRoot, 'src', 'styles.css'), join(output, 'assets', 'styles.css'));
   await cp(join(websiteRoot, 'src', 'site.js'), join(output, 'assets', 'site.js'));
