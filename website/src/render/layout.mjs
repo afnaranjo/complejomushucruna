@@ -27,7 +27,7 @@ export function renderLayout(page) {
   <meta property="og:url" content="${escapeHtml(canonical)}">
   <link rel="icon" href="/assets/icons/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/assets/styles.css">
-  <script src="/assets/site.js" defer></script>
+  <script type="module" src="/assets/site.js"></script>
 </head>
 <body>
   <a class="skip-link" href="#contenido">Ir al contenido</a>

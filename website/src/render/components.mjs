@@ -39,3 +39,63 @@ export function archiveList(events) {
     </div>
   </li>`).join('')}</ol>`;
 }
+
+export function sectionHeading({ eyebrow, heading, intro = '' }) {
+  return `<header class="section-heading" data-reveal>
+    <p class="eyebrow">${escapeHtml(eyebrow)}</p>
+    <h2>${escapeHtml(heading)}</h2>
+    ${intro ? `<p>${escapeHtml(intro)}</p>` : ''}
+  </header>`;
+}
+
+export function editorial({ eyebrow, heading, paragraphs, image, alt, reverse = false, accent = '' }) {
+  return `<section class="section shell editorial${reverse ? ' editorial--reverse' : ''}" data-reveal>
+    <figure class="editorial__media"><img src="${escapeHtml(image)}" alt="${escapeHtml(alt)}" width="1200" height="900" loading="lazy"></figure>
+    <div class="editorial__copy">
+      <p class="eyebrow">${escapeHtml(eyebrow)}</p>
+      <h2>${escapeHtml(heading)}</h2>
+      ${paragraphs.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join('')}
+      ${accent ? `<span class="hand-accent">${escapeHtml(accent)}</span>` : ''}
+    </div>
+  </section>`;
+}
+
+export function experienceIndex(experiences) {
+  return `<div class="experience-index">${experiences.map((experience, index) => `<article class="experience-feature" data-reveal>
+    <div class="experience-feature__media"><img src="${escapeHtml(experience.image)}" alt="${escapeHtml(experience.name)} en el Complejo Mushuc Runa" width="1200" height="900" loading="lazy"></div>
+    <div class="experience-feature__copy">
+      <p class="experience-feature__number">${String(index + 1).padStart(2, '0')}</p>
+      <h2>${escapeHtml(experience.name)}</h2>
+      <p>${escapeHtml(experience.description)}</p>
+      <p class="status-label">${escapeHtml(experience.status)}</p>
+    </div>
+  </article>`).join('')}</div>`;
+}
+
+export function heritageQuote(quote, citation) {
+  return `<section class="heritage-band"><div class="shell" data-reveal><blockquote>“${escapeHtml(quote)}”<cite>${escapeHtml(citation)}</cite></blockquote></div></section>`;
+}
+
+export function categoryField(categories) {
+  return `<ul class="category-field">${categories.map((category) => `<li data-reveal>${escapeHtml(category)}</li>`).join('')}</ul>`;
+}
+
+export function visitPanel({ routes, tourUrl }) {
+  return `<section class="section shell"><div class="visit-panel" data-reveal>
+    <div>
+      <p class="eyebrow">Cómo llegar</p>
+      <h2>Dos rutas para encontrarnos</h2>
+      <p>Desde el lugar en donde te encuentres, abre una de las referencias publicadas y continúa el recorrido con el GPS de tu dispositivo.</p>
+      <div class="button-row"><a class="button button--red" href="${escapeHtml(tourUrl)}"${externalAttributes(tourUrl)}>Abrir tour virtual</a></div>
+    </div>
+    <ol class="route-list">${routes.map((route) => `<li><a href="${escapeHtml(route.href)}"${externalAttributes(route.href)}>${escapeHtml(route.label)}</a><p>${escapeHtml(route.description)}</p></li>`).join('')}</ol>
+  </div></section>`;
+}
+
+export function archiveArticle(texts) {
+  return `<section class="section shell"><article class="archive-copy" data-reveal>
+    <aside class="archive-warning"><strong>Archivo histórico.</strong> Este contenido conserva la memoria de una edición anterior. Fechas, precios, inscripciones y enlaces comerciales ya no están vigentes.</aside>
+    <h2>Contenido original recuperado</h2>
+    ${texts.map((text) => `<p>${escapeHtml(text)}</p>`).join('')}
+  </article></section>`;
+}

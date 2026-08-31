@@ -30,6 +30,10 @@ export async function buildSite(outputDirectory = join(websiteRoot, 'dist')) {
     await writeFile(target, `${renderLayout(page)}\n`, 'utf8');
   }
 
+  await mkdir(join(output, 'assets'), { recursive: true });
+  await cp(join(websiteRoot, 'src', 'styles.css'), join(output, 'assets', 'styles.css'));
+  await cp(join(websiteRoot, 'src', 'site.js'), join(output, 'assets', 'site.js'));
+
   const publicDirectory = join(websiteRoot, 'public');
   try {
     await cp(publicDirectory, output, { recursive: true, force: true });
