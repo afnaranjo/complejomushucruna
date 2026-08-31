@@ -193,7 +193,7 @@ Conserva las dos rutas y enlaces de Google Maps de la página `Ubícanos`, prese
 
 - Crear una copia fechada del `index.html` temporal y un inventario de archivos existentes antes de subir.
 - Construir localmente y transferir únicamente la salida estática por SSH/SCP.
-- No modificar `.htaccess`, `.user.ini`, `php.ini`, `.well-known` ni `cgi-bin` en esta versión.
+- Conservar sin cambios las directivas generadas por cPanel en `.htaccess` y añadir solamente el aislamiento del sitio estático, `DirectoryIndex`, bloqueo de listados y documento 404. No modificar `.user.ini`, `php.ini`, `.well-known` ni `cgi-bin`.
 - No usar borrado remoto ni sincronización con `--delete`.
 - Verificar por HTTPS y HTTP con `curl` después de subir.
 - Si falla una comprobación crítica, restaurar el `index.html` temporal desde la copia fechada.
