@@ -16,7 +16,7 @@ async function listFiles(directory, root = directory) {
   for (const entry of entries) {
     const path = join(directory, entry.name);
     if (entry.isDirectory()) files.push(...await listFiles(path, root));
-    else files.push(relative(root, path));
+    else files.push(relative(root, path).replaceAll('\\', '/'));
   }
   return files;
 }
@@ -53,7 +53,8 @@ export async function buildSite(outputDirectory = join(websiteRoot, 'dist')) {
 
   const finadosAssets = join(output, 'assets', 'finados');
   await mkdir(finadosAssets, { recursive: true });
-  await execFileAsync(join(websiteRoot, 'node_modules', '.bin', 'tailwindcss'), [
+  await execFileAsync(process.execPath, [
+    join(websiteRoot, 'node_modules', '@tailwindcss', 'cli', 'dist', 'index.mjs'),
     '-i', join(websiteRoot, 'src', 'finados', 'finados.css'),
     '-o', join(finadosAssets, 'finados.css'),
     '--minify',

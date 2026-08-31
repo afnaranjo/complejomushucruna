@@ -86,7 +86,7 @@ export function renderFinadosPage(page) {
         <img class="h-full w-full object-cover object-[68%_center] sm:object-center" src="/assets/finados/hero-artista-mock.webp" srcset="/assets/finados/hero-artista-mock-960.webp 960w, /assets/finados/hero-artista-mock.webp 1600w" sizes="100vw" width="1600" height="800" alt="Representación conceptual de una cantante ficticia frente a un público durante un concierto" fetchpriority="high">
       </picture>
       <div class="hero-scrim absolute inset-0 -z-20" aria-hidden="true"></div>
-      <img class="absolute -bottom-24 -left-20 -z-10 h-72 w-72 opacity-90 sm:h-[30rem] sm:w-[30rem] lg:-bottom-44 lg:-left-32 lg:h-[42rem] lg:w-[42rem]" src="/assets/finados/icons/encuentro.svg" alt="" width="672" height="672">
+      <span class="hero-encuentro" aria-hidden="true"></span>
 
       <div class="relative mx-auto grid w-[min(100%-2rem,88rem)] gap-10 pb-12 pt-40 sm:pb-16 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-end lg:pb-20">
         <div class="max-w-4xl">

@@ -117,6 +117,34 @@
     background: linear-gradient(90deg, rgba(36, 17, 70, .95) 0%, rgba(57, 31, 111, .78) 38%, rgba(57, 31, 111, .14) 72%), linear-gradient(0deg, rgba(36, 17, 70, .82) 0%, transparent 48%);
   }
 
+  .hero-encuentro {
+    position: absolute;
+    z-index: -10;
+    bottom: -6rem;
+    left: -5rem;
+    width: 18rem;
+    aspect-ratio: 1;
+  }
+
+  .hero-encuentro::before,
+  .hero-encuentro::after {
+    position: absolute;
+    inset: 0;
+    content: "";
+    -webkit-mask: url("/assets/finados/icons/encuentro.svg") center / contain no-repeat;
+    mask: url("/assets/finados/icons/encuentro.svg") center / contain no-repeat;
+  }
+
+  .hero-encuentro::before {
+    background: #00d2d6;
+    opacity: .72;
+    transform: translate(.65rem, .65rem);
+  }
+
+  .hero-encuentro::after {
+    background: #241146;
+  }
+
   .kicker {
     font-family: "Inter", sans-serif;
     font-size: .7rem;
@@ -255,6 +283,20 @@
 
 @keyframes ticker {
   to { transform: translateX(-50%); }
+}
+
+@media (min-width: 640px) {
+  .hero-encuentro {
+    width: 30rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .hero-encuentro {
+    bottom: -11rem;
+    left: -8rem;
+    width: 42rem;
+  }
 }
 
 @media (max-width: 639px) {

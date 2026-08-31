@@ -44,6 +44,7 @@ test('empaqueta la experiencia Finados con recursos locales y optimizados', asyn
   const output = await mkdtemp(join(tmpdir(), 'mushuc-finados-assets-'));
   await buildSite(output);
   const landing = await readFile(join(output, 'finados/index.html'), 'utf8');
+  const finadosStyles = await readFile(join(output, 'assets/finados/finados.css'), 'utf8');
   const css = await stat(join(output, 'assets/finados/finados.css'));
   const js = await stat(join(output, 'assets/finados/finados.js'));
   const hero = await stat(join(output, 'assets/finados/hero-artista-mock.webp'));
@@ -51,6 +52,10 @@ test('empaqueta la experiencia Finados con recursos locales y optimizados', asyn
   assert.match(landing, /\/assets\/finados\/finados\.css/);
   assert.match(landing, /\/assets\/finados\/finados\.js/);
   assert.match(landing, /\/assets\/finados\/hero-artista-mock\.webp/);
+  assert.match(landing, /class="hero-encuentro"/);
+  assert.doesNotMatch(landing, /<img class="absolute -bottom-24[^>]+\/assets\/finados\/icons\/encuentro\.svg/);
+  assert.match(finadosStyles, /\.hero-encuentro/);
+  assert.match(finadosStyles, /\/assets\/finados\/icons\/encuentro\.svg/);
   assert.ok(css.size < 80_000, `CSS Finados demasiado grande: ${css.size}`);
   assert.ok(js.size < 20_000, `JavaScript Finados demasiado grande: ${js.size}`);
   assert.ok(hero.size < 900_000, `Hero Finados demasiado grande: ${hero.size}`);
