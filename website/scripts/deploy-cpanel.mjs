@@ -190,6 +190,23 @@ function uploadDist(config) {
   });
 }
 
+function normalizeRemotePermissions(config) {
+  const target = `${config.DEPLOY_SSH_USER}@${config.DEPLOY_SSH_HOST}`;
+  const root = config.DEPLOY_REMOTE_ROOT;
+  const findCommand = [
+    `find ${root} -mindepth 1 -type d -perm 0700`,
+    `! -path '${root}/.well-known' ! -path '${root}/.well-known/*'`,
+    `! -path '${root}/cgi-bin' ! -path '${root}/cgi-bin/*'`,
+    '-exec chmod 755 {} +',
+  ].join(' ');
+  const command = ['set -eu', `chmod 750 ${root}`, findCommand].join('; ');
+
+  run('ssh', [...sshBaseArgs(config), target, command], {
+    silent: true,
+    label: 'La normalización de permisos remotos',
+  });
+}
+
 async function fetchWithTimeout(url) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 12000);
@@ -268,6 +285,8 @@ async function main() {
   backupRemote(config);
   console.log('Subiendo la salida estática sin eliminar archivos exclusivos del servidor…');
   uploadDist(config);
+  console.log('Restaurando permisos públicos de las carpetas transferidas…');
+  normalizeRemotePermissions(config);
   console.log('Verificando las rutas públicas por HTTPS…');
   await verifyPublicSite(config);
   console.log(`Despliegue verificado en https://${publicHostname}.`);

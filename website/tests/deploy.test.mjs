@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
-import { mkdtemp, writeFile } from 'node:fs/promises';
+import { mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -61,4 +61,18 @@ test('git ignora nombres habituales de llaves privadas aunque no tengan extensiÃ
     });
     assert.equal(output.trim(), filename);
   }
+});
+
+test('normaliza permisos de carpetas despuÃ©s de SCP y antes de verificar HTTPS', async () => {
+  const source = await readFile(deployScript, 'utf8');
+  const uploadIndex = source.indexOf('uploadDist(config);');
+  const permissionsIndex = source.indexOf('normalizeRemotePermissions(config);');
+  const verificationIndex = source.indexOf('await verifyPublicSite(config);');
+
+  assert.ok(uploadIndex >= 0);
+  assert.ok(permissionsIndex > uploadIndex);
+  assert.ok(verificationIndex > permissionsIndex);
+  assert.match(source, /-perm 0700/);
+  assert.match(source, /\.well-known/);
+  assert.match(source, /cgi-bin/);
 });
