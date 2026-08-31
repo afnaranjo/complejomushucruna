@@ -7,6 +7,16 @@ Thumbs.db
 *.pem
 *.p12
 *.pfx
+.ssh/
+**/.ssh/
+id_rsa
+id_rsa_*
+id_ed25519
+id_ed25519_*
+id_ecdsa
+id_ecdsa_*
+id_dsa
+id_dsa_*
 secrets/
 credenciales/
 node_modules/

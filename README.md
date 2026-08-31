@@ -51,11 +51,14 @@ La memoria rápida del proyecto vive en:
 │   ├── 15_activos/                 Activos aprobados y reutilizables
 │   ├── 90_entrada-por-clasificar/  Entrada temporal para material ambiguo
 │   └── 99_archivo/                 Material cerrado o histórico
+├── website/                         Sitio estático, landing Finados y método seguro de despliegue
 ├── AGENTS.md                        Reglas obligatorias de colaboración
 └── CONTRIBUTING.md                  Flujo para aportar cambios
 ```
 
 La definición detallada está en [`vault/00_gobernanza/arquitectura-documental.md`](vault/00_gobernanza/arquitectura-documental.md).
+
+El código y el procedimiento reproducible de publicación web están en [`website/README.md`](website/README.md). Las credenciales y llaves privadas nunca forman parte del repositorio.
 
 ## Cómo empezar
 

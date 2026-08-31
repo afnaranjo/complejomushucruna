@@ -359,7 +359,7 @@ Expected: PASS con todas las rutas, recursos, enlaces internos y metadatos váli
 
 - [ ] **Step 3: Crear respaldo no destructivo y subir la salida**
 
-Crear en `/home/expoferiamushucr/backups/complejomushucruna.com-20260831/` una copia de `index.html` y un inventario de archivos preexistentes. Subir el contenido de `website/dist/` a `/home/expoferiamushucr/public_html/complejomushucruna.com/` mediante SCP o rsync sin `--delete`, sin tocar archivos de configuración.
+Crear en `/home/<usuario>/backups/complejomushucruna.com-20260831/` una copia de `index.html` y un inventario de archivos preexistentes. Subir el contenido de `website/dist/` a `/home/<usuario>/public_html/complejomushucruna.com/` mediante SCP o rsync sin `--delete`, sin tocar archivos de configuración.
 
 - [ ] **Step 4: Verificar producción por SSH y HTTP**
 
@@ -385,4 +385,3 @@ git add website docs/superpowers vault/_memoria-del-proyecto.md vault/_pendiente
 git commit -m "Publicar sitio institucional sin WordPress"
 git push origin main
 ```
-
