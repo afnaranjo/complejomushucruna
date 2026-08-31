@@ -2,7 +2,7 @@
 titulo: "Centro integral Feria de Finados 2026"
 responsable: "dirección integral de la feria"
 estado: en-revision
-ultima_actualizacion: 2026-08-28
+ultima_actualizacion: 2026-08-31
 fuente: interna
 confidencialidad: interno
 tags:
@@ -21,6 +21,7 @@ Este expediente es la fuente única de verdad de la feria. Aquí se conectan tod
 - [[00_direccion-control/tablero-ejecutivo|Tablero ejecutivo]]
 - [[00_direccion-control/cronograma-hitos|Cronograma e hitos]]
 - [[00_direccion-control/raci-integral|RACI integral]]
+- [[00_direccion-control/2026-08-31_modelo-jerarquia-tareas-bitrix-finados-2026_v01|Modelo aprobado de tareas madre y subtareas en Bitrix]]
 - [[00_direccion-control/registro-decisiones|Decisiones del proyecto]]
 - [[13_riesgos-contingencias/registro-riesgos|Riesgos y contingencias]]
 - [[../../05_audiencias-investigacion/01_reputacion-riesgos-y-voz-publica/README|Reputación, problemas y voz pública]]

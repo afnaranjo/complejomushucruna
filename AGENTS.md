@@ -551,3 +551,14 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Seguridad: no se borró nada en Bitrix y no se versionaron credenciales, enlaces privados, identificadores internos ni datos del cartel bajo embargo.
 - Riesgos: Andrés Naula todavía no tiene una cuenta asignable confirmada y no debe confundirse con `EDWIN NAULA`; siguen pendientes archivos finales, gates y autorización externa.
 - Pendiente: agregar a Andrés Naula como observador cuando su cuenta exista, alinear el Kanban de Reel Pista 02 con su estado real y completar los gates antes de cualquier publicación.
+
+### 2026-08-31 — Modelo de tareas madre y subtareas para Bitrix
+
+- Alex aprobó que toda carga futura se prepare desde una tarea madre nombrada previamente por él; no se crearán madres o lotes completos por inferencia.
+- Andrés Flores será responsable operativo de la tarea madre y coordinará alcance, hijos, bloqueos y gate; cada subtarea tendrá como responsable a su ejecutor real. El dueño del dato y el aprobador del frente permanecen separados de esa coordinación.
+- Se definieron reglas para distinguir subtarea, checklist y dependencia Gantt, además de un flujo gradual de diseño, aprobación, carga y verificación sin borrar o recrear tareas.
+- Se registraron `FF26-DEC-023`, el riesgo `R-040`, memoria, pendientes, RACI, bitácora y el documento canónico de jerarquía.
+- Commit: incluido en `Documentar modelo de tareas madre en Bitrix`.
+- Publicación externa: únicamente el push autorizado de documentación; no se creó, modificó, movió, reasignó, cerró o eliminó ninguna tarea en Bitrix y no se modificó Notion.
+- Riesgos: una carga directa de la matriz actual produciría tareas hermanas; cada madre e hijos requieren responsables, fechas, gates, claves estables y aprobación previa.
+- Pendiente: recibir de Alex la próxima tarea madre, diseñar sus hijos fuera de Bitrix y solicitar aprobación antes de cualquier escritura.

@@ -2,7 +2,7 @@
 titulo: "Pendientes ejecutivos"
 responsable: "dirección integral de la feria"
 estado: en-revision
-ultima_actualizacion: 2026-08-28
+ultima_actualizacion: 2026-08-31
 fuente: interna
 confidencialidad: interno
 tags:
@@ -13,6 +13,9 @@ tags:
 # Pendientes ejecutivos
 
 ## Prioridad crítica
+
+- [ ] Aplicar el [[11_eventos/2026_feria-finados/00_direccion-control/2026-08-31_modelo-jerarquia-tareas-bitrix-finados-2026_v01|modelo de tareas madre y subtareas]] únicamente de forma gradual: Alex nombra la madre; se diseñan y aprueban sus hijos; Andrés Flores coordina la madre; cada ejecutor real recibe su subtarea; luego se carga y verifica. No crear nuevas tareas hasta recibir la próxima principal y autorización expresa. Responsable: Alex/Andrés Flores/dueño del frente/administración Bitrix. Fecha: por cada paquete aprobado.
+- [ ] Antes de la próxima carga automatizada de Bitrix, asegurar que el cliente no imprima fragmentos de credenciales, separar métodos permitidos de lectura y escritura, validar claves estables, duplicados y ciclos, y reconciliar cada lote antes de reintentar. Responsable: tecnología/administración Bitrix. Fecha: antes de la próxima escritura.
 
 - [ ] Con autorización de Alex, cambiar de inmediato `afnaranjo/complejomushucruna` de público a privado y solicitar a GitHub la purga del commit no referenciado que contenía temporalmente el inventario nominal del cartel. `main` ya fue reemplazado y no contiene esos nombres, pero la API todavía resuelve el objeto anterior por hash. Responsable: Alex/dirección/tecnología. Fecha: inmediata.
 - [ ] Diagnosticar, contener y recuperar con autorización el dominio `complejomushucruna.ec`: propiedad, DNS, hosting, CMS, usuarios administradores, código/contenido, indexación y monitoreo. La portada redirigió a apuestas el 2026-08-24. Responsable: dirección/tecnología. Fecha: por definir (urgente).

@@ -2,7 +2,7 @@
 titulo: "RACI integral Feria de Finados 2026"
 responsable: "dirección integral de la feria"
 estado: borrador
-ultima_actualizacion: 2026-08-28
+ultima_actualizacion: 2026-08-31
 fuente: interna
 confidencialidad: restringido
 tags:
@@ -63,6 +63,18 @@ Regla de contacto: ningún frente asigna directamente trabajo a Karen Velastegui
 | publicación y moderación | Dirección + aprobadores de gate | Community por nombrar | Are, Alejandro, Cristian, Andrés | equipo | bloqueada sin autorización externa y gates completos |
 
 La delegación de este sprint usa exactamente los nombres indicados por Alex y no depende de la asignabilidad de una herramienta. Véase [[../05_marketing-comunicacion/02_contenido/2026-08-28_cronopost_ampliacion-semana-1-rostro-tiktok-finados-2026_v01|cronopost operativo]].
+
+## Gobierno de tareas madre y subtareas en Bitrix
+
+Para toda carga futura se aplica el [[2026-08-31_modelo-jerarquia-tareas-bitrix-finados-2026_v01|modelo aprobado de jerarquía]]:
+
+| Nivel | Responsable Bitrix | Responsabilidad real | Aprobación |
+|---|---|---|---|
+| tarea madre nombrada por Alex | Andrés Flores | coordinar alcance, hijos, bloqueos y gate | dueño del frente o Dirección según materia |
+| subtarea entregable | ejecutor real | producir y adjuntar la evidencia | aprobador y dueño del dato correspondiente |
+| checklist | responsable de la subtarea | completar pasos del mismo entregable | control de cierre de la subtarea |
+
+Andrés Flores no sustituye al ejecutor de una subtarea por figurar como responsable de la madre. La jerarquía no reemplaza las dependencias Gantt ni el RACI del frente.
 
 ## Decisiones críticas
 

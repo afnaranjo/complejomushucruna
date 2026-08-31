@@ -2,7 +2,7 @@
 titulo: "Decisiones Feria de Finados 2026"
 responsable: "dirección integral de la feria"
 estado: en-revision
-ultima_actualizacion: 2026-08-28
+ultima_actualizacion: 2026-08-31
 fuente: interna
 confidencialidad: restringido
 tags:
@@ -36,5 +36,6 @@ tags:
 | FF26-DEC-020 | 2026-08-28 | Reducir la Semana 1 a una actualización de avatar/portada y dos Reels: seis banderas el sábado 29 y siluetas el domingo 30; usar portadas por fase y mantener desde el 1 de octubre una portada final estable | Aprovechar la comunidad existente, evitar sobrecarga y hacer que el misterio se comprenda por la imagen sin explicarlo en Stories o copys | Alex Naranjo | dirección, marketing, diseño, audiovisual, comunicación, community, marca, programación y embargo | reemplazada parcialmente por FF26-DEC-022: se conservan el Reel oficial del sábado y el Reel del domingo, y se añaden dos adelantos TikTok propuestos sujetos a Go/No-Go externo |
 | FF26-DEC-021 | 2026-08-28 | Ampliar la producción interna de Semana 1 con selección de un rostro recurrente hasta el 30 de agosto y un sistema transparente de tres líneas editoriales TikTok; convertir la falsa filtración en adelanto autorizado y no añadir otra publicación al fin de semana | Construir una voz humana reconocible y distribución nativa sin engañar, suplantar ni romper la cadencia mínima ya aprobada | Alex Naranjo | dirección, marketing, comunicación, diseño, audiovisual, producción, personal, seguridad, privacidad, community y datos | reemplazada el 2026-08-28 por FF26-DEC-022 para corregir responsables y secuencia |
 | FF26-DEC-022 | 2026-08-28 | Ejecutar la planificación del 28–30 con Are Morales como dueña del relato, Alejandro Flores como coordinador y buscador del rostro, Cristian Núñez como responsable gráfico y Andrés Naula como responsable audiovisual; preparar para el sábado una secuencia autorizada de tres líneas TikTok con vínculo visible al evento | Respetar la delegación directa de Alex, entregar trabajo accionable a diseño y aprovechar la intriga sin suplantación, astroturfing o filtración falsa | Alex Naranjo | dirección, marketing, comunicación, diseño, audiovisual, producción, personal, seguridad, privacidad, community y datos | aprobada para cronopost y producción interna; no autoriza crear cuentas, publicar, pautar, revelar embargo ni grabar sin consentimiento |
+| FF26-DEC-023 | 2026-08-31 | Organizar toda carga futura en Bitrix mediante una tarea madre nombrada previamente por Alex, con Andrés Flores como responsable de coordinación de la madre y cada ejecutor real como responsable de su subtarea | Evitar tareas planas, mezclar seguimiento con ejecución y perder responsables, dependencias o evidencia | Alex Naranjo | todos | aprobada para estructuración futura; cada madre y sus hijos requieren aprobación antes de cargarse y esta decisión no autoriza nuevas tareas en Bitrix |
 
 Las decisiones de una reunión se trasladan aquí cuando estén confirmadas. Si reemplazan otra decisión, no la borres: cambia su estado a `reemplazada` y enlaza la nueva.

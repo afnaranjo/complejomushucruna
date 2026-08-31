@@ -2,7 +2,7 @@
 titulo: "Bitácora diaria"
 responsable: "dirección integral de la feria"
 estado: aprobado
-ultima_actualizacion: 2026-08-28
+ultima_actualizacion: 2026-08-31
 fuente: interna
 confidencialidad: interno
 ---
@@ -13,6 +13,7 @@ Registro breve de avances, decisiones, bloqueos y próximos pasos. Obsidian crea
 
 ## Entradas recientes
 
+- [[2026-08-31_bitacora_modelo-tareas-madre-bitrix-finados-2026_v01|2026-08-31 · Modelo de tareas madre y subtareas para Bitrix]]
 - [[2026-08-28_bitacora_correccion-roles-dependencias-bitrix-finados-2026_v01|2026-08-28 · Corrección de roles y dependencias en Bitrix]]
 - [[2026-08-28_bitacora_carga-semana-1-bitrix-finados-2026_v01|2026-08-28 · Carga de Semana 1 en Bitrix]]
 - [[2026-08-28_bitacora_linea-visual-finados-2026_v01|2026-08-28 · Línea visual Finados 2026]]

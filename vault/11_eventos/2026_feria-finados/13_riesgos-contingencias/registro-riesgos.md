@@ -2,7 +2,7 @@
 titulo: "Registro de riesgos Feria de Finados 2026"
 responsable: "dirección de riesgos"
 estado: borrador
-ultima_actualizacion: 2026-08-28
+ultima_actualizacion: 2026-08-31
 fuente: interna
 confidencialidad: restringido
 tags: [feria-finados-2026, riesgos]
@@ -53,5 +53,6 @@ Escala preliminar: probabilidad e impacto de 1 a 5. Prioridad = probabilidad × 
 | R-037 | Adelanto se presenta como filtración real o usa perfiles falsos | Buscar intriga mediante suplantación, astroturfing o una historia de filtración inexistente | Pérdida de confianza, bloqueo de cuentas, crisis y daño reputacional | 3 | 5 | 15 | Etiquetar el adelanto como autorizado, mostrar vínculo con el evento y aprobar dueño, bio, accesos y moderación | Detener distribución, aclarar el origen, retirar la pieza engañosa y documentar la corrección | Are/Alejandro/dirección/community | cuenta sin dueño o copy que afirma una filtración falsa | abierto |
 | R-038 | Convertir a un trabajador o guardia en rostro sin consentimiento o afectando su función | Presión por elegir rápido una persona “viral” y grabarla durante su jornada | Riesgo laboral, de seguridad, privacidad y reputación; contenido insostenible | 3 | 5 | 15 | Participación voluntaria, compatibilidad laboral, prueba comparable, consentimiento y suplente | Suspender grabación/uso, relevar la función y retirar el material conforme al acuerdo | Alejandro/Andrés Naula/personal/operaciones/seguridad | grabación sin autorización o abandono de puesto | abierto |
 | R-039 | El relato promete escala, parqueaderos, turismo, escenas o app no validados | Convertir afirmaciones internas e hipótesis en copy público sin dueño del dato | Desinformación, reclamos, pérdida de confianza y presión operativa | 4 | 4 | 16 | Escalera de mensajes con estado de evidencia y aprobador por afirmación | Corregir multicanal, retirar la promesa y activar información de servicio aprobada | Are/comunicación/datos/operaciones/tecnología | superlativo, cifra o servicio futuro sin evidencia | abierto |
+| R-040 | Carga plana, duplicada o mal jerarquizada de tareas en Bitrix | Migrar paquetes o entregables sin padre canónico, aprobación individual, clave estable o reconciliación previa | Tablero inmanejable, doble conteo, responsables confusos, dependencias perdidas y trabajo duplicado | 4 | 4 | 16 | Alex nombra cada madre; Andrés Flores coordina la madre; ejecutores reales reciben los hijos; inventario de solo lectura, claves estables y carga gradual verificada | Detener el lote, conservar tareas existentes, reconciliar sin borrar y corregir relaciones con aprobación | dirección/Andrés Flores/administración Bitrix | tarea sin padre, clave duplicada o hijo con responsable genérico | abierto |
 
 Este registro no reemplaza matrices técnicas de seguridad, salud o cumplimiento.
