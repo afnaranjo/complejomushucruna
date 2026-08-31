@@ -13,6 +13,7 @@ Registro breve de avances, decisiones, bloqueos y próximos pasos. Obsidian crea
 
 ## Entradas recientes
 
+- [[2026-08-31_bitacora_observadores-edwin-alex-bitrix-finados-2026_v01|2026-08-31 · Edwin Masabanda y Alex Naranjo como observadores en Bitrix]]
 - [[2026-08-31_bitacora_modelo-tareas-madre-bitrix-finados-2026_v01|2026-08-31 · Modelo de tareas madre y subtareas para Bitrix]]
 - [[2026-08-28_bitacora_correccion-roles-dependencias-bitrix-finados-2026_v01|2026-08-28 · Corrección de roles y dependencias en Bitrix]]
 - [[2026-08-28_bitacora_carga-semana-1-bitrix-finados-2026_v01|2026-08-28 · Carga de Semana 1 en Bitrix]]

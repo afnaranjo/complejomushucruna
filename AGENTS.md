@@ -607,3 +607,14 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Publicación externa: únicamente el despliegue autorizado de `complejomushucruna.com`, con copia de seguridad previa y transferencia sin borrado. Un 403 transitorio causado por permisos de directorio copiados por SCP fue corregido, verificado y prevenido en el script.
 - Riesgos: la landing conserva `noindex` y el mock conceptual hasta una aprobación pública posterior; el acceso operativo al servidor debe continuar fuera del repositorio.
 - Pendiente: mantener el gate de aprobación antes de retirar `noindex` o anunciar información de campaña.
+
+### 2026-08-31 — Edwin Masabanda y Alex Naranjo como observadores en Bitrix
+
+- Se auditó en modo lectura el Collab `FINADOS 2026` y se confirmaron 15 tareas y las cuentas activas exactas de Edwin Masabanda y Alex Naranjo. La validación evitó confundir a Edwin Masabanda con `EDWIN NAULA` y resolvió a Alex mediante el nombre completo que devuelve Bitrix.
+- Edwin no figuraba como observador en ninguna tarea; Alex ya figuraba en 5. Se aplicó la unión de observadores: Edwin fue añadido a las 15 y Alex a las 10 donde faltaba, sin retirar a ninguna persona existente.
+- QA: una consulta posterior confirmó las 15 tareas, ambas cuentas en todas, listas de observadores sin duplicados y coincidencia exacta con el estado previo más las adiciones; títulos, responsables, creadores, participantes, fechas, estados, etapas, jerarquía, prioridad, descripción y controles operativos seleccionados permanecieron iguales.
+- Commit: incluido en `Registrar observadores transversales en Bitrix`.
+- Publicación externa: únicamente configuración interna autorizada de observadores en las tareas existentes de Bitrix y el push documental; no se creó, borró, recreó, cerró, movió o reasignó ninguna tarea, y no se modificaron Notion, CRM, redes, Meta, boletería o sitios.
+- Seguridad: la sesión OAuth se manejó con salida sensible silenciada; no se versionaron credenciales, tokens, URL privadas o identificadores internos.
+- Riesgos: el cambio cubre las 15 tareas existentes en el corte del 2026-08-31; no establece por inferencia una automatización para tareas futuras.
+- Pendiente: aplicar y verificar los observadores de cada nueva tarea dentro del modelo aprobado de tareas madre y subtareas.
