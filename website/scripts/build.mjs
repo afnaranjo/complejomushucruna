@@ -1,11 +1,14 @@
 import { cp, mkdir, readdir, rm, writeFile } from 'node:fs/promises';
 import { dirname, join, relative, resolve } from 'node:path';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import { pages } from '../src/pages.mjs';
 import { renderLayout } from '../src/render/layout.mjs';
 
 const websiteRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const execFileAsync = promisify(execFile);
 
 async function listFiles(directory, root = directory) {
   const entries = await readdir(directory, { withFileTypes: true });
@@ -27,10 +30,12 @@ export async function buildSite(outputDirectory = join(websiteRoot, 'dist')) {
     const relativePath = page.route === '/' ? 'index.html' : `${page.route.slice(1)}index.html`;
     const target = join(output, relativePath);
     await mkdir(dirname(target), { recursive: true });
-    await writeFile(target, `${renderLayout(page)}\n`, 'utf8');
+    const html = page.render ? page.render(page) : renderLayout(page);
+    await writeFile(target, `${html}\n`, 'utf8');
   }
 
   const sitemapEntries = pages
+    .filter((page) => page.indexable !== false)
     .map((page) => `  <url><loc>https://complejomushucruna.com${page.route}</loc></url>`)
     .join('\n');
   await writeFile(join(output, 'sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${sitemapEntries}\n</urlset>\n`, 'utf8');
@@ -45,6 +50,15 @@ export async function buildSite(outputDirectory = join(websiteRoot, 'dist')) {
   } catch (error) {
     if (error.code !== 'ENOENT') throw error;
   }
+
+  const finadosAssets = join(output, 'assets', 'finados');
+  await mkdir(finadosAssets, { recursive: true });
+  await execFileAsync(join(websiteRoot, 'node_modules', '.bin', 'tailwindcss'), [
+    '-i', join(websiteRoot, 'src', 'finados', 'finados.css'),
+    '-o', join(finadosAssets, 'finados.css'),
+    '--minify',
+  ], { cwd: websiteRoot });
+  await cp(join(websiteRoot, 'src', 'finados', 'finados.js'), join(finadosAssets, 'finados.js'));
 
   return (await listFiles(output)).sort();
 }

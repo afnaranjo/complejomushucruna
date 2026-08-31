@@ -19,6 +19,7 @@ import {
   sectionHeading,
   visitPanel,
 } from './render/components.mjs';
+import { renderFinadosPage } from './finados/page.mjs';
 
 const historyParagraphs = [
   'Al pie del volcán Carihuayrazo, cerca al Puñalica y de frente a los Llimpes, se levanta el Complejo Intercultural y Deportivo Mushuc Runa, en honor al hombre nuevo, que se abre espacio en este mundo globalizado. Desde la parte alta se puede apreciar la explanada que acoge a varios poblados de Ambato, Tisaleo, Quero y Cevallos. La obra que inició en el 2012 bajo la inspiración de Luis Alfonso Chango, tiene un toque campestre y natural, dotado de funcionalidad moderna. El proyecto fue inspirado en la reivindicación de los indígenas que hasta hace poco, sólo servían como peones de estas tierras.',
@@ -196,4 +197,12 @@ const archivePages = historicalEvents.map((event) => ({
   }) + archiveArticle(legacyTexts(event.sourceId, event.summary)),
 }));
 
-export const pages = Object.freeze([...mainPages, ...archivePages]);
+const finadosPreview = {
+  route: '/finados/',
+  title: 'Finados 2026',
+  description: 'Previsualización privada de la identidad y experiencia digital de Finados 2026.',
+  indexable: false,
+  render: renderFinadosPage,
+};
+
+export const pages = Object.freeze([...mainPages, ...archivePages, finadosPreview]);

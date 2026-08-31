@@ -1,0 +1,281 @@
+@import "tailwindcss";
+@source "./page.mjs";
+
+@font-face {
+  font-family: "Anton";
+  src: url("/assets/finados/fonts/anton-latin.woff2") format("woff2");
+  font-display: swap;
+  font-style: normal;
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: "DM Serif Display";
+  src: url("/assets/finados/fonts/dm-serif-display-latin.woff2") format("woff2");
+  font-display: swap;
+  font-style: normal;
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: "DM Serif Display";
+  src: url("/assets/finados/fonts/dm-serif-display-italic-latin.woff2") format("woff2");
+  font-display: swap;
+  font-style: italic;
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: "Inter";
+  src: url("/assets/finados/fonts/inter-variable-latin.woff2") format("woff2");
+  font-display: swap;
+  font-style: normal;
+  font-weight: 300 900;
+}
+
+@theme {
+  --color-purple: #6e2ce0;
+  --color-fuchsia: #ff2e8a;
+  --color-winay: #ffc42e;
+  --color-cyan: #00d2d6;
+  --color-lienzo: #f4eada;
+  --color-night: #391f6f;
+  --color-poncho: #e01b24;
+  --font-display: "Anton", "Arial Narrow", sans-serif;
+  --font-serif: "DM Serif Display", Georgia, serif;
+  --font-sans: "Inter", "Helvetica Neue", Arial, sans-serif;
+  --tracking-mega: 0.34em;
+  --tracking-wide: 0.16em;
+  --ease-brand: cubic-bezier(.2, .8, .3, 1);
+  --shadow-hard: 7px 7px 0 0 #391f6f;
+}
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    color-scheme: light;
+    scroll-padding-top: 7rem;
+  }
+
+  body {
+    margin: 0;
+    text-rendering: optimizeLegibility;
+  }
+
+  img,
+  svg {
+    display: block;
+    max-width: 100%;
+  }
+
+  a,
+  button {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  :focus-visible {
+    outline: 3px solid #00d2d6;
+    outline-offset: 3px;
+  }
+}
+
+@layer components {
+  .skip-link {
+    position: fixed;
+    z-index: 100;
+    top: 1rem;
+    left: 1rem;
+    padding: .7rem 1rem;
+    background: #fff;
+    color: #391f6f;
+    font-weight: 800;
+    transform: translateY(-180%);
+  }
+
+  .skip-link:focus {
+    transform: none;
+  }
+
+  .chumbi-line {
+    background: repeating-linear-gradient(90deg, #ff2e8a 0 14px, #ffc42e 14px 28px, #00d2d6 28px 42px, #6e2ce0 42px 56px, #e01b24 56px 70px, #f4eada 70px 84px);
+  }
+
+  .campaign-header {
+    background: linear-gradient(180deg, rgba(36, 17, 70, .82), rgba(36, 17, 70, 0));
+  }
+
+  .campaign-header.is-scrolled {
+    background: rgba(36, 17, 70, .96);
+  }
+
+  .hero-scrim {
+    background: linear-gradient(90deg, rgba(36, 17, 70, .95) 0%, rgba(57, 31, 111, .78) 38%, rgba(57, 31, 111, .14) 72%), linear-gradient(0deg, rgba(36, 17, 70, .82) 0%, transparent 48%);
+  }
+
+  .kicker {
+    font-family: "Inter", sans-serif;
+    font-size: .7rem;
+    font-weight: 900;
+    letter-spacing: .28em;
+    text-transform: uppercase;
+  }
+
+  .button-primary,
+  .button-ghost,
+  .button-outline-light,
+  .button-dark,
+  .footer-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .75rem;
+    min-height: 3.25rem;
+    border: 2px solid currentColor;
+    border-radius: 999px;
+    padding: .8rem 1.35rem;
+    font-family: "Inter", sans-serif;
+    font-size: .68rem;
+    font-weight: 900;
+    letter-spacing: .14em;
+    line-height: 1;
+    text-decoration: none;
+    text-transform: uppercase;
+    transition: filter 120ms cubic-bezier(.2, .8, .3, 1), transform 120ms cubic-bezier(.2, .8, .3, 1), background-color 120ms cubic-bezier(.2, .8, .3, 1);
+  }
+
+  .button-primary {
+    border-color: #ff2e8a;
+    background: #ff2e8a;
+    color: #391f6f;
+  }
+
+  .button-ghost,
+  .button-outline-light {
+    border-color: #f4eada;
+    color: #f4eada;
+  }
+
+  .button-outline-light {
+    min-height: 2.7rem;
+    padding: .65rem 1rem;
+    font-size: .58rem;
+  }
+
+  .button-dark,
+  .footer-link {
+    border-color: #391f6f;
+    background: #391f6f;
+    color: #f4eada;
+  }
+
+  .footer-link {
+    border-color: #f4eada;
+  }
+
+  .button-primary:hover,
+  .button-ghost:hover,
+  .button-outline-light:hover,
+  .button-dark:hover,
+  .footer-link:hover {
+    filter: brightness(1.08);
+  }
+
+  .button-primary:active,
+  .button-ghost:active,
+  .button-outline-light:active,
+  .button-dark:active,
+  .footer-link:active {
+    transform: scale(.97);
+  }
+
+  .axis-panel:nth-child(1) { background: #f4eada; }
+  .axis-panel:nth-child(2) { background: #ffd9e9; }
+  .axis-panel:nth-child(3) { background: #fff; }
+  .axis-panel:nth-child(4) { background: #e6dafb; }
+
+  .axis-icon {
+    object-fit: contain;
+    object-position: center;
+  }
+
+  .poster-frame {
+    border: 3px solid #f4eada;
+    box-shadow: 10px 10px 0 #ff2e8a;
+  }
+
+  .marquee {
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .marquee-track {
+    display: flex;
+    width: max-content;
+    gap: 2.5rem;
+    animation: ticker 22s linear infinite;
+  }
+
+  .marquee-track span::after {
+    margin-left: 2.5rem;
+    color: #ffc42e;
+    content: "✦";
+  }
+}
+
+.hero-enter {
+  opacity: 0;
+  transform: translateY(22px);
+}
+
+.is-ready .hero-enter {
+  opacity: 1;
+  transform: none;
+  transition: opacity 420ms cubic-bezier(.2, .8, .3, 1), transform 420ms cubic-bezier(.2, .8, .3, 1);
+}
+
+.is-ready [data-hero-item]:nth-child(2) { transition-delay: 70ms; }
+.is-ready [data-hero-item]:nth-child(3) { transition-delay: 140ms; }
+.is-ready [data-hero-item]:nth-child(4) { transition-delay: 210ms; }
+
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 420ms cubic-bezier(.2, .8, .3, 1), transform 420ms cubic-bezier(.2, .8, .3, 1);
+}
+
+[data-reveal].is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+@keyframes ticker {
+  to { transform: translateX(-50%); }
+}
+
+@media (max-width: 639px) {
+  .hero-scrim {
+    background: linear-gradient(0deg, rgba(36, 17, 70, .98) 0%, rgba(57, 31, 111, .76) 58%, rgba(57, 31, 111, .22) 100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+
+  .hero-enter,
+  [data-reveal] {
+    opacity: 1;
+    transform: none;
+  }
+}

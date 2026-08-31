@@ -44,3 +44,20 @@ test('cada página entrega metadatos, canonical y un único h1', async () => {
   assert.match(home, /<a class="skip-link" href="#contenido">/);
   assert.match(home, /<main id="contenido">/);
 });
+
+test('genera una previsualización privada de Finados sin publicarla en la navegación', async () => {
+  const output = await mkdtemp(join(tmpdir(), 'mushuc-finados-preview-'));
+  const files = await buildSite(output);
+  const home = await readFile(join(output, 'index.html'), 'utf8');
+  const landing = await readFile(join(output, 'finados/index.html'), 'utf8');
+  const sitemap = await readFile(join(output, 'sitemap.xml'), 'utf8');
+
+  assert.ok(files.includes('finados/index.html'));
+  assert.doesNotMatch(home, /href="\/finados\/?"/);
+  assert.doesNotMatch(sitemap, /complejomushucruna\.com\/finados\//);
+  assert.match(landing, /<meta name="robots" content="noindex, nofollow, noarchive">/);
+  assert.match(landing, /Visual conceptual · artista por anunciar/);
+  assert.match(landing, /href="\/"[^>]*>Volver al Complejo/);
+  assert.equal((landing.match(/<h1\b/g) ?? []).length, 1);
+  assert.doesNotMatch(landing, /31 oct|2 nov|120K|\$12/i);
+});

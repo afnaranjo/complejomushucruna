@@ -573,3 +573,15 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Publicación externa: solo el sitio autorizado `complejomushucruna.com`; no se modificaron Meta, redes, boletería, Bitrix, Notion ni el WordPress anterior.
 - Riesgos: la cifra heredada de más de 10.000 parqueaderos requiere conciliación operativa; la licencia documental de Handgoal sigue pendiente; el dominio `.ec` continúa redirigiendo a un sitio malicioso.
 - Pendiente: validar capacidad y plano de parqueaderos, horarios/precios/contactos vigentes, licencia tipográfica y recuperación segura del dominio `.ec`.
+
+### 2026-08-31 — Landing de previsualización Finados 2026
+
+- Se construyó una landing independiente en `/finados/` con Tailwind CSS 4.3 compilado para producción, HTML estático y JavaScript progresivo de menos de 1 KB. No se añadió framework ni runtime en el navegador.
+- Se conservaron logo, paleta, tipografías, cenefa chumbi, iconografía, sombras duras y lenguaje editorial del sistema de diseño recibido; la adaptación web mejora jerarquía, composición panorámica, responsive, accesibilidad, foco y movimiento reducido sin mezclar la identidad institucional del Complejo.
+- El hero usa una cantante enteramente ficticia generada como mock. La página la identifica como visual conceptual y no contiene nombre real, cartel bajo embargo, fecha, precio, programación, venta o estadística no autorizada.
+- Por instrucción de Alex, la ruta se desplegó para revisión por URL, pero no se enlazó en el menú, no se incluyó en el sitemap y declara `noindex, nofollow, noarchive`. Esta ocultación no es autenticación: cualquier persona que conozca el enlace puede acceder.
+- QA: ciclo TDD rojo/verde; 20/20 pruebas; build de 63 archivos y 15 HTML; salida validada con 389 referencias; HTTP 200 para landing, CSS e imagen; hashes locales/remotos idénticos; HTML 13,8 KB, CSS 24,5 KB, JavaScript 972 bytes y hero 110 KB.
+- Commit: incluido en `Crear landing privada Finados 2026`.
+- Publicación externa: únicamente la previsualización autorizada `complejomushucruna.com/finados/`; no se modificaron las demás páginas, menú, sitemap, Meta, redes, boletería, Bitrix, Notion o el dominio `.ec`.
+- Riesgos: `noindex` es una directriz para buscadores y no protege el acceso; el mock debe sustituirse antes de anunciar artistas; faltan aprobación final, derechos, contenido público, fechas, programación, precios, enlaces y condiciones.
+- Pendiente: revisión de Alex; después, con autorización expresa, reemplazar el mock, cerrar datos y derechos, retirar `noindex` e incorporar la landing al menú y sitemap para el lanzamiento.
