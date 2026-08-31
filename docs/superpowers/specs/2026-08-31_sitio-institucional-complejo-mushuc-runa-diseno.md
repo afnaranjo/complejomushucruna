@@ -156,7 +156,7 @@ Conserva las dos rutas y enlaces de Google Maps de la página `Ubícanos`, prese
 
 ## Seguridad de migración
 
-- Lista blanca de extensiones: `.jpg`, `.jpeg`, `.png`, `.webp`, `.svg`, `.mp4`, `.woff2` y fuentes existentes aprobadas.
+- Lista blanca de extensiones: `.jpg`, `.jpeg`, `.png`, `.webp`, `.svg`, `.mp4`, `.woff2` y `.ttf` para la tipografía Handgoal ya publicada en el sitio anterior.
 - Ningún `.php`, `.phtml`, `.js`, `.html`, `.htaccess`, plugin, tema, archivo de configuración o volcado SQL cruza al sitio nuevo.
 - Los SVG se inspeccionan y se evitan cuando contengan scripts, referencias externas o elementos activos.
 - Se verifican MIME, tamaño y extensión de cada activo incorporado.
@@ -192,4 +192,3 @@ Conserva las dos rutas y enlaces de Google Maps de la página `Ubícanos`, prese
 - No usar borrado remoto ni sincronización con `--delete`.
 - Verificar por HTTPS y HTTP con `curl` después de subir.
 - Si falla una comprobación crítica, restaurar el `index.html` temporal desde la copia fechada.
-
