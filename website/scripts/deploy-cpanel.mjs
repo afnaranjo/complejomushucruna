@@ -1,5 +1,5 @@
 import { execFileSync, spawnSync } from 'node:child_process';
-import { access, readFile, stat } from 'node:fs/promises';
+import { access, readFile, readdir, stat } from 'node:fs/promises';
 import { dirname, isAbsolute, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -224,9 +224,15 @@ async function verifyPublicSite(config) {
   }
 }
 
-function runProjectChecks() {
+async function runProjectChecks() {
   console.log('Construyendo y validando el sitio…');
-  run('npm', ['run', 'check'], { cwd: websiteRoot, label: 'La validación local' });
+  const testDirectory = join(websiteRoot, 'tests');
+  const testFiles = (await readdir(testDirectory))
+    .filter((file) => file.endsWith('.test.mjs'))
+    .map((file) => join(testDirectory, file));
+  run(process.execPath, ['--test', ...testFiles], { cwd: websiteRoot, label: 'Las pruebas locales' });
+  run(process.execPath, [join(websiteRoot, 'scripts', 'build.mjs')], { cwd: websiteRoot, label: 'La construcción local' });
+  run(process.execPath, [join(websiteRoot, 'scripts', 'check-dist.mjs')], { cwd: websiteRoot, label: 'La validación de la salida' });
   return access(join(websiteRoot, 'dist', 'index.html'));
 }
 
