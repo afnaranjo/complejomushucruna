@@ -1,5 +1,6 @@
 import legacyPages from './data/legacy-pages.json' with { type: 'json' };
 import {
+  currentHighlights,
   experiences,
   farmCategories,
   historicalEvents,
@@ -14,6 +15,7 @@ import {
   experienceIndex,
   heritageQuote,
   hero,
+  institutionalHighlights,
   sectionHeading,
   visitPanel,
 } from './render/components.mjs';
@@ -22,8 +24,6 @@ const historyParagraphs = [
   'Al pie del volcán Carihuayrazo, cerca al Puñalica y de frente a los Llimpes, se levanta el Complejo Intercultural y Deportivo Mushuc Runa, en honor al hombre nuevo, que se abre espacio en este mundo globalizado. Desde la parte alta se puede apreciar la explanada que acoge a varios poblados de Ambato, Tisaleo, Quero y Cevallos. La obra que inició en el 2012 bajo la inspiración de Luis Alfonso Chango, tiene un toque campestre y natural, dotado de funcionalidad moderna. El proyecto fue inspirado en la reivindicación de los indígenas que hasta hace poco, sólo servían como peones de estas tierras.',
   'Una isla artificial se ubicó al ingreso de los estadios de fútbol para dar la bienvenida. Aquí se preparan datos de las culturas ancestrales de la región, un registro dinámico de información integral de todos los atractivos naturales, culturales y de entretenimiento. Por la parte oriental del Complejo Intercultural y Deportivo Mushuc Runa cruza el legendario camino del Inca con toda su rica historia que se remonta al tiempo.',
 ];
-
-const responsibilityParagraph = 'La comunicación histórica del Complejo ha resaltado una visión de responsabilidad social: apoyar a sectores vulnerables, promover el reciclaje y cuidar el entorno durante sus grandes encuentros. Celebrar también significa compartir y dejar una huella positiva.';
 
 function legacyTexts(sourceId, fallback) {
   const page = legacyPages.find((item) => item.id === sourceId);
@@ -52,7 +52,7 @@ const mainPages = [
       heading: site.tagline,
       intro: 'Un territorio para encontrarnos con la cultura, la naturaleza, el deporte y la alegría de compartir.',
       image: '/assets/images/hero-complejo.webp',
-    }) + editorial({
+    }) + institutionalHighlights(currentHighlights) + editorial({
       eyebrow: 'Bienvenidos',
       heading: 'Un lugar con identidad propia',
       paragraphs: [
@@ -69,14 +69,7 @@ const mainPages = [
     })}${experienceIndex(experiences.slice(0, 3))}<div class="button-row"><a class="button button--red" href="/experiencias/">Ver todas las experiencias</a></div></section>` + heritageQuote(
       'Un espacio donde identidad, comunidad y territorio vuelven a encontrarse.',
       'Complejo Intercultural y Deportivo Mushuc Runa',
-    ) + editorial({
-      eyebrow: 'Compromiso',
-      heading: 'Celebrar también es compartir',
-      paragraphs: [responsibilityParagraph],
-      image: '/assets/images/vista-aerea.webp',
-      alt: 'Vista aérea de los espacios del Complejo Mushuc Runa',
-      reverse: true,
-    }) + `<section class="section shell">${sectionHeading({
+    ) + `<section class="section shell">${sectionHeading({
       eyebrow: 'Memoria viva',
       heading: 'Eventos que forman parte de nuestra historia',
       intro: 'El archivo conserva las páginas publicadas de ferias y celebraciones anteriores sin presentar sus ofertas como vigentes.',

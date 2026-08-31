@@ -72,6 +72,26 @@ export function experienceIndex(experiences) {
   </article>`).join('')}</div>`;
 }
 
+export function institutionalHighlights(highlights) {
+  return `<section class="section current-section">
+    <div class="shell">
+      ${sectionHeading({
+        eyebrow: 'Actualidad institucional',
+        heading: 'Un Complejo preparado para grandes encuentros',
+        intro: 'La portada institucional más reciente pone en primer plano su infraestructura, capacidad de convocatoria y compromiso con la comunidad.',
+      })}
+      <div class="current-highlights">${highlights.map((highlight, index) => `<article class="current-highlight" data-reveal>
+        <figure class="current-highlight__media"><img src="${escapeHtml(highlight.image)}" alt="${escapeHtml(highlight.alt)}" width="1024" height="640" loading="${index === 0 ? 'eager' : 'lazy'}"></figure>
+        <div class="current-highlight__copy">
+          <p class="current-highlight__number">${String(index + 1).padStart(2, '0')}</p>
+          <h3>${escapeHtml(highlight.title)}</h3>
+          <p>${escapeHtml(highlight.description)}</p>
+        </div>
+      </article>`).join('')}</div>
+    </div>
+  </section>`;
+}
+
 export function heritageQuote(quote, citation) {
   return `<section class="heritage-band"><div class="shell" data-reveal><blockquote>“${escapeHtml(quote)}”<cite>${escapeHtml(citation)}</cite></blockquote></div></section>`;
 }

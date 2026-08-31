@@ -61,6 +61,27 @@ export const experiences = Object.freeze([
   },
 ]);
 
+export const currentHighlights = Object.freeze([
+  {
+    title: 'Más de 10 mil parqueaderos',
+    description: '¡Tu comodidad es primero! La portada institucional más reciente destaca más de 10.000 parqueaderos habilitados para facilitar la llegada y disfrutar de los encuentros del Complejo con mayor tranquilidad.',
+    image: '/assets/images/actual/parqueaderos.webp',
+    alt: 'Vista aérea del Complejo Mushuc Runa con sus zonas de parqueadero y megaescenario',
+  },
+  {
+    title: 'El Megaescenario',
+    description: 'El corazón de los eventos feriales del Complejo integra luces, pantallas gigantes y sonido para recibir espectáculos culturales y musicales de gran escala en la zona centro del Ecuador.',
+    image: '/assets/images/actual/megaescenario.webp',
+    alt: 'Megaescenario del Complejo Mushuc Runa durante un espectáculo nocturno',
+  },
+  {
+    title: 'Responsabilidad social',
+    description: 'Celebrar también significa compartir, cuidar y dejar una huella positiva: el Complejo comunica iniciativas de apoyo comunitario, reciclaje y prácticas sostenibles durante sus eventos.',
+    image: '/assets/images/actual/responsabilidad-social.webp',
+    alt: 'Representantes comunitarios e institucionales reunidos en el Complejo Mushuc Runa',
+  },
+]);
+
 export const farmCategories = Object.freeze([
   'Aves',
   'Conejos',
@@ -155,6 +176,9 @@ export const assetManifest = Object.freeze([
   { path: '/assets/images/logo-complejo-dorado.png', kind: 'logo' },
   { path: '/assets/images/patron-mushuc.png', kind: 'pattern' },
   { path: '/assets/images/hero-complejo.webp', kind: 'image' },
+  { path: '/assets/images/actual/parqueaderos.webp', kind: 'image' },
+  { path: '/assets/images/actual/megaescenario.webp', kind: 'image' },
+  { path: '/assets/images/actual/responsabilidad-social.webp', kind: 'image' },
   { path: '/assets/images/complejo-carihuayrazo.webp', kind: 'image' },
   { path: '/assets/images/vista-aerea.webp', kind: 'image' },
   { path: '/assets/images/historia-aerea.webp', kind: 'image' },

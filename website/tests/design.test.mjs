@@ -35,7 +35,6 @@ test('las páginas conservan el contenido institucional recuperado', async () =>
   const visit = await readFile(join(output, 'visitanos/index.html'), 'utf8');
 
   assert.match(home, /¡Cultura y diversión en un solo lugar!/);
-  assert.doesNotMatch(home, /10\.000 parqueaderos|10MIL/);
   assert.match(history, /Al pie del volcán Carihuayrazo/);
   assert.match(history, /La obra que inició en el 2012/);
   for (const category of ['Aves', 'Conejos', 'Cuyes', 'Ganado vacuno', 'Caballos y ponis']) {
@@ -43,6 +42,32 @@ test('las páginas conservan el contenido institucional recuperado', async () =>
   }
   assert.match(visit, /Carretera E35/);
   assert.match(visit, /Camino Real/);
+});
+
+test('la portada prioriza la versión institucional más reciente sobre el archivo histórico', async () => {
+  const output = await buildFixture('mushuc-current-home-');
+  const home = await readFile(join(output, 'index.html'), 'utf8');
+
+  for (const heading of [
+    'Más de 10 mil parqueaderos',
+    'El Megaescenario',
+    'Responsabilidad social',
+  ]) {
+    assert.match(home, new RegExp(heading, 'i'));
+  }
+
+  for (const image of [
+    '/assets/images/actual/parqueaderos.webp',
+    '/assets/images/actual/megaescenario.webp',
+    '/assets/images/actual/responsabilidad-social.webp',
+  ]) {
+    assert.match(home, new RegExp(image.replaceAll('/', '\\/')));
+  }
+
+  assert.ok(
+    home.indexOf('El Megaescenario') < home.indexOf('Eventos que forman parte de nuestra historia'),
+    'La actualidad institucional debe aparecer antes del archivo de eventos',
+  );
 });
 
 test('la página de experiencias distingue oferta histórica de disponibilidad actual', async () => {

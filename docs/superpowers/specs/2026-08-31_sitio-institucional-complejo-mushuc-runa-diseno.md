@@ -15,6 +15,8 @@ Construir y publicar en `complejomushucruna.com` un sitio institucional permanen
 
 Alex aprobó el 2026-08-31 la alternativa de renovación profesional, la conservación de la paleta y tipografías existentes y el despliegue por SSH/HTTP. El archivo temporal `Hola mundo` puede ser reemplazado durante el despliegue.
 
+Ese mismo día se aclaró la fuente cronológica: se debe adaptar la última portada institucional activa en 2026, aunque reutilice fotografías de años anteriores. La fecha del archivo visual no define la vigencia de la composición. El archivo 2021–2025 permanece como memoria secundaria y no sustituye la portada institucional más reciente.
+
 ## Objetivos
 
 - Presentar el Complejo Intercultural y Deportivo Mushuc Runa como destino institucional permanente.
@@ -43,6 +45,9 @@ La auditoría de solo lectura confirmó:
 - dos menús principales y un enlace de tour virtual;
 - 598 MB en `wp-content/uploads`, 4.405 archivos físicos, 688 adjuntos de imagen, 11 videos y 9 fuentes registradas;
 - redirección HTTP actual desde `.ec` hacia dominios externos no relacionados, aunque su `.htaccess` conserva reglas WordPress normales.
+- portada `Inicio` ID 6 modificada el 2026-03-10, con revisiones 3002–3004;
+- tres capturas públicas de Internet Archive del 2026-01-21, 2026-02-11 y 2026-03-14 que muestran la misma estructura institucional, con infraestructura y contenido de 2025 sobre una base fotográfica histórica;
+- ausencia de una página, borrador, campaña o carpeta de medios propia del Complejo titulada 2026 dentro de ese WordPress.
 
 La redirección confirma que el sitio nuevo debe consumir únicamente datos y medios inspeccionados por SSH, nunca el runtime antiguo.
 
@@ -120,9 +125,9 @@ El WordPress no contiene códigos Pantone oficiales. La implementación conserva
 
 ### Inicio
 
-Portada panorámica, promesa histórica `¡Cultura y diversión en un solo lugar!`, presentación institucional, experiencias principales, historia breve, eventos/archivo, llamada a planificar visita y cierre fotográfico.
+Portada panorámica, promesa histórica `¡Cultura y diversión en un solo lugar!`, bloque de actualidad institucional, presentación, experiencias principales, historia breve, eventos/archivo, llamada a planificar visita y cierre fotográfico.
 
-La afirmación de `más de 10.000 parqueaderos` se conserva en el inventario, pero no se publica como vigente sin confirmación.
+El bloque de actualidad recupera de la portada más reciente `Más de 10 mil parqueaderos`, `El Megaescenario` y `Responsabilidad social`, con sus tres fotografías de 2025. La cifra de parqueaderos se atribuye a esa comunicación institucional y queda pendiente de conciliación operativa en el expediente de Finados 2026.
 
 ### Experiencias
 
