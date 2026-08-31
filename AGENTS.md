@@ -562,3 +562,14 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Publicación externa: únicamente el push autorizado de documentación; no se creó, modificó, movió, reasignó, cerró o eliminó ninguna tarea en Bitrix y no se modificó Notion.
 - Riesgos: una carga directa de la matriz actual produciría tareas hermanas; cada madre e hijos requieren responsables, fechas, gates, claves estables y aprobación previa.
 - Pendiente: recibir de Alex la próxima tarea madre, diseñar sus hijos fuera de Bitrix y solicitar aprobación antes de cualquier escritura.
+
+### 2026-08-31 — Renovación estática del sitio institucional
+
+- Se auditó por SSH y HTTP la fuente de `complejomushucruna.ec`. La última portada `Inicio` fue modificada el 2026-03-10 y seguía combinando fotografías históricas con infraestructura y contenido de 2025; Internet Archive confirmó la misma composición el 21 de enero, 11 de febrero y 14 de marzo de 2026. No existía en ese WordPress otra página, borrador o carpeta de medios propia del Complejo titulada 2026.
+- Se construyó en `website/` un sitio estático sin WordPress, PHP, base de datos ni dependencias de producción. Conserva identidad, textos, experiencias, historia, rutas, tipografías, paleta y archivo 2021–2025; la portada corregida prioriza `Más de 10 mil parqueaderos`, `El Megaescenario` y `Responsabilidad social` con las fotografías de la fuente institucional más reciente.
+- Se publicó por autorización expresa de Alex en `complejomushucruna.com`. Antes de la corrección se guardó una copia recuperable en `/home/expoferiamushucr/backups/complejomushucruna.com-20260831-antes-correccion-fuente-2026/`; no se borraron archivos ni se modificaron `.user.ini`, `php.ini`, `.well-known` o `cgi-bin`. Se conservaron las directivas cPanel de `.htaccess` y se aisló el sitio de las reglas WordPress heredadas.
+- QA: TDD rojo/verde para la jerarquía de actualidad; 18/18 pruebas; build de 49 archivos y 14 HTML; hashes locales/remotos iguales para portada, CSS y tres fotografías nuevas; rutas principales y recursos 200; ruta inexistente 404. `complejomushucruna.ec` no fue modificado.
+- Commits: `6095664`, `695596b`, `befbecb`, `cbb1b5b`, `1525b35`, `af27c3a` y `4452b5e`; cierre documental incluido en `Documentar despliegue del sitio institucional`.
+- Publicación externa: solo el sitio autorizado `complejomushucruna.com`; no se modificaron Meta, redes, boletería, Bitrix, Notion ni el WordPress anterior.
+- Riesgos: la cifra heredada de más de 10.000 parqueaderos requiere conciliación operativa; la licencia documental de Handgoal sigue pendiente; el dominio `.ec` continúa redirigiendo a un sitio malicioso.
+- Pendiente: validar capacidad y plano de parqueaderos, horarios/precios/contactos vigentes, licencia tipográfica y recuperación segura del dominio `.ec`.
