@@ -596,3 +596,14 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Publicación externa: únicamente el push solicitado al repositorio; no se ejecutó otro despliegue, no se modificó cPanel y no se tocaron Meta, redes, boletería, Bitrix, Notion o el dominio `.ec`.
 - Riesgos: la configuración y la llave deben instalarse por separado en cada computadora; `noindex` en `/finados/` no sustituye autenticación; restaurar un backup requiere autorización porque sobrescribe archivos.
 - Pendiente: configurar localmente la nueva computadora, ejecutar el prevuelo y solicitar autorización antes del siguiente despliegue.
+
+### 2026-08-31 — Contraste de Encuentro y despliegue final de Finados
+
+- Por instrucción expresa de Alex se conservó el texto rosado del hero y se rediseñó únicamente la forma posterior denominada `Encuentro`: cuerpo ciruela oscuro y capa cian desplazada para recuperar contraste sin modificar el contenido ni la composición general.
+- Se hizo portable en Windows la construcción y el despliegue. El flujo ahora usa la ruta nativa para SCP y, después de transferir, corrige únicamente el docroot y las carpetas que queden exactamente en modo `700`; excluye `.well-known` y `cgi-bin` antes de verificar HTTPS.
+- Se completó la configuración local necesaria para el despliegue sin versionar datos de acceso ni la configuración real del servidor.
+- QA: 24/24 pruebas; build de 63 archivos y 15 HTML; 388 referencias internas; inspección visual final de la portada en navegador; HTTP 200 para portada, landing y CSS, y 404 para una ruta inexistente.
+- Commits técnicos: `b40f561`, `dbc5e61`, `c7a8b99`, `aaebba3` y `751d444`; cierre documental incluido en `Documentar ajuste y despliegue de Encuentro`.
+- Publicación externa: únicamente el despliegue autorizado de `complejomushucruna.com`, con copia de seguridad previa y transferencia sin borrado. Un 403 transitorio causado por permisos de directorio copiados por SCP fue corregido, verificado y prevenido en el script.
+- Riesgos: la landing conserva `noindex` y el mock conceptual hasta una aprobación pública posterior; el acceso operativo al servidor debe continuar fuera del repositorio.
+- Pendiente: mantener el gate de aprobación antes de retirar `noindex` o anunciar información de campaña.
