@@ -76,3 +76,10 @@ test('normaliza permisos de carpetas después de SCP y antes de verificar HTTPS'
   assert.match(source, /\.well-known/);
   assert.match(source, /cgi-bin/);
 });
+
+test('transfiere dist con una ruta relativa compatible con SCP en Windows', async () => {
+  const source = await readFile(deployScript, 'utf8');
+
+  assert.match(source, /'-r', 'dist\/\.'/);
+  assert.doesNotMatch(source, /join\(websiteRoot, 'dist'\)/);
+});

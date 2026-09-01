@@ -184,7 +184,7 @@ function uploadDist(config) {
   const target = `${config.DEPLOY_SSH_USER}@${config.DEPLOY_SSH_HOST}:${config.DEPLOY_REMOTE_ROOT}/`;
   const scpArgs = sshBaseArgs(config);
   scpArgs[scpArgs.indexOf('-p')] = '-P';
-  run('scp', [...scpArgs, '-r', `${join(websiteRoot, 'dist')}/.`, target], {
+  run('scp', [...scpArgs, '-r', 'dist/.', target], {
     silent: true,
     label: 'La transferencia de archivos',
   });
