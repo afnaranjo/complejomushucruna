@@ -665,3 +665,14 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Publicación externa: push autorizado a `origin/main` y despliegue autorizado en `complejomushucruna.com`; el proceso creó una copia remota recuperable, transfirió sin borrar archivos exclusivos y verificó HTTPS.
 - Seguridad: no se versionaron credenciales, llaves ni configuración operativa privada.
 - Riesgos y pendientes: mantener la fecha coordinada con ventas y el canal externo de reserva; la decisión sobre `noindex`, menú y sitemap continúa pendiente.
+
+### 2026-09-01 — Página local de acceso para compra de stands
+
+- Alex solicitó una nueva ruta `/acceso-compra-stands/` inspirada en la diagramación centrada de la referencia `Control de acceso`, pero aplicada íntegramente a la línea gráfica de Finados y sin reutilizar las fotografías de referencia.
+- La página usa únicamente la información aportada: venta el 14 de noviembre, modalidad 100% online, más de 500 stands, invitación a destacar marca y producto y botón hacia el canal externo de compra. No se añadieron precios, categorías, condiciones, pasos o garantías no entregados.
+- El botón `Reservar mi stand` de `/finados/` ahora abre primero la nueva página; desde ella se accede al enlace externo. La ruta conserva `noindex, nofollow, noarchive` y sigue fuera del menú y sitemap.
+- Se incorporó exactamente el logo PNG entregado. Sustituye los logotipos visibles de la landing y de la nueva ruta; la paloma y el nuevo espectador se aíslan desde ese mismo recurso para conservar su diseño sin reinterpretación.
+- QA: ciclo rojo/verde; 24/24 pruebas, build de 70 archivos y 16 HTML, 406 referencias válidas, navegación landing→acceso comprobada y revisión visual de hero, tarjetas, CTA, segundo bloque, logo y espectador en escritorio y móvil. El ancho móvil coincide con el viewport y no presenta desbordamiento horizontal.
+- Publicación externa: ninguna. Los cambios permanecen en el árbol local para revisión; no hubo commit, push, despliegue, modificación de cPanel ni escritura en el canal de compra.
+- Seguridad: no se versionaron credenciales, rutas de red, llaves o configuración privada.
+- Riesgos y pendientes: confirmar vigencia de `más de 500 stands` y del enlace externo; obtener autorización de publicación; decidir por separado si la ruta debe ser indexable.

@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @source "./page.mjs";
+@source "./stands-page.mjs";
 
 @font-face {
   font-family: "Anton";
@@ -111,6 +112,158 @@
 
   .campaign-header.is-scrolled {
     background: rgba(36, 17, 70, .96);
+  }
+
+  .stands-access-page,
+  .stands-access-hero {
+    background: #241146;
+  }
+
+  .stands-access-backdrop {
+    background:
+      linear-gradient(135deg, rgba(36, 17, 70, .98), rgba(57, 31, 111, .94) 55%, rgba(110, 44, 224, .86)),
+      radial-gradient(circle at 50% 15%, rgba(0, 210, 214, .18), transparent 34%);
+  }
+
+  .stands-access-backdrop::before,
+  .stands-access-backdrop::after {
+    position: absolute;
+    content: "";
+  }
+
+  .stands-access-backdrop::before {
+    inset: 8% -10% auto auto;
+    width: min(56rem, 70vw);
+    height: 75%;
+    background: rgba(255, 46, 138, .18);
+    clip-path: polygon(22% 0, 100% 12%, 84% 100%, 0 78%);
+    transform: rotate(-5deg);
+  }
+
+  .stands-access-backdrop::after {
+    inset: auto auto -11rem -9rem;
+    width: 34rem;
+    height: 34rem;
+    border: 5rem solid rgba(0, 210, 214, .12);
+    border-radius: 50%;
+  }
+
+  .stands-access-spectator {
+    right: -5rem;
+    bottom: 1rem;
+    width: min(44rem, 54vw);
+    max-width: none;
+    opacity: .1;
+    filter: drop-shadow(1rem 1rem 0 rgba(255, 46, 138, .55));
+  }
+
+  .stands-access-brand {
+    width: fit-content;
+  }
+
+  .stands-access-title {
+    font-size: clamp(4rem, 9vw, 8.5rem);
+    line-height: .9;
+    letter-spacing: -.02em;
+    word-spacing: .04em;
+  }
+
+  .stands-access-fact {
+    display: flex;
+    min-height: 9rem;
+    flex-direction: column;
+    justify-content: space-between;
+    border: 2px solid #f4eada;
+    padding: 1.25rem;
+    box-shadow: 7px 7px 0 rgba(244, 234, 218, .32);
+  }
+
+  .stands-access-fact > span,
+  .stands-story-card > span {
+    font-family: "Inter", sans-serif;
+    font-size: .64rem;
+    font-weight: 900;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+  }
+
+  .stands-access-fact time,
+  .stands-access-fact strong {
+    font-family: "Anton", "Arial Narrow", sans-serif;
+    font-size: clamp(2rem, 3.2vw, 3rem);
+    font-weight: 400;
+    line-height: .95;
+    text-transform: uppercase;
+  }
+
+  .stands-access-fact-date {
+    background: #f4eada;
+    color: #241146;
+  }
+
+  .stands-access-fact-online {
+    background: #00d2d6;
+    color: #241146;
+  }
+
+  .stands-access-fact-count {
+    background: #ffc42e;
+    color: #241146;
+  }
+
+  .stands-purchase-button {
+    display: inline-flex;
+    min-height: 3.5rem;
+    align-items: center;
+    justify-content: center;
+    gap: .8rem;
+    border: 2px solid #f4eada;
+    border-radius: 999px;
+    background: #ff2e8a;
+    padding: .9rem 1.5rem;
+    box-shadow: 7px 7px 0 #00d2d6;
+    color: #241146;
+    font-size: .76rem;
+    font-weight: 950;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    transition: transform 160ms ease, box-shadow 160ms ease;
+  }
+
+  .stands-purchase-button:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 10px 10px 0 #00d2d6;
+  }
+
+  .stands-story-title {
+    font-size: clamp(4rem, 8vw, 8rem);
+    line-height: .92;
+    word-spacing: .04em;
+  }
+
+  .stands-story-card {
+    border: 3px solid #241146;
+    background: #6e2ce0;
+    padding: clamp(1.5rem, 4vw, 3rem);
+    box-shadow: 12px 12px 0 #00d2d6;
+    color: #f4eada;
+  }
+
+  .stands-story-card strong {
+    display: block;
+    margin-top: 1rem;
+    font-family: "Anton", "Arial Narrow", sans-serif;
+    font-size: clamp(3.5rem, 7vw, 6rem);
+    font-weight: 400;
+    line-height: .92;
+    text-transform: uppercase;
+  }
+
+  .stands-story-card p {
+    margin-top: 1rem;
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.6;
   }
 
   .hero-stands {
@@ -560,6 +713,33 @@
 }
 
 @media (max-width: 639px) {
+  .stands-access-nav .button-outline-light {
+    min-height: 2.7rem;
+    padding: .65rem .85rem;
+    font-size: .62rem;
+  }
+
+  .stands-access-title {
+    font-size: clamp(3.45rem, 17vw, 4.75rem);
+    line-height: .95;
+  }
+
+  .stands-access-spectator {
+    right: -7rem;
+    bottom: 5rem;
+    width: 26rem;
+    opacity: .08;
+  }
+
+  .stands-access-fact {
+    min-height: 7.5rem;
+  }
+
+  .stands-story-title {
+    font-size: clamp(3.6rem, 18vw, 5rem);
+    line-height: .96;
+  }
+
   .artist-title {
     font-size: clamp(3.05rem, 13vw, 3.55rem);
     line-height: .98;

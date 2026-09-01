@@ -79,7 +79,7 @@ export function renderFinadosPage(page) {
   <header class="campaign-header fixed inset-x-0 top-3 z-40 transition-colors duration-200" data-header>
     <div class="mx-auto flex h-20 w-[min(100%-2rem,88rem)] items-center justify-between sm:h-24">
       <a href="#inicio" aria-label="Finados 2026, inicio">
-        <img class="h-auto w-28 sm:w-36" src="/assets/finados/logo-finados.svg" width="184" height="108" alt="Finados 2026, legado que nos une">
+        <img class="h-auto w-28 sm:w-36" src="/assets/finados/logo-finados-nuevo.png" width="218" height="115" alt="Finados 2026, legado que nos une">
       </a>
       <a class="button-outline-light" href="/">Volver al Complejo</a>
     </div>
@@ -88,9 +88,7 @@ export function renderFinadosPage(page) {
   <main id="contenido">
     <section id="inicio" class="hero-stage hero-stands relative isolate min-h-[100svh] overflow-hidden bg-night text-lienzo">
       <div class="hero-stands-backdrop absolute inset-0 -z-30" aria-hidden="true"></div>
-      <svg class="hero-paloma" viewBox="66 66 38 28" aria-hidden="true" focusable="false">
-        <image href="/assets/finados/logo-finados.svg" width="184" height="108"></image>
-      </svg>
+      <img class="hero-paloma" src="/assets/finados/icons/paloma.svg" alt="" width="480" height="340" aria-hidden="true">
 
       <div class="hero-stands-grid relative mx-auto grid min-h-[100svh] w-[min(100%-2rem,88rem)] gap-4 pt-36 lg:grid-cols-[minmax(0,1.06fr)_minmax(28rem,0.94fr)] lg:items-end lg:pt-32">
         <div class="hero-stands-copy z-10 pb-12 sm:pb-16 lg:pb-16">
@@ -110,7 +108,7 @@ export function renderFinadosPage(page) {
             <div class="hero-online-card" aria-label="Venta online">
               <span>Venta</span>
               <strong>Online</strong>
-              <a class="hero-online-action" href="https://reserva.mushucticket.com/customers"${externalAttributes('https://reserva.mushucticket.com/customers')}>Reservar mi stand <span aria-hidden="true">↗</span></a>
+              <a class="hero-online-action" href="/acceso-compra-stands/">Reservar mi stand <span aria-hidden="true">↗</span></a>
             </div>
           </div>
         </div>
@@ -214,7 +212,7 @@ export function renderFinadosPage(page) {
   <footer class="bg-night px-4 py-12 text-lienzo">
     <div class="mx-auto flex w-[min(100%,88rem)] flex-col gap-8 border-t border-lienzo/30 pt-8 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        <img class="h-auto w-36" src="/assets/finados/logo-finados.svg" width="184" height="108" alt="Finados 2026">
+        <img class="h-auto w-36" src="/assets/finados/logo-finados-nuevo.png" width="218" height="115" alt="Finados 2026">
         <p class="mt-4 max-w-md text-sm leading-relaxed text-lienzo/60">Información de Finados 2026. Consulta condiciones, disponibilidad y novedades por los canales oficiales.</p>
       </div>
       <a class="footer-link" href="/">Volver a complejomushucruna.com <span aria-hidden="true">↗</span></a>
