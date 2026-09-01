@@ -2,7 +2,7 @@
 titulo: "Pendientes ejecutivos"
 responsable: "dirección integral de la feria"
 estado: en-revision
-ultima_actualizacion: 2026-08-31
+ultima_actualizacion: 2026-09-01
 fuente: interna
 confidencialidad: interno
 tags:
@@ -15,8 +15,9 @@ tags:
 ## Prioridad crítica
 
 - [ ] Aplicar el [[11_eventos/2026_feria-finados/00_direccion-control/2026-08-31_modelo-jerarquia-tareas-bitrix-finados-2026_v01|modelo de tareas madre y subtareas]] únicamente de forma gradual: Alex nombra la madre; se diseñan y aprueban sus hijos; Andrés Flores coordina la madre; cada ejecutor real recibe su subtarea; luego se carga y verifica. No crear nuevas tareas hasta recibir la próxima principal y autorización expresa. Responsable: Alex/Andrés Flores/dueño del frente/administración Bitrix. Fecha: por cada paquete aprobado.
+- [ ] Aprobar o corregir la madre propuesta `[MADRE] F26-MKT-S01 · Expectativa · entregables 1–6 sep 2026`, identificar la cuenta asignable de Community Manager, resolver TikTok para el Post del 2 de septiembre y validar o sustituir el numeral `6` del Post del 4. Solo después cargar y verificar las seis hijas del [[11_eventos/2026_feria-finados/05_marketing-comunicacion/02_contenido/2026-09-01_plan-jerarquia-bitrix-contenidos-septiembre-finados-2026_v01|plan de jerarquía]]. Responsable: Alex/Andrés Flores/Community/dueños del dato/administración Bitrix. Fecha: antes de la carga.
 - [ ] Antes de la próxima carga automatizada de Bitrix, asegurar que el cliente no imprima fragmentos de credenciales, separar métodos permitidos de lectura y escritura, validar claves estables, duplicados y ciclos, y reconciliar cada lote antes de reintentar. Responsable: tecnología/administración Bitrix. Fecha: antes de la próxima escritura.
-- [x] Añadir a Edwin Masabanda y Alex Naranjo como observadores de las 15 tareas existentes en el Collab `FINADOS 2026`, conservando a los observadores anteriores y sin cambiar campos operativos. Edwin fue añadido a 15 y Alex a las 10 donde faltaba; la consulta posterior confirmó a ambos en todas. Responsable: Alex/administración Bitrix. Completado: 2026-08-31. Alcance: tareas existentes en el corte; las futuras se validan al cargarlas.
+- [x] Mantener a Alex Naranjo, Edwin Masabanda y Andrés Flores como observadores de las 15 tareas existentes en el Collab `FINADOS 2026`, conservando a los observadores anteriores y sin cambiar campos operativos. Edwin fue añadido a 15 y Alex a las 10 donde faltaba el 2026-08-31; Andrés fue añadido a las 11 donde faltaba el 2026-09-01. La consulta posterior confirmó a los tres en todas. Responsable: Alex/administración Bitrix. Completado: 2026-09-01. Alcance: tareas existentes en el corte; las futuras se validan al cargarlas.
 
 - [ ] Con autorización de Alex, cambiar de inmediato `afnaranjo/complejomushucruna` de público a privado y solicitar a GitHub la purga del commit no referenciado que contenía temporalmente el inventario nominal del cartel. `main` ya fue reemplazado y no contiene esos nombres, pero la API todavía resuelve el objeto anterior por hash. Responsable: Alex/dirección/tecnología. Fecha: inmediata.
 - [x] Construir y publicar en `complejomushucruna.com` el sitio institucional estático sin WordPress, usando la última portada activa en 2026 y conservando fotografías históricas en su contexto. Se verificaron 18 pruebas locales, 14 páginas HTML, rutas principales 200 y respuesta 404 propia. Responsable: Alex/tecnología. Completado: 2026-08-31.

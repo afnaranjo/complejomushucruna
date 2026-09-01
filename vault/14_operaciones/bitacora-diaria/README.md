@@ -2,7 +2,7 @@
 titulo: "Bitácora diaria"
 responsable: "dirección integral de la feria"
 estado: aprobado
-ultima_actualizacion: 2026-08-31
+ultima_actualizacion: 2026-09-01
 fuente: interna
 confidencialidad: interno
 ---
@@ -13,6 +13,7 @@ Registro breve de avances, decisiones, bloqueos y próximos pasos. Obsidian crea
 
 ## Entradas recientes
 
+- [[2026-09-01_bitacora_jerarquia-cronopost-y-observadores-bitrix-finados-2026_v01|2026-09-01 · Jerarquía del cronopost y observadores transversales en Bitrix]]
 - [[2026-08-31_bitacora_observadores-edwin-alex-bitrix-finados-2026_v01|2026-08-31 · Edwin Masabanda y Alex Naranjo como observadores en Bitrix]]
 - [[2026-08-31_bitacora_modelo-tareas-madre-bitrix-finados-2026_v01|2026-08-31 · Modelo de tareas madre y subtareas para Bitrix]]
 - [[2026-08-28_bitacora_correccion-roles-dependencias-bitrix-finados-2026_v01|2026-08-28 · Corrección de roles y dependencias en Bitrix]]

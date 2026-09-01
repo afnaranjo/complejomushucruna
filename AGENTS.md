@@ -618,3 +618,15 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Seguridad: la sesión OAuth se manejó con salida sensible silenciada; no se versionaron credenciales, tokens, URL privadas o identificadores internos.
 - Riesgos: el cambio cubre las 15 tareas existentes en el corte del 2026-08-31; no establece por inferencia una automatización para tareas futuras.
 - Pendiente: aplicar y verificar los observadores de cada nueva tarea dentro del modelo aprobado de tareas madre y subtareas.
+
+### 2026-09-01 — Jerarquía del cronopost y observadores transversales en Bitrix
+
+- Se compararon el Markdown y el Excel de planificación del 1 al 6 de septiembre: ambos contienen cinco piezas y una acción de monitoreo; el libro fija las 17:00 como vencimiento de las seis acciones.
+- Se propuso una única madre semanal de expectativa con Andrés Flores como responsable, tres Reels hijos para `EDWIN NAULA`, dos Posts hijos para `Luis Chango` como cuenta operativa de Cristian/Cris Núñez y una hija de monitoreo pendiente de una cuenta exacta de Community. Las piezas solo subirán a madres si después se dividen entre responsables, fechas, gates o evidencias independientes.
+- Se auditó el Collab `FINADOS 2026`: de 15 tareas, Andrés Flores ya observaba 4 y faltaba en 11. Se añadió únicamente en esas 11 y la verificación idempotente confirmó a Alex Naranjo, Edwin Masabanda y Andrés Flores como observadores en las 15, sin cambios en títulos, responsables, creadores, participantes, fechas, estados o parentescos seleccionados.
+- La tarea existente `Presentar Cronopost` conserva su alcance de revisión con Are; no se renombró ni se reutilizó como madre de producción. No se creó, movió, reparentó, reasignó, cerró o eliminó ninguna tarea.
+- Commit: incluido en `Documentar jerarquía de contenidos y observadores`.
+- Publicación externa: únicamente configuración interna autorizada de observadores en Bitrix y push documental; no se modificaron Notion, CRM, Meta, redes, boletería o sitios y no se publicó contenido.
+- Seguridad: no se versionaron credenciales, tokens, enlaces privados o identificadores internos. El remoto público conserva únicamente la jerarquía y los nombres operativos autorizados.
+- Riesgos: falta una cuenta asignable de Community; el Post del 2 de septiembre contradice la regla general respecto de TikTok; el numeral `6` requiere validación; fechas, derechos, consentimientos y datos mantienen sus gates.
+- Pendiente: Alex debe confirmar el nombre exacto de la madre, resolver los bloqueos y autorizar la carga de sus seis hijas.
