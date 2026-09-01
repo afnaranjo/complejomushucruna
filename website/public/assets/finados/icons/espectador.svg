@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="179 74 39 21" role="img" aria-label="Símbolo de espectador de Finados 2026">
-  <image href="/assets/finados/logo-finados-nuevo.png" x="0" y="0" width="218" height="115" preserveAspectRatio="none"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 140" role="img" aria-label="Icono de ojo de espectador de Finados 2026">
+  <path fill="#00D2D6" fill-rule="evenodd" clip-rule="evenodd" d="M8 70C36 25 77 4 120 4s84 21 112 66c-28 45-69 66-112 66S36 115 8 70Zm37 0c21 27 47 40 75 40s54-13 75-40c-21-27-47-40-75-40S66 43 45 70Z"/>
+  <circle cx="120" cy="70" r="29" fill="#00D2D6"/>
 </svg>

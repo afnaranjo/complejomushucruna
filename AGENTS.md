@@ -685,3 +685,11 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Publicación externa: únicamente GitHub y `complejomushucruna.com` dentro del alcance autorizado. No se escribió en el sistema de compra ni se modificaron redes, Meta, Bitrix, Notion o el dominio `.ec`.
 - Seguridad: no se versionaron credenciales, llaves, rutas de red o configuración privada.
 - Riesgos y pendientes: mantener vigentes la afirmación de inventario y el canal externo; `noindex` continúa activo y cualquier incorporación a menú o sitemap requiere decisión expresa.
+
+### 2026-09-01 — Corrección local de fecha, reserva y espectador
+
+- Alex corrigió la fecha de venta de stands al 14 de septiembre, pidió que el CTA del hero abra directamente `https://reserva.mushucticket.com/customers` y señaló que faltaba el ojo en la tarjeta `Espectador`.
+- Se actualizó el texto visible y `datetime="2026-09-14"` en `/finados/` y `/acceso-compra-stands/`. El enlace externo incluye apertura segura en pestaña nueva.
+- El recurso de espectador dejó de recortar el logo PNG: ahora es un SVG autónomo con un ojo cian y una URL versionada para invalidar la caché del navegador.
+- QA local: 24/24 pruebas, build de 70 archivos y 16 HTML, 406 referencias válidas, enlace exacto, ausencia de `14 de noviembre` en las páginas generadas y revisión visual del hero y el ojo en escritorio y móvil sin desbordamiento horizontal.
+- Publicación externa: ninguna. No hubo commit, push, despliegue ni escritura en el canal de compra; la versión pública conserva el estado previo hasta autorización expresa.

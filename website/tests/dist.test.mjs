@@ -51,6 +51,7 @@ test('empaqueta la experiencia Finados con recursos locales y optimizados', asyn
   const exhibitor = await stat(join(output, 'assets/finados/expositor-artesanias.webp'));
   const favicon = await stat(join(output, 'assets/finados/favicon-finados.png'));
   const campaignLogo = await stat(join(output, 'assets/finados/logo-finados-nuevo.png'));
+  const spectatorIcon = await readFile(join(output, 'assets/finados/icons/espectador.svg'), 'utf8');
   const guaynaa = await stat(join(output, 'assets/finados/guaynaa-finados.webp'));
   const guaynaaMobile = await stat(join(output, 'assets/finados/guaynaa-finados-960.webp'));
   const kjarkas = await stat(join(output, 'assets/finados/kjarkas-finados.webp'));
@@ -61,10 +62,10 @@ test('empaqueta la experiencia Finados con recursos locales y optimizados', asyn
   assert.match(landing, /rel="icon" href="\/assets\/finados\/favicon-finados\.png"/);
   assert.match(landing, /rel="preload" as="image" href="\/assets\/finados\/expositor-artesanias\.webp"/);
   assert.match(landing, /Venta de stands/);
-  assert.match(landing, /14 de noviembre/);
-  assert.match(landing, /datetime="2026-11-14"/);
+  assert.match(landing, /14 de septiembre/);
+  assert.match(landing, /datetime="2026-09-14"/);
   assert.match(landing, /Venta online/);
-  assert.match(landing, /href="\/acceso-compra-stands\/"/);
+  assert.match(landing, /href="https:\/\/reserva\.mushucticket\.com\/customers"/);
   assert.match(landing, /class="hero-paloma"/);
   assert.match(landing, /\/assets\/finados\/icons\/paloma\.svg/);
   assert.doesNotMatch(landing, /class="hero-encuentro"/);
@@ -79,6 +80,9 @@ test('empaqueta la experiencia Finados con recursos locales y optimizados', asyn
   assert.match(standsPage, /Venta 100% online/);
   assert.match(standsPage, /https:\/\/reserva\.mushucticket\.com\/customers/);
   assert.match(standsPage, /\/assets\/finados\/icons\/espectador\.svg/);
+  assert.match(spectatorIcon, /aria-label="Icono de ojo de espectador/);
+  assert.match(spectatorIcon, /<circle/);
+  assert.doesNotMatch(spectatorIcon, /<image/);
   assert.ok(landing.indexOf('id="artistas"') < landing.indexOf('id="kjarkas"'));
   assert.ok(landing.indexOf('id="kjarkas"') < landing.indexOf('id="canales"'));
   assert.ok(landing.indexOf('id="canales"') < landing.indexOf('id="legado"'));

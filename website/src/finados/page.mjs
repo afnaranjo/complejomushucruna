@@ -38,7 +38,7 @@ function axisMarkup() {
   return axes.map((axis) => `
     <article class="axis-panel group relative min-h-80 overflow-hidden border-t-2 border-night p-6 sm:p-8 lg:min-h-96 lg:border-l-2 lg:border-t-0" data-reveal>
       <span class="font-sans text-xs font-black tracking-mega text-night/60">${axis.number}</span>
-      <img class="axis-icon absolute -bottom-8 -right-7 h-44 w-44 transition duration-200 ease-brand group-hover:-translate-y-2 sm:h-56 sm:w-56" src="/assets/finados/icons/${axis.key}.svg" alt="" width="224" height="224" loading="lazy">
+      <img class="axis-icon absolute -bottom-8 -right-7 h-44 w-44 transition duration-200 ease-brand group-hover:-translate-y-2 sm:h-56 sm:w-56" src="/assets/finados/icons/${axis.key}.svg${axis.key === 'espectador' ? '?v=20260901-2' : ''}" alt="" width="224" height="224" loading="lazy">
       <div class="relative z-10 max-w-52 pt-24 lg:pt-36">
         <h3 class="font-display text-4xl uppercase leading-none text-night sm:text-5xl">${axis.title}</h3>
         <p class="mt-4 font-sans text-sm font-semibold leading-relaxed text-night/75">${axis.text}</p>
@@ -103,12 +103,12 @@ export function renderFinadosPage(page) {
           <div class="hero-enter hero-offer-grid mt-7" data-hero-item>
             <div class="hero-date-card">
               <span>Fecha de venta</span>
-              <time datetime="2026-11-14">14 de noviembre</time>
+              <time datetime="2026-09-14">14 de septiembre</time>
             </div>
             <div class="hero-online-card" aria-label="Venta online">
               <span>Venta</span>
               <strong>Online</strong>
-              <a class="hero-online-action" href="/acceso-compra-stands/">Reservar mi stand <span aria-hidden="true">↗</span></a>
+              <a class="hero-online-action" href="https://reserva.mushucticket.com/customers"${externalAttributes('https://reserva.mushucticket.com/customers')}>Reservar mi stand <span aria-hidden="true">↗</span></a>
             </div>
           </div>
         </div>

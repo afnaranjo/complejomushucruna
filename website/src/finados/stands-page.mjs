@@ -35,7 +35,7 @@ export function renderStandsAccessPage(page) {
   <main id="contenido">
     <section class="stands-access-hero relative isolate flex min-h-[100svh] items-center overflow-hidden px-4 pb-20 pt-32 text-center sm:pb-24 sm:pt-36">
       <div class="stands-access-backdrop absolute inset-0 -z-30" aria-hidden="true"></div>
-      <img class="stands-access-spectator absolute -z-20" src="/assets/finados/icons/espectador.svg" alt="" width="390" height="210" aria-hidden="true">
+      <img class="stands-access-spectator absolute -z-20" src="/assets/finados/icons/espectador.svg?v=20260901-2" alt="" width="390" height="210" aria-hidden="true">
 
       <div class="stands-access-shell mx-auto w-[min(100%,74rem)]">
         <a class="stands-access-brand hero-enter mx-auto block" href="/finados/" aria-label="Finados 2026, volver a la landing" data-hero-item>
@@ -51,7 +51,7 @@ export function renderStandsAccessPage(page) {
         <div class="stands-access-facts hero-enter mx-auto mt-10 grid max-w-5xl gap-3 text-left sm:grid-cols-3" data-hero-item>
           <article class="stands-access-fact stands-access-fact-date">
             <span>Fecha de venta</span>
-            <time datetime="2026-11-14">14 de noviembre</time>
+            <time datetime="2026-09-14">14 de septiembre</time>
           </article>
           <article class="stands-access-fact stands-access-fact-online">
             <span>Modalidad</span>
@@ -80,7 +80,7 @@ export function renderStandsAccessPage(page) {
         <aside class="stands-story-card" data-reveal>
           <span>Acceso de compra</span>
           <strong>100% online</strong>
-          <p>La venta de stands inicia el 14 de noviembre.</p>
+          <p>La venta de stands inicia el 14 de septiembre.</p>
           <a class="button-dark mt-7" href="${purchaseUrl}"${externalAttributes(purchaseUrl)}>Ir a comprar <span aria-hidden="true">↗</span></a>
         </aside>
       </div>
