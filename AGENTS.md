@@ -676,3 +676,12 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Publicación externa: ninguna. Los cambios permanecen en el árbol local para revisión; no hubo commit, push, despliegue, modificación de cPanel ni escritura en el canal de compra.
 - Seguridad: no se versionaron credenciales, rutas de red, llaves o configuración privada.
 - Riesgos y pendientes: confirmar vigencia de `más de 500 stands` y del enlace externo; obtener autorización de publicación; decidir por separado si la ruta debe ser indexable.
+
+### 2026-09-01 — Publicación del acceso para compra de stands
+
+- Alex autorizó subir a Git y producción la versión local completa de `/acceso-compra-stands/`, incluido el nuevo logo, la paloma, el espectador y el enlace previo desde `/finados/`.
+- El commit técnico `a67b672` (`Crear acceso para compra de stands`) se publicó en `origin/main` y se desplegó mediante el flujo reproducible. Antes de transferir se creó una copia remota recuperable; no se borraron archivos exclusivos del servidor y se normalizaron únicamente los permisos previstos.
+- QA de producción: HTTPS devolvió 200 para la nueva ruta, el logo PNG, el espectador SVG y la paloma SVG. El HTML público contiene el título, 14 de noviembre, venta 100% online, más de 500 stands y el canal externo; `/finados/` contiene el enlace interno hacia la nueva página.
+- Publicación externa: únicamente GitHub y `complejomushucruna.com` dentro del alcance autorizado. No se escribió en el sistema de compra ni se modificaron redes, Meta, Bitrix, Notion o el dominio `.ec`.
+- Seguridad: no se versionaron credenciales, llaves, rutas de red o configuración privada.
+- Riesgos y pendientes: mantener vigentes la afirmación de inventario y el canal externo; `noindex` continúa activo y cualquier incorporación a menú o sitemap requiere decisión expresa.
