@@ -643,3 +643,15 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Seguridad: no se versionaron credenciales, tokens, enlaces privados, identificadores internos, contratos o información del cartel bajo embargo.
 - Riesgos: TikTok para el Post del 2 de septiembre, el numeral `6`, aprobadores, dueños del dato, fechas, derechos, consentimientos, música, archivo histórico y accesibilidad siguen como gates de publicación.
 - Pendiente: resolver esos gates y obtener autorización externa expresa antes de programar o publicar cualquier pieza.
+
+### 2026-09-01 — Venta de stands y artistas en la landing Finados
+
+- Alex autorizó actualizar, versionar y publicar directamente la landing `/finados/`. El hero anterior fue sustituido por una propuesta comercial de venta de stands con fecha 16 de noviembre, recuadro de venta online, botón hacia el canal externo de reserva, retrato del expositor aportado y paloma de la identidad visual en lugar de la espiral.
+- El body abre con Guaynaa —domingo 1 de noviembre— y continúa con Los Kjarkas —sábado 31 de octubre— usando los artes aportados y autorizados para esta publicación. Se incorporó el favicon de Finados, se movió `Cuatro formas de volver` al final y se configuraron los enlaces exactos de Facebook, TikTok e Instagram.
+- La implementación conserva HTML estático, CSS compilado y JavaScript progresivo; las imágenes se optimizaron en variantes responsive y no se añadió runtime de producción. El orden final es `inicio → artistas → kjarkas → canales → legado`.
+- QA: 24/24 pruebas, build de 67 archivos y 15 HTML, 391 referencias válidas y `git diff --check` sin errores. La inspección pública confirmó el hero, ambos artistas, los tres enlaces sociales y ausencia de desbordamiento horizontal en escritorio y móvil.
+- Commit técnico: `45ab6b0` (`Actualizar Finados con stands y artistas`). Se integraron antes del push tres commits documentales que ya existían en `origin/main`, sin sobrescribirlos.
+- Publicación externa: despliegue autorizado en `complejomushucruna.com` mediante el flujo reproducible; se creó una copia remota recuperable, se transfirió sin borrar archivos exclusivos, se normalizaron permisos acotados y se verificaron las rutas públicas por HTTPS.
+- Seguridad: no se versionaron credenciales, llaves, configuración real del servidor ni rutas operativas privadas.
+- Riesgos: la autorización cubre los dos anuncios y recursos entregados, no el resto del cartel; deben documentarse derechos/licencias de artes y retrato, mantener vigentes las fechas y comprobar disponibilidad, condiciones y medición del enlace de reserva. La landing conserva `noindex` y continúa fuera del menú y sitemap hasta decisión expresa.
+- Pendiente: decidir el lanzamiento indexable, monitorear el canal de reserva y actualizar o retirar oportunamente cualquier dato o recurso que deje de estar vigente.
