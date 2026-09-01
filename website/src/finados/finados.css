@@ -392,7 +392,14 @@
 
   .artist-title {
     font-size: clamp(4rem, 7vw, 7rem);
+    line-height: .96;
     overflow-wrap: anywhere;
+    word-spacing: .04em;
+  }
+
+  .channels-title {
+    line-height: .94;
+    word-spacing: .04em;
   }
 
   .artist-poster-dark {
@@ -555,6 +562,11 @@
 @media (max-width: 639px) {
   .artist-title {
     font-size: clamp(3.05rem, 13vw, 3.55rem);
+    line-height: .98;
+  }
+
+  .channels-title {
+    line-height: .97;
   }
 
   .hero-stands-backdrop::before {

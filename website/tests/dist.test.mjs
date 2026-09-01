@@ -59,7 +59,8 @@ test('empaqueta la experiencia Finados con recursos locales y optimizados', asyn
   assert.match(landing, /rel="icon" href="\/assets\/finados\/favicon-finados\.png"/);
   assert.match(landing, /rel="preload" as="image" href="\/assets\/finados\/expositor-artesanias\.webp"/);
   assert.match(landing, /Venta de stands/);
-  assert.match(landing, /16 de noviembre/);
+  assert.match(landing, /14 de noviembre/);
+  assert.match(landing, /datetime="2026-11-14"/);
   assert.match(landing, /Venta online/);
   assert.match(landing, /https:\/\/reserva\.mushucticket\.com\/customers/);
   assert.match(landing, /class="hero-paloma"/);

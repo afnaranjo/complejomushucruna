@@ -105,7 +105,7 @@ export function renderFinadosPage(page) {
           <div class="hero-enter hero-offer-grid mt-7" data-hero-item>
             <div class="hero-date-card">
               <span>Fecha de venta</span>
-              <time datetime="2026-11-16">16 de noviembre</time>
+              <time datetime="2026-11-14">14 de noviembre</time>
             </div>
             <div class="hero-online-card" aria-label="Venta online">
               <span>Venta</span>
@@ -133,7 +133,7 @@ export function renderFinadosPage(page) {
         </figure>
         <div class="artist-copy lg:pl-6">
           <p class="kicker text-cyan" data-reveal>Próxima revelación</p>
-          <h2 id="guaynaa-title" class="artist-title mt-5 font-display uppercase leading-[0.84]" data-reveal>Guaynaa enciende el Megaescenario</h2>
+          <h2 id="guaynaa-title" class="artist-title mt-5 font-display uppercase" data-reveal>Guaynaa enciende el Megaescenario</h2>
           <p class="mt-7 max-w-lg font-sans text-lg leading-relaxed text-lienzo/75" data-reveal>Ritmo urbano, energía y una noche para cantar y bailar juntos en Finados 2026.</p>
           <p class="artist-date artist-date-dark mt-8" data-reveal><span>Domingo</span><time datetime="2026-11-01">1 de noviembre</time></p>
         </div>
@@ -144,7 +144,7 @@ export function renderFinadosPage(page) {
       <div class="mx-auto grid w-[min(100%-2rem,88rem)] gap-10 lg:grid-cols-[0.72fr_1.28fr] lg:items-center">
         <div class="artist-copy lg:pr-6">
           <p class="kicker text-purple" data-reveal>Música folclórica</p>
-          <h2 id="kjarkas-title" class="artist-title mt-5 font-display uppercase leading-[0.84]" data-reveal>Los Kjarkas: la raíz que nos une</h2>
+          <h2 id="kjarkas-title" class="artist-title mt-5 font-display uppercase" data-reveal>Los Kjarkas: la raíz que nos une</h2>
           <p class="mt-7 max-w-lg font-sans text-lg leading-relaxed text-night/75" data-reveal>Una noche de memoria, identidad andina y canciones que atraviesan generaciones.</p>
           <p class="artist-date mt-8" data-reveal><span>Sábado</span><time datetime="2026-10-31">31 de octubre</time></p>
         </div>
@@ -191,7 +191,7 @@ export function renderFinadosPage(page) {
       <img class="absolute -bottom-28 -right-24 h-80 w-80 opacity-30 sm:h-[34rem] sm:w-[34rem]" src="/assets/finados/icons/legado.svg" alt="" width="544" height="544" loading="lazy">
       <div class="relative mx-auto w-[min(100%-2rem,88rem)]">
         <p class="kicker" data-reveal>La historia continúa</p>
-        <h2 class="mt-5 max-w-6xl font-display text-[clamp(4rem,10vw,9rem)] uppercase leading-[0.83]" data-reveal>Lo próximo se contará por los canales oficiales</h2>
+        <h2 class="channels-title mt-5 max-w-6xl font-display text-[clamp(4rem,10vw,9rem)] uppercase" data-reveal>Lo próximo se contará por los canales oficiales</h2>
         <div class="mt-10 flex flex-wrap gap-3" data-reveal>${socialMarkup()}</div>
       </div>
     </section>
