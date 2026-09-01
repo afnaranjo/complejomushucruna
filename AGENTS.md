@@ -655,3 +655,13 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Seguridad: no se versionaron credenciales, llaves, configuración real del servidor ni rutas operativas privadas.
 - Riesgos: la autorización cubre los dos anuncios y recursos entregados, no el resto del cartel; deben documentarse derechos/licencias de artes y retrato, mantener vigentes las fechas y comprobar disponibilidad, condiciones y medición del enlace de reserva. La landing conserva `noindex` y continúa fuera del menú y sitemap hasta decisión expresa.
 - Pendiente: decidir el lanzamiento indexable, monitorear el canal de reserva y actualizar o retirar oportunamente cualquier dato o recurso que deje de estar vigente.
+
+### 2026-09-01 — Corrección de fecha e interlineado en Finados
+
+- Alex corrigió la fecha de venta de stands del 16 al 14 de noviembre y pidió separar las líneas de los titulares de Guaynaa, Los Kjarkas y canales oficiales para mejorar su lectura.
+- Se actualizó tanto el texto visible como `datetime="2026-11-14"`. Los tres titulares recibieron mayor interlineado y una separación mínima entre palabras; en móvil el interlineado aumenta ligeramente para conservar claridad sin alterar la jerarquía visual.
+- QA: 24/24 pruebas, build de 67 archivos y 15 HTML, 391 referencias válidas, inspección local de los tres titulares en escritorio y móvil y ancho móvil sin desbordamiento. La comprobación pública posterior obtuvo HTTP 200, confirmó la fecha visible y semántica del 14 de noviembre y verificó que el texto anterior ya no se entrega.
+- Commit técnico: `e3f15ce` (`Mejorar legibilidad y actualizar venta de stands`).
+- Publicación externa: push autorizado a `origin/main` y despliegue autorizado en `complejomushucruna.com`; el proceso creó una copia remota recuperable, transfirió sin borrar archivos exclusivos y verificó HTTPS.
+- Seguridad: no se versionaron credenciales, llaves ni configuración operativa privada.
+- Riesgos y pendientes: mantener la fecha coordinada con ventas y el canal externo de reserva; la decisión sobre `noindex`, menú y sitemap continúa pendiente.
