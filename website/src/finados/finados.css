@@ -113,36 +113,180 @@
     background: rgba(36, 17, 70, .96);
   }
 
-  .hero-scrim {
-    background: linear-gradient(90deg, rgba(36, 17, 70, .95) 0%, rgba(57, 31, 111, .78) 38%, rgba(57, 31, 111, .14) 72%), linear-gradient(0deg, rgba(36, 17, 70, .82) 0%, transparent 48%);
+  .hero-stands {
+    background: #241146;
   }
 
-  .hero-encuentro {
+  .hero-stands-backdrop {
+    background:
+      linear-gradient(90deg, rgba(36, 17, 70, .98) 0%, rgba(57, 31, 111, .92) 50%, rgba(57, 31, 111, .68) 100%),
+      radial-gradient(circle at 78% 28%, rgba(255, 46, 138, .72), transparent 34%);
+  }
+
+  .hero-stands-backdrop::before,
+  .hero-stands-backdrop::after {
+    position: absolute;
+    content: "";
+  }
+
+  .hero-stands-backdrop::before {
+    top: 8%;
+    right: -9%;
+    width: min(58rem, 64vw);
+    height: 88%;
+    background: rgba(110, 44, 224, .55);
+    clip-path: polygon(28% 0, 100% 8%, 84% 100%, 0 84%);
+    transform: rotate(-3deg);
+  }
+
+  .hero-stands-backdrop::after {
+    top: 22%;
+    right: -14%;
+    width: min(54rem, 62vw);
+    height: 1.25rem;
+    background: #00d2d6;
+    box-shadow: 0 4.5rem 0 rgba(255, 46, 138, .8), 0 9rem 0 rgba(255, 196, 46, .8);
+    transform: rotate(-24deg);
+  }
+
+  .hero-paloma {
     position: absolute;
     z-index: -10;
-    bottom: -6rem;
+    bottom: 2rem;
     left: -5rem;
-    width: 18rem;
-    aspect-ratio: 1;
+    width: 32rem;
+    max-width: none;
+    opacity: .2;
+    filter: drop-shadow(1rem 1rem 0 rgba(0, 210, 214, .5));
   }
 
-  .hero-encuentro::before,
-  .hero-encuentro::after {
-    position: absolute;
-    inset: 0;
-    content: "";
-    -webkit-mask: url("/assets/finados/icons/encuentro.svg") center / contain no-repeat;
-    mask: url("/assets/finados/icons/encuentro.svg") center / contain no-repeat;
+  .hero-stands-copy {
+    max-width: 49rem;
   }
 
-  .hero-encuentro::before {
+  .hero-offer-grid {
+    display: grid;
+    max-width: 42rem;
+    gap: .85rem;
+    grid-template-columns: 1.12fr .88fr;
+  }
+
+  .hero-date-card,
+  .hero-online-card {
+    min-height: 7.8rem;
+    border: 2px solid #f4eada;
+    padding: 1rem 1.15rem;
+    color: #241146;
+  }
+
+  .hero-date-card {
+    background: #f4eada;
+    box-shadow: 7px 7px 0 #00d2d6;
+  }
+
+  .hero-date-card span,
+  .hero-online-card > span {
+    display: block;
+    font-family: "Inter", sans-serif;
+    font-size: .62rem;
+    font-weight: 900;
+    letter-spacing: .18em;
+    line-height: 1.2;
+    text-transform: uppercase;
+  }
+
+  .hero-date-card time {
+    display: block;
+    margin-top: .6rem;
+    font-family: "Anton", "Arial Narrow", sans-serif;
+    font-size: clamp(2.2rem, 4vw, 3.4rem);
+    line-height: .9;
+    text-transform: uppercase;
+  }
+
+  .hero-online-card {
     background: #00d2d6;
-    opacity: .72;
-    transform: translate(.65rem, .65rem);
+    border-color: #00d2d6;
+    box-shadow: 7px 7px 0 #ff2e8a;
+    transform: rotate(-1deg);
   }
 
-  .hero-encuentro::after {
+  .hero-online-card strong {
+    display: block;
+    margin-top: .35rem;
+    font-family: "Anton", "Arial Narrow", sans-serif;
+    font-size: clamp(2.8rem, 5vw, 4.5rem);
+    font-weight: 400;
+    line-height: .86;
+    text-transform: uppercase;
+  }
+
+  .hero-online-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .6rem;
+    min-height: 2.15rem;
+    margin-top: .65rem;
+    border: 2px solid #241146;
+    border-radius: 999px;
     background: #241146;
+    padding: .48rem .78rem;
+    color: #f4eada;
+    font-family: "Inter", sans-serif;
+    font-size: .58rem;
+    font-weight: 900;
+    letter-spacing: .1em;
+    line-height: 1;
+    text-decoration: none;
+    text-transform: uppercase;
+    transition: filter 120ms cubic-bezier(.2, .8, .3, 1), transform 120ms cubic-bezier(.2, .8, .3, 1);
+  }
+
+  .hero-online-action:hover {
+    filter: brightness(1.15);
+  }
+
+  .hero-online-action:active {
+    transform: scale(.97);
+  }
+
+  .hero-expositor {
+    z-index: 1;
+    min-height: min(78svh, 48rem);
+  }
+
+  .hero-expositor img {
+    position: absolute;
+    bottom: -5rem;
+    left: 50%;
+    width: min(42rem, 118%);
+    max-width: none;
+    max-height: 92svh;
+    object-fit: contain;
+    object-position: bottom center;
+    filter: drop-shadow(1.4rem 1.2rem 0 rgba(255, 46, 138, .72));
+    transform: translateX(-50%);
+  }
+
+  .hero-expositor figcaption {
+    position: absolute;
+    z-index: 2;
+    right: 0;
+    bottom: 2.5rem;
+    max-width: 15rem;
+    border: 2px solid #241146;
+    background: #ffc42e;
+    box-shadow: 6px 6px 0 #241146;
+    padding: .8rem 1rem;
+    color: #241146;
+    font-family: "Inter", sans-serif;
+    font-size: .64rem;
+    font-weight: 900;
+    letter-spacing: .12em;
+    line-height: 1.25;
+    text-align: center;
+    text-transform: uppercase;
   }
 
   .kicker {
@@ -236,6 +380,99 @@
     box-shadow: 10px 10px 0 #ff2e8a;
   }
 
+  .artist-poster {
+    min-width: 0;
+    overflow: hidden;
+    border: 3px solid currentColor;
+  }
+
+  .artist-copy {
+    min-width: 0;
+  }
+
+  .artist-title {
+    font-size: clamp(4rem, 7vw, 7rem);
+    overflow-wrap: anywhere;
+  }
+
+  .artist-poster-dark {
+    border-color: #f4eada;
+    background: #241146;
+    box-shadow: 10px 10px 0 #ff2e8a;
+  }
+
+  .artist-poster-light {
+    border-color: #241146;
+    background: #241146;
+    box-shadow: 10px 10px 0 #00d2d6;
+  }
+
+  .artist-poster picture,
+  .artist-poster img {
+    display: block;
+    width: 100%;
+  }
+
+  .artist-poster img {
+    aspect-ratio: 2 / 1;
+    object-fit: contain;
+  }
+
+  .artist-poster figcaption {
+    border-top: 2px solid currentColor;
+    padding: .8rem 1rem;
+    font-family: "Inter", sans-serif;
+    font-size: .64rem;
+    font-weight: 900;
+    letter-spacing: .13em;
+    line-height: 1.3;
+    text-transform: uppercase;
+  }
+
+  .artist-poster-dark figcaption {
+    border-color: #f4eada;
+    background: #ff2e8a;
+    color: #241146;
+  }
+
+  .artist-poster-light figcaption {
+    border-color: #241146;
+    background: #ffc42e;
+    color: #241146;
+  }
+
+  .artist-date {
+    display: inline-grid;
+    min-width: 12rem;
+    border: 2px solid #241146;
+    background: #ffc42e;
+    box-shadow: 6px 6px 0 #241146;
+    padding: .85rem 1rem;
+    color: #241146;
+    gap: .2rem;
+  }
+
+  .artist-date-dark {
+    border-color: #f4eada;
+    background: #00d2d6;
+    box-shadow: 6px 6px 0 #ff2e8a;
+  }
+
+  .artist-date span {
+    font-family: "Inter", sans-serif;
+    font-size: .62rem;
+    font-weight: 900;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+  }
+
+  .artist-date time {
+    font-family: "Anton", "Arial Narrow", sans-serif;
+    font-size: 2.15rem;
+    line-height: .95;
+    text-transform: uppercase;
+  }
+
   .marquee {
     width: 100%;
     overflow: hidden;
@@ -286,22 +523,93 @@
 }
 
 @media (min-width: 640px) {
-  .hero-encuentro {
-    width: 30rem;
-  }
-}
-
-@media (min-width: 1024px) {
-  .hero-encuentro {
-    bottom: -11rem;
-    left: -8rem;
+  .hero-paloma {
     width: 42rem;
   }
 }
 
+@media (min-width: 1024px) {
+  .hero-paloma {
+    bottom: 1rem;
+    left: -8rem;
+    width: 52rem;
+  }
+}
+
+@media (max-width: 1023px) {
+  .hero-stands-grid {
+    grid-template-rows: auto auto;
+  }
+
+  .hero-expositor {
+    min-height: 38rem;
+    margin-top: -4rem;
+  }
+
+  .hero-expositor img {
+    width: min(39rem, 130vw);
+    max-height: 48rem;
+  }
+}
+
 @media (max-width: 639px) {
-  .hero-scrim {
-    background: linear-gradient(0deg, rgba(36, 17, 70, .98) 0%, rgba(57, 31, 111, .76) 58%, rgba(57, 31, 111, .22) 100%);
+  .artist-title {
+    font-size: clamp(3.05rem, 13vw, 3.55rem);
+  }
+
+  .hero-stands-backdrop::before {
+    top: 48%;
+    right: -38%;
+    width: 42rem;
+    height: 52%;
+  }
+
+  .hero-stands-backdrop::after {
+    top: 62%;
+    right: -52%;
+    width: 38rem;
+  }
+
+  .hero-paloma {
+    bottom: 23rem;
+    left: -9rem;
+    width: 30rem;
+    opacity: .16;
+  }
+
+  .hero-offer-grid {
+    max-width: 100%;
+    grid-template-columns: 1fr;
+  }
+
+  .hero-date-card,
+  .hero-online-card {
+    min-height: auto;
+  }
+
+  .hero-date-card time {
+    font-size: 2.65rem;
+  }
+
+  .hero-online-card strong {
+    font-size: 3.7rem;
+  }
+
+  .hero-expositor {
+    min-height: 34rem;
+    margin-top: -2rem;
+  }
+
+  .hero-expositor img {
+    bottom: -4.5rem;
+    width: min(35rem, 145vw);
+    max-height: 42rem;
+  }
+
+  .hero-expositor figcaption {
+    right: .25rem;
+    bottom: 1.5rem;
+    max-width: 12rem;
   }
 }
 

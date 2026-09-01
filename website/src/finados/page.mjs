@@ -1,5 +1,11 @@
-import { routeOptions, site, socialLinks } from '../data/site.mjs';
+import { routeOptions, site } from '../data/site.mjs';
 import { escapeHtml, externalAttributes } from '../render/html.mjs';
+
+const finadosSocialLinks = [
+  { label: 'Facebook', href: 'https://www.facebook.com/FinadosMushucRunaEc' },
+  { label: 'TikTok', href: 'https://www.tiktok.com/@finadosmushucruna' },
+  { label: 'Instagram', href: 'https://www.instagram.com/finadosmushucruna/' },
+];
 
 const axes = [
   {
@@ -41,8 +47,7 @@ function axisMarkup() {
 }
 
 function socialMarkup() {
-  return socialLinks
-    .filter((item) => item.label !== 'X')
+  return finadosSocialLinks
     .map((item) => `<a class="footer-link" href="${escapeHtml(item.href)}"${externalAttributes(item.href)}>${escapeHtml(item.label)} <span aria-hidden="true">↗</span></a>`)
     .join('');
 }
@@ -61,8 +66,9 @@ export function renderFinadosPage(page) {
   <meta name="robots" content="noindex, nofollow, noarchive">
   <link rel="canonical" href="${escapeHtml(canonical)}">
   <meta name="theme-color" content="#391F6F">
-  <link rel="icon" href="/assets/icons/favicon.svg" type="image/svg+xml">
-  <link rel="preload" as="image" href="/assets/finados/hero-artista-mock.webp" imagesrcset="/assets/finados/hero-artista-mock-960.webp 960w, /assets/finados/hero-artista-mock.webp 1600w" imagesizes="100vw" fetchpriority="high">
+  <link rel="icon" href="/assets/finados/favicon-finados.png" type="image/png" sizes="256x256">
+  <link rel="apple-touch-icon" href="/assets/finados/favicon-finados.png">
+  <link rel="preload" as="image" href="/assets/finados/expositor-artesanias.webp" fetchpriority="high">
   <link rel="stylesheet" href="/assets/finados/finados.css">
   <script type="module" src="/assets/finados/finados.js"></script>
 </head>
@@ -80,54 +86,75 @@ export function renderFinadosPage(page) {
   </header>
 
   <main id="contenido">
-    <section id="inicio" class="hero-stage relative isolate flex min-h-[100svh] items-end overflow-hidden bg-night text-lienzo">
-      <picture class="absolute inset-0 -z-30">
-        <source media="(max-width: 700px)" srcset="/assets/finados/hero-artista-mock-960.webp">
-        <img class="h-full w-full object-cover object-[68%_center] sm:object-center" src="/assets/finados/hero-artista-mock.webp" srcset="/assets/finados/hero-artista-mock-960.webp 960w, /assets/finados/hero-artista-mock.webp 1600w" sizes="100vw" width="1600" height="800" alt="Representación conceptual de una cantante ficticia frente a un público durante un concierto" fetchpriority="high">
-      </picture>
-      <div class="hero-scrim absolute inset-0 -z-20" aria-hidden="true"></div>
-      <span class="hero-encuentro" aria-hidden="true"></span>
+    <section id="inicio" class="hero-stage hero-stands relative isolate min-h-[100svh] overflow-hidden bg-night text-lienzo">
+      <div class="hero-stands-backdrop absolute inset-0 -z-30" aria-hidden="true"></div>
+      <svg class="hero-paloma" viewBox="66 66 38 28" aria-hidden="true" focusable="false">
+        <image href="/assets/finados/logo-finados.svg" width="184" height="108"></image>
+      </svg>
 
-      <div class="relative mx-auto grid w-[min(100%-2rem,88rem)] gap-10 pb-12 pt-40 sm:pb-16 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-end lg:pb-20">
-        <div class="max-w-4xl">
-          <p class="hero-enter inline-flex border-2 border-cyan bg-night/80 px-4 py-2 text-[0.64rem] font-black uppercase tracking-wide text-lienzo" data-hero-item>Visual conceptual · artista por anunciar</p>
-          <h1 class="hero-enter mt-6 font-display text-[clamp(4.25rem,11vw,9.75rem)] uppercase leading-[0.82] tracking-[-0.025em] text-lienzo" data-hero-item>
-            <span class="block">El legado</span>
-            <span class="block text-fuchsia">vuelve a</span>
-            <span class="block">encontrarnos</span>
+      <div class="hero-stands-grid relative mx-auto grid min-h-[100svh] w-[min(100%-2rem,88rem)] gap-4 pt-36 lg:grid-cols-[minmax(0,1.06fr)_minmax(28rem,0.94fr)] lg:items-end lg:pt-32">
+        <div class="hero-stands-copy z-10 pb-12 sm:pb-16 lg:pb-16">
+          <p class="hero-enter inline-flex border-2 border-cyan bg-night/80 px-4 py-2 text-[0.64rem] font-black uppercase tracking-wide text-lienzo" data-hero-item>Finados 2026 · Venta de stands</p>
+          <h1 class="hero-enter mt-5 font-display text-[clamp(4.1rem,8.7vw,8.5rem)] uppercase leading-[0.82] tracking-[-0.025em] text-lienzo" data-hero-item>
+            <span class="block">Haz crecer</span>
+            <span class="block text-fuchsia">tu negocio</span>
+            <span class="block">en Finados</span>
           </h1>
-          <div class="hero-enter mt-8 flex flex-wrap gap-3" data-hero-item>
-            <a class="button-primary" href="#legado">Explorar el concepto <span aria-hidden="true">↓</span></a>
-            <a class="button-ghost" href="${escapeHtml(route.href)}"${externalAttributes(route.href)}>Cómo llegar <span aria-hidden="true">↗</span></a>
+          <p class="hero-enter mt-6 max-w-xl font-serif text-xl italic leading-tight text-lienzo/90 sm:text-2xl" data-hero-item>Tu talento, tus productos y tu historia también hacen parte de esta tradición.</p>
+
+          <div class="hero-enter hero-offer-grid mt-7" data-hero-item>
+            <div class="hero-date-card">
+              <span>Fecha de venta</span>
+              <time datetime="2026-11-16">16 de noviembre</time>
+            </div>
+            <div class="hero-online-card" aria-label="Venta online">
+              <span>Venta</span>
+              <strong>Online</strong>
+              <a class="hero-online-action" href="https://reserva.mushucticket.com/customers"${externalAttributes('https://reserva.mushucticket.com/customers')}>Reservar mi stand <span aria-hidden="true">↗</span></a>
+            </div>
           </div>
         </div>
-        <blockquote class="hero-enter border-l-4 border-winay pl-6 font-serif text-3xl italic leading-[1.05] text-white sm:text-4xl lg:mb-2" data-hero-item>
-          Mi primer gran concierto fue aquí
-        </blockquote>
+
+        <figure class="hero-enter hero-expositor relative self-end" data-hero-item>
+          <img src="/assets/finados/expositor-artesanias.webp" width="743" height="1405" alt="Expositor de artesanías sosteniendo productos de madera" fetchpriority="high">
+          <figcaption>Participa como dueño de tu stand</figcaption>
+        </figure>
       </div>
     </section>
 
-    <section id="legado" class="relative overflow-hidden bg-fuchsia py-24 text-night sm:py-32">
-      <div class="mx-auto grid w-[min(100%-2rem,88rem)] gap-12 lg:grid-cols-[0.62fr_1.38fr] lg:items-start">
-        <p class="kicker" data-reveal>Finados 2026</p>
-        <div>
-          <h2 class="max-w-5xl font-display text-[clamp(3.5rem,8vw,7.5rem)] uppercase leading-[0.86]" data-reveal>Una fiesta que se recuerda antes de empezar</h2>
-          <p class="mt-10 max-w-2xl font-serif text-2xl italic leading-tight sm:text-4xl" data-reveal>La memoria, la música y el trabajo vuelven a encontrarse en un mismo territorio</p>
+    <section id="artistas" class="artist-section bg-night py-24 text-lienzo sm:py-32" aria-labelledby="guaynaa-title">
+      <div class="mx-auto grid w-[min(100%-2rem,88rem)] gap-10 lg:grid-cols-[1.28fr_0.72fr] lg:items-center">
+        <figure class="artist-poster artist-poster-dark" data-reveal>
+          <picture>
+            <source media="(max-width: 700px)" srcset="/assets/finados/guaynaa-finados-960.webp">
+            <img src="/assets/finados/guaynaa-finados.webp" srcset="/assets/finados/guaynaa-finados-960.webp 960w, /assets/finados/guaynaa-finados.webp 1440w" sizes="(max-width: 1023px) calc(100vw - 2rem), 62vw" width="1440" height="720" alt="Arte oficial de Guaynaa para el Megaescenario de Finados 2026" loading="lazy">
+          </picture>
+          <figcaption>Guaynaa · Domingo 1 de noviembre</figcaption>
+        </figure>
+        <div class="artist-copy lg:pl-6">
+          <p class="kicker text-cyan" data-reveal>Próxima revelación</p>
+          <h2 id="guaynaa-title" class="artist-title mt-5 font-display uppercase leading-[0.84]" data-reveal>Guaynaa enciende el Megaescenario</h2>
+          <p class="mt-7 max-w-lg font-sans text-lg leading-relaxed text-lienzo/75" data-reveal>Ritmo urbano, energía y una noche para cantar y bailar juntos en Finados 2026.</p>
+          <p class="artist-date artist-date-dark mt-8" data-reveal><span>Domingo</span><time datetime="2026-11-01">1 de noviembre</time></p>
         </div>
       </div>
     </section>
 
-    <section aria-labelledby="ejes-title" class="bg-lienzo text-night">
-      <div class="mx-auto w-[min(100%-2rem,88rem)] py-20 sm:py-28">
-        <div class="grid gap-6 border-b-2 border-night pb-8 sm:grid-cols-2 sm:items-end">
-          <div>
-            <p class="kicker text-purple" data-reveal>La esencia</p>
-            <h2 id="ejes-title" class="mt-4 font-display text-5xl uppercase leading-none sm:text-7xl" data-reveal>Cuatro formas de volver</h2>
-          </div>
-          <p class="max-w-xl font-sans text-base font-medium leading-relaxed text-night/70 sm:justify-self-end sm:text-lg" data-reveal>Una identidad construida desde la memoria alegre: aquello que permanece, aquello que reúne y aquello que impulsa nuevas historias.</p>
+    <section id="kjarkas" class="artist-section bg-lienzo py-24 text-night sm:py-32" aria-labelledby="kjarkas-title">
+      <div class="mx-auto grid w-[min(100%-2rem,88rem)] gap-10 lg:grid-cols-[0.72fr_1.28fr] lg:items-center">
+        <div class="artist-copy lg:pr-6">
+          <p class="kicker text-purple" data-reveal>Música folclórica</p>
+          <h2 id="kjarkas-title" class="artist-title mt-5 font-display uppercase leading-[0.84]" data-reveal>Los Kjarkas: la raíz que nos une</h2>
+          <p class="mt-7 max-w-lg font-sans text-lg leading-relaxed text-night/75" data-reveal>Una noche de memoria, identidad andina y canciones que atraviesan generaciones.</p>
+          <p class="artist-date mt-8" data-reveal><span>Sábado</span><time datetime="2026-10-31">31 de octubre</time></p>
         </div>
-        <div class="grid lg:grid-cols-4">${axisMarkup()}
-        </div>
+        <figure class="artist-poster artist-poster-light" data-reveal>
+          <picture>
+            <source media="(max-width: 700px)" srcset="/assets/finados/kjarkas-finados-960.webp">
+            <img src="/assets/finados/kjarkas-finados.webp" srcset="/assets/finados/kjarkas-finados-960.webp 960w, /assets/finados/kjarkas-finados.webp 1440w" sizes="(max-width: 1023px) calc(100vw - 2rem), 62vw" width="1440" height="721" alt="Arte oficial de Los Kjarkas para el Megaescenario de Finados 2026" loading="lazy">
+          </picture>
+          <figcaption>Los Kjarkas · Sábado 31 de octubre</figcaption>
+        </figure>
       </div>
     </section>
 
@@ -138,20 +165,6 @@ export function renderFinadosPage(page) {
         </div>
       </div>
       <p class="sr-only">Legado que nos une. Memoria que se celebra.</p>
-    </section>
-
-    <section class="bg-night py-24 text-lienzo sm:py-32">
-      <div class="mx-auto grid w-[min(100%-2rem,88rem)] gap-10 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
-        <figure class="poster-frame relative" data-reveal>
-          <img class="aspect-[4/3] w-full object-cover object-[68%_center]" src="/assets/finados/hero-artista-mock.webp" width="1600" height="800" alt="Visual conceptual con una cantante ficticia en el escenario" loading="lazy">
-          <figcaption class="absolute bottom-0 left-0 bg-cyan px-4 py-3 text-[0.65rem] font-black uppercase tracking-wide text-night">Imagen conceptual · no corresponde a una artista confirmada</figcaption>
-        </figure>
-        <div class="lg:pl-8">
-          <p class="kicker text-cyan" data-reveal>Próxima revelación</p>
-          <h2 class="mt-5 font-display text-[clamp(4rem,8vw,7.5rem)] uppercase leading-[0.84]" data-reveal>El escenario todavía guarda su nombre</h2>
-          <p class="mt-8 max-w-lg font-sans text-lg leading-relaxed text-lienzo/75" data-reveal>Esta imagen abre la dirección artística de la campaña. La programación oficial se incorporará únicamente cuando cada anuncio cuente con autorización.</p>
-        </div>
-      </div>
     </section>
 
     <section class="bg-white py-24 text-night sm:py-32">
@@ -174,12 +187,26 @@ export function renderFinadosPage(page) {
       </div>
     </section>
 
-    <section class="relative overflow-hidden bg-fuchsia py-24 text-night sm:py-32">
+    <section id="canales" class="relative overflow-hidden bg-fuchsia py-24 text-night sm:py-32">
       <img class="absolute -bottom-28 -right-24 h-80 w-80 opacity-30 sm:h-[34rem] sm:w-[34rem]" src="/assets/finados/icons/legado.svg" alt="" width="544" height="544" loading="lazy">
       <div class="relative mx-auto w-[min(100%-2rem,88rem)]">
         <p class="kicker" data-reveal>La historia continúa</p>
         <h2 class="mt-5 max-w-6xl font-display text-[clamp(4rem,10vw,9rem)] uppercase leading-[0.83]" data-reveal>Lo próximo se contará por los canales oficiales</h2>
         <div class="mt-10 flex flex-wrap gap-3" data-reveal>${socialMarkup()}</div>
+      </div>
+    </section>
+
+    <section id="legado" aria-labelledby="ejes-title" class="bg-lienzo text-night">
+      <div class="mx-auto w-[min(100%-2rem,88rem)] py-20 sm:py-28">
+        <div class="grid gap-6 border-b-2 border-night pb-8 sm:grid-cols-2 sm:items-end">
+          <div>
+            <p class="kicker text-purple" data-reveal>La esencia</p>
+            <h2 id="ejes-title" class="mt-4 font-display text-5xl uppercase leading-none sm:text-7xl" data-reveal>Cuatro formas de volver</h2>
+          </div>
+          <p class="max-w-xl font-sans text-base font-medium leading-relaxed text-night/70 sm:justify-self-end sm:text-lg" data-reveal>Una identidad construida desde la memoria alegre: aquello que permanece, aquello que reúne y aquello que impulsa nuevas historias.</p>
+        </div>
+        <div class="grid lg:grid-cols-4">${axisMarkup()}
+        </div>
       </div>
     </section>
   </main>
@@ -188,7 +215,7 @@ export function renderFinadosPage(page) {
     <div class="mx-auto flex w-[min(100%,88rem)] flex-col gap-8 border-t border-lienzo/30 pt-8 sm:flex-row sm:items-end sm:justify-between">
       <div>
         <img class="h-auto w-36" src="/assets/finados/logo-finados.svg" width="184" height="108" alt="Finados 2026">
-        <p class="mt-4 max-w-md text-sm leading-relaxed text-lienzo/60">Previsualización de campaña. Fechas, programación, artistas, precios y condiciones serán comunicados únicamente tras su aprobación oficial.</p>
+        <p class="mt-4 max-w-md text-sm leading-relaxed text-lienzo/60">Información de Finados 2026. Consulta condiciones, disponibilidad y novedades por los canales oficiales.</p>
       </div>
       <a class="footer-link" href="/">Volver a complejomushucruna.com <span aria-hidden="true">↗</span></a>
     </div>

@@ -56,8 +56,12 @@ test('genera una previsualización privada de Finados sin publicarla en la naveg
   assert.doesNotMatch(home, /href="\/finados\/?"/);
   assert.doesNotMatch(sitemap, /complejomushucruna\.com\/finados\//);
   assert.match(landing, /<meta name="robots" content="noindex, nofollow, noarchive">/);
-  assert.match(landing, /Visual conceptual · artista por anunciar/);
+  assert.match(landing, /Finados 2026 · Venta de stands/);
+  assert.match(landing, /https:\/\/reserva\.mushucticket\.com\/customers/);
+  assert.match(landing, /Guaynaa enciende el Megaescenario/);
+  assert.match(landing, /Los Kjarkas: la raíz que nos une/);
+  assert.match(landing, />Instagram <span aria-hidden="true">↗<\/span><\/a>/);
   assert.match(landing, /href="\/"[^>]*>Volver al Complejo/);
   assert.equal((landing.match(/<h1\b/g) ?? []).length, 1);
-  assert.doesNotMatch(landing, /31 oct|2 nov|120K|\$12/i);
+  assert.doesNotMatch(landing, /2 nov|120K|\$12/i);
 });
