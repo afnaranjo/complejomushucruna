@@ -81,7 +81,7 @@ Solo publica después de autorización expresa y desde `main` limpia, confirmada
 npm run deploy
 ```
 
-El comando vuelve a ejecutar todas las validaciones, crea una copia recuperable del sitio actual en `/home/<usuario>/backups/`, sube `website/dist/` por SSH/SCP sin borrar archivos exclusivos del servidor y verifica por HTTPS la portada, `/finados/`, las hojas de estilo y la respuesta 404.
+El comando vuelve a ejecutar todas las validaciones, crea una copia recuperable del sitio actual en `/home/<usuario>/backups/`, sube `website/dist/` mediante un flujo `tar → SSH` sin borrar archivos exclusivos del servidor y verifica por HTTPS la portada, `/finados/`, las hojas de estilo y la respuesta 404.
 
 La restauración de una copia remota no está automatizada porque sobrescribe el sitio. Si se necesita rollback, identifica primero la copia exacta y obtén autorización antes de reemplazar archivos.
 

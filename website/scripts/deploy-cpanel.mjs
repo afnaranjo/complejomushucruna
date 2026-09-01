@@ -1,4 +1,4 @@
-import { execFileSync, spawnSync } from 'node:child_process';
+import { execFileSync, spawn, spawnSync } from 'node:child_process';
 import { access, readFile, readdir, stat } from 'node:fs/promises';
 import { dirname, isAbsolute, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -180,14 +180,41 @@ function backupRemote(config) {
   });
 }
 
-function uploadDist(config) {
-  const target = `${config.DEPLOY_SSH_USER}@${config.DEPLOY_SSH_HOST}:${config.DEPLOY_REMOTE_ROOT}/`;
-  const scpArgs = sshBaseArgs(config);
-  scpArgs[scpArgs.indexOf('-p')] = '-P';
-  run('scp', [...scpArgs, '-r', 'dist/.', target], {
-    silent: true,
-    label: 'La transferencia de archivos',
+function waitForProcess(child, label) {
+  return new Promise((resolvePromise, rejectPromise) => {
+    child.once('error', () => rejectPromise(new Error(`No se pudo ejecutar ${label}.`)));
+    child.once('close', (code) => resolvePromise(code));
   });
+}
+
+async function uploadDist(config) {
+  const target = `${config.DEPLOY_SSH_USER}@${config.DEPLOY_SSH_HOST}`;
+  const localTar = spawn('tar', ['-cf', '-', '-C', join(websiteRoot, 'dist'), '.'], {
+    cwd: websiteRoot,
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+  const remoteTar = spawn(
+    'ssh',
+    [...sshBaseArgs(config), target, `tar -xf - -C ${config.DEPLOY_REMOTE_ROOT}`],
+    { cwd: websiteRoot, stdio: ['pipe', 'ignore', 'pipe'] },
+  );
+
+  let localError = '';
+  let remoteError = '';
+  localTar.stderr.setEncoding('utf8');
+  remoteTar.stderr.setEncoding('utf8');
+  localTar.stderr.on('data', (chunk) => { localError += chunk; });
+  remoteTar.stderr.on('data', (chunk) => { remoteError += chunk; });
+  localTar.stdout.pipe(remoteTar.stdin);
+
+  const [localCode, remoteCode] = await Promise.all([
+    waitForProcess(localTar, 'tar'),
+    waitForProcess(remoteTar, 'ssh'),
+  ]);
+  if (localCode !== 0 || remoteCode !== 0) {
+    const detail = (remoteError || localError).trim();
+    fail(detail ? `La transferencia de archivos: ${detail}` : 'La transferencia de archivos falló.');
+  }
 }
 
 function normalizeRemotePermissions(config) {
@@ -284,7 +311,7 @@ async function main() {
   console.log('Creando una copia de seguridad recuperable en el servidor…');
   backupRemote(config);
   console.log('Subiendo la salida estática sin eliminar archivos exclusivos del servidor…');
-  uploadDist(config);
+  await uploadDist(config);
   console.log('Restaurando permisos públicos de las carpetas transferidas…');
   normalizeRemotePermissions(config);
   console.log('Verificando las rutas públicas por HTTPS…');

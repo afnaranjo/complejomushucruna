@@ -63,7 +63,7 @@ test('git ignora nombres habituales de llaves privadas aunque no tengan extensi�
   }
 });
 
-test('normaliza permisos de carpetas después de SCP y antes de verificar HTTPS', async () => {
+test('normaliza permisos de carpetas después de la transferencia y antes de verificar HTTPS', async () => {
   const source = await readFile(deployScript, 'utf8');
   const uploadIndex = source.indexOf('uploadDist(config);');
   const permissionsIndex = source.indexOf('normalizeRemotePermissions(config);');
@@ -77,9 +77,11 @@ test('normaliza permisos de carpetas después de SCP y antes de verificar HTTPS'
   assert.match(source, /cgi-bin/);
 });
 
-test('transfiere dist con una ruta relativa compatible con SCP en Windows', async () => {
+test('transfiere dist por el mismo cliente SSH sin depender de SCP en Windows', async () => {
   const source = await readFile(deployScript, 'utf8');
 
-  assert.match(source, /'-r', 'dist\/\.'/);
-  assert.doesNotMatch(source, /join\(websiteRoot, 'dist'\)/);
+  assert.match(source, /spawn\('tar'/);
+  assert.match(source, /localTar\.stdout\.pipe\(remoteTar\.stdin\)/);
+  assert.match(source, /tar -xf - -C/);
+  assert.doesNotMatch(source, /run\('scp'/);
 });
