@@ -630,3 +630,16 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Seguridad: no se versionaron credenciales, tokens, enlaces privados o identificadores internos. El remoto público conserva únicamente la jerarquía y los nombres operativos autorizados.
 - Riesgos: falta una cuenta asignable de Community; el Post del 2 de septiembre contradice la regla general respecto de TikTok; el numeral `6` requiere validación; fechas, derechos, consentimientos y datos mantienen sus gates.
 - Pendiente: Alex debe confirmar el nombre exacto de la madre, resolver los bloqueos y autorizar la carga de sus seis hijas.
+
+### 2026-09-01 — Carga verificada de la jerarquía de contenidos de septiembre en Bitrix
+
+- Alex aprobó la madre `[MADRE] F26-MKT-S01 · Expectativa · entregables 1–6 sep 2026`, confirmó a Andrés Flores como Community Manager y autorizó la carga gradual de sus seis hijas.
+- Se creó una madre para Andrés Flores; tres Reels para `EDWIN NAULA`; dos Posts para `Luis Chango` como cuenta operativa de Cristian/Cris Núñez; y el monitoreo para Andrés Flores. Alex Naranjo, Edwin Masabanda y Andrés Flores quedaron como observadores obligatorios de las siete tareas.
+- Las tareas quedaron en `Nuevo`, con prioridad normal, control de cierre, fechas bloqueadas y vencimientos a las 17:00 de `America/Guayaquil`. No se inventó una fecha de inicio y no se agregaron dependencias Gantt.
+- Se cargaron y verificaron 52 elementos de checklist. Una auditoría independiente confirmó 22 tareas totales, una madre, seis hijas, responsables, parentescos, observadores, fechas y controles correctos; las 15 tareas anteriores conservaron los campos auditados.
+- El primer intento creó únicamente la madre y se detuvo al resolver la etapa real de `Nuevo`; la continuación reutilizó esa misma tarea, sin borrar, recrear o duplicar.
+- Commit: incluido en `Registrar jerarquía de contenidos en Bitrix`.
+- Publicación externa: solo configuración interna autorizada de tareas en Bitrix y push documental; no se modificaron Notion, CRM, Meta, redes, boletería o sitios y no se publicó, programó o pautó contenido.
+- Seguridad: no se versionaron credenciales, tokens, enlaces privados, identificadores internos, contratos o información del cartel bajo embargo.
+- Riesgos: TikTok para el Post del 2 de septiembre, el numeral `6`, aprobadores, dueños del dato, fechas, derechos, consentimientos, música, archivo histórico y accesibilidad siguen como gates de publicación.
+- Pendiente: resolver esos gates y obtener autorización externa expresa antes de programar o publicar cualquier pieza.

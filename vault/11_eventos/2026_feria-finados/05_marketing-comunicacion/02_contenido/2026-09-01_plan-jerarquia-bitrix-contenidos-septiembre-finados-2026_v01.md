@@ -14,7 +14,7 @@ tags:
 
 # Plan de jerarquía Bitrix para contenidos del 1 al 6 de septiembre
 
-Relacionado con [[../../00_direccion-control/2026-08-31_modelo-jerarquia-tareas-bitrix-finados-2026_v01|el modelo aprobado de tareas madre]], [[./README|el índice de contenido]], [[../../../../14_operaciones/bitacora-diaria/2026-09-01_bitacora_jerarquia-cronopost-y-observadores-bitrix-finados-2026_v01|la bitácora de revisión]] y [[../../../../_pendientes|los pendientes ejecutivos]].
+Relacionado con [[../../00_direccion-control/2026-08-31_modelo-jerarquia-tareas-bitrix-finados-2026_v01|el modelo aprobado de tareas madre]], [[./README|el índice de contenido]], [[../../../../14_operaciones/bitacora-diaria/2026-09-01_bitacora_jerarquia-cronopost-y-observadores-bitrix-finados-2026_v01|la bitácora de revisión]], [[../../../../14_operaciones/bitacora-diaria/2026-09-01_bitacora_carga-jerarquia-contenidos-septiembre-bitrix-finados-2026_v01|la bitácora de carga]] y [[../../../../_pendientes|los pendientes ejecutivos]].
 
 ## Fuente revisada
 
@@ -25,8 +25,8 @@ Alex entregó un archivo Markdown y un libro Excel con la misma planificación. 
 - vencimientos registrados en el Excel a las 17:00 de `America/Guayaquil`;
 - tres Reels asignados a Edwin Naula;
 - dos Posts asignados a Cris Núñez;
-- el monitoreo dominical asignado solo al rol genérico `Equipo de contenidos / Community Manager`;
-- ausencia de una persona exacta para ese último rol.
+- el monitoreo dominical asignado originalmente al rol genérico `Equipo de contenidos / Community Manager`;
+- confirmación posterior de Alex de que Andrés Flores es el Community Manager y ejecutor asignable de ese monitoreo.
 
 Los archivos se trataron como fuente operativa en revisión, no como autorización de publicación. No se copiaron rutas locales, credenciales ni identificadores internos al repositorio.
 
@@ -51,7 +51,7 @@ No se proponen madres separadas de audiovisual, diseño, derechos o Community po
 | gate de cierre | cinco piezas finales aprobadas y adjuntas, derechos y datos verificados, y reporte de monitoreo entregado |
 | horas y archivos | se registran en las hijas; la madre no duplica ejecución ni evidencia |
 
-El nombre sigue pendiente de confirmación expresa de Alex antes de crearla. La tarea existente `Presentar Cronopost` conserva su propósito de revisión con Are y no debe renombrarse o reutilizarse silenciosamente como madre de producción.
+Alex aprobó el nombre exacto y autorizó la carga el 2026-09-01. La tarea existente `Presentar Cronopost` conserva su propósito de revisión con Are y no fue renombrada ni reutilizada como madre de producción.
 
 ## Hijas propuestas
 
@@ -62,7 +62,7 @@ El nombre sigue pendiente de confirmación expresa de Alex antes de crearla. La 
 | F26-MKT-S01.03 | Producir Reel emocional · `¿Este año vamos otra vez?` | `EDWIN NAULA` | 2026-09-03 17:00 | editable, máster 9:16, subtítulos, end card, derechos y consentimiento del representante |
 | F26-MKT-S01.04 | Diseñar Post · seis razones para volver | `Luis Chango`, cuenta operativa de Cristian/Cris Núñez | 2026-09-04 17:00 | editable, arte final 3:4, copy, derechos de fotografías y numeral aprobado o sustituido |
 | F26-MKT-S01.05 | Producir Reel · taza de colada que no termina | `EDWIN NAULA` | 2026-09-05 17:00 | editable, máster 9:16, portada, subtítulos, audio y aprobación |
-| F26-MKT-S01.06 | Monitorear comunidad y entregar aprendizajes | por confirmar: cuenta exacta de Community Manager | 2026-09-06 17:00 | checklist de atención, preguntas frecuentes, desempeño, calidad y reporte breve |
+| F26-MKT-S01.06 | Monitorear comunidad y entregar aprendizajes | Andrés Flores, Community Manager | 2026-09-06 17:00 | checklist de atención, preguntas frecuentes, desempeño, calidad y reporte breve |
 
 Todas las hijas deben incluir como observadores a Alex Naranjo, Edwin Masabanda y Andrés Flores. Edwin Masabanda no se confunde con la cuenta ejecutora audiovisual `EDWIN NAULA`.
 
@@ -106,10 +106,24 @@ Todas las hijas deben incluir como observadores a Alex Naranjo, Edwin Masabanda 
 
 ## Estado de carga
 
-No se creó, renombró, movió, reasignó o vinculó ninguna tarea de este plan. Antes de escribir en Bitrix faltan:
+La jerarquía fue autorizada, cargada y verificada el 2026-09-01:
 
-1. aprobación del nombre exacto de la madre;
-2. identificación de la cuenta asignable de Community Manager;
-3. decisión sobre TikTok para el Post del 2 de septiembre;
-4. validación del numeral `6`;
-5. autorización para cargar la madre y sus seis hijas.
+- una madre y seis hijas quedaron dentro del Collab `FINADOS 2026`;
+- Andrés Flores coordina la madre y ejecuta el monitoreo; `EDWIN NAULA` ejecuta los tres Reels; `Luis Chango` es responsable Bitrix de los dos Posts como cuenta operativa de Cristian/Cris Núñez;
+- Alex Naranjo, Edwin Masabanda y Andrés Flores figuran como observadores en las siete tareas;
+- todas quedaron en la etapa `Nuevo`, con prioridad normal, control de cierre, fecha bloqueada y vencimientos a las 17:00 de `America/Guayaquil`;
+- no se fijó una fecha de inicio no proporcionada por la fuente y no se agregaron dependencias Gantt;
+- se verificaron 52 elementos de checklist entre la madre y sus seis hijas;
+- el corte final contiene 22 tareas: las 15 preexistentes conservaron sus campos auditados y se añadieron únicamente las siete autorizadas;
+- la carga no programó, publicó o pautó contenido ni modificó perfiles, Meta, Notion, CRM, boletería o sitios.
+
+El primer intento creó únicamente la madre y se detuvo porque Bitrix tradujo la etapa predeterminada al identificador interno de `Nuevo`. La continuación resolvió la etapa por nombre y tipo de sistema, reutilizó esa misma madre y completó las hijas sin borrar, recrear o duplicar tareas.
+
+## Gates que permanecen abiertos
+
+La carga organiza el trabajo, pero no aprueba el contenido para publicación. Todavía deben resolverse:
+
+1. TikTok para el Post del 2 de septiembre, porque la fila contradice la regla general de Posts;
+2. aprobación del numeral `6` o sustitución por composición modular en el Post del 4;
+3. aprobador y dueño del dato de cada pieza;
+4. fechas públicas, identidad, derechos, consentimientos, archivo histórico, música, accesibilidad y autorización externa.
