@@ -2,7 +2,7 @@
 titulo: "Pendientes ejecutivos"
 responsable: "dirección integral de la feria"
 estado: en-revision
-ultima_actualizacion: 2026-09-01
+ultima_actualizacion: 2026-09-02
 fuente: interna
 confidencialidad: interno
 tags:
@@ -14,6 +14,9 @@ tags:
 
 ## Prioridad crítica
 
+- [ ] Revocar o rotar de inmediato la credencial de Meta que fue pegada accidentalmente en el prompt normal de Terminal y adjuntada al chat; no volver a usarla. Mantener la nueva credencial fuera del chat y del repositorio, introducirla solo mediante entrada oculta y autorizar una nueva ventana antes de otra consulta. Responsable: Alex/administración Meta. Fecha: inmediata, antes de la próxima llamada.
+- [x] Revisar en modo de solo lectura los objetos activos de la cuenta publicitaria seleccionada para Finados 2026. El corte del 2026-09-02 confirmó cero campañas, conjuntos y anuncios con estado efectivo activo; seis solicitudes `GET`, respuesta completa, sin paginación ni cambios externos. Este resultado no concilia gasto 2026 ni campañas inactivas. Responsable: pauta digital. Completado: 2026-09-02.
+- [ ] Antes de activar pauta, validar que la página pública `Finados Mushuc Runa` y el Instagram `@finadosmushucruna` estén correctamente asignados a la cuenta publicitaria seleccionada, con permisos vigentes, vinculación entre activos, facturación operativa y medición adecuada al objetivo. Los identificadores internos y enlaces de administración permanecen fuera del repositorio público. Responsable: Alex/administración Meta/pauta digital. Fecha: antes de crear o activar campañas.
 - [ ] Aplicar el [[11_eventos/2026_feria-finados/00_direccion-control/2026-08-31_modelo-jerarquia-tareas-bitrix-finados-2026_v01|modelo de tareas madre y subtareas]] únicamente de forma gradual: Alex nombra la madre; se diseñan y aprueban sus hijos; Andrés Flores coordina la madre; cada ejecutor real recibe su subtarea; luego se carga y verifica. No crear nuevas tareas hasta recibir la próxima principal y autorización expresa. Responsable: Alex/Andrés Flores/dueño del frente/administración Bitrix. Fecha: por cada paquete aprobado.
 - [x] Aprobar la madre `[MADRE] F26-MKT-S01 · Expectativa · entregables 1–6 sep 2026`, confirmar a Andrés Flores como Community Manager y cargar/verificar una madre, seis hijas y 52 elementos de checklist del [[11_eventos/2026_feria-finados/05_marketing-comunicacion/02_contenido/2026-09-01_plan-jerarquia-bitrix-contenidos-septiembre-finados-2026_v01|plan de jerarquía]]. El corte final contiene 22 tareas, conserva las 15 anteriores y no incorpora dependencias Gantt. Responsable: Alex/Andrés Flores/administración Bitrix. Completado: 2026-09-01; sin publicación externa.
 - [ ] Resolver los gates editoriales que no bloqueaban la carga interna: decidir si el Post del 2 de septiembre tendrá adaptación autorizada para TikTok; aprobar o sustituir el numeral `6` del Post del 4; asignar aprobador/dueño del dato y cerrar fechas, identidad, derechos, consentimientos, música, archivo, accesibilidad y autorización externa de cada pieza. Responsable: Andrés Flores/dueños del dato/dirección/marketing/diseño/audiovisual. Fecha: antes de programar o publicar.

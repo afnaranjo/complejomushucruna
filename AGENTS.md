@@ -696,3 +696,14 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - El flujo de despliegue se adaptó de SCP a `tar → SSH` porque el runtime local incluye Git SSH, pero no Git SCP; Windows resolvía otro cliente incompatible con el agente cargado. La prueba automatizada impide reintroducir esa dependencia.
 - El despliegue final creó una copia remota recuperable, transfirió sin borrar archivos exclusivos, normalizó permisos y verificó HTTPS. La inspección pública confirmó `14 de septiembre`, `datetime="2026-09-14"`, el enlace directo a Mushuc Ticket y el ojo versionado en `/finados/`; `/acceso-compra-stands/` confirmó la misma fecha, ambos CTA externos y ausencia del texto anterior.
 - Seguridad: no se versionaron credenciales, llaves, configuración real ni rutas operativas privadas; no se escribió en el canal de compra.
+
+### 2026-09-02 — Revisión de campañas activas de Meta
+
+- Alex confirmó la cuenta publicitaria que se usará para Finados 2026 y autorizó una revisión puntual de solo lectura. No se registraron en Git su identificador ni el enlace interno de administración.
+- Alex definió como destinos previstos la página pública `Finados Mushuc Runa` y el Instagram `@finadosmushucruna`, reportados como propiedad de Marketing Mushuc Runa. La selección editorial está definida; la asignación técnica, los permisos, la facturación y la medición todavía deben validarse antes de activar pauta.
+- La consulta confirmó que la cuenta está habilitada y que no existían campañas, conjuntos o anuncios con estado efectivo activo en el corte. Se realizaron seis solicitudes `GET` en API v26.0; la respuesta quedó completa, sin paginación, `Retry-After` o cambios externos, y el uso observado permaneció entre 0 % y 1 %.
+- La ausencia de objetos activos no prueba gasto cero de toda la cuenta: no se consultó el rendimiento de objetos pausados, archivados o finalizados y los USD 4.000 de Finados 2026 continúan sin conciliación contra gasto o facturación.
+- Durante el ingreso manual, una credencial fue pegada accidentalmente en el prompt normal de Terminal y adjuntada al chat. Se considera expuesta, no fue copiada al repositorio y debe revocarse o rotarse antes de cualquier nueva consulta.
+- Commit: incluido en `Documentar revisión activa y seguridad de Meta`.
+- Publicación externa: ninguna; no se creó, editó, pausó, activó o publicó ningún objeto en Meta.
+- Riesgos y pendientes: rotar la credencial expuesta; después, con una nueva autorización, validar la asociación de los activos seleccionados, auditar objetos inactivos y conciliar presupuesto, gasto, tracking, boletería y caja antes de preparar campañas pausadas.
