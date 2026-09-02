@@ -707,3 +707,13 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Commit: incluido en `Documentar revisión activa y seguridad de Meta`.
 - Publicación externa: ninguna; no se creó, editó, pausó, activó o publicó ningún objeto en Meta.
 - Riesgos y pendientes: rotar la credencial expuesta; después, con una nueva autorización, validar la asociación de los activos seleccionados, auditar objetos inactivos y conciliar presupuesto, gasto, tracking, boletería y caja antes de preparar campañas pausadas.
+
+### 2026-09-02 — Validación técnica de cuenta, página e Instagram para pauta
+
+- Alex confirmó la cuenta publicitaria, la página de Facebook y el Instagram que se utilizarán para Finados 2026 y autorizó comprobar su relación técnica antes de indicar qué se pautará.
+- Cinco consultas `GET` adicionales en Graph API v26.0 confirmaron permisos publicitarios vigentes, cuenta habilitada, página promocionable desde la cuenta, Instagram vinculado a la página y asignado a la misma cuenta. Los nombres e identificadores devueltos coincidieron con la selección de Alex; los identificadores internos no se copiaron al repositorio público.
+- Las cinco respuestas fueron 200, sin `Retry-After` y con utilización máxima observada de 4 %. No se consultaron audiencias personalizadas, no hubo reintentos y se mantuvieron cero escrituras, cero campañas creadas y USD 0 de gasto.
+- La credencial de reemplazo se leyó desde el Llavero de macOS y no se imprimió, incorporó a una URL, guardó en archivos ni versionó. Debe confirmarse por separado la revocación efectiva de la credencial anterior expuesta.
+- Commit: incluido en `Validar activos publicitarios de Finados 2026`.
+- Publicación externa: ninguna; no se creó, editó, pausó, activó o publicó ningún objeto en Meta.
+- Riesgos y pendientes: la cuenta usa `America/Los_Angeles`; la programación deberá convertirse desde `America/Guayaquil`. Antes de preparar o activar pauta faltan pieza, oferta, objetivo, público, ubicación, presupuesto, fechas, destino, derechos, facturación y medición. Cualquier activación requiere una autorización nueva y específica de Alex.

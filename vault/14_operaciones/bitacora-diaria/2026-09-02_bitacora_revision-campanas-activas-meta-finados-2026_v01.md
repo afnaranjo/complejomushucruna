@@ -26,7 +26,7 @@ No se autorizó ni realizó creación, edición, pausa, activación, publicació
 
 Alex indicó que la pauta de Finados 2026 debe salir desde la cuenta revisada hacia la página pública [Finados Mushuc Runa](https://www.facebook.com/FinadosMushucRunaEc) y la cuenta de Instagram `@finadosmushucruna`, ambas reportadas por él como propiedad de Marketing Mushuc Runa. Los identificadores internos y enlaces privados de administración no se copiaron al repositorio.
 
-Esta selección editorial está confirmada por Alex, pero el corte de API realizado no validó la asignación técnica de ambos activos a la cuenta publicitaria, sus permisos de publicación ni su vinculación entre Facebook e Instagram. Esos controles, junto con facturación y medición aplicable al objetivo, deben cerrarse antes de activar una campaña.
+Una segunda ventana de solo lectura validó la ruta técnica seleccionada: la página figura entre las páginas que la cuenta publicitaria puede promocionar; el Instagram indicado está vinculado a esa página y figura entre las cuentas de Instagram asignadas a la cuenta publicitaria; y la credencial posee los permisos vigentes de lectura y administración publicitaria necesarios para preparar pauta. Los nombres e identificadores devueltos coincidieron con los datos que Alex proporcionó, pero los identificadores internos no se copiaron al repositorio público.
 
 ## Resultado verificado
 
@@ -35,6 +35,7 @@ Esta selección editorial está confirmada por Alex, pero el corte de API realiz
 - En el corte del 2026-09-02 no existían campañas, conjuntos ni anuncios con estado efectivo activo.
 - Por esa razón no hubo filas de rendimiento para objetos activos entre el 26 de agosto y el 1 de septiembre ni para el 2 de septiembre parcial.
 - La respuesta fue completa, sin páginas pendientes: seis solicitudes `GET` en API v26.0, sin `Retry-After`, con utilización de cuenta reportada en 0 % y máximo observado de 1 % en el caso de uso.
+- La validación posterior de permisos y activos realizó cinco solicitudes `GET` adicionales, todas con respuesta 200, sin `Retry-After` y con utilización máxima observada de 4 %. No consultó audiencias personalizadas ni realizó reintentos.
 
 ## Calidad y límites
 
@@ -42,13 +43,16 @@ El resultado demuestra únicamente que no había objetos **actualmente activos**
 
 El presupuesto aprobado de USD 4.000 para Finados 2026 todavía no está conciliado con campañas creadas, gasto del periodo o facturación. No se puede calcular gasto 2026, saldo, CPA, ROAS ni rendimiento creativo con este corte.
 
+La asociación técnica de cuenta, página e Instagram quedó validada, pero esto no demuestra que la facturación, el destino, la medición o una audiencia concreta estén listos para una campaña todavía no definida. Antes de crear o activar pauta se deben recibir y validar pieza, oferta, objetivo, público, ubicación, presupuesto, fechas, llamada a la acción, derechos y evento de optimización aplicable.
+
 ## Seguridad
 
-Durante el proceso una credencial fue pegada accidentalmente en el prompt normal de Terminal y terminó incluida en un archivo adjunto del chat. Su valor no se copia ni se conserva en este repositorio, pero debe considerarse expuesto y no volver a utilizarse. Antes de cualquier nueva consulta, Alex debe revocarla o rotarla mediante el mecanismo oficial de Meta y mantener la nueva credencial fuera del chat.
+Durante el proceso inicial una credencial fue pegada accidentalmente en el prompt normal de Terminal y terminó incluida en un archivo adjunto del chat. Su valor no se copia ni se conserva en este repositorio y debe considerarse expuesto. La validación posterior leyó una credencial de reemplazo desde el Llavero de macOS y la envió únicamente en el encabezado de autorización; no se imprimió, incorporó a URL, guardó en un archivo ni versionó. La revocación efectiva de la credencial anterior todavía debe confirmarse mediante el mecanismo oficial de Meta.
 
 ## Cierre
 
-- Publicación externa: ninguna; solo seis consultas `GET` autorizadas.
+- Publicación externa: ninguna; solo once consultas `GET` autorizadas en dos ventanas.
 - Cambios en Meta: ninguno.
-- Riesgo inmediato: credencial expuesta pendiente de revocación o rotación.
-- Siguiente paso de pauta: recibir de Alex la pieza, oferta, objetivo y audiencia; luego cerrar los gates de asociación de activos, permisos, facturación, medición, inventario, derechos, destino y responsable antes de preparar campañas pausadas. Una activación requerirá autorización nueva y específica.
+- Gasto generado: USD 0; campañas, conjuntos y anuncios creados: 0.
+- Riesgo inmediato: confirmar la revocación de la credencial anterior expuesta; conservar la de reemplazo exclusivamente en el Llavero.
+- Siguiente paso de pauta: recibir de Alex la publicación o pieza exacta, oferta, objetivo, audiencia, ubicación, presupuesto, calendario y destino; luego cerrar facturación, medición, inventario, derechos y aprobación. La programación se traducirá desde `America/Guayaquil` a la zona horaria `America/Los_Angeles` de la cuenta. Una activación requerirá autorización nueva y específica.
