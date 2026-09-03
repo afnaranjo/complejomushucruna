@@ -717,3 +717,14 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Commit: incluido en `Validar activos publicitarios de Finados 2026`.
 - Publicación externa: ninguna; no se creó, editó, pausó, activó o publicó ningún objeto en Meta.
 - Riesgos y pendientes: la cuenta usa `America/Los_Angeles`; la programación deberá convertirse desde `America/Guayaquil`. Antes de preparar o activar pauta faltan pieza, oferta, objetivo, público, ubicación, presupuesto, fechas, destino, derechos, facturación y medición. Cualquier activación requiere una autorización nueva y específica de Alex.
+
+### 2026-09-02 — Reconciliación segura de producción web con la copia local
+
+- Alex definió el sitio existente en producción como referencia válida y solicitó descargarlo para conservar localmente las mejoras gráficas. Se recuperó por SSH, en flujo de solo lectura y sin crear archivos remotos, el docroot completo de `complejomushucruna.com`: 74 archivos y aproximadamente 4,2 MB.
+- El espejo local `website/dist/` conserva 72 archivos públicos. Se excluyeron `php.ini`, `.user.ini`, `.well-known` y `cgi-bin` porque pertenecen al hosting y no al producto web. `dist/` continúa ignorado por Git; la fuente mantenible permanece en `website/src/` y `website/public/`.
+- La comparación confirmó que portada, `/finados/`, `/acceso-compra-stands/`, HTML, imágenes y mejoras gráficas visibles coinciden con la fuente versionada. Las diferencias no funcionales eran finales de línea CRLF del despliegue Windows y reordenamiento de bloques por cPanel en `.htaccess`; dos imágenes mock antiguas permanecen en producción sin referencia y no se añadieron a la fuente reproducible.
+- QA: 25/25 pruebas; espejo validado con 72 archivos, 16 HTML y 406 referencias. HTTPS directo al origen coincidió byte por byte para portada, landing y acceso de stands. La URL pública pasa antes por una verificación automática de APISIX, por lo que una consulta HTTP sin navegador entrega temporalmente esa pantalla y no el HTML del origen.
+- Seguridad: la llave privada permaneció fuera del repositorio y no se mostró. Su passphrase fue introducida accidentalmente como comando visible y enviada al chat; se considera expuesta y debe cambiarse localmente de inmediato. Cambiar la passphrase no altera la llave pública autorizada.
+- Commit: incluido en `Registrar reconciliación segura de producción web`.
+- Publicación externa: ninguna; no se modificó, subió, borró, renombró o reemplazó ningún archivo en cPanel, DNS, APISIX o los sitios. El único cambio remoto previsto es el push documental al repositorio según la regla de cierre.
+- Riesgos y pendientes: rotar la passphrase, mover la llave fuera de Descargas y conservar permisos `600`; confirmar por separado el destino y docroot de `finados.complejomushucruna.com` antes de cualquier despliegue en ese subdominio.
