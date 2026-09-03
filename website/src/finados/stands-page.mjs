@@ -1,7 +1,8 @@
 import { site } from '../data/site.mjs';
 import { escapeHtml, externalAttributes } from '../render/html.mjs';
 
-const purchaseUrl = 'https://reserva.mushucticket.com/customers';
+const purchaseUrl = 'https://mushucticket.com/';
+const campaignAssetVersion = '20260903';
 
 export function renderStandsAccessPage(page) {
   const canonical = `${site.baseUrl}${page.route}`;
@@ -18,7 +19,7 @@ export function renderStandsAccessPage(page) {
   <meta name="theme-color" content="#241146">
   <link rel="icon" href="/assets/finados/favicon-finados.png" type="image/png" sizes="256x256">
   <link rel="apple-touch-icon" href="/assets/finados/favicon-finados.png">
-  <link rel="preload" as="image" href="/assets/finados/logo-finados-nuevo.png" fetchpriority="high">
+  <link rel="preload" as="image" href="/assets/finados/logo-finados.svg?v=${campaignAssetVersion}" fetchpriority="high">
   <link rel="stylesheet" href="/assets/finados/finados.css">
   <script type="module" src="/assets/finados/finados.js"></script>
 </head>
@@ -35,11 +36,11 @@ export function renderStandsAccessPage(page) {
   <main id="contenido">
     <section class="stands-access-hero relative isolate flex min-h-[100svh] items-center overflow-hidden px-4 pb-20 pt-32 text-center sm:pb-24 sm:pt-36">
       <div class="stands-access-backdrop absolute inset-0 -z-30" aria-hidden="true"></div>
-      <img class="stands-access-spectator absolute -z-20" src="/assets/finados/icons/espectador.svg?v=20260901-2" alt="" width="390" height="210" aria-hidden="true">
+      <img class="stands-access-spectator absolute -z-20" src="/assets/finados/icons/espectador.svg?v=${campaignAssetVersion}" alt="" width="1271" height="587" aria-hidden="true">
 
       <div class="stands-access-shell mx-auto w-[min(100%,74rem)]">
         <a class="stands-access-brand hero-enter mx-auto block" href="/finados/" aria-label="Finados 2026, volver a la landing" data-hero-item>
-          <img class="mx-auto h-auto w-[min(17rem,72vw)] sm:w-80" src="/assets/finados/logo-finados-nuevo.png" width="218" height="115" alt="Mushuc Runa Finados 2026, legado que nos une">
+          <img class="mx-auto h-auto w-[min(17rem,72vw)] sm:w-80" src="/assets/finados/logo-finados.svg?v=${campaignAssetVersion}" width="766" height="449" alt="Mushuc Runa Finados 2026, legado que nos une">
         </a>
         <p class="hero-enter kicker mt-10 text-cyan" data-hero-item>Venta de stands · Finados 2026</p>
         <h1 class="stands-access-title hero-enter mx-auto mt-5 max-w-5xl font-display uppercase" data-hero-item>
@@ -89,7 +90,7 @@ export function renderStandsAccessPage(page) {
 
   <footer class="bg-night px-4 py-10 text-lienzo">
     <div class="mx-auto flex w-[min(100%,74rem)] flex-col gap-7 border-t border-lienzo/30 pt-8 sm:flex-row sm:items-end sm:justify-between">
-      <img class="h-auto w-36" src="/assets/finados/logo-finados-nuevo.png" width="218" height="115" alt="Finados 2026">
+      <img class="h-auto w-36" src="/assets/finados/logo-finados.svg?v=${campaignAssetVersion}" width="766" height="449" alt="Finados 2026">
       <a class="footer-link" href="/finados/">Volver a Finados <span aria-hidden="true">↗</span></a>
     </div>
   </footer>

@@ -528,6 +528,11 @@
     object-position: center;
   }
 
+  .axis-icon-espectador {
+    bottom: 1.35rem;
+    right: -2.25rem;
+  }
+
   .poster-frame {
     border: 3px solid #f4eada;
     box-shadow: 10px 10px 0 #ff2e8a;

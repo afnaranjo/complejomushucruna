@@ -61,7 +61,8 @@ test('genera una previsualización privada de Finados sin publicarla en la naveg
   assert.doesNotMatch(sitemap, /complejomushucruna\.com\/acceso-compra-stands\//);
   assert.match(landing, /<meta name="robots" content="noindex, nofollow, noarchive">/);
   assert.match(landing, /Finados 2026 · Venta de stands/);
-  assert.match(landing, /href="https:\/\/reserva\.mushucticket\.com\/customers"/);
+  assert.match(landing, /href="https:\/\/mushucticket\.com\/"/);
+  assert.doesNotMatch(landing, /reserva\.mushucticket\.com\/customers/);
   assert.match(landing, /Guaynaa enciende el Megaescenario/);
   assert.match(landing, /Los Kjarkas: la raíz que nos une/);
   assert.match(landing, />Instagram <span aria-hidden="true">↗<\/span><\/a>/);
@@ -74,8 +75,9 @@ test('genera una previsualización privada de Finados sin publicarla en la naveg
   assert.match(stands, /datetime="2026-09-14"/);
   assert.match(stands, /Venta 100% online/);
   assert.match(stands, /Más de 500 stands/);
-  assert.match(stands, /https:\/\/reserva\.mushucticket\.com\/customers/);
-  assert.match(stands, /\/assets\/finados\/logo-finados-nuevo\.png/);
+  assert.match(stands, /https:\/\/mushucticket\.com\//);
+  assert.doesNotMatch(stands, /reserva\.mushucticket\.com\/customers/);
+  assert.match(stands, /\/assets\/finados\/logo-finados\.svg\?v=20260903/);
   assert.match(stands, /href="\/finados\/"/);
   assert.equal((stands.match(/<h1\b/g) ?? []).length, 1);
 });

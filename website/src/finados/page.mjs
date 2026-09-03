@@ -7,6 +7,9 @@ const finadosSocialLinks = [
   { label: 'Instagram', href: 'https://www.instagram.com/finadosmushucruna/' },
 ];
 
+const purchaseUrl = 'https://mushucticket.com/';
+const campaignAssetVersion = '20260903';
+
 const axes = [
   {
     key: 'legado',
@@ -35,15 +38,21 @@ const axes = [
 ];
 
 function axisMarkup() {
-  return axes.map((axis) => `
+  return axes.map((axis) => {
+    const iconSize = axis.key === 'espectador'
+      ? 'h-auto w-64 sm:w-72'
+      : 'h-auto w-44 sm:w-56';
+
+    return `
     <article class="axis-panel group relative min-h-80 overflow-hidden border-t-2 border-night p-6 sm:p-8 lg:min-h-96 lg:border-l-2 lg:border-t-0" data-reveal>
       <span class="font-sans text-xs font-black tracking-mega text-night/60">${axis.number}</span>
-      <img class="axis-icon absolute -bottom-8 -right-7 h-44 w-44 transition duration-200 ease-brand group-hover:-translate-y-2 sm:h-56 sm:w-56" src="/assets/finados/icons/${axis.key}.svg${axis.key === 'espectador' ? '?v=20260901-2' : ''}" alt="" width="224" height="224" loading="lazy">
+      <img class="axis-icon axis-icon-${axis.key} absolute -bottom-8 -right-7 ${iconSize} transition duration-200 ease-brand group-hover:-translate-y-2" src="/assets/finados/icons/${axis.key}.svg?v=${campaignAssetVersion}" alt="" loading="lazy">
       <div class="relative z-10 max-w-52 pt-24 lg:pt-36">
         <h3 class="font-display text-4xl uppercase leading-none text-night sm:text-5xl">${axis.title}</h3>
         <p class="mt-4 font-sans text-sm font-semibold leading-relaxed text-night/75">${axis.text}</p>
       </div>
-    </article>`).join('');
+    </article>`;
+  }).join('');
 }
 
 function socialMarkup() {
@@ -79,7 +88,7 @@ export function renderFinadosPage(page) {
   <header class="campaign-header fixed inset-x-0 top-3 z-40 transition-colors duration-200" data-header>
     <div class="mx-auto flex h-20 w-[min(100%-2rem,88rem)] items-center justify-between sm:h-24">
       <a href="#inicio" aria-label="Finados 2026, inicio">
-        <img class="h-auto w-28 sm:w-36" src="/assets/finados/logo-finados-nuevo.png" width="218" height="115" alt="Finados 2026, legado que nos une">
+        <img class="h-auto w-28 sm:w-36" src="/assets/finados/logo-finados.svg?v=${campaignAssetVersion}" width="766" height="449" alt="Finados 2026, legado que nos une">
       </a>
       <a class="button-outline-light" href="/">Volver al Complejo</a>
     </div>
@@ -108,7 +117,7 @@ export function renderFinadosPage(page) {
             <div class="hero-online-card" aria-label="Venta online">
               <span>Venta</span>
               <strong>Online</strong>
-              <a class="hero-online-action" href="https://reserva.mushucticket.com/customers"${externalAttributes('https://reserva.mushucticket.com/customers')}>Reservar mi stand <span aria-hidden="true">↗</span></a>
+              <a class="hero-online-action" href="${purchaseUrl}"${externalAttributes(purchaseUrl)}>Reservar mi stand <span aria-hidden="true">↗</span></a>
             </div>
           </div>
         </div>
@@ -186,7 +195,7 @@ export function renderFinadosPage(page) {
     </section>
 
     <section id="canales" class="relative overflow-hidden bg-fuchsia py-24 text-night sm:py-32">
-      <img class="absolute -bottom-28 -right-24 h-80 w-80 opacity-30 sm:h-[34rem] sm:w-[34rem]" src="/assets/finados/icons/legado.svg" alt="" width="544" height="544" loading="lazy">
+      <img class="absolute -bottom-28 -right-24 h-80 w-80 object-contain opacity-30 sm:h-[34rem] sm:w-[34rem]" src="/assets/finados/icons/legado.svg?v=${campaignAssetVersion}" alt="" loading="lazy">
       <div class="relative mx-auto w-[min(100%-2rem,88rem)]">
         <p class="kicker" data-reveal>La historia continúa</p>
         <h2 class="channels-title mt-5 max-w-6xl font-display text-[clamp(4rem,10vw,9rem)] uppercase" data-reveal>Lo próximo se contará por los canales oficiales</h2>
@@ -212,7 +221,7 @@ export function renderFinadosPage(page) {
   <footer class="bg-night px-4 py-12 text-lienzo">
     <div class="mx-auto flex w-[min(100%,88rem)] flex-col gap-8 border-t border-lienzo/30 pt-8 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        <img class="h-auto w-36" src="/assets/finados/logo-finados-nuevo.png" width="218" height="115" alt="Finados 2026">
+        <img class="h-auto w-36" src="/assets/finados/logo-finados.svg?v=${campaignAssetVersion}" width="766" height="449" alt="Finados 2026">
         <p class="mt-4 max-w-md text-sm leading-relaxed text-lienzo/60">Información de Finados 2026. Consulta condiciones, disponibilidad y novedades por los canales oficiales.</p>
       </div>
       <a class="footer-link" href="/">Volver a complejomushucruna.com <span aria-hidden="true">↗</span></a>

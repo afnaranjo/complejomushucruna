@@ -728,3 +728,12 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Commit: incluido en `Registrar reconciliación segura de producción web`.
 - Publicación externa: ninguna; no se modificó, subió, borró, renombró o reemplazó ningún archivo en cPanel, DNS, APISIX o los sitios. El único cambio remoto previsto es el push documental al repositorio según la regla de cierre.
 - Riesgos y pendientes: rotar la passphrase, mover la llave fuera de Descargas y conservar permisos `600`; confirmar por separado el destino y docroot de `finados.complejomushucruna.com` antes de cualquier despliegue en ese subdominio.
+
+### 2026-09-03 — Nuevos SVG y canal general de Mushuc Ticket
+
+- Alex pidió sustituir en todos los CTA de venta de stands el destino anterior por `https://mushucticket.com/` y entregó nuevos SVG oficiales para el logo de Finados, legado, encuentro, crecimiento y visión; el símbolo de visión se aplica a la tarjeta `Espectador`.
+- Se actualizaron localmente `/finados/` y `/acceso-compra-stands/`, con invalidación de caché y proporciones responsivas acordes con cada SVG. El HTML generado contiene únicamente el nuevo canal de compra.
+- QA local: 25/25 pruebas, build de 70 archivos, 16 HTML y 406 referencias válidas; los SVG están libres de scripts, imágenes embebidas y `foreignObject`.
+- La sección solicitada de requisitos para expositores no se implementó porque la imagen o lista mencionada no llegó adjunta. No se inventaron condiciones de compra.
+- Publicación externa: ninguna. No hubo commit, push, despliegue ni escritura en Mushuc Ticket.
+- Seguridad: no se versionaron credenciales, llaves, rutas de red ni configuración privada.
