@@ -83,8 +83,12 @@ test('genera una previsualización privada de Finados sin publicarla en la naveg
   assert.match(stands, /data-target="2026-09-14T08:00:00-05:00"/);
   assert.match(stands, /14 de septiembre/);
   assert.match(stands, /08:00 <small>AM<\/small>/);
-  assert.match(stands, /Días · Horas · Minutos · Segundos/);
   assert.match(stands, /class="stands-countdown-grid"/);
+  assert.doesNotMatch(stands, /stands-countdown-heading/);
+  assert.match(stands, /data-countdown-value="days">--<\/strong>\s*<small>Días<\/small>/);
+  assert.match(stands, /data-countdown-value="hours">--<\/strong>\s*<small>Horas<\/small>/);
+  assert.match(stands, /data-countdown-value="minutes">--<\/strong>\s*<small>Minutos<\/small>/);
+  assert.match(stands, /data-countdown-value="seconds">--<\/strong>\s*<small>Segundos<\/small>/);
   assert.doesNotMatch(stands, /Haz clic en el botón y adquiere tu stand para ser parte de la expoferia más grande del Ecuador\./);
   assert.match(stands, /Correo electrónico/);
   assert.match(stands, /Cédula de ciudadanía <span>PDF<\/span>/);

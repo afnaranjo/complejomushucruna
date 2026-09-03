@@ -91,7 +91,11 @@ test('empaqueta la experiencia Finados con recursos locales y optimizados', asyn
   assert.match(standsPage, /data-stands-countdown/);
   assert.match(standsPage, /data-target="2026-09-14T08:00:00-05:00"/);
   assert.match(standsPage, /08:00 <small>AM<\/small>/);
-  assert.match(standsPage, /Días · Horas · Minutos · Segundos/);
+  assert.doesNotMatch(standsPage, /stands-countdown-heading/);
+  assert.match(standsPage, /data-countdown-value="days">--<\/strong>\s*<small>Días<\/small>/);
+  assert.match(standsPage, /data-countdown-value="hours">--<\/strong>\s*<small>Horas<\/small>/);
+  assert.match(standsPage, /data-countdown-value="minutes">--<\/strong>\s*<small>Minutos<\/small>/);
+  assert.match(standsPage, /data-countdown-value="seconds">--<\/strong>\s*<small>Segundos<\/small>/);
   assert.doesNotMatch(standsPage, /Haz clic en el botón y adquiere tu stand/);
   assert.match(standsPage, /Correo electrónico/);
   assert.match(standsPage, /Cédula de ciudadanía/);

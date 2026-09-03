@@ -35,7 +35,6 @@ if (standsCountdown) {
     [...standsCountdown.querySelectorAll('[data-countdown-value]')]
       .map((item) => [item.dataset.countdownValue, item]),
   );
-  const heading = standsCountdown.querySelector('[data-countdown-heading]');
   const status = standsCountdown.querySelector('[data-countdown-status]');
   let announcedDay = null;
   let timer;
@@ -54,7 +53,6 @@ if (standsCountdown) {
 
     if (remaining === 0) {
       standsCountdown.classList.add('is-live');
-      heading.textContent = 'La venta de stands ya está disponible';
       status.textContent = 'La venta de stands ya está disponible.';
       window.clearInterval(timer);
       return;

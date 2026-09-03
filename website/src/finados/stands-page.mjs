@@ -66,20 +66,23 @@ export function renderStandsAccessPage(page) {
         </div>
 
         <div class="stands-countdown hero-enter mx-auto mt-10 max-w-5xl" data-hero-item data-stands-countdown data-target="2026-09-14T08:00:00-05:00">
-          <div class="stands-countdown-heading">
-            <span>Cuenta regresiva</span>
-            <strong data-countdown-heading>Falta poco para abrir la venta</strong>
-            <p>Días · Horas · Minutos · Segundos</p>
-            <time datetime="2026-09-14T08:00:00-05:00">14 de septiembre · 08:00 AM</time>
-          </div>
           <div class="stands-countdown-grid" aria-hidden="true">
-            <strong data-countdown-value="days">--</strong>
-            <span aria-hidden="true">:</span>
-            <strong data-countdown-value="hours">--</strong>
-            <span aria-hidden="true">:</span>
-            <strong data-countdown-value="minutes">--</strong>
-            <span aria-hidden="true">:</span>
-            <strong data-countdown-value="seconds">--</strong>
+            <span class="stands-countdown-unit">
+              <strong data-countdown-value="days">--</strong>
+              <small>Días</small>
+            </span>
+            <span class="stands-countdown-unit">
+              <strong data-countdown-value="hours">--</strong>
+              <small>Horas</small>
+            </span>
+            <span class="stands-countdown-unit">
+              <strong data-countdown-value="minutes">--</strong>
+              <small>Minutos</small>
+            </span>
+            <span class="stands-countdown-unit">
+              <strong data-countdown-value="seconds">--</strong>
+              <small>Segundos</small>
+            </span>
           </div>
           <span class="sr-only" aria-live="polite" data-countdown-status>La venta de stands inicia el 14 de septiembre.</span>
           <noscript><p>La venta de stands inicia el 14 de septiembre.</p></noscript>
