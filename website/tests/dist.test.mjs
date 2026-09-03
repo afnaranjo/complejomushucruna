@@ -62,8 +62,8 @@ test('empaqueta la experiencia Finados con recursos locales y optimizados', asyn
   const kjarkas = await stat(join(output, 'assets/finados/kjarkas-finados.webp'));
   const kjarkasMobile = await stat(join(output, 'assets/finados/kjarkas-finados-960.webp'));
 
-  assert.match(landing, /\/assets\/finados\/finados\.css/);
-  assert.match(landing, /\/assets\/finados\/finados\.js/);
+  assert.match(landing, /\/assets\/finados\/finados\.css\?v=20260903-2/);
+  assert.match(landing, /\/assets\/finados\/finados\.js\?v=20260903-2/);
   assert.match(landing, /rel="icon" href="\/assets\/finados\/favicon-finados\.png"/);
   assert.match(landing, /rel="preload" as="image" href="\/assets\/finados\/expositor-artesanias\.webp"/);
   assert.match(landing, /Venta de stands/);
@@ -84,6 +84,8 @@ test('empaqueta la experiencia Finados con recursos locales y optimizados', asyn
   assert.match(landing, /https:\/\/www\.tiktok\.com\/@finadosmushucruna/);
   assert.match(landing, /https:\/\/www\.instagram\.com\/finadosmushucruna\//);
   assert.match(standsPage, /Más de 500 stands/);
+  assert.match(standsPage, /\/assets\/finados\/finados\.css\?v=20260903-2/);
+  assert.match(standsPage, /\/assets\/finados\/finados\.js\?v=20260903-2/);
   assert.match(standsPage, /Venta 100% online/);
   assert.match(standsPage, /https:\/\/mushucticket\.com\//);
   assert.doesNotMatch(standsPage, /reserva\.mushucticket\.com\/customers/);

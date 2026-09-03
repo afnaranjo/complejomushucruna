@@ -3,6 +3,7 @@ import { escapeHtml, externalAttributes } from '../render/html.mjs';
 
 const purchaseUrl = 'https://mushucticket.com/';
 const campaignAssetVersion = '20260903';
+const campaignRuntimeVersion = '20260903-2';
 
 export function renderStandsAccessPage(page) {
   const canonical = `${site.baseUrl}${page.route}`;
@@ -20,8 +21,8 @@ export function renderStandsAccessPage(page) {
   <link rel="icon" href="/assets/finados/favicon-finados.png" type="image/png" sizes="256x256">
   <link rel="apple-touch-icon" href="/assets/finados/favicon-finados.png">
   <link rel="preload" as="image" href="/assets/finados/logo-finados.svg?v=${campaignAssetVersion}" fetchpriority="high">
-  <link rel="stylesheet" href="/assets/finados/finados.css">
-  <script type="module" src="/assets/finados/finados.js"></script>
+  <link rel="stylesheet" href="/assets/finados/finados.css?v=${campaignRuntimeVersion}">
+  <script type="module" src="/assets/finados/finados.js?v=${campaignRuntimeVersion}"></script>
 </head>
 <body class="stands-access-page bg-night font-sans text-lienzo antialiased selection:bg-winay selection:text-night">
   <a class="skip-link" href="#contenido">Ir al contenido</a>
