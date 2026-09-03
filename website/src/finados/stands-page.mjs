@@ -47,12 +47,13 @@ export function renderStandsAccessPage(page) {
           <span class="block text-lienzo">Acceso para</span>
           <span class="block text-fuchsia">compra de stands</span>
         </h1>
-        <p class="hero-enter mx-auto mt-7 max-w-3xl font-sans text-lg font-semibold leading-relaxed text-lienzo/80 sm:text-xl" data-hero-item>Haz clic en el botón y adquiere tu stand para ser parte de la expoferia más grande del Ecuador.</p>
-
-        <div class="stands-access-facts hero-enter mx-auto mt-10 grid max-w-5xl gap-3 text-left sm:grid-cols-3" data-hero-item>
-          <article class="stands-access-fact stands-access-fact-date">
-            <span>Fecha de venta</span>
-            <time datetime="2026-09-14">14 de septiembre</time>
+        <div class="stands-access-facts hero-enter mx-auto mt-10 grid max-w-5xl gap-3 text-left sm:grid-cols-2" data-hero-item>
+          <article class="stands-access-fact stands-access-fact-date sm:col-span-2">
+            <span>Apertura de venta de stands</span>
+            <div class="stands-sale-date">
+              <time datetime="2026-09-14T08:00:00-05:00">14 de septiembre</time>
+              <strong class="stands-sale-time">08:00 <small>AM</small></strong>
+            </div>
           </article>
           <article class="stands-access-fact stands-access-fact-online">
             <span>Modalidad</span>
@@ -64,9 +65,68 @@ export function renderStandsAccessPage(page) {
           </article>
         </div>
 
+        <div class="stands-countdown hero-enter mx-auto mt-10 max-w-5xl" data-hero-item data-stands-countdown data-target="2026-09-14T08:00:00-05:00">
+          <div class="stands-countdown-heading">
+            <span>Cuenta regresiva</span>
+            <strong data-countdown-heading>Falta poco para abrir la venta</strong>
+            <p>Días · Horas · Minutos · Segundos</p>
+            <time datetime="2026-09-14T08:00:00-05:00">14 de septiembre · 08:00 AM</time>
+          </div>
+          <div class="stands-countdown-grid" aria-hidden="true">
+            <strong data-countdown-value="days">--</strong>
+            <span aria-hidden="true">:</span>
+            <strong data-countdown-value="hours">--</strong>
+            <span aria-hidden="true">:</span>
+            <strong data-countdown-value="minutes">--</strong>
+            <span aria-hidden="true">:</span>
+            <strong data-countdown-value="seconds">--</strong>
+          </div>
+          <span class="sr-only" aria-live="polite" data-countdown-status>La venta de stands inicia el 14 de septiembre.</span>
+          <noscript><p>La venta de stands inicia el 14 de septiembre.</p></noscript>
+        </div>
+
         <div class="hero-enter mt-10" data-hero-item>
           <a class="stands-purchase-button" href="${purchaseUrl}"${externalAttributes(purchaseUrl)}>Comprar mi stand <span aria-hidden="true">↗</span></a>
           <p class="mx-auto mt-5 max-w-2xl text-sm font-bold text-lienzo/65">Venta exclusivamente online a través del canal de compra.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="stands-requirements px-4 py-20 text-night sm:py-28" aria-labelledby="requisitos-title">
+      <div class="stands-requirements-grid mx-auto w-[min(100%,80rem)]">
+        <div class="stands-requirements-copy" data-reveal>
+          <p class="kicker text-night">Antes de comprar</p>
+          <h2 id="requisitos-title" class="stands-requirements-title mt-5 font-display uppercase">Ten lista tu información</h2>
+          <p class="stands-requirements-lead mt-6 max-w-2xl font-sans text-lg font-bold leading-relaxed sm:text-xl">Compra tu stand con calma y enfócate en lo importante: tu producto, tu marca y tu feria.</p>
+
+          <ol class="stands-requirements-list mt-9">
+            <li class="stands-requirement-item">
+              <span class="stands-requirement-number" aria-hidden="true">01</span>
+              <strong>Correo electrónico</strong>
+            </li>
+            <li class="stands-requirement-item">
+              <span class="stands-requirement-number" aria-hidden="true">02</span>
+              <strong>Cédula de ciudadanía <span>PDF</span></strong>
+            </li>
+            <li class="stands-requirement-item">
+              <span class="stands-requirement-number" aria-hidden="true">03</span>
+              <strong>RUC habilitado <span>PDF</span></strong>
+            </li>
+            <li class="stands-requirement-item">
+              <span class="stands-requirement-number" aria-hidden="true">04</span>
+              <strong>Catálogo de productos <span>PDF</span></strong>
+            </li>
+          </ol>
+
+          <aside class="stands-computer-note mt-8">
+            <span aria-hidden="true">⌁</span>
+            <p><strong>Te recomendamos utilizar un computador</strong> para completar tu compra con mayor comodidad.</p>
+          </aside>
+        </div>
+
+        <div class="stands-requirements-visual" data-reveal>
+          <div class="stands-requirements-stamp" aria-hidden="true">Todo listo<br>para empezar</div>
+          <img src="/assets/finados/expositora-requisitos.webp?v=${campaignAssetVersion}" width="880" height="1320" loading="lazy" alt="Emprendedora preparando en su computador la información para comprar un stand">
         </div>
       </div>
     </section>

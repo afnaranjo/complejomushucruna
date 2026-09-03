@@ -737,3 +737,13 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - La sección solicitada de requisitos para expositores no se implementó porque la imagen o lista mencionada no llegó adjunta. No se inventaron condiciones de compra.
 - Publicación externa: ninguna. No hubo commit, push, despliegue ni escritura en Mushuc Ticket.
 - Seguridad: no se versionaron credenciales, llaves, rutas de red ni configuración privada.
+
+### 2026-09-03 — Requisitos y contador para compra de stands
+
+- Alex entregó una pieza de referencia con la información requerida para comprar un stand y solicitó integrarla en `/acceso-compra-stands/` con la línea gráfica vigente, una nueva emprendedora y una cuenta regresiva al 14 de septiembre.
+- Se incorporaron correo electrónico, cédula de ciudadanía en PDF, RUC habilitado en PDF, catálogo de productos en PDF y la recomendación de usar computador. La composición no replica la pieza de Carnaval; usa el sistema cromático, tipográfico y responsive de Finados.
+- Se generó una nueva emprendedora para la sección y se optimizó como WebP transparente de 124.876 bytes. El logo visible continúa usando el SVG oficial y los dos CTA apuntan a `https://mushucticket.com/`.
+- El contador usa como destino `2026-09-14T08:00:00-05:00`, actualiza días, horas, minutos y segundos, ofrece un estado accesible y cambia a venta disponible al llegar a cero. La fecha y la hora se ampliaron en el hero; las unidades quedan sobre una única franja numérica y se retiró la frase introductoria indicada por Alex.
+- QA local: 25/25 pruebas, build de 71 archivos, 16 HTML y 407 referencias válidas; la ruta local responde HTTP 200 con requisitos, contador y dos enlaces de compra.
+- Publicación externa: Git y producción autorizados por Alex; pendiente registrar el commit técnico y el resultado del despliegue seguro.
+- Riesgos y pendientes: revisar visualmente la nueva composición y obtener autorización expresa antes de publicar; la contraseña de la llave SSH que se escribió previamente como comando visible debe considerarse expuesta y rotarse.
