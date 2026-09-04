@@ -166,6 +166,34 @@ export function renderFinadosPage(page) {
       </div>
     </section>
 
+    <section id="william-luna" class="artist-section bg-night py-24 text-lienzo sm:py-32" aria-labelledby="william-luna-title">
+      <div class="mx-auto grid w-[min(100%-2rem,88rem)] gap-10 lg:grid-cols-[1.28fr_0.72fr] lg:items-center">
+        <figure class="artist-poster artist-poster-dark" data-reveal>
+          <img src="/assets/finados/william-luna.svg?v=20260904" width="1600" height="801" alt="Arte oficial de William Luna para Finados Mushuc Runa 2026" loading="lazy">
+          <figcaption>William Luna · Finados Mushuc Runa 2026</figcaption>
+        </figure>
+        <div class="artist-copy lg:pl-6">
+          <p class="kicker text-cyan" data-reveal>40 años de vida artística</p>
+          <h2 id="william-luna-title" class="artist-title mt-5 font-display uppercase" data-reveal>William Luna celebra cuatro décadas en Finados</h2>
+          <p class="mt-7 max-w-lg font-sans text-lg leading-relaxed text-lienzo/75" data-reveal>El cantautor celebrará sus 40 años de vida artística en Finados Mushuc Runa 2026.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="las-nanas" class="artist-section bg-lienzo py-24 text-night sm:py-32" aria-labelledby="las-nanas-title">
+      <div class="mx-auto grid w-[min(100%-2rem,88rem)] gap-10 lg:grid-cols-[0.72fr_1.28fr] lg:items-center">
+        <div class="artist-copy lg:pr-6">
+          <p class="kicker text-purple" data-reveal>Música nacional ecuatoriana</p>
+          <h2 id="las-nanas-title" class="artist-title mt-5 font-display uppercase" data-reveal>Las Ñañas: el grupo sensación</h2>
+          <p class="mt-7 max-w-lg font-sans text-lg leading-relaxed text-night/75" data-reveal>Las Ñañas son el grupo sensación de la actualidad de la música nacional ecuatoriana y llegan a Finados Mushuc Runa 2026 con una propuesta fresca y cercana.</p>
+        </div>
+        <figure class="artist-poster artist-poster-light" data-reveal>
+          <img src="/assets/finados/las-nanas.svg?v=20260904" width="1600" height="801" alt="Arte oficial de Las Ñañas para Finados Mushuc Runa 2026" loading="lazy">
+          <figcaption>Las Ñañas · Finados Mushuc Runa 2026</figcaption>
+        </figure>
+      </div>
+    </section>
+
     <section class="bg-purple py-5 text-lienzo" aria-label="Mensaje principal">
       <div class="marquee" aria-hidden="true">
         <div class="marquee-track font-display text-4xl uppercase leading-none sm:text-6xl">

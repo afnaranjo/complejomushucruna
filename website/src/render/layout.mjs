@@ -1,6 +1,8 @@
 import { primaryNavigation, site, socialLinks } from '../data/site.mjs';
 import { escapeHtml, externalAttributes } from './html.mjs';
 
+const institutionalAssetVersion = '20260904';
+
 function navigation(currentRoute) {
   return primaryNavigation.map((item) => {
     const current = item.href === currentRoute ? ' aria-current="page"' : '';
@@ -25,7 +27,7 @@ export function renderLayout(page) {
   <meta property="og:description" content="${escapeHtml(page.description)}">
   <meta property="og:type" content="website">
   <meta property="og:url" content="${escapeHtml(canonical)}">
-  <link rel="icon" href="/assets/icons/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="/assets/icons/logo-complejo-mushuc-runa.svg?v=${institutionalAssetVersion}" type="image/svg+xml">
   <link rel="stylesheet" href="/assets/styles.css">
   <script type="module" src="/assets/site.js"></script>
 </head>

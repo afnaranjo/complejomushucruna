@@ -41,6 +41,7 @@ test('cada página entrega metadatos, canonical y un único h1', async () => {
   assert.match(home, /<title>Complejo Mushuc Runa/);
   assert.match(home, /<meta name="description" content="[^"]+">/);
   assert.match(home, /<link rel="canonical" href="https:\/\/complejomushucruna.com\/">/);
+  assert.match(home, /<link rel="icon" href="\/assets\/icons\/logo-complejo-mushuc-runa\.svg\?v=20260904" type="image\/svg\+xml">/);
   assert.equal((home.match(/<h1\b/g) ?? []).length, 1);
   assert.match(home, /<a class="skip-link" href="#contenido">/);
   assert.match(home, /<main id="contenido">/);
@@ -67,6 +68,17 @@ test('genera una previsualización privada de Finados sin publicarla en la naveg
   assert.doesNotMatch(landing, /reserva\.mushucticket\.com\/customers/);
   assert.match(landing, /Guaynaa enciende el Megaescenario/);
   assert.match(landing, /Los Kjarkas: la raíz que nos une/);
+  assert.match(landing, /id="william-luna"/);
+  assert.match(landing, /William Luna celebra cuatro décadas en Finados/);
+  assert.match(landing, /celebrará sus 40 años de vida artística en Finados Mushuc Runa 2026/);
+  assert.match(landing, /\/assets\/finados\/william-luna\.svg\?v=20260904/);
+  assert.match(landing, /id="las-nanas"/);
+  assert.match(landing, /Las Ñañas: el grupo sensación/);
+  assert.match(landing, /grupo sensación de la actualidad de la música nacional ecuatoriana/);
+  assert.match(landing, /\/assets\/finados\/las-nanas\.svg\?v=20260904/);
+  assert.ok(landing.indexOf('id="kjarkas"') < landing.indexOf('id="william-luna"'));
+  assert.ok(landing.indexOf('id="william-luna"') < landing.indexOf('id="las-nanas"'));
+  assert.ok(landing.indexOf('id="las-nanas"') < landing.indexOf('id="canales"'));
   assert.match(landing, />Instagram <span aria-hidden="true">↗<\/span><\/a>/);
   assert.match(landing, /href="\/"[^>]*>Volver al Complejo/);
   assert.equal((landing.match(/<h1\b/g) ?? []).length, 1);

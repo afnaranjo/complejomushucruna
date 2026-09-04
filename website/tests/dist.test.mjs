@@ -57,6 +57,9 @@ test('empaqueta la experiencia Finados con recursos locales y optimizados', asyn
   const encounterIcon = await readFile(join(output, 'assets/finados/icons/encuentro.svg'), 'utf8');
   const growthIcon = await readFile(join(output, 'assets/finados/icons/crecimiento.svg'), 'utf8');
   const spectatorIcon = await readFile(join(output, 'assets/finados/icons/espectador.svg'), 'utf8');
+  const williamLuna = await readFile(join(output, 'assets/finados/william-luna.svg'), 'utf8');
+  const lasNanas = await readFile(join(output, 'assets/finados/las-nanas.svg'), 'utf8');
+  const complexFavicon = await readFile(join(output, 'assets/icons/logo-complejo-mushuc-runa.svg'), 'utf8');
   const guaynaa = await stat(join(output, 'assets/finados/guaynaa-finados.webp'));
   const guaynaaMobile = await stat(join(output, 'assets/finados/guaynaa-finados-960.webp'));
   const kjarkas = await stat(join(output, 'assets/finados/kjarkas-finados.webp'));
@@ -80,6 +83,8 @@ test('empaqueta la experiencia Finados con recursos locales y optimizados', asyn
   assert.match(landing, /Guaynaa enciende el Megaescenario/);
   assert.match(landing, /\/assets\/finados\/kjarkas-finados\.webp/);
   assert.match(landing, /Los Kjarkas: la raíz que nos une/);
+  assert.match(landing, /\/assets\/finados\/william-luna\.svg\?v=20260904/);
+  assert.match(landing, /\/assets\/finados\/las-nanas\.svg\?v=20260904/);
   assert.match(landing, /https:\/\/www\.facebook\.com\/FinadosMushucRunaEc/);
   assert.match(landing, /https:\/\/www\.tiktok\.com\/@finadosmushucruna/);
   assert.match(landing, /https:\/\/www\.instagram\.com\/finadosmushucruna\//);
@@ -114,8 +119,16 @@ test('empaqueta la experiencia Finados con recursos locales y optimizados', asyn
   assert.match(spectatorIcon, /viewBox="0 0 1271 587"/);
   assert.match(spectatorIcon, /fill:#00d2d6/);
   assert.doesNotMatch(spectatorIcon, /<image/);
+  assert.match(williamLuna, /viewBox="0 0 1600 801"/);
+  assert.match(lasNanas, /viewBox="0 0 1600 801"/);
+  assert.doesNotMatch(williamLuna, /<script\b/i);
+  assert.doesNotMatch(lasNanas, /<script\b/i);
+  assert.match(complexFavicon, /viewBox="0 0 260 260"/);
+  assert.doesNotMatch(complexFavicon, /<script\b/i);
   assert.ok(landing.indexOf('id="artistas"') < landing.indexOf('id="kjarkas"'));
-  assert.ok(landing.indexOf('id="kjarkas"') < landing.indexOf('id="canales"'));
+  assert.ok(landing.indexOf('id="kjarkas"') < landing.indexOf('id="william-luna"'));
+  assert.ok(landing.indexOf('id="william-luna"') < landing.indexOf('id="las-nanas"'));
+  assert.ok(landing.indexOf('id="las-nanas"') < landing.indexOf('id="canales"'));
   assert.ok(landing.indexOf('id="canales"') < landing.indexOf('id="legado"'));
   assert.match(finadosStyles, /\.hero-paloma/);
   assert.doesNotMatch(finadosStyles, /\.hero-encuentro/);
