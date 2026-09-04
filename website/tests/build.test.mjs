@@ -1,11 +1,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { execFile } from 'node:child_process';
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { promisify } from 'node:util';
 
 import { buildSite } from '../scripts/build.mjs';
 import { escapeHtml } from '../src/render/html.mjs';
+
+const execFileAsync = promisify(execFile);
 
 test('escapa contenido que no debe convertirse en HTML activo', () => {
   assert.equal(
@@ -15,18 +19,29 @@ test('escapa contenido que no debe convertirse en HTML activo', () => {
 });
 
 test('compila Finados únicamente desde las fuentes declaradas', async () => {
-  const probe = join(process.cwd(), 'src', 'finados', '.tailwind-auto-probe.html');
-  const output = await mkdtemp(join(tmpdir(), 'mushuc-tailwind-sources-'));
+  const fixture = await mkdtemp(join(tmpdir(), 'mushuc-tailwind-sources-'));
+  const input = join(fixture, 'input.css');
+  const output = join(fixture, 'output.css');
+  const tailwindCss = join(process.cwd(), 'node_modules', 'tailwindcss', 'index.css').replaceAll('\\', '/');
+  const productionCss = await readFile(join(process.cwd(), 'src', 'finados', 'finados.css'), 'utf8');
 
   try {
-    await writeFile(probe, '<div class="bg-[#123456]"></div>', 'utf8');
-    await buildSite(output);
-    const css = await readFile(join(output, 'assets', 'finados', 'finados.css'), 'utf8');
+    await writeFile(join(fixture, 'declared.html'), '<div class="bg-[#654321]"></div>', 'utf8');
+    await writeFile(join(fixture, 'undeclared.html'), '<div class="bg-[#123456]"></div>', 'utf8');
+    await writeFile(input, `@import "${tailwindCss}" source(none);\n@source "./declared.html";\n`, 'utf8');
+    await execFileAsync(process.execPath, [
+      join(process.cwd(), 'node_modules', '@tailwindcss', 'cli', 'dist', 'index.mjs'),
+      '-i', input,
+      '-o', output,
+      '--minify',
+    ], { cwd: process.cwd() });
+    const css = await readFile(output, 'utf8');
 
+    assert.match(productionCss, /^@import "tailwindcss" source\(none\);/);
+    assert.match(css, /#654321/i);
     assert.doesNotMatch(css, /#123456/i);
   } finally {
-    await rm(probe, { force: true });
-    await rm(output, { force: true, recursive: true });
+    await rm(fixture, { force: true, recursive: true });
   }
 });
 

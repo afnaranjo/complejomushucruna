@@ -95,3 +95,11 @@ test('sincroniza únicamente main sin descargar etiquetas ni ejecutar mantenimie
   );
   assert.doesNotMatch(source, /run\('git', \['fetch', 'origin'\]/);
 });
+
+test('serializa las pruebas que compilan Tailwind durante el preflight', async () => {
+  const source = await readFile(deployScript, 'utf8');
+  const packageConfig = JSON.parse(await readFile(join(websiteRoot, 'package.json'), 'utf8'));
+
+  assert.match(source, /\['--test', '--test-concurrency=1', \.\.\.testFiles\]/);
+  assert.equal(packageConfig.scripts.test, 'node --test --test-concurrency=1 tests/*.test.mjs');
+});

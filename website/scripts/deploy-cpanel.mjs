@@ -277,7 +277,10 @@ async function runProjectChecks() {
   const testFiles = (await readdir(testDirectory))
     .filter((file) => file.endsWith('.test.mjs'))
     .map((file) => join(testDirectory, file));
-  run(process.execPath, ['--test', ...testFiles], { cwd: websiteRoot, label: 'Las pruebas locales' });
+  run(process.execPath, ['--test', '--test-concurrency=1', ...testFiles], {
+    cwd: websiteRoot,
+    label: 'Las pruebas locales',
+  });
   run(process.execPath, [join(websiteRoot, 'scripts', 'build.mjs')], { cwd: websiteRoot, label: 'La construcción local' });
   run(process.execPath, [join(websiteRoot, 'scripts', 'check-dist.mjs')], { cwd: websiteRoot, label: 'La validación de la salida' });
   return access(join(websiteRoot, 'dist', 'index.html'));
