@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import "tailwindcss" source(none);
 @source "./page.mjs";
 @source "./stands-page.mjs";
 

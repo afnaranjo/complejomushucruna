@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, readFile } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -12,6 +12,22 @@ test('escapa contenido que no debe convertirse en HTML activo', () => {
     escapeHtml('<script>alert("Mushuc")</script>'),
     '&lt;script&gt;alert(&quot;Mushuc&quot;)&lt;/script&gt;',
   );
+});
+
+test('compila Finados únicamente desde las fuentes declaradas', async () => {
+  const probe = join(process.cwd(), 'src', 'finados', '.tailwind-auto-probe.html');
+  const output = await mkdtemp(join(tmpdir(), 'mushuc-tailwind-sources-'));
+
+  try {
+    await writeFile(probe, '<div class="bg-[#123456]"></div>', 'utf8');
+    await buildSite(output);
+    const css = await readFile(join(output, 'assets', 'finados', 'finados.css'), 'utf8');
+
+    assert.doesNotMatch(css, /#123456/i);
+  } finally {
+    await rm(probe, { force: true });
+    await rm(output, { force: true, recursive: true });
+  }
 });
 
 test('genera las rutas institucionales y el archivo histórico', async () => {
