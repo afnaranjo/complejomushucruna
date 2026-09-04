@@ -38,6 +38,14 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: "Anton";
+  src: url("/assets/finados/fonts/anton-latin.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --color-rojo-profundo: #7C170F;
   --color-rojo-mushuc: #AD140E;
@@ -89,6 +97,29 @@ body::before {
   background-image: url("/assets/images/patron-mushuc.png");
   background-size: 460px auto;
   pointer-events: none;
+}
+
+.home-page {
+  position: relative;
+  background:
+    radial-gradient(circle at 88% 28%, rgba(0, 210, 214, 0.14), transparent 25rem),
+    radial-gradient(circle at 8% 72%, rgba(255, 46, 138, 0.1), transparent 28rem),
+    var(--color-lienzo);
+}
+
+.home-page::before {
+  z-index: 0;
+  opacity: 0.075;
+  background-image: url("/assets/icons/logo-complejo.svg?v=20260904-2");
+  background-repeat: no-repeat;
+  background-position: calc(100% + 13rem) 44%;
+  background-size: min(76vw, 64rem) auto;
+}
+
+.home-page > main,
+.home-page > .site-footer {
+  position: relative;
+  z-index: 1;
 }
 
 img,
@@ -231,6 +262,48 @@ a {
   background: currentColor;
 }
 
+.home-chumbi {
+  position: absolute;
+  z-index: 30;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 10px;
+  background: repeating-linear-gradient(90deg, #ff2e8a 0 18px, #ffc42e 18px 36px, #00d2d6 36px 54px, #6e2ce0 54px 72px, #e01b24 72px 90px, #f4eada 90px 108px);
+}
+
+.site-header--finados {
+  top: 10px;
+  min-height: 104px;
+  border-bottom-color: rgba(244, 234, 218, 0.24);
+}
+
+.site-header--finados::before {
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  bottom: -2rem;
+  left: 50%;
+  width: 100vw;
+  content: "";
+  background: linear-gradient(180deg, rgba(36, 17, 70, 0.93), rgba(36, 17, 70, 0));
+  transform: translateX(-50%);
+}
+
+.site-header--finados .brand img {
+  width: 78px;
+  height: 78px;
+  object-fit: contain;
+}
+
+.site-header--finados .main-nav a {
+  color: #f4eada;
+}
+
+.site-header--finados .main-nav a::after {
+  background: #00d2d6;
+}
+
 .hero {
   position: relative;
   isolation: isolate;
@@ -310,6 +383,193 @@ a {
   flex-wrap: wrap;
   gap: 14px;
   margin-top: 34px;
+}
+
+.hero--finados {
+  min-height: min(880px, 100svh);
+  align-items: stretch;
+  background: #241146;
+  color: #f4eada;
+}
+
+.hero--finados::before {
+  z-index: -3;
+  background:
+    radial-gradient(circle at 72% 20%, rgba(110, 44, 224, 0.55), transparent 31rem),
+    linear-gradient(135deg, #241146 0 42%, #391f6f 42% 67%, #6e2ce0 67% 100%);
+}
+
+.hero--finados::after {
+  z-index: -2;
+  top: 17%;
+  right: -10%;
+  bottom: auto;
+  width: min(64rem, 75vw);
+  height: 72%;
+  border: 0;
+  border-radius: 0;
+  background: rgba(255, 46, 138, 0.2);
+  clip-path: polygon(20% 0, 100% 14%, 82% 100%, 0 78%);
+  transform: rotate(-5deg);
+}
+
+.hero-finados__watermark {
+  position: absolute;
+  z-index: -1;
+  top: 50%;
+  right: -12rem;
+  width: min(58rem, 66vw);
+  height: auto;
+  opacity: 0.12;
+  transform: translateY(-48%) rotate(7deg);
+}
+
+.hero-finados__grid {
+  display: grid;
+  min-height: min(880px, 100svh);
+  grid-template-columns: minmax(0, 1.08fr) minmax(24rem, 0.92fr);
+  gap: clamp(1rem, 3vw, 3rem);
+  align-items: end;
+  padding-top: 132px;
+}
+
+.hero-finados__copy {
+  z-index: 2;
+  padding-bottom: clamp(3rem, 8vh, 5.5rem);
+}
+
+.hero-finados__eyebrow {
+  display: inline-flex;
+  padding: 0.58rem 0.9rem;
+  border: 2px solid #00d2d6;
+  margin: 0;
+  background: rgba(36, 17, 70, 0.76);
+  color: #f4eada;
+  font-family: var(--font-nav);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.hero--finados h1 {
+  max-width: 800px;
+  margin-top: 1.25rem;
+  color: #f4eada;
+  font-family: "Anton", "Arial Narrow", sans-serif;
+  font-size: clamp(4.4rem, 8.2vw, 8.2rem);
+  font-weight: 400;
+  line-height: 0.82;
+  letter-spacing: -0.025em;
+  text-transform: uppercase;
+}
+
+.hero--finados h1 span {
+  display: block;
+}
+
+.hero--finados h1 span:nth-child(2) {
+  color: #ff2e8a;
+}
+
+.hero-finados__intro {
+  max-width: 37rem;
+  margin: 1.5rem 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.15rem, 2vw, 1.55rem);
+  font-style: italic;
+  line-height: 1.35;
+}
+
+.hero-finados__offer {
+  display: grid;
+  max-width: 45rem;
+  grid-template-columns: minmax(0, 1.05fr) minmax(14rem, 0.95fr);
+  gap: 0.85rem;
+  margin-top: 1.75rem;
+}
+
+.hero-finados__date,
+.hero-finados__online {
+  display: flex;
+  min-height: 9.25rem;
+  flex-direction: column;
+  justify-content: space-between;
+  border: 2px solid #f4eada;
+  padding: 1.15rem;
+  box-shadow: 7px 7px 0 #ff2e8a;
+}
+
+.hero-finados__date {
+  background: #f4eada;
+  color: #241146;
+}
+
+.hero-finados__online {
+  background: #00d2d6;
+  color: #241146;
+}
+
+.hero-finados__date > span,
+.hero-finados__online > span {
+  font-family: var(--font-nav);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.hero-finados__date time,
+.hero-finados__online strong {
+  font-family: "Anton", "Arial Narrow", sans-serif;
+  font-size: clamp(2.15rem, 4vw, 3.6rem);
+  font-weight: 400;
+  line-height: 0.9;
+  text-transform: uppercase;
+}
+
+.hero-finados__online a {
+  align-self: flex-start;
+  padding: 0.65rem 0.9rem;
+  border-radius: 999px;
+  background: #241146;
+  color: #f4eada;
+  font-family: var(--font-nav);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.hero-finados__expositor {
+  position: relative;
+  z-index: 1;
+  align-self: end;
+  margin: 0;
+}
+
+.hero-finados__expositor img {
+  width: min(100%, 34rem);
+  max-height: calc(100svh - 9rem);
+  margin-inline: auto;
+  object-fit: contain;
+  object-position: bottom;
+  filter: drop-shadow(1rem 1rem 0 rgba(0, 210, 214, 0.22));
+}
+
+.hero-finados__expositor figcaption {
+  position: absolute;
+  right: 0;
+  bottom: 2.25rem;
+  padding: 0.85rem 1rem;
+  background: #ffc42e;
+  color: #241146;
+  font-family: var(--font-nav);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .button {
@@ -789,6 +1049,11 @@ a {
     min-height: 92px;
   }
 
+  .site-header--finados .brand img {
+    width: 70px;
+    height: 70px;
+  }
+
   .brand img {
     width: 148px;
   }
@@ -808,6 +1073,17 @@ a {
     box-shadow: var(--shadow);
   }
 
+  .site-header--finados .main-nav {
+    top: 92px;
+    border-top: 2px solid #00d2d6;
+    background: #241146;
+  }
+
+  .site-header--finados .nav-toggle {
+    border-color: rgba(244, 234, 218, 0.62);
+    background: rgba(36, 17, 70, 0.82);
+  }
+
   .main-nav[data-open="true"] {
     display: block;
   }
@@ -819,6 +1095,14 @@ a {
   .main-nav a {
     display: block;
     padding: 13px 8px;
+  }
+
+  .hero-finados__grid {
+    grid-template-columns: minmax(0, 1.15fr) minmax(19rem, 0.85fr);
+  }
+
+  .hero-finados__expositor img {
+    max-height: 43rem;
   }
 
   .editorial,
@@ -851,12 +1135,47 @@ a {
     min-height: 720px;
   }
 
+  .hero--finados {
+    min-height: auto;
+  }
+
+  .hero-finados__watermark {
+    top: 28%;
+    right: -8rem;
+    width: 40rem;
+  }
+
+  .hero-finados__grid {
+    min-height: auto;
+    grid-template-columns: 1fr;
+    gap: 0;
+    padding-top: 146px;
+  }
+
+  .hero-finados__copy {
+    padding-bottom: 1rem;
+  }
+
   .hero__content {
     padding-block: 180px 72px;
   }
 
   .hero h1 {
     font-size: clamp(2.8rem, 15vw, 4.8rem);
+  }
+
+  .hero--finados h1 {
+    font-size: clamp(4rem, 17vw, 7rem);
+    line-height: 0.84;
+  }
+
+  .hero-finados__expositor {
+    width: min(88%, 30rem);
+    margin-inline: auto;
+  }
+
+  .hero-finados__expositor img {
+    max-height: 44rem;
   }
 
   .hero__actions,
@@ -896,6 +1215,33 @@ a {
 
   .site-footer__grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .home-page::before {
+    background-position: calc(100% + 10rem) 38%;
+    background-size: 37rem auto;
+  }
+
+  .hero-finados__offer {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-finados__date,
+  .hero-finados__online {
+    min-height: 8.75rem;
+  }
+
+  .hero-finados__date time,
+  .hero-finados__online strong {
+    font-size: 2.9rem;
+  }
+
+  .hero-finados__expositor figcaption {
+    right: -0.5rem;
+    bottom: 1.25rem;
+    max-width: 12rem;
   }
 }
 

@@ -47,6 +47,29 @@ test('cada página entrega metadatos, canonical y un único h1', async () => {
   assert.match(home, /<main id="contenido">/);
 });
 
+test('la portada adopta la cabecera de venta de Finados y simplifica la navegación', async () => {
+  const output = await mkdtemp(join(tmpdir(), 'mushuc-home-finados-'));
+  await buildSite(output);
+  const home = await readFile(join(output, 'index.html'), 'utf8');
+  const mainNavigation = home.match(/<nav id="navegacion-principal"[\s\S]*?<\/nav>/)?.[0] ?? '';
+
+  assert.match(home, /<body class="home-page">/);
+  assert.match(home, /class="home-chumbi"/);
+  assert.match(home, /class="site-header site-header--finados"/);
+  assert.match(home, /\/assets\/icons\/logo-complejo\.svg\?v=20260904-2/);
+  assert.match(home, /class="hero hero--finados"/);
+  assert.match(home, /Finados 2026 · Venta de stands/);
+  assert.match(home, /14 de septiembre/);
+  assert.match(home, /Venta online/);
+  assert.match(home, /href="https:\/\/mushucticket\.com\/"/);
+  assert.match(home, /\/assets\/finados\/expositor-artesanias\.webp/);
+  assert.doesNotMatch(mainNavigation, /href="\/experiencias\/"/);
+  assert.doesNotMatch(mainNavigation, /href="\/eventos\/"/);
+  assert.match(mainNavigation, /href="\/granja\/"/);
+  assert.match(mainNavigation, /href="\/historia\/"/);
+  assert.match(mainNavigation, /href="\/visitanos\/"/);
+});
+
 test('genera una previsualización privada de Finados sin publicarla en la navegación', async () => {
   const output = await mkdtemp(join(tmpdir(), 'mushuc-finados-preview-'));
   const files = await buildSite(output);

@@ -15,6 +15,36 @@ export function hero({ eyebrow, heading, intro, image = '' }) {
   </section>`;
 }
 
+export function homeFinadosHero() {
+  const purchaseUrl = 'https://mushucticket.com/';
+
+  return `<section class="hero hero--finados" aria-labelledby="home-finados-title">
+    <img class="hero-finados__watermark" src="/assets/icons/logo-complejo.svg?v=20260904-2" width="1800" height="1800" alt="" aria-hidden="true">
+    <div class="hero-finados__grid shell">
+      <div class="hero-finados__copy">
+        <p class="hero-finados__eyebrow">Finados 2026 · Venta de stands</p>
+        <h1 id="home-finados-title"><span>Haz crecer</span><span>tu negocio</span><span>en Finados</span></h1>
+        <p class="hero-finados__intro">Tu talento, tus productos y tu historia también hacen parte de esta tradición.</p>
+        <div class="hero-finados__offer">
+          <div class="hero-finados__date">
+            <span>Fecha de venta</span>
+            <time datetime="2026-09-14">14 de septiembre</time>
+          </div>
+          <div class="hero-finados__online" aria-label="Venta online">
+            <span>Venta</span>
+            <strong>Online</strong>
+            <a href="${purchaseUrl}"${externalAttributes(purchaseUrl)}>Reservar mi stand <span aria-hidden="true">↗</span></a>
+          </div>
+        </div>
+      </div>
+      <figure class="hero-finados__expositor">
+        <img src="/assets/finados/expositor-artesanias.webp" width="743" height="1405" alt="Expositor de artesanías sosteniendo productos de madera" fetchpriority="high">
+        <figcaption>Participa como dueño de tu stand</figcaption>
+      </figure>
+    </div>
+  </section>`;
+}
+
 export function proseSection({ eyebrow, heading, paragraphs }) {
   return `<section class="section shell section--prose">
     <header class="section-heading">

@@ -15,6 +15,7 @@ import {
   experienceIndex,
   heritageQuote,
   hero,
+  homeFinadosHero,
   institutionalHighlights,
   sectionHeading,
   visitPanel,
@@ -49,12 +50,7 @@ const mainPages = [
     route: '/',
     title: site.name,
     description: `${site.legalName}: cultura, naturaleza, recreación y encuentros en Tungurahua.`,
-    body: hero({
-      eyebrow: 'Santa Lucía · Tisaleo · Tungurahua',
-      heading: site.tagline,
-      intro: 'Un territorio para encontrarnos con la cultura, la naturaleza, el deporte y la alegría de compartir.',
-      image: '/assets/images/hero-complejo.webp',
-    }) + institutionalHighlights(currentHighlights) + editorial({
+    body: homeFinadosHero() + institutionalHighlights(currentHighlights) + editorial({
       eyebrow: 'Bienvenidos',
       heading: 'Un lugar con identidad propia',
       paragraphs: [

@@ -173,6 +173,7 @@ export const routeOptions = Object.freeze([
 
 export const assetManifest = Object.freeze([
   { path: '/assets/icons/favicon.svg', kind: 'icon' },
+  { path: '/assets/icons/logo-complejo.svg', kind: 'logo' },
   { path: '/assets/images/logo-complejo-dorado.png', kind: 'logo' },
   { path: '/assets/images/patron-mushuc.png', kind: 'pattern' },
   { path: '/assets/images/hero-complejo.webp', kind: 'image' },

@@ -60,6 +60,7 @@ test('empaqueta la experiencia Finados con recursos locales y optimizados', asyn
   const williamLuna = await readFile(join(output, 'assets/finados/william-luna.svg'), 'utf8');
   const lasNanas = await readFile(join(output, 'assets/finados/las-nanas.svg'), 'utf8');
   const complexFavicon = await readFile(join(output, 'assets/icons/logo-complejo-mushuc-runa.svg'), 'utf8');
+  const complexHomeLogo = await readFile(join(output, 'assets/icons/logo-complejo.svg'), 'utf8');
   const guaynaa = await stat(join(output, 'assets/finados/guaynaa-finados.webp'));
   const guaynaaMobile = await stat(join(output, 'assets/finados/guaynaa-finados-960.webp'));
   const kjarkas = await stat(join(output, 'assets/finados/kjarkas-finados.webp'));
@@ -125,6 +126,11 @@ test('empaqueta la experiencia Finados con recursos locales y optimizados', asyn
   assert.doesNotMatch(lasNanas, /<script\b/i);
   assert.match(complexFavicon, /viewBox="0 0 260 260"/);
   assert.doesNotMatch(complexFavicon, /<script\b/i);
+  assert.match(complexHomeLogo, /viewBox="0 0 1800 1800"/);
+  assert.doesNotMatch(complexHomeLogo, /<script\b/i);
+  assert.doesNotMatch(complexHomeLogo, /<foreignObject\b/i);
+  assert.doesNotMatch(complexHomeLogo, /(?:href|xlink:href)\s*=\s*["'][a-z]+:\/\//i);
+  assert.ok(Buffer.byteLength(complexHomeLogo) < 150_000, `Logo del home demasiado grande: ${Buffer.byteLength(complexHomeLogo)}`);
   assert.ok(landing.indexOf('id="artistas"') < landing.indexOf('id="kjarkas"'));
   assert.ok(landing.indexOf('id="kjarkas"') < landing.indexOf('id="william-luna"'));
   assert.ok(landing.indexOf('id="william-luna"') < landing.indexOf('id="las-nanas"'));
