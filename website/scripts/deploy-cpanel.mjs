@@ -132,7 +132,10 @@ function verifyRepository() {
   }
 
   console.log('Sincronizando la referencia segura de GitHub…');
-  run('git', ['fetch', 'origin'], { cwd: repositoryRoot, label: 'git fetch' });
+  run('git', ['fetch', '--no-auto-maintenance', '--no-tags', 'origin', 'main'], {
+    cwd: repositoryRoot,
+    label: 'git fetch',
+  });
   if (git('rev-list', '--left-right', '--count', 'main...origin/main') !== '0\t0') {
     fail('main debe estar completamente sincronizada con origin/main antes de desplegar.');
   }

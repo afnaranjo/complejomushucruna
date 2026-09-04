@@ -85,3 +85,13 @@ test('transfiere dist por el mismo cliente SSH sin depender de SCP en Windows', 
   assert.match(source, /tar -xf - -C/);
   assert.doesNotMatch(source, /run\('scp'/);
 });
+
+test('sincroniza únicamente main sin descargar etiquetas ni ejecutar mantenimiento', async () => {
+  const source = await readFile(deployScript, 'utf8');
+
+  assert.match(
+    source,
+    /run\('git', \['fetch', '--no-auto-maintenance', '--no-tags', 'origin', 'main'\]/,
+  );
+  assert.doesNotMatch(source, /run\('git', \['fetch', 'origin'\]/);
+});
