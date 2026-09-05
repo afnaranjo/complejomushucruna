@@ -735,7 +735,8 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Se actualizaron localmente `/finados/` y `/acceso-compra-stands/`, con invalidación de caché y proporciones responsivas acordes con cada SVG. El HTML generado contiene únicamente el nuevo canal de compra.
 - QA local: 25/25 pruebas, build de 70 archivos, 16 HTML y 406 referencias válidas; los SVG están libres de scripts, imágenes embebidas y `foreignObject`.
 - La sección solicitada de requisitos para expositores no se implementó porque la imagen o lista mencionada no llegó adjunta. No se inventaron condiciones de compra.
-- Publicación externa: ninguna. No hubo commit, push, despliegue ni escritura en Mushuc Ticket.
+- Commit: `4e4bbdf` (`Actualizar identidad y canal de stands`), incorporado a `origin/main`; la publicación en producción ocurrió después con el contador (ver entrada siguiente).
+- Publicación externa en esta tarea: ninguna. No hubo despliegue ni escritura en Mushuc Ticket.
 - Seguridad: no se versionaron credenciales, llaves, rutas de red ni configuración privada.
 
 ### 2026-09-03 — Requisitos y contador para compra de stands
