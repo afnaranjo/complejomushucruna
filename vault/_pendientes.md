@@ -2,7 +2,7 @@
 titulo: "Pendientes ejecutivos"
 responsable: "dirección integral de la feria"
 estado: en-revision
-ultima_actualizacion: 2026-09-05
+ultima_actualizacion: 2026-09-07
 fuente: interna
 confidencialidad: interno
 tags:
@@ -11,6 +11,10 @@ tags:
 ---
 
 # Pendientes ejecutivos
+
+## Cierre documental reciente
+
+- [x] Consolidar en un único [[11_eventos/2026_feria-finados/00_direccion-control/2026-09-07_informe-maestro-proyecto-finados-2026_v01|informe maestro sanitizado]] todo el contexto, evidencia, estrategias, sistemas, frentes, riesgos, estado y próximos pasos del proyecto, sin credenciales, identificadores internos, datos personales sensibles, contactos privados, contratos ni programación bajo embargo. Responsable: dirección integral/documentación. Completado: 2026-09-07.
 
 ## Prioridad crítica
 

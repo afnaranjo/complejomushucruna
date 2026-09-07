@@ -2,7 +2,7 @@
 titulo: "Memoria del proyecto"
 responsable: "dirección integral de la feria"
 estado: en-revision
-ultima_actualizacion: 2026-09-05
+ultima_actualizacion: 2026-09-07
 fuente: interna
 confidencialidad: interno
 tags:
@@ -36,6 +36,7 @@ El equipo integral está organizando la Feria de Finados 2026 en el Complejo Int
 
 ## Estado actual
 
+- El 2026-09-07 se creó el [[11_eventos/2026_feria-finados/00_direccion-control/2026-09-07_informe-maestro-proyecto-finados-2026_v01|informe maestro sanitizado del proyecto]]. Reúne contexto, evidencia histórica, reputación, competencia, plataforma creativa, experiencia, oferta, Meta 2021–2026, estrategia digital, pauta, medición, web, PWA, equipo, los 16 frentes, riesgos, estado y plan de acción. El documento distingue lo verificado, confirmado internamente, histórico, reportado, propuesto y pendiente; no contiene credenciales, identificadores internos, datos personales sensibles, contactos privados, contratos ni cartel bajo embargo. Su corte general es 2026-09-07 y el último corte de Meta utilizado es 2026-09-05.
 - Arquitectura del repositorio: creada.
 - Repositorio GitHub: conectado y sincronizado con `origin/main`.
 - Sitio y despliegue reproducible: `website/` conserva la fuente estática institucional y la landing `/finados/`; `website/README.md`, `deploy.env.example` y `scripts/deploy-cpanel.mjs` documentan y automatizan el traslado a otra computadora sin versionar credenciales. El flujo exige `main` limpia y sincronizada, ejecuta pruebas y build, valida localmente la llave y el docroot exacto, hace un prevuelo SSH de solo lectura, crea una copia remota recuperable antes de publicar, transfiere sin borrar archivos exclusivos del servidor, normaliza de forma acotada los permisos de carpetas que SCP deje en `700` y verifica rutas por HTTPS. `.env.deploy` y nombres habituales de llaves privadas están excluidos por Git.

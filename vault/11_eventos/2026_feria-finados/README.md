@@ -2,7 +2,7 @@
 titulo: "Centro integral Feria de Finados 2026"
 responsable: "dirección integral de la feria"
 estado: en-revision
-ultima_actualizacion: 2026-08-31
+ultima_actualizacion: 2026-09-07
 fuente: interna
 confidencialidad: interno
 tags:
@@ -16,6 +16,7 @@ Este expediente es la fuente única de verdad de la feria. Aquí se conectan tod
 
 ## Dirección y control
 
+- [[00_direccion-control/2026-09-07_informe-maestro-proyecto-finados-2026_v01|Informe maestro del proyecto · corte 2026-09-07]]
 - [[00_direccion-control/acta-constitucion|Acta de constitución]]
 - [[00_direccion-control/plan-maestro|Plan maestro]]
 - [[00_direccion-control/tablero-ejecutivo|Tablero ejecutivo]]

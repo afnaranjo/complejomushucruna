@@ -779,3 +779,13 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Publicación externa: únicamente las cinco escrituras autorizadas en Meta y el push documental; no se modificaron sitios, Bitrix, Notion, boletería ni otras campañas.
 - Seguridad: el token fue entregado por Alex en el chat y se considera expuesto; se usó solo como variable de entorno. Debe revocarse junto con el expuesto el 2 de septiembre. El consentimiento de las listas se sustenta en la declaración de Alex y queda pendiente de documento.
 - Riesgos y pendientes: verificar el 6 de septiembre la salida de revisión y entrega de F29; ritmo de expectativa por encima del plan; nombres que no reflejan geografía; sin exclusiones; píxel ausente en el sitio; audiencia similar por crear con autorización.
+
+### 2026-09-07 — Informe maestro sanitizado del proyecto Finados 2026
+
+- Se consolidó en un documento Markdown de dirección el contenido estratégico y operativo del vault: contexto, historia, reputación, competencia, audiencias, arquitectura verbal, creatividad, experiencia, oferta, auditoría Meta, estrategia digital, pauta, medición, sitio, PWA, equipo, sistemas, 16 frentes, riesgos, estado y prioridades.
+- El informe distingue hechos verificados, confirmaciones internas, históricos, reportes, hipótesis y pendientes, y enlaza las fuentes canónicas para conservar trazabilidad.
+- Se excluyeron credenciales, tokens, claves, identificadores internos, datos personales sensibles, contactos privados, listas de clientes, contratos, rutas privadas y programación artística bajo embargo.
+- Se actualizaron el centro de mando, el expediente de la feria, la memoria, los pendientes y la bitácora diaria.
+- Commit: incluido en `Consolidar informe maestro Finados 2026`.
+- Publicación externa: ninguna campaña, cuenta, página, sitio, boletería, Bitrix o Notion fue modificada; únicamente se envió la documentación a `origin/main` conforme a la regla de cierre.
+- Riesgos y pendientes: el documento es una fotografía al 2026-09-07, con Meta al 2026-09-05; siguen abiertos G0, RACI, calendario público, oferta completa, tracking, capacidades, permisos, operación, derechos y gobierno cultural.

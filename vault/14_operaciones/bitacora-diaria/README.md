@@ -2,7 +2,7 @@
 titulo: "Bitácora diaria"
 responsable: "dirección integral de la feria"
 estado: aprobado
-ultima_actualizacion: 2026-09-05
+ultima_actualizacion: 2026-09-07
 fuente: interna
 confidencialidad: interno
 ---
@@ -13,6 +13,7 @@ Registro breve de avances, decisiones, bloqueos y próximos pasos. Obsidian crea
 
 ## Entradas recientes
 
+- [[2026-09-07_bitacora_informe-maestro-proyecto-finados-2026_v01|2026-09-07 · Informe maestro del proyecto Finados 2026]]
 - [[2026-09-05_bitacora_revision-pauta-y-audiencia-clientes-f29-finados-2026_v01|2026-09-05 · Revisión de pauta activa y audiencia de clientes para F29]]
 - [[2026-09-02_bitacora_revision-campanas-activas-meta-finados-2026_v01|2026-09-02 · Revisión de campañas activas de Meta para Finados 2026]]
 - [[2026-09-01_bitacora_carga-jerarquia-contenidos-septiembre-bitrix-finados-2026_v01|2026-09-01 · Carga verificada de la jerarquía de contenidos de septiembre en Bitrix]]

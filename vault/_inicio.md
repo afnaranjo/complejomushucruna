@@ -2,7 +2,7 @@
 titulo: "Centro de mando"
 responsable: "dirección integral de la feria"
 estado: aprobado
-ultima_actualizacion: 2026-08-31
+ultima_actualizacion: 2026-09-07
 fuente: interna
 confidencialidad: interno
 tags:
@@ -18,6 +18,7 @@ tags:
 ## Proyecto prioritario
 
 - [[11_eventos/2026_feria-finados/README|Feria de Finados 2026]]
+- [[11_eventos/2026_feria-finados/00_direccion-control/2026-09-07_informe-maestro-proyecto-finados-2026_v01|Informe maestro sanitizado del proyecto · corte 2026-09-07]]
 - [[11_eventos/2026_feria-finados/00_direccion-control/plan-maestro|Plan maestro]]
 - [[11_eventos/2026_feria-finados/00_direccion-control/cronograma-hitos|Cronograma e hitos]]
 - [[11_eventos/2026_feria-finados/00_direccion-control/raci-integral|RACI integral]]
