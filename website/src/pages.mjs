@@ -45,33 +45,55 @@ const eventImages = Object.freeze({
   'navidad-2025': '/assets/images/events/navidad-2025.webp',
 });
 
+function homePageBody() {
+  const identity = editorial({
+    eyebrow: 'Bienvenidos',
+    heading: 'Un lugar con identidad propia',
+    paragraphs: [
+      'El Complejo Mushuc Runa reúne experiencias culturales, recreativas y deportivas en un entorno andino de gran escala.',
+      'Aquí, el paisaje y la memoria de los pueblos dialogan con espacios creados para el encuentro de familias, visitantes y comunidades.',
+    ],
+    image: '/assets/images/complejo-carihuayrazo.webp',
+    alt: 'Vista panorámica del Complejo Mushuc Runa y el paisaje de Tungurahua',
+    accent: 'Mushuc Runa',
+  });
+
+  const experiencesSection = `<section class="section section--compact home-chapter home-chapter--experiences"><div class="shell">${sectionHeading({
+    eyebrow: 'Explora',
+    heading: 'Muchas formas de vivir el Complejo',
+    intro: 'Recuperamos las experiencias documentadas en el sitio anterior y señalamos con transparencia cuáles necesitan confirmación de disponibilidad.',
+  })}${experienceIndex(experiences.slice(0, 3))}<div class="button-row"><a class="button button--red" href="/experiencias/">Ver todas las experiencias</a></div></div></section>`;
+
+  const quote = heritageQuote(
+    'Un espacio donde identidad, comunidad y territorio vuelven a encontrarse.',
+    'Complejo Intercultural y Deportivo Mushuc Runa',
+  );
+
+  const archiveSection = `<section class="section home-chapter home-chapter--archive"><div class="shell">${sectionHeading({
+    eyebrow: 'Memoria viva',
+    heading: 'Eventos que forman parte de nuestra historia',
+    intro: 'El archivo conserva las páginas publicadas de ferias y celebraciones anteriores sin presentar sus ofertas como vigentes.',
+  })}${archiveList(historicalEvents.slice(-3))}<div class="button-row"><a class="button button--red" href="/eventos/">Explorar el archivo</a></div></div></section>`;
+
+  return `<div class="home-story">
+    ${homeFinadosHero()}
+    <div class="home-story__flow">
+      ${institutionalHighlights(currentHighlights)}
+      <div class="home-chapter home-chapter--identity">${identity}</div>
+      ${experiencesSection}
+      <div class="home-chapter home-chapter--quote">${quote}</div>
+      ${archiveSection}
+      <div class="home-chapter home-chapter--visit">${visitPanel({ routes: routeOptions, tourUrl: site.tourUrl })}</div>
+    </div>
+  </div>`;
+}
+
 const mainPages = [
   {
     route: '/',
     title: site.name,
     description: `${site.legalName}: cultura, naturaleza, recreación y encuentros en Tungurahua.`,
-    body: homeFinadosHero() + institutionalHighlights(currentHighlights) + editorial({
-      eyebrow: 'Bienvenidos',
-      heading: 'Un lugar con identidad propia',
-      paragraphs: [
-        'El Complejo Mushuc Runa reúne experiencias culturales, recreativas y deportivas en un entorno andino de gran escala.',
-        'Aquí, el paisaje y la memoria de los pueblos dialogan con espacios creados para el encuentro de familias, visitantes y comunidades.',
-      ],
-      image: '/assets/images/complejo-carihuayrazo.webp',
-      alt: 'Vista panorámica del Complejo Mushuc Runa y el paisaje de Tungurahua',
-      accent: 'Mushuc Runa',
-    }) + `<section class="section shell section--compact">${sectionHeading({
-      eyebrow: 'Explora',
-      heading: 'Muchas formas de vivir el Complejo',
-      intro: 'Recuperamos las experiencias documentadas en el sitio anterior y señalamos con transparencia cuáles necesitan confirmación de disponibilidad.',
-    })}${experienceIndex(experiences.slice(0, 3))}<div class="button-row"><a class="button button--red" href="/experiencias/">Ver todas las experiencias</a></div></section>` + heritageQuote(
-      'Un espacio donde identidad, comunidad y territorio vuelven a encontrarse.',
-      'Complejo Intercultural y Deportivo Mushuc Runa',
-    ) + `<section class="section shell">${sectionHeading({
-      eyebrow: 'Memoria viva',
-      heading: 'Eventos que forman parte de nuestra historia',
-      intro: 'El archivo conserva las páginas publicadas de ferias y celebraciones anteriores sin presentar sus ofertas como vigentes.',
-    })}${archiveList(historicalEvents.slice(-3))}<div class="button-row"><a class="button button--red" href="/eventos/">Explorar el archivo</a></div></section>` + visitPanel({ routes: routeOptions, tourUrl: site.tourUrl }),
+    body: homePageBody(),
   },
   {
     route: '/experiencias/',

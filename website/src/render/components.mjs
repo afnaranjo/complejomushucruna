@@ -18,7 +18,7 @@ export function hero({ eyebrow, heading, intro, image = '' }) {
 export function homeFinadosHero() {
   const purchaseUrl = 'https://mushucticket.com/';
 
-  return `<section class="hero hero--finados" aria-labelledby="home-finados-title">
+  return `<section class="hero hero--finados home-story__hero" aria-labelledby="home-finados-title">
     <img class="hero-finados__watermark" src="/assets/icons/logo-complejo.svg?v=20260904-2" width="1800" height="1800" alt="" aria-hidden="true">
     <div class="hero-finados__grid shell">
       <div class="hero-finados__copy">
@@ -103,7 +103,7 @@ export function experienceIndex(experiences) {
 }
 
 export function institutionalHighlights(highlights) {
-  return `<section class="section current-section">
+  return `<section class="section current-section home-chapter home-chapter--current">
     <div class="shell">
       ${sectionHeading({
         eyebrow: 'Actualidad institucional',

@@ -68,6 +68,23 @@ test('la portada prioriza la versión institucional más reciente sobre el archi
     home.indexOf('El Megaescenario') < home.indexOf('Eventos que forman parte de nuestra historia'),
     'La actualidad institucional debe aparecer antes del archivo de eventos',
   );
+
+  for (const preservedContent of [
+    'Un Complejo preparado para grandes encuentros',
+    'Un lugar con identidad propia',
+    'Muchas formas de vivir el Complejo',
+    'Un espacio donde identidad, comunidad y territorio vuelven a encontrarse.',
+    'Eventos que forman parte de nuestra historia',
+    'Dos rutas para encontrarnos',
+  ]) {
+    assert.match(home, new RegExp(preservedContent));
+  }
+
+  const css = await readFile(join(output, 'assets/styles.css'), 'utf8');
+  assert.match(css, /\.home-story/);
+  assert.match(css, /\.home-page \.current-highlights/);
+  assert.match(css, /\.home-chapter--experiences \.experience-index/);
+  assert.match(css, /\.home-chapter--archive \.event-timeline/);
 });
 
 test('la página de experiencias distingue oferta histórica de disponibilidad actual', async () => {

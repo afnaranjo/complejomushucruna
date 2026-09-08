@@ -2,7 +2,7 @@ import { primaryNavigation, site, socialLinks } from '../data/site.mjs';
 import { escapeHtml, externalAttributes } from './html.mjs';
 
 const institutionalAssetVersion = '20260904';
-const homeAssetVersion = '20260904-2';
+const homeAssetVersion = '20260908';
 const hiddenNavigationRoutes = new Set(['/experiencias/', '/eventos/']);
 
 function navigation(currentRoute) {

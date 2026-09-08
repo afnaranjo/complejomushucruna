@@ -63,9 +63,14 @@ test('la portada adopta la cabecera de venta de Finados y simplifica la navegaci
 
   assert.match(home, /<body class="home-page">/);
   assert.match(home, /class="home-chumbi"/);
+  assert.match(home, /class="home-story"/);
+  assert.match(home, /class="hero hero--finados home-story__hero"/);
+  for (const chapter of ['current', 'identity', 'experiences', 'quote', 'archive', 'visit']) {
+    assert.match(home, new RegExp(`home-chapter--${chapter}`));
+  }
   assert.match(home, /class="site-header site-header--finados"/);
-  assert.match(home, /\/assets\/icons\/logo-complejo\.svg\?v=20260904-2/);
-  assert.match(home, /class="hero hero--finados"/);
+  assert.match(home, /\/assets\/icons\/logo-complejo\.svg\?v=20260908/);
+  assert.match(home, /\/assets\/styles\.css\?v=20260908/);
   assert.match(home, /Finados 2026 · Venta de stands/);
   assert.match(home, /14 de septiembre/);
   assert.match(home, /Venta online/);
