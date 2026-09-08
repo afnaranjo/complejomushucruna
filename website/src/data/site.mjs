@@ -10,6 +10,7 @@ export const site = Object.freeze({
 export const primaryNavigation = Object.freeze([
   { label: 'Inicio', href: '/' },
   { label: 'Experiencias', href: '/experiencias/' },
+  { label: 'TOUR VIRTUAL', href: site.tourUrl },
   { label: 'Granja', href: '/granja/' },
   { label: 'Eventos', href: '/eventos/' },
   { label: 'Historia', href: '/historia/' },

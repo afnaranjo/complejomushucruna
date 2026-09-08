@@ -73,9 +73,17 @@ test('la portada adopta la cabecera de venta de Finados y simplifica la navegaci
   assert.match(home, /\/assets\/finados\/expositor-artesanias\.webp/);
   assert.doesNotMatch(mainNavigation, /href="\/experiencias\/"/);
   assert.doesNotMatch(mainNavigation, /href="\/eventos\/"/);
+  assert.match(
+    mainNavigation,
+    /href="https:\/\/guiap\.com\/360\/mr2023-2024\/" target="_blank" rel="noopener noreferrer">TOUR VIRTUAL<\/a>/,
+  );
   assert.match(mainNavigation, /href="\/granja\/"/);
   assert.match(mainNavigation, /href="\/historia\/"/);
   assert.match(mainNavigation, /href="\/visitanos\/"/);
+  assert.ok(
+    mainNavigation.indexOf('>TOUR VIRTUAL</a>') < mainNavigation.indexOf('>Granja</a>'),
+    'TOUR VIRTUAL debe mostrarse antes de Granja',
+  );
 });
 
 test('genera una previsualización privada de Finados sin publicarla en la navegación', async () => {

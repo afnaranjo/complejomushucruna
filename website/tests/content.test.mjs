@@ -7,16 +7,21 @@ import {
   site,
 } from '../src/data/site.mjs';
 
-test('la navegación institucional conserva las seis rutas aprobadas', () => {
+test('la navegación institucional incorpora el tour virtual antes de Granja', () => {
   assert.equal(site.name, 'Complejo Mushuc Runa');
   assert.deepEqual(primaryNavigation.map((item) => item.href), [
     '/',
     '/experiencias/',
+    'https://guiap.com/360/mr2023-2024/',
     '/granja/',
     '/eventos/',
     '/historia/',
     '/visitanos/',
   ]);
+  assert.deepEqual(primaryNavigation[2], {
+    label: 'TOUR VIRTUAL',
+    href: site.tourUrl,
+  });
 });
 
 test('el archivo incluye cada página histórica publicada que se recuperó', () => {

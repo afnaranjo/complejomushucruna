@@ -8,7 +8,7 @@ const hiddenNavigationRoutes = new Set(['/experiencias/', '/eventos/']);
 function navigation(currentRoute) {
   return primaryNavigation.filter((item) => !hiddenNavigationRoutes.has(item.href)).map((item) => {
     const current = item.href === currentRoute ? ' aria-current="page"' : '';
-    return `<li><a href="${item.href}"${current}>${escapeHtml(item.label)}</a></li>`;
+    return `<li><a href="${item.href}"${current}${externalAttributes(item.href)}>${escapeHtml(item.label)}</a></li>`;
   }).join('');
 }
 
