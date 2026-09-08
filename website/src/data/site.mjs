@@ -8,13 +8,13 @@ export const site = Object.freeze({
 });
 
 export const primaryNavigation = Object.freeze([
-  { label: 'Inicio', href: '/' },
-  { label: 'Experiencias', href: '/experiencias/' },
+  { label: 'INICIO', href: '/' },
+  { label: 'VENTA DE STANDS', href: 'https://www.mushucticket.com/', emphasis: 'stands' },
+  { label: 'FINADOS 2026', href: '/finados/', emphasis: 'finados' },
   { label: 'TOUR VIRTUAL', href: site.tourUrl },
-  { label: 'Granja', href: '/granja/' },
-  { label: 'Eventos', href: '/eventos/' },
-  { label: 'Historia', href: '/historia/' },
-  { label: 'Visítanos', href: '/visitanos/' },
+  { label: 'GRANJA', href: '/granja/' },
+  { label: 'HISTORIA', href: '/historia/' },
+  { label: 'VISITAMOS', href: '/visitanos/' },
 ]);
 
 export const socialLinks = Object.freeze([

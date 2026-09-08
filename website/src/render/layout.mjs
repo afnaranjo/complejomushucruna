@@ -2,13 +2,15 @@ import { primaryNavigation, site, socialLinks } from '../data/site.mjs';
 import { escapeHtml, externalAttributes } from './html.mjs';
 
 const institutionalAssetVersion = '20260904';
-const homeAssetVersion = '20260908';
-const hiddenNavigationRoutes = new Set(['/experiencias/', '/eventos/']);
+const homeAssetVersion = '20260908-2';
 
 function navigation(currentRoute) {
-  return primaryNavigation.filter((item) => !hiddenNavigationRoutes.has(item.href)).map((item) => {
+  return primaryNavigation.map((item) => {
     const current = item.href === currentRoute ? ' aria-current="page"' : '';
-    return `<li><a href="${item.href}"${current}${externalAttributes(item.href)}>${escapeHtml(item.label)}</a></li>`;
+    const actionClass = item.emphasis
+      ? ` class="main-nav__action main-nav__action--${escapeHtml(item.emphasis)}"`
+      : '';
+    return `<li><a${actionClass} href="${item.href}"${current}${externalAttributes(item.href)}>${escapeHtml(item.label)}</a></li>`;
   }).join('');
 }
 

@@ -69,8 +69,8 @@ test('la portada adopta la cabecera de venta de Finados y simplifica la navegaci
     assert.match(home, new RegExp(`home-chapter--${chapter}`));
   }
   assert.match(home, /class="site-header site-header--finados"/);
-  assert.match(home, /\/assets\/icons\/logo-complejo\.svg\?v=20260908/);
-  assert.match(home, /\/assets\/styles\.css\?v=20260908/);
+  assert.match(home, /\/assets\/icons\/logo-complejo\.svg\?v=20260908-2/);
+  assert.match(home, /\/assets\/styles\.css\?v=20260908-2/);
   assert.match(home, /Finados 2026 · Venta de stands/);
   assert.match(home, /14 de septiembre/);
   assert.match(home, /Venta online/);
@@ -80,18 +80,29 @@ test('la portada adopta la cabecera de venta de Finados y simplifica la navegaci
   assert.doesNotMatch(mainNavigation, /href="\/eventos\/"/);
   assert.match(
     mainNavigation,
+    /class="main-nav__action main-nav__action--stands" href="https:\/\/www\.mushucticket\.com\/" target="_blank" rel="noopener noreferrer">VENTA DE STANDS<\/a>/,
+  );
+  assert.match(
+    mainNavigation,
+    /class="main-nav__action main-nav__action--finados" href="\/finados\/">FINADOS 2026<\/a>/,
+  );
+  assert.match(
+    mainNavigation,
     /href="https:\/\/guiap\.com\/360\/mr2023-2024\/" target="_blank" rel="noopener noreferrer">TOUR VIRTUAL<\/a>/,
   );
   assert.match(mainNavigation, /href="\/granja\/"/);
   assert.match(mainNavigation, /href="\/historia\/"/);
   assert.match(mainNavigation, /href="\/visitanos\/"/);
-  assert.ok(
-    mainNavigation.indexOf('>TOUR VIRTUAL</a>') < mainNavigation.indexOf('>Granja</a>'),
-    'TOUR VIRTUAL debe mostrarse antes de Granja',
-  );
+  const expectedOrder = ['INICIO', 'VENTA DE STANDS', 'FINADOS 2026', 'TOUR VIRTUAL', 'GRANJA', 'HISTORIA', 'VISITAMOS'];
+  for (let index = 1; index < expectedOrder.length; index += 1) {
+    assert.ok(
+      mainNavigation.indexOf(`>${expectedOrder[index - 1]}</a>`) < mainNavigation.indexOf(`>${expectedOrder[index]}</a>`),
+      `${expectedOrder[index - 1]} debe mostrarse antes de ${expectedOrder[index]}`,
+    );
+  }
 });
 
-test('genera una previsualización privada de Finados sin publicarla en la navegación', async () => {
+test('genera las páginas privadas de Finados y publica su acceso en la navegación', async () => {
   const output = await mkdtemp(join(tmpdir(), 'mushuc-finados-preview-'));
   const files = await buildSite(output);
   const home = await readFile(join(output, 'index.html'), 'utf8');
@@ -101,7 +112,7 @@ test('genera una previsualización privada de Finados sin publicarla en la naveg
 
   assert.ok(files.includes('finados/index.html'));
   assert.ok(files.includes('acceso-compra-stands/index.html'));
-  assert.doesNotMatch(home, /href="\/finados\/?"/);
+  assert.match(home, /href="\/finados\/">FINADOS 2026<\/a>/);
   assert.doesNotMatch(sitemap, /complejomushucruna\.com\/finados\//);
   assert.doesNotMatch(sitemap, /complejomushucruna\.com\/acceso-compra-stands\//);
   assert.match(landing, /<meta name="robots" content="noindex, nofollow, noarchive">/);

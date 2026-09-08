@@ -7,18 +7,37 @@ import {
   site,
 } from '../src/data/site.mjs';
 
-test('la navegación institucional incorpora el tour virtual antes de Granja', () => {
+test('la navegación institucional prioriza venta, Finados y tour en el orden aprobado', () => {
   assert.equal(site.name, 'Complejo Mushuc Runa');
   assert.deepEqual(primaryNavigation.map((item) => item.href), [
     '/',
-    '/experiencias/',
+    'https://www.mushucticket.com/',
+    '/finados/',
     'https://guiap.com/360/mr2023-2024/',
     '/granja/',
-    '/eventos/',
     '/historia/',
     '/visitanos/',
   ]);
+  assert.deepEqual(primaryNavigation.map((item) => item.label), [
+    'INICIO',
+    'VENTA DE STANDS',
+    'FINADOS 2026',
+    'TOUR VIRTUAL',
+    'GRANJA',
+    'HISTORIA',
+    'VISITAMOS',
+  ]);
+  assert.deepEqual(primaryNavigation[1], {
+    label: 'VENTA DE STANDS',
+    href: 'https://www.mushucticket.com/',
+    emphasis: 'stands',
+  });
   assert.deepEqual(primaryNavigation[2], {
+    label: 'FINADOS 2026',
+    href: '/finados/',
+    emphasis: 'finados',
+  });
+  assert.deepEqual(primaryNavigation[3], {
     label: 'TOUR VIRTUAL',
     href: site.tourUrl,
   });

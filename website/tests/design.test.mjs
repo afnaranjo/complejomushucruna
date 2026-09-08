@@ -85,6 +85,9 @@ test('la portada prioriza la versión institucional más reciente sobre el archi
   assert.match(css, /\.home-page \.current-highlights/);
   assert.match(css, /\.home-chapter--experiences \.experience-index/);
   assert.match(css, /\.home-chapter--archive \.event-timeline/);
+  assert.match(css, /\.site-header--finados \.brand img\s*\{[^}]*width:\s*112px/s);
+  assert.match(css, /\.main-nav__action--stands/);
+  assert.match(css, /\.main-nav__action--finados/);
 });
 
 test('la página de experiencias distingue oferta histórica de disponibilidad actual', async () => {
