@@ -171,6 +171,8 @@ test('publica invitaciones fuera del menú y registra RSVP en archivos compatibl
   assert.match(page, /<link rel="canonical" href="https:\/\/complejomushucruna\.com\/invitaciones\/">/);
   assert.match(page, /Brunch/);
   assert.match(page, /Confirmar asistencia/);
+  assert.match(page, /Abg\. <strong>Luis Alfonso Chango<\\u002Fstrong>, Mentalizador Feria Finados 2026\./);
+  assert.doesNotMatch(page, /Luis A\. Chango|Gerente General, Coop\. Mushuc Runa/);
   assert.match(page, /api\/invitaciones-rsvp/);
   assert.doesNotMatch(home, /href="\/invitaciones\//);
   assert.doesNotMatch(sitemap, /complejomushucruna\.com\/invitaciones\//);
