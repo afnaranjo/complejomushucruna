@@ -108,10 +108,12 @@ test('publica una acreditación de medios completa, limitada por fecha y respald
   const page = await readFile(join(output, 'acreditacion-de-medios/index.html'), 'utf8');
   const finadosPage = await readFile(join(output, 'finados/index.html'), 'utf8');
   const endpoint = await readFile(join(output, 'api/acreditacion-medios/index.php'), 'utf8');
+  const endpointConfig = await readFile(join(output, 'api/acreditacion-medios/.htaccess'), 'utf8');
   const sitemap = await readFile(join(output, 'sitemap.xml'), 'utf8');
 
   assert.ok(files.includes('acreditacion-de-medios/index.html'));
   assert.ok(files.includes('api/acreditacion-medios/index.php'));
+  assert.match(endpointConfig, /DirectoryIndex index\.php/);
   assert.match(sitemap, /complejomushucruna\.com\/acreditacion-de-medios\//);
   assert.match(page, /<body class="media-accreditation-page">/);
   assert.match(page, /class="site-header site-header--finados"/);
@@ -157,11 +159,13 @@ test('publica invitaciones fuera del menú y registra RSVP en archivos compatibl
   const files = await buildSite(output);
   const page = await readFile(join(output, 'invitaciones/index.html'), 'utf8');
   const endpoint = await readFile(join(output, 'api/invitaciones-rsvp/index.php'), 'utf8');
+  const endpointConfig = await readFile(join(output, 'api/invitaciones-rsvp/.htaccess'), 'utf8');
   const home = await readFile(join(output, 'index.html'), 'utf8');
   const sitemap = await readFile(join(output, 'sitemap.xml'), 'utf8');
 
   assert.ok(files.includes('invitaciones/index.html'));
   assert.ok(files.includes('api/invitaciones-rsvp/index.php'));
+  assert.match(endpointConfig, /DirectoryIndex index\.php/);
   assert.match(page, /<title>Invitaciones \| Finados Mushuc Runa 2026<\/title>/);
   assert.match(page, /<meta name="robots" content="noindex, nofollow, noarchive">/);
   assert.match(page, /<link rel="canonical" href="https:\/\/complejomushucruna\.com\/invitaciones\/">/);
