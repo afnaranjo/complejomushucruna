@@ -108,6 +108,7 @@ test('publica una acreditación de medios completa, limitada por fecha y respald
   const page = await readFile(join(output, 'acreditacion-de-medios/index.html'), 'utf8');
   const finadosPage = await readFile(join(output, 'finados/index.html'), 'utf8');
   const endpoint = await readFile(join(output, 'api/acreditacion-medios/index.php'), 'utf8');
+  const googleSheetsBridge = await readFile(join(output, 'api/_google-sheets.php'), 'utf8');
   const endpointConfig = await readFile(join(output, 'api/acreditacion-medios/.htaccess'), 'utf8');
   const sitemap = await readFile(join(output, 'sitemap.xml'), 'utf8');
 
@@ -139,6 +140,10 @@ test('publica una acreditación de medios completa, limitada por fecha y respald
   assert.match(page, /value="2">2 personas \(máximo\)<\/option>/);
   assert.match(page, /name="acepta_condiciones"[^>]*required/);
   assert.match(page, /Gracias, bienvenido al lanzamiento de Finados Mushuc Runa 2026/);
+  assert.match(page, /data-media-team/);
+  assert.match(page, /data-media-name/);
+  assert.match(page, /data-media-download>Descargar imagen/);
+  assert.doesNotMatch(page, />Cerrar<\/button>/);
   const finadosFooter = finadosPage.match(/<footer class="bg-night[\s\S]*?<\/footer>/)?.[0];
   const accreditationFooter = page.match(/<footer class="bg-night[\s\S]*?<\/footer>/)?.[0];
   assert.ok(finadosFooter, 'La página Finados debe incluir su footer de campaña');
@@ -150,6 +155,10 @@ test('publica una acreditación de medios completa, limitada por fecha y respald
   assert.match(endpoint, /fputcsv/);
   assert.match(endpoint, /finadosmushucruna@gmail\.com/);
   assert.match(endpoint, /mail\(/);
+  assert.match(endpoint, /google_sheets_deliver\(\$privateDirectory, 'media'/);
+  assert.match(googleSheetsBridge, /google-sheets-config\.json/);
+  assert.match(googleSheetsBridge, /google-sheets-pending\.jsonl/);
+  assert.match(googleSheetsBridge, /script\\\.google\\\.com\/macros\/s/);
   assert.match(endpoint, /\^\[=\+\\-@\]/);
   assert.doesNotMatch(endpoint, /password|passwd|secret\s*=/i);
 });
@@ -174,6 +183,10 @@ test('publica invitaciones fuera del menú y registra RSVP en archivos compatibl
   assert.match(page, /Abg\. <strong>Luis Alfonso Chango<\\u002Fstrong>, Mentalizador Feria Finados 2026\./);
   assert.doesNotMatch(page, /Luis A\. Chango|Gerente General, Coop\. Mushuc Runa/);
   assert.match(page, /api\/invitaciones-rsvp/);
+  assert.match(page, /Bienvenido al Brunch Empresarial, Finados Mushuc Runa 2026\./);
+  assert.match(page, /Descargar imagen/);
+  assert.match(page, /invitacion-brunch-finados-mushuc-runa-2026\.png/);
+  assert.match(page, /canvas\.toBlob/);
   assert.doesNotMatch(home, /href="\/invitaciones\//);
   assert.doesNotMatch(sitemap, /complejomushucruna\.com\/invitaciones\//);
 
@@ -183,6 +196,7 @@ test('publica invitaciones fuera del menú y registra RSVP en archivos compatibl
   assert.match(endpoint, /ZipArchive/);
   assert.match(endpoint, /fputcsv/);
   assert.match(endpoint, /America\/Guayaquil/);
+  assert.match(endpoint, /google_sheets_deliver\(\$privateDirectory, 'brunch'/);
   assert.doesNotMatch(endpoint, /password|passwd|secret\s*=/i);
 });
 

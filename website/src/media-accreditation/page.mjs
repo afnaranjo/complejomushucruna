@@ -171,12 +171,17 @@ export function renderMediaAccreditationBody() {
   </section>
 
   <dialog class="media-thanks" data-media-thanks aria-labelledby="media-thanks-title">
-    <form method="dialog" class="media-thanks__art">
+    <div class="media-thanks__art">
       <div class="media-thanks__chumbi" aria-hidden="true"></div>
       <img src="/assets/finados/logo-finados.svg?v=20260909" width="920" height="504" alt="Finados Mushuc Runa 2026">
       <p>Registro recibido</p>
       <h2 id="media-thanks-title">Gracias, bienvenido al lanzamiento de Finados Mushuc Runa 2026</h2>
-      <button type="submit">Cerrar</button>
-    </form>
+      <div class="media-thanks__identity">
+        <span>Equipo acreditado</span>
+        <strong data-media-team></strong>
+        <small data-media-name></small>
+      </div>
+      <button type="button" data-media-download>Descargar imagen</button>
+    </div>
   </dialog>`;
 }

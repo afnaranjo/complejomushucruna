@@ -1,6 +1,9 @@
 <?php
 declare(strict_types=1);
 
+define('MUSHUC_API_ENTRY', true);
+require_once dirname(__DIR__) . DIRECTORY_SEPARATOR . '_google-sheets.php';
+
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store, max-age=0');
 header('X-Content-Type-Options: nosniff');
@@ -413,9 +416,23 @@ try {
     fclose($lock);
     @chmod($lockPath, 0600);
 
+    $googleSheetsStatus = google_sheets_deliver($privateDirectory, 'brunch', [
+        'submittedAt' => $submittedAt,
+        'id' => $registrationId,
+        'slug' => $slug,
+        'name' => $name,
+        'role' => $role,
+        'attendance' => $attendance,
+        'companions' => $companions,
+        'total' => $total,
+        'comments' => $comments,
+        'source' => 'Formulario web',
+    ]);
+
     json_response(200, [
         'ok' => true,
         'registrationId' => $registrationId,
+        'googleSheets' => $googleSheetsStatus,
         'message' => 'Confirmación registrada correctamente.',
     ]);
 } catch (JsonException|InvalidArgumentException $error) {

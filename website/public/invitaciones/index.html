@@ -13,6 +13,140 @@
       const nativeSetItem = Storage.prototype.setItem;
       let lastPayload = '';
 
+      function loadReceiptLogo() {
+        return new Promise((resolve) => {
+          const image = new Image();
+          image.onload = () => resolve(image);
+          image.onerror = () => resolve(null);
+          image.src = '/assets/finados/logo-finados.svg?v=20260909';
+        });
+      }
+
+      function wrapReceiptText(context, text, x, y, maxWidth, lineHeight, maxLines) {
+        const words = String(text).trim().split(/\s+/);
+        const lines = [];
+        let line = '';
+        for (const word of words) {
+          const candidate = line ? `${line} ${word}` : word;
+          if (context.measureText(candidate).width <= maxWidth || !line) {
+            line = candidate;
+          } else {
+            lines.push(line);
+            line = word;
+            if (lines.length === maxLines - 1) break;
+          }
+        }
+        if (line && lines.length < maxLines) lines.push(line);
+        lines.forEach((value, index) => context.fillText(value, x, y + (index * lineHeight)));
+      }
+
+      async function downloadInvitationReceipt(record, button) {
+        button.disabled = true;
+        const originalText = button.textContent;
+        button.textContent = 'Preparando imagen…';
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = 1080;
+          canvas.height = 1350;
+          const context = canvas.getContext('2d');
+          if (!context) return;
+
+          const gradient = context.createLinearGradient(0, 0, 1080, 1350);
+          gradient.addColorStop(0, '#241146');
+          gradient.addColorStop(0.58, '#4d1aa2');
+          gradient.addColorStop(1, '#6e2ce0');
+          context.fillStyle = gradient;
+          context.fillRect(0, 0, 1080, 1350);
+          const colors = ['#ff2e8a', '#ffc42e', '#00d2d6', '#f4eada'];
+          for (let x = 0, index = 0; x < 1080; x += 60, index += 1) {
+            context.fillStyle = colors[index % colors.length];
+            context.fillRect(x, 0, 60, 22);
+          }
+          context.strokeStyle = '#00d2d6';
+          context.lineWidth = 5;
+          context.strokeRect(18, 18, 1044, 1314);
+          context.fillStyle = '#ff2e8a';
+          context.save();
+          context.translate(-130, 620);
+          context.rotate(-0.32);
+          context.fillRect(0, 0, 420, 76);
+          context.restore();
+          context.strokeStyle = '#ffc42e';
+          context.lineWidth = 70;
+          context.beginPath();
+          context.arc(980, 1275, 170, 0, Math.PI * 2);
+          context.stroke();
+
+          const logo = await loadReceiptLogo();
+          if (logo) {
+            const width = 430;
+            const height = width * (logo.naturalHeight / logo.naturalWidth);
+            context.drawImage(logo, (1080 - width) / 2, 90, width, height);
+          }
+
+          context.textAlign = 'center';
+          context.fillStyle = '#00d2d6';
+          context.font = '700 28px Inter, Arial, sans-serif';
+          context.fillText('ASISTENCIA CONFIRMADA', 540, 410);
+          context.fillStyle = '#f4eada';
+          context.font = '400 94px Anton, Impact, sans-serif';
+          wrapReceiptText(context, 'BIENVENIDO AL BRUNCH EMPRESARIAL, FINADOS MUSHUC RUNA 2026', 540, 525, 850, 100, 5);
+          context.fillStyle = '#ffc42e';
+          context.font = '700 25px Inter, Arial, sans-serif';
+          context.fillText('INVITADO', 540, 1075);
+          context.fillStyle = '#ffffff';
+          context.font = '700 38px Inter, Arial, sans-serif';
+          wrapReceiptText(context, record.name || 'Invitado especial', 540, 1130, 780, 46, 2);
+
+          const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+          const link = document.createElement('a');
+          link.download = 'invitacion-brunch-finados-mushuc-runa-2026.png';
+          link.href = blob ? URL.createObjectURL(blob) : canvas.toDataURL('image/png');
+          link.click();
+          if (blob) setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+        } finally {
+          button.disabled = false;
+          button.textContent = originalText;
+        }
+      }
+
+      function showInvitationWelcome(record) {
+        const existing = document.querySelector('[data-invitation-welcome]');
+        if (existing) existing.remove();
+        const style = document.createElement('style');
+        style.textContent = '[data-invitation-welcome]{width:min(44rem,calc(100% - 2rem));padding:0;border:0;background:transparent;color:#f4eada}[data-invitation-welcome]::backdrop{background:rgba(20,8,43,.84);backdrop-filter:blur(8px)}.invitation-welcome-art{position:relative;display:grid;min-height:34rem;place-items:center;padding:clamp(2rem,7vw,4.5rem);overflow:hidden;border:3px solid #00d2d6;background:radial-gradient(circle at 100% 0,rgba(255,46,138,.7),transparent 18rem),linear-gradient(145deg,#241146,#6e2ce0);text-align:center;box-shadow:12px 12px 0 #ff2e8a}.invitation-welcome-art:before{position:absolute;top:0;right:0;left:0;height:10px;background:repeating-linear-gradient(90deg,#ff2e8a 0 24px,#ffc42e 24px 48px,#00d2d6 48px 72px,#f4eada 72px 96px);content:""}.invitation-welcome-art:after{position:absolute;right:-6rem;bottom:-7rem;width:18rem;aspect-ratio:1;border:3rem solid #ffc42e;border-radius:50%;content:""}.invitation-welcome-art>*{position:relative;z-index:1}.invitation-welcome-art img{width:min(16rem,70%);height:auto;filter:brightness(0) invert(1)}.invitation-welcome-kicker{margin:1.2rem 0 0;color:#00d2d6;font:800 .875rem Inter,Arial,sans-serif;letter-spacing:.18em;text-transform:uppercase}.invitation-welcome-art h2{max-width:34rem;margin:.6rem 0;font:400 clamp(2.8rem,7vw,5rem)/.95 Anton,Impact,sans-serif;text-transform:uppercase}.invitation-welcome-name{margin:0 0 1.5rem;color:#ffc42e;font:700 clamp(1rem,2.5vw,1.35rem)/1.3 Inter,Arial,sans-serif}.invitation-welcome-art button{display:inline-flex;min-height:52px;align-items:center;justify-content:center;padding:.85rem 1.2rem;border:2px solid #241146;border-radius:999px;background:#ff2e8a;color:#241146;font:800 .875rem Inter,Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase;box-shadow:5px 5px 0 #00d2d6;cursor:pointer}';
+        document.head.appendChild(style);
+        const dialog = document.createElement('dialog');
+        dialog.dataset.invitationWelcome = '';
+        dialog.setAttribute('aria-labelledby', 'invitation-welcome-title');
+        const art = document.createElement('div');
+        art.className = 'invitation-welcome-art';
+        const logo = document.createElement('img');
+        logo.src = '/assets/finados/logo-finados.svg?v=20260909';
+        logo.alt = 'Finados Mushuc Runa 2026';
+        const kicker = document.createElement('p');
+        kicker.className = 'invitation-welcome-kicker';
+        kicker.textContent = 'Asistencia confirmada';
+        const title = document.createElement('h2');
+        title.id = 'invitation-welcome-title';
+        title.textContent = 'Bienvenido al Brunch Empresarial, Finados Mushuc Runa 2026.';
+        const name = document.createElement('p');
+        name.className = 'invitation-welcome-name';
+        name.textContent = record.name || 'Invitado especial';
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.textContent = 'Descargar imagen';
+        button.addEventListener('click', () => downloadInvitationReceipt(record, button));
+        art.append(logo, kicker, title, name, button);
+        dialog.appendChild(art);
+        dialog.addEventListener('click', (event) => {
+          if (event.target === dialog) dialog.close();
+        });
+        document.body.appendChild(dialog);
+        if (typeof dialog.showModal === 'function') dialog.showModal();
+        else dialog.setAttribute('open', '');
+      }
+
       Storage.prototype.setItem = function(key, value) {
         nativeSetItem.call(this, key, value);
         if (this !== localStorage || key !== storageKey || value === lastPayload) return;
@@ -38,6 +172,7 @@
           if (!response.ok) throw new Error('No se pudo guardar la confirmación.');
           const payload = await response.json();
           if (!payload.ok) throw new Error('No se pudo guardar la confirmación.');
+          setTimeout(() => showInvitationWelcome(record), 300);
         }).catch(() => {
           window.alert('La confirmación quedó guardada únicamente en este dispositivo. Por favor, inténtalo nuevamente para enviarla al equipo organizador.');
         });

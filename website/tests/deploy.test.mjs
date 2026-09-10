@@ -53,6 +53,35 @@ test('rechaza un destino remoto amplio antes de conectarse', async () => {
   assert.match(result.stderr, /DEPLOY_REMOTE_ROOT debe apuntar al docroot exacto/);
 });
 
+test('valida la configuración privada de Google Sheets como un par inseparable', async () => {
+  const { configFile } = await configFixture({
+    GOOGLE_SHEETS_WEB_APP_URL: 'https://script.google.com/macros/s/implementacion/exec',
+  });
+  const result = spawnSync(process.execPath, [deployScript, '--validate-config', configFile], {
+    cwd: websiteRoot,
+    encoding: 'utf8',
+  });
+
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /deben configurarse juntos/);
+});
+
+test('acepta una URL publicada y un token fuerte sin mostrarlos', async () => {
+  const token = 'a'.repeat(64);
+  const webAppUrl = 'https://script.google.com/macros/s/implementacion/exec';
+  const { configFile } = await configFixture({
+    GOOGLE_SHEETS_WEB_APP_URL: webAppUrl,
+    GOOGLE_SHEETS_TOKEN: token,
+  });
+  const result = spawnSync(process.execPath, [deployScript, '--validate-config', configFile], {
+    cwd: websiteRoot,
+    encoding: 'utf8',
+  });
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.doesNotMatch(result.stdout + result.stderr, new RegExp(`${token}|${webAppUrl}`));
+});
+
 test('git ignora nombres habituales de llaves privadas aunque no tengan extensión', () => {
   for (const filename of ['id_rsa', 'id_ed25519', 'id_rsa_complejo']) {
     const output = execFileSync('git', ['check-ignore', '--no-index', filename], {
@@ -112,5 +141,7 @@ test('el despliegue verifica la página y el estado público de la acreditación
   assert.match(source, /command -v php/);
   assert.match(source, /function_exists\(\"mail\"\)/);
   assert.match(source, /target, 'php -l'/);
-  assert.match(source, /lintMediaAccreditationEndpoint\(config\)/);
+  assert.match(source, /lintPhpEndpoints\(config\)/);
+  assert.match(source, /_google-sheets\.php/);
+  assert.match(source, /uploadGoogleSheetsConfig\(config\)/);
 });

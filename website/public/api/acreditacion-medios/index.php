@@ -1,6 +1,9 @@
 <?php
 declare(strict_types=1);
 
+define('MUSHUC_API_ENTRY', true);
+require_once dirname(__DIR__) . DIRECTORY_SEPARATOR . '_google-sheets.php';
+
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store, max-age=0');
 header('X-Content-Type-Options: nosniff');
@@ -201,6 +204,12 @@ try {
     fclose($csv);
     @chmod($csvPath, 0600);
 
+    $googleSheetsStatus = google_sheets_deliver($privateDirectory, 'media', [
+        'submittedAt' => $submittedAt,
+        'id' => $registrationId,
+        ...$data,
+    ]);
+
     $messageLines = [
         'Nueva solicitud de acreditación de medios',
         '',
@@ -242,6 +251,7 @@ try {
         'ok' => true,
         'registrationId' => $registrationId,
         'emailBackup' => $mailSent,
+        'googleSheets' => $googleSheetsStatus,
         'message' => 'Acreditación registrada correctamente.',
     ]);
 } catch (InvalidArgumentException $error) {

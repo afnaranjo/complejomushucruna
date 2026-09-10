@@ -15,6 +15,16 @@ const allowedKeys = new Set([
   'DEPLOY_SSH_KEY',
   'DEPLOY_REMOTE_ROOT',
   'DEPLOY_SITE_URL',
+  'GOOGLE_SHEETS_WEB_APP_URL',
+  'GOOGLE_SHEETS_TOKEN',
+]);
+const requiredKeys = new Set([
+  'DEPLOY_SSH_HOST',
+  'DEPLOY_SSH_USER',
+  'DEPLOY_SSH_PORT',
+  'DEPLOY_SSH_KEY',
+  'DEPLOY_REMOTE_ROOT',
+  'DEPLOY_SITE_URL',
 ]);
 
 function fail(message) {
@@ -62,8 +72,13 @@ async function readDeployConfig(path) {
     config[key] = value;
   }
 
-  for (const key of allowedKeys) {
+  for (const key of requiredKeys) {
     if (!Object.hasOwn(config, key)) fail(`Falta la variable requerida ${key}.`);
+  }
+  const hasSheetsUrl = Object.hasOwn(config, 'GOOGLE_SHEETS_WEB_APP_URL');
+  const hasSheetsToken = Object.hasOwn(config, 'GOOGLE_SHEETS_TOKEN');
+  if (hasSheetsUrl !== hasSheetsToken) {
+    fail('GOOGLE_SHEETS_WEB_APP_URL y GOOGLE_SHEETS_TOKEN deben configurarse juntos.');
   }
   return config;
 }
@@ -108,6 +123,15 @@ async function validateConfig(config) {
   if (!keyStats.isFile()) fail('DEPLOY_SSH_KEY debe apuntar a un archivo regular.');
   if (process.platform !== 'win32' && (keyStats.mode & 0o077) !== 0) {
     fail('La llave privada tiene permisos inseguros. Ejecuta chmod 600 sobre ese archivo.');
+  }
+
+  if (config.GOOGLE_SHEETS_WEB_APP_URL) {
+    if (!/^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(config.GOOGLE_SHEETS_WEB_APP_URL)) {
+      fail('GOOGLE_SHEETS_WEB_APP_URL debe ser una URL publicada de Google Apps Script terminada en /exec.');
+    }
+    if (!/^[A-Fa-f0-9]{64}$/.test(config.GOOGLE_SHEETS_TOKEN)) {
+      fail('GOOGLE_SHEETS_TOKEN debe contener exactamente 64 caracteres hexadecimales.');
+    }
   }
 
   return {
@@ -182,6 +206,33 @@ function backupRemote(config) {
   run('ssh', [...sshBaseArgs(config), target, command], {
     silent: true,
     label: 'La copia de seguridad remota',
+  });
+}
+
+function uploadGoogleSheetsConfig(config) {
+  if (!config.GOOGLE_SHEETS_WEB_APP_URL) return;
+  const target = `${config.DEPLOY_SSH_USER}@${config.DEPLOY_SSH_HOST}`;
+  const privateDirectory = `/home/${config.DEPLOY_SSH_USER}/private-data`;
+  const destination = `${privateDirectory}/google-sheets-config.json`;
+  const temporary = `${destination}.tmp`;
+  const contents = JSON.stringify({
+    webAppUrl: config.GOOGLE_SHEETS_WEB_APP_URL,
+    token: config.GOOGLE_SHEETS_TOKEN,
+  });
+  const command = [
+    'set -eu',
+    'umask 077',
+    `mkdir -p ${privateDirectory}`,
+    `chmod 700 ${privateDirectory}`,
+    `cat > ${temporary}`,
+    `chmod 600 ${temporary}`,
+    `mv ${temporary} ${destination}`,
+  ].join('; ');
+
+  run('ssh', [...sshBaseArgs(config), target, command], {
+    input: contents,
+    silent: true,
+    label: 'La configuración privada de Google Sheets',
   });
 }
 
@@ -299,24 +350,20 @@ async function verifyPublicSite(config) {
   }
 }
 
-function lintMediaAccreditationEndpoint(config) {
+function lintPhpEndpoints(config) {
   const target = `${config.DEPLOY_SSH_USER}@${config.DEPLOY_SSH_HOST}`;
-  const source = readFileSync(join(websiteRoot, 'public', 'api', 'acreditacion-medios', 'index.php'), 'utf8');
-  run('ssh', [...sshBaseArgs(config), target, 'php -l'], {
-    input: source,
-    silent: true,
-    label: 'La validación PHP de la acreditación',
-  });
-}
-
-function lintInvitationEndpoint(config) {
-  const target = `${config.DEPLOY_SSH_USER}@${config.DEPLOY_SSH_HOST}`;
-  const source = readFileSync(join(websiteRoot, 'public', 'api', 'invitaciones-rsvp', 'index.php'), 'utf8');
-  run('ssh', [...sshBaseArgs(config), target, 'php -l'], {
-    input: source,
-    silent: true,
-    label: 'La validación PHP de invitaciones',
-  });
+  const files = [
+    ['acreditación', join(websiteRoot, 'public', 'api', 'acreditacion-medios', 'index.php')],
+    ['invitaciones', join(websiteRoot, 'public', 'api', 'invitaciones-rsvp', 'index.php')],
+    ['integración de Google Sheets', join(websiteRoot, 'public', 'api', '_google-sheets.php')],
+  ];
+  for (const [label, path] of files) {
+    run('ssh', [...sshBaseArgs(config), target, 'php -l'], {
+      input: readFileSync(path, 'utf8'),
+      silent: true,
+      label: `La validación PHP de ${label}`,
+    });
+  }
 }
 
 async function runProjectChecks() {
@@ -356,8 +403,7 @@ async function main() {
   await runProjectChecks();
   console.log('Verificando acceso SSH y destino remoto…');
   checkRemote(config);
-  lintMediaAccreditationEndpoint(config);
-  lintInvitationEndpoint(config);
+  lintPhpEndpoints(config);
 
   if (mode === '--check') {
     console.log(`Prevuelo completo para ${publicHostname}; no se modificó el servidor.`);
@@ -366,6 +412,8 @@ async function main() {
 
   console.log('Creando una copia de seguridad recuperable en el servidor…');
   backupRemote(config);
+  console.log('Actualizando la configuración privada de Google Sheets…');
+  uploadGoogleSheetsConfig(config);
   console.log('Subiendo la salida estática sin eliminar archivos exclusivos del servidor…');
   await uploadDist(config);
   console.log('Restaurando permisos públicos de las carpetas transferidas…');
