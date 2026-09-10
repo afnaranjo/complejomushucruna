@@ -10,8 +10,8 @@ const HEADERS = Object.freeze({
     'Personas', 'Nombres y cargos', 'Teléfono / WhatsApp', 'Correo', 'Aceptó condiciones',
   ],
   brunch: [
-    'Fecha de confirmación', 'ID de registro', 'Código', 'Nombre', 'Empresa / cargo',
-    'Asistencia', 'Acompañantes', 'Total personas', 'Comentarios', 'Fuente',
+    'Fecha de confirmación', 'ID de registro', 'Código', 'Nombre', 'Empresa',
+    'Cargo / referencia', 'Asistencia', 'Acompañantes', 'Total personas', 'Comentarios', 'Fuente',
   ],
 });
 
@@ -36,9 +36,42 @@ function rowFor(kind, record) {
     ].map(asCell);
   }
   return [
-    record.submittedAt, record.id, record.slug, record.name, record.role,
+    record.submittedAt, record.id, record.slug, record.name, record.company, record.role,
     record.attendance, record.companions, record.total, record.comments, record.source,
   ].map(asCell);
+}
+
+function styleHeader(sheet, width) {
+  sheet.setFrozenRows(1);
+  sheet.getRange(1, 1, 1, width)
+    .setBackground('#391f6f')
+    .setFontColor('#ffffff')
+    .setFontWeight('bold');
+}
+
+function ensureSheetSchema(kind, sheet) {
+  const headers = HEADERS[kind];
+  if (sheet.getLastRow() === 0) {
+    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+    styleHeader(sheet, headers.length);
+    return;
+  }
+
+  if (kind === 'brunch') {
+    const width = Math.max(sheet.getLastColumn(), 10);
+    const current = sheet.getRange(1, 1, 1, width).getValues()[0].map(String);
+    const alreadyCurrent = current[4] === 'Empresa' && current[5] === 'Cargo / referencia';
+    const legacySchema = current[4] === 'Empresa / cargo' && current[5] === 'Asistencia';
+    if (!alreadyCurrent && legacySchema) sheet.insertColumnBefore(5);
+  }
+
+  sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+  styleHeader(sheet, headers.length);
+}
+
+function ensureBrunchSchema() {
+  const spreadsheet = SpreadsheetApp.openById(SHEETS.brunch);
+  ensureSheetSchema('brunch', spreadsheet.getSheets()[0]);
 }
 
 function doPost(event) {
@@ -55,14 +88,7 @@ function doPost(event) {
     lock.waitLock(15000);
     const spreadsheet = SpreadsheetApp.openById(SHEETS[kind]);
     const sheet = spreadsheet.getSheets()[0];
-    if (sheet.getLastRow() === 0) {
-      sheet.getRange(1, 1, 1, HEADERS[kind].length).setValues([HEADERS[kind]]);
-      sheet.setFrozenRows(1);
-      sheet.getRange(1, 1, 1, HEADERS[kind].length)
-        .setBackground('#391f6f')
-        .setFontColor('#ffffff')
-        .setFontWeight('bold');
-    }
+    ensureSheetSchema(kind, sheet);
 
     const id = String(payload.record.id);
     const duplicate = sheet.getRange(1, 2, Math.max(sheet.getLastRow(), 1), 1)

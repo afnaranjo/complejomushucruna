@@ -38,6 +38,55 @@ function csv_safe(string $value): string
     return preg_match('/^[=+\-@]/', $value) === 1 ? "'" . $value : $value;
 }
 
+function invitations_csv_headers(): array
+{
+    return ['Fecha de confirmación', 'ID de registro', 'Código', 'Nombre', 'Empresa', 'Cargo / referencia', 'Asistencia', 'Acompañantes', 'Total personas', 'Comentarios', 'Fuente'];
+}
+
+function ensure_csv_schema(string $csvPath): void
+{
+    if (!is_file($csvPath) || filesize($csvPath) === 0) return;
+
+    $source = fopen($csvPath, 'rb');
+    if ($source === false) throw new RuntimeException('No se pudo actualizar el archivo de confirmaciones.');
+    $header = fgetcsv($source);
+    if (!is_array($header)) {
+        fclose($source);
+        throw new RuntimeException('El archivo de confirmaciones no tiene una cabecera válida.');
+    }
+    $header[0] = preg_replace('/^\xEF\xBB\xBF/', '', (string) $header[0]);
+    if (($header[4] ?? '') === 'Empresa' && ($header[5] ?? '') === 'Cargo / referencia') {
+        fclose($source);
+        return;
+    }
+    if (($header[4] ?? '') !== 'Empresa / cargo' || ($header[5] ?? '') !== 'Asistencia') {
+        fclose($source);
+        throw new RuntimeException('La cabecera del archivo de confirmaciones no es compatible.');
+    }
+
+    $temporary = $csvPath . '.tmp-' . bin2hex(random_bytes(4));
+    $target = fopen($temporary, 'xb');
+    if ($target === false) {
+        fclose($source);
+        throw new RuntimeException('No se pudo migrar el archivo de confirmaciones.');
+    }
+    fwrite($target, "\xEF\xBB\xBF");
+    fputcsv($target, invitations_csv_headers());
+    while (($row = fgetcsv($source)) !== false) {
+        if (count($row) < 10) continue;
+        array_splice($row, 4, 0, ['']);
+        fputcsv($target, $row);
+    }
+    fclose($source);
+    fflush($target);
+    fclose($target);
+    if (!rename($temporary, $csvPath)) {
+        @unlink($temporary);
+        throw new RuntimeException('No se pudo activar la nueva estructura de confirmaciones.');
+    }
+    @chmod($csvPath, 0600);
+}
+
 function xml_text(string $value): string
 {
     return htmlspecialchars($value, ENT_XML1 | ENT_QUOTES, 'UTF-8');
@@ -117,18 +166,19 @@ function read_submissions(string $csvPath): array
         $header[0] = preg_replace('/^\xEF\xBB\xBF/', '', (string) $header[0]);
     }
     while (($row = fgetcsv($handle)) !== false) {
-        if (count($row) < 10) continue;
+        if (count($row) < 11) continue;
         $submissions[] = [
             'submitted_at' => (string) $row[0],
             'id' => (string) $row[1],
             'slug' => (string) $row[2],
             'name' => (string) $row[3],
-            'role' => (string) $row[4],
-            'attendance' => (string) $row[5],
-            'companions' => (int) $row[6],
-            'total' => (int) $row[7],
-            'comments' => (string) $row[8],
-            'source' => (string) $row[9],
+            'company' => (string) $row[4],
+            'role' => (string) $row[5],
+            'attendance' => (string) $row[6],
+            'companions' => (int) $row[7],
+            'total' => (int) $row[8],
+            'comments' => (string) $row[9],
+            'source' => (string) $row[10],
         ];
     }
     fclose($handle);
@@ -165,6 +215,7 @@ function build_xlsx(string $xlsxPath, array $submissions): void
         $rows[] = [
             'slug' => $slug,
             'name' => $submission['name'] ?? $name,
+            'company' => $submission['company'] ?? '',
             'role' => $submission && $submission['role'] !== '' ? $submission['role'] : $role,
             'status' => $submission ? ($submission['attendance'] === 'si' ? 'Confirmado' : 'No asistirá') : 'Pendiente',
             'companions' => $submission['companions'] ?? 0,
@@ -180,6 +231,7 @@ function build_xlsx(string $xlsxPath, array $submissions): void
         $rows[] = [
             'slug' => $slug,
             'name' => $submission['name'],
+            'company' => $submission['company'],
             'role' => $submission['role'],
             'status' => $submission['attendance'] === 'si' ? 'Confirmado' : 'No asistirá',
             'companions' => $submission['companions'],
@@ -194,6 +246,7 @@ function build_xlsx(string $xlsxPath, array $submissions): void
         $rows[] = [
             'slug' => '',
             'name' => $submission['name'],
+            'company' => $submission['company'],
             'role' => $submission['role'],
             'status' => $submission['attendance'] === 'si' ? 'Confirmado' : 'No asistirá',
             'companions' => $submission['companions'],
@@ -215,7 +268,7 @@ function build_xlsx(string $xlsxPath, array $submissions): void
     $sheetRows[] = '<row r="2" ht="24" customHeight="1">' . cell('A2', 'Brunch empresarial · Jueves 17 de septiembre · 10:30', 2) . '</row>';
     $sheetRows[] = '<row r="4">' . cell('A4', 'Invitados', 3) . cell('C4', 'Asistirán', 3) . cell('E4', 'No asistirán', 3) . cell('G4', 'Pendientes', 3) . cell('I4', 'Personas confirmadas', 3) . '</row>';
     $sheetRows[] = '<row r="5" ht="30" customHeight="1">' . cell('A5', count($rows), 4, true) . cell('C5', $confirmed, 4, true) . cell('E5', $declined, 4, true) . cell('G5', $pending, 4, true) . cell('I5', $attendees, 4, true) . '</row>';
-    $headers = ['Código', 'Nombre', 'Empresa / cargo', 'Estado', 'Acompañantes', 'Total personas', 'Comentarios', 'Fecha de confirmación', 'ID de registro', 'Fuente'];
+    $headers = ['Código', 'Nombre', 'Empresa', 'Cargo / referencia', 'Estado', 'Acompañantes', 'Total personas', 'Comentarios', 'Fecha de confirmación', 'ID de registro', 'Fuente'];
     $headerCells = '';
     foreach ($headers as $index => $label) {
         $column = chr(65 + $index);
@@ -230,14 +283,15 @@ function build_xlsx(string $xlsxPath, array $submissions): void
         $sheetRows[] = '<row r="' . $excelRow . '" ht="27" customHeight="1">'
             . cell('A' . $excelRow, $row['slug'], $style)
             . cell('B' . $excelRow, $row['name'], $style)
-            . cell('C' . $excelRow, $row['role'], $style)
-            . cell('D' . $excelRow, $row['status'], $statusStyle)
-            . cell('E' . $excelRow, $row['companions'], $style, true)
-            . cell('F' . $excelRow, $row['total'], $style, true)
-            . cell('G' . $excelRow, $row['comments'], $style)
-            . cell('H' . $excelRow, $row['submitted_at'], $style)
-            . cell('I' . $excelRow, $row['id'], $style)
-            . cell('J' . $excelRow, $row['source'], $style)
+            . cell('C' . $excelRow, $row['company'], $style)
+            . cell('D' . $excelRow, $row['role'], $style)
+            . cell('E' . $excelRow, $row['status'], $statusStyle)
+            . cell('F' . $excelRow, $row['companions'], $style, true)
+            . cell('G' . $excelRow, $row['total'], $style, true)
+            . cell('H' . $excelRow, $row['comments'], $style)
+            . cell('I' . $excelRow, $row['submitted_at'], $style)
+            . cell('J' . $excelRow, $row['id'], $style)
+            . cell('K' . $excelRow, $row['source'], $style)
             . '</row>';
         $excelRow++;
     }
@@ -246,10 +300,10 @@ function build_xlsx(string $xlsxPath, array $submissions): void
     $worksheet = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
         . '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
         . '<sheetViews><sheetView workbookViewId="0"><pane xSplit="2" ySplit="8" topLeftCell="C9" activePane="bottomRight" state="frozen"/></sheetView></sheetViews>'
-        . '<cols><col min="1" max="1" width="24" customWidth="1"/><col min="2" max="2" width="27" customWidth="1"/><col min="3" max="3" width="34" customWidth="1"/><col min="4" max="4" width="16" customWidth="1"/><col min="5" max="6" width="15" customWidth="1"/><col min="7" max="7" width="38" customWidth="1"/><col min="8" max="8" width="27" customWidth="1"/><col min="9" max="9" width="21" customWidth="1"/><col min="10" max="10" width="17" customWidth="1"/></cols>'
+        . '<cols><col min="1" max="1" width="24" customWidth="1"/><col min="2" max="2" width="27" customWidth="1"/><col min="3" max="4" width="30" customWidth="1"/><col min="5" max="5" width="16" customWidth="1"/><col min="6" max="7" width="15" customWidth="1"/><col min="8" max="8" width="38" customWidth="1"/><col min="9" max="9" width="27" customWidth="1"/><col min="10" max="10" width="21" customWidth="1"/><col min="11" max="11" width="17" customWidth="1"/></cols>'
         . '<sheetData>' . implode('', $sheetRows) . '</sheetData>'
-        . '<mergeCells count="2"><mergeCell ref="A1:J1"/><mergeCell ref="A2:J2"/></mergeCells>'
-        . '<autoFilter ref="A8:J' . $lastRow . '"/>'
+        . '<mergeCells count="2"><mergeCell ref="A1:K1"/><mergeCell ref="A2:K2"/></mergeCells>'
+        . '<autoFilter ref="A8:K' . $lastRow . '"/>'
         . '<pageMargins left="0.25" right="0.25" top="0.5" bottom="0.5" header="0.2" footer="0.2"/>'
         . '</worksheet>';
 
@@ -354,6 +408,7 @@ try {
         throw new InvalidArgumentException('La invitación no es válida.');
     }
     $name = normalize_text($input['name'] ?? '', 140, true);
+    $company = normalize_text($input['company'] ?? '', 160);
     $role = normalize_text($input['role'] ?? '', 180);
     $attendance = normalize_text($input['asistencia'] ?? '', 2, true);
     if (!in_array($attendance, ['si', 'no'], true)) {
@@ -383,6 +438,7 @@ try {
     $total = $attendance === 'si' ? $companions + 1 : 0;
     $csvPath = $privateDirectory . DIRECTORY_SEPARATOR . 'confirmaciones-invitaciones-finados-2026.csv';
     $xlsxPath = $privateDirectory . DIRECTORY_SEPARATOR . 'confirmaciones-invitaciones-finados-2026.xlsx';
+    ensure_csv_schema($csvPath);
     $csv = fopen($csvPath, 'c+');
     if ($csv === false) {
         flock($lock, LOCK_UN);
@@ -392,7 +448,7 @@ try {
     $fileStats = fstat($csv);
     if (is_array($fileStats) && $fileStats['size'] === 0) {
         fwrite($csv, "\xEF\xBB\xBF");
-        fputcsv($csv, ['Fecha de confirmación', 'ID de registro', 'Código', 'Nombre', 'Empresa / cargo', 'Asistencia', 'Acompañantes', 'Total personas', 'Comentarios', 'Fuente']);
+        fputcsv($csv, invitations_csv_headers());
     }
     fseek($csv, 0, SEEK_END);
     fputcsv($csv, array_map('csv_safe', [
@@ -400,6 +456,7 @@ try {
         $registrationId,
         $slug,
         $name,
+        $company,
         $role,
         $attendance,
         (string) $companions,
@@ -421,6 +478,7 @@ try {
         'id' => $registrationId,
         'slug' => $slug,
         'name' => $name,
+        'company' => $company,
         'role' => $role,
         'attendance' => $attendance,
         'companions' => $companions,

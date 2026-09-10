@@ -171,6 +171,7 @@ test('publica invitaciones fuera del menú y registra RSVP en archivos compatibl
   const endpointConfig = await readFile(join(output, 'api/invitaciones-rsvp/.htaccess'), 'utf8');
   const home = await readFile(join(output, 'index.html'), 'utf8');
   const sitemap = await readFile(join(output, 'sitemap.xml'), 'utf8');
+  const sheetsIntegration = await readFile(join(process.cwd(), '..', 'integrations', 'google-sheets', 'Code.gs'), 'utf8');
 
   assert.ok(files.includes('invitaciones/index.html'));
   assert.ok(files.includes('api/invitaciones-rsvp/index.php'));
@@ -180,6 +181,10 @@ test('publica invitaciones fuera del menú y registra RSVP en archivos compatibl
   assert.match(page, /<link rel="canonical" href="https:\/\/complejomushucruna\.com\/invitaciones\/">/);
   assert.match(page, /Brunch/);
   assert.match(page, /Confirmar asistencia/);
+  assert.match(page, /data-invitation-company/);
+  assert.match(page, /label\.textContent = 'Empresa'/);
+  assert.match(page, /input\.autocomplete = 'organization'/);
+  assert.match(page, /company: companyValue\.trim\(\)/);
   assert.match(page, /Abg\. <strong>Luis Alfonso Chango<\\u002Fstrong>, Mentalizador Feria Finados 2026\./);
   assert.doesNotMatch(page, /Luis A\. Chango|Gerente General, Coop\. Mushuc Runa/);
   assert.match(page, /api\/invitaciones-rsvp/);
@@ -196,7 +201,13 @@ test('publica invitaciones fuera del menú y registra RSVP en archivos compatibl
   assert.match(endpoint, /ZipArchive/);
   assert.match(endpoint, /fputcsv/);
   assert.match(endpoint, /America\/Guayaquil/);
+  assert.match(endpoint, /\$company = normalize_text\(\$input\['company'\]/);
+  assert.match(endpoint, /'Empresa', 'Cargo \/ referencia'/);
+  assert.match(endpoint, /'company' => \$company/);
   assert.match(endpoint, /google_sheets_deliver\(\$privateDirectory, 'brunch'/);
+  assert.match(sheetsIntegration, /'Nombre', 'Empresa',\s*'Cargo \/ referencia'/);
+  assert.match(sheetsIntegration, /record\.name, record\.company, record\.role/);
+  assert.match(sheetsIntegration, /function ensureBrunchSchema\(\)/);
   assert.doesNotMatch(endpoint, /password|passwd|secret\s*=/i);
 });
 

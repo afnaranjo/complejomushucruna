@@ -12,6 +12,41 @@
       const endpoint = '/api/invitaciones-rsvp/';
       const nativeSetItem = Storage.prototype.setItem;
       let lastPayload = '';
+      let companyValue = '';
+
+      function installCompanyField() {
+        if (document.querySelector('[data-invitation-company]')) return;
+        const nameLabel = Array.from(document.querySelectorAll('label')).find((label) => label.textContent.trim().toLowerCase() === 'nombre');
+        const nameField = nameLabel?.parentElement;
+        if (!nameField?.parentElement) return;
+
+        const field = document.createElement('div');
+        field.dataset.invitationCompany = '';
+        const label = document.createElement('label');
+        label.htmlFor = 'invitation-company';
+        label.textContent = 'Empresa';
+        label.style.cssText = "display:block;font-family:'Inter',sans-serif;font-weight:700;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:#6D6478;margin-bottom:6px;";
+        const input = document.createElement('input');
+        input.id = 'invitation-company';
+        input.name = 'empresa';
+        input.type = 'text';
+        input.maxLength = 160;
+        input.autocomplete = 'organization';
+        input.placeholder = 'Nombre de la empresa';
+        input.value = companyValue;
+        input.style.cssText = "width:100%;padding:12px 14px;border:2px solid #391F6F;border-radius:8px;font-family:'Inter',sans-serif;font-size:14px;";
+        input.addEventListener('input', () => { companyValue = input.value; });
+        field.append(label, input);
+        nameField.insertAdjacentElement('afterend', field);
+      }
+
+      function watchInvitationForm() {
+        installCompanyField();
+        new MutationObserver(installCompanyField).observe(document.documentElement, { childList: true, subtree: true });
+      }
+
+      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', watchInvitationForm, { once: true });
+      else watchInvitationForm();
 
       function loadReceiptLogo() {
         return new Promise((resolve) => {
@@ -96,7 +131,8 @@
           context.fillText('INVITADO', 540, 1075);
           context.fillStyle = '#ffffff';
           context.font = '700 38px Inter, Arial, sans-serif';
-          wrapReceiptText(context, record.name || 'Invitado especial', 540, 1130, 780, 46, 2);
+          const recipient = [record.name || 'Invitado especial', record.company].filter(Boolean).join(' · ');
+          wrapReceiptText(context, recipient, 540, 1130, 780, 46, 2);
 
           const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
           const link = document.createElement('a');
@@ -132,7 +168,7 @@
         title.textContent = 'Bienvenido al Brunch Empresarial, Finados Mushuc Runa 2026.';
         const name = document.createElement('p');
         name.className = 'invitation-welcome-name';
-        name.textContent = record.name || 'Invitado especial';
+        name.textContent = [record.name || 'Invitado especial', record.company].filter(Boolean).join(' · ');
         const button = document.createElement('button');
         button.type = 'button';
         button.textContent = 'Descargar imagen';
@@ -162,17 +198,18 @@
         if (!record || typeof record !== 'object') return;
 
         const slug = new URLSearchParams(window.location.search).get('g') || '';
+        const submission = { ...record, company: companyValue.trim(), slug };
         fetch(endpoint, {
           method: 'POST',
           credentials: 'same-origin',
           keepalive: true,
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...record, slug }),
+          body: JSON.stringify(submission),
         }).then(async (response) => {
           if (!response.ok) throw new Error('No se pudo guardar la confirmación.');
           const payload = await response.json();
           if (!payload.ok) throw new Error('No se pudo guardar la confirmación.');
-          setTimeout(() => showInvitationWelcome(record), 300);
+          setTimeout(() => showInvitationWelcome(submission), 300);
         }).catch(() => {
           window.alert('La confirmación quedó guardada únicamente en este dispositivo. Por favor, inténtalo nuevamente para enviarla al equipo organizador.');
         });
