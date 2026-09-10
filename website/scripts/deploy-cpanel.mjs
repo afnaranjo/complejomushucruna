@@ -236,6 +236,31 @@ function uploadGoogleSheetsConfig(config) {
   });
 }
 
+function verifyGoogleSheetsBridge(config) {
+  if (!config.GOOGLE_SHEETS_WEB_APP_URL) return;
+  const target = `${config.DEPLOY_SSH_USER}@${config.DEPLOY_SSH_HOST}`;
+  const privatePath = `/home/${config.DEPLOY_SSH_USER}/private-data/google-sheets-config.json`;
+  const source = `<?php
+$config = json_decode((string) file_get_contents('${privatePath}'), true);
+$url = is_array($config) ? ($config['webAppUrl'] ?? '') : '';
+$payload = json_encode(['token' => 'verificacion-sin-escritura', 'kind' => 'media', 'record' => ['id' => 'healthcheck']]);
+$body = false;
+if (is_string($url) && is_string($payload) && function_exists('curl_init')) {
+    $request = curl_init($url);
+    curl_setopt_array($request, [CURLOPT_POST => true, CURLOPT_POSTFIELDS => $payload, CURLOPT_HTTPHEADER => ['Content-Type: application/json'], CURLOPT_RETURNTRANSFER => true, CURLOPT_FOLLOWLOCATION => true, CURLOPT_CONNECTTIMEOUT => 5, CURLOPT_TIMEOUT => 15, CURLOPT_MAXREDIRS => 3]);
+    $body = curl_exec($request);
+    curl_close($request);
+}
+$response = is_string($body) ? json_decode($body, true) : null;
+exit(is_array($response) && ($response['error'] ?? '') === 'unauthorized' ? 0 : 1);
+`;
+  run('ssh', [...sshBaseArgs(config), target, 'php'], {
+    input: source,
+    silent: true,
+    label: 'La comprobación privada de Google Sheets',
+  });
+}
+
 function waitForProcess(child, label) {
   return new Promise((resolvePromise, rejectPromise) => {
     child.once('error', () => rejectPromise(new Error(`No se pudo ejecutar ${label}.`)));
@@ -414,6 +439,8 @@ async function main() {
   backupRemote(config);
   console.log('Actualizando la configuración privada de Google Sheets…');
   uploadGoogleSheetsConfig(config);
+  console.log('Comprobando el puente privado de Google Sheets…');
+  verifyGoogleSheetsBridge(config);
   console.log('Subiendo la salida estática sin eliminar archivos exclusivos del servidor…');
   await uploadDist(config);
   console.log('Restaurando permisos públicos de las carpetas transferidas…');

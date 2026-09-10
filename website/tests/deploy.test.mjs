@@ -144,4 +144,6 @@ test('el despliegue verifica la página y el estado público de la acreditación
   assert.match(source, /lintPhpEndpoints\(config\)/);
   assert.match(source, /_google-sheets\.php/);
   assert.match(source, /uploadGoogleSheetsConfig\(config\)/);
+  assert.match(source, /verifyGoogleSheetsBridge\(config\)/);
+  assert.match(source, /verificacion-sin-escritura/);
 });
