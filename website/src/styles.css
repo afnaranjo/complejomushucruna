@@ -110,7 +110,7 @@ body::before {
 .home-page::before {
   z-index: 0;
   opacity: 0.075;
-  background-image: url("/assets/icons/logo-complejo.svg?v=20260908-2");
+  background-image: url("/assets/icons/logo-complejo.svg?v=20260909");
   background-repeat: no-repeat;
   background-position: calc(100% + 13rem) 44%;
   background-size: min(76vw, 64rem) auto;

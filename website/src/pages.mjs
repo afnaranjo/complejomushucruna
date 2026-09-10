@@ -22,6 +22,7 @@ import {
 } from './render/components.mjs';
 import { renderFinadosPage } from './finados/page.mjs';
 import { renderStandsAccessPage } from './finados/stands-page.mjs';
+import { renderMediaAccreditationBody } from './media-accreditation/page.mjs';
 
 const historyParagraphs = [
   'Al pie del volcán Carihuayrazo, cerca al Puñalica y de frente a los Llimpes, se levanta el Complejo Intercultural y Deportivo Mushuc Runa, en honor al hombre nuevo, que se abre espacio en este mundo globalizado. Desde la parte alta se puede apreciar la explanada que acoge a varios poblados de Ambato, Tisaleo, Quero y Cevallos. La obra que inició en el 2012 bajo la inspiración de Luis Alfonso Chango, tiene un toque campestre y natural, dotado de funcionalidad moderna. El proyecto fue inspirado en la reivindicación de los indígenas que hasta hace poco, sólo servían como peones de estas tierras.',
@@ -201,6 +202,17 @@ const mainPages = [
       alt: 'Referencia de ubicación del Complejo Mushuc Runa',
       accent: 'Será un gusto recibirte',
     }),
+  },
+  {
+    route: '/acreditacion-de-medios/',
+    title: 'Acreditación de medios',
+    description: 'Registro oficial para medios de comunicación que cubrirán el lanzamiento de Finados Mushuc Runa 2026.',
+    bodyClass: 'media-accreditation-page',
+    headerVariant: 'finados',
+    footerVariant: 'finados',
+    heroImage: '/assets/images/acreditacion-medios-periodista.jpg?v=20260909',
+    stylesheet: '/assets/media-accreditation.css?v=20260909',
+    body: renderMediaAccreditationBody(),
   },
 ];
 

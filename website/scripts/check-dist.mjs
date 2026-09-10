@@ -53,8 +53,8 @@ export async function checkDist(directory) {
     }
   }
 
-  const cssPath = 'assets/styles.css';
-  if (fileSet.has(cssPath)) {
+  const cssFiles = files.filter((path) => path.endsWith('.css'));
+  for (const cssPath of cssFiles) {
     const css = await readFile(join(root, cssPath), 'utf8');
     for (const match of css.matchAll(/url\(["']?([^"')]+)["']?\)/g)) {
       checkedLinks += 1;

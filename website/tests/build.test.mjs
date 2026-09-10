@@ -69,8 +69,8 @@ test('la portada adopta la cabecera de venta de Finados y simplifica la navegaci
     assert.match(home, new RegExp(`home-chapter--${chapter}`));
   }
   assert.match(home, /class="site-header site-header--finados"/);
-  assert.match(home, /\/assets\/icons\/logo-complejo\.svg\?v=20260908-2/);
-  assert.match(home, /\/assets\/styles\.css\?v=20260908-2/);
+  assert.match(home, /\/assets\/icons\/logo-complejo\.svg\?v=20260909/);
+  assert.match(home, /\/assets\/styles\.css\?v=20260909/);
   assert.match(home, /Finados 2026 · Venta de stands/);
   assert.match(home, /14 de septiembre/);
   assert.match(home, /Venta online/);
@@ -93,13 +93,63 @@ test('la portada adopta la cabecera de venta de Finados y simplifica la navegaci
   assert.match(mainNavigation, /href="\/granja\/"/);
   assert.match(mainNavigation, /href="\/historia\/"/);
   assert.match(mainNavigation, /href="\/visitanos\/"/);
-  const expectedOrder = ['INICIO', 'VENTA DE STANDS', 'FINADOS 2026', 'TOUR VIRTUAL', 'GRANJA', 'HISTORIA', 'VISITAMOS'];
+  const expectedOrder = ['INICIO', 'VENTA DE STANDS', 'FINADOS 2026', 'ACREDITACIÓN DE MEDIOS', 'TOUR VIRTUAL', 'GRANJA', 'HISTORIA', 'VISITAMOS'];
   for (let index = 1; index < expectedOrder.length; index += 1) {
     assert.ok(
       mainNavigation.indexOf(`>${expectedOrder[index - 1]}</a>`) < mainNavigation.indexOf(`>${expectedOrder[index]}</a>`),
       `${expectedOrder[index - 1]} debe mostrarse antes de ${expectedOrder[index]}`,
     );
   }
+});
+
+test('publica una acreditación de medios completa, limitada por fecha y respaldada en servidor', async () => {
+  const output = await mkdtemp(join(tmpdir(), 'mushuc-media-accreditation-'));
+  const files = await buildSite(output);
+  const page = await readFile(join(output, 'acreditacion-de-medios/index.html'), 'utf8');
+  const finadosPage = await readFile(join(output, 'finados/index.html'), 'utf8');
+  const endpoint = await readFile(join(output, 'api/acreditacion-medios/index.php'), 'utf8');
+  const sitemap = await readFile(join(output, 'sitemap.xml'), 'utf8');
+
+  assert.ok(files.includes('acreditacion-de-medios/index.html'));
+  assert.ok(files.includes('api/acreditacion-medios/index.php'));
+  assert.match(sitemap, /complejomushucruna\.com\/acreditacion-de-medios\//);
+  assert.match(page, /<body class="media-accreditation-page">/);
+  assert.match(page, /class="site-header site-header--finados"/);
+  assert.match(page, /\/assets\/images\/acreditacion-medios-periodista\.jpg\?v=20260909/);
+  assert.match(page, /\/assets\/media-accreditation\.css\?v=20260909/);
+  assert.match(page, /Acreditación de medios/);
+  assert.match(page, /Martes 15 de septiembre · 18:00/);
+  assert.match(page, /data-deadline="2026-09-15T18:00:00-05:00"/);
+  assert.match(page, /action="\/api\/acreditacion-medios\/" method="post"/);
+  for (const field of [
+    'nombre_medio', 'tipo_medio', 'frecuencia_canal', 'nombre_programa', 'tipo_programa',
+    'provincia', 'ciudad', 'contrato_mushuc', 'numero_personas', 'equipo', 'telefono',
+    'correo', 'acepta_condiciones',
+  ]) {
+    assert.match(page, new RegExp(`name="${field}"`));
+  }
+  for (const mediaType of ['Radio', 'TV', 'Prensa escrita', 'Digital', 'Redes sociales']) {
+    assert.match(page, new RegExp(`>${mediaType}<`));
+  }
+  for (const province of ['Azuay', 'Galápagos', 'Pichincha', 'Tungurahua', 'Zamora Chinchipe']) {
+    assert.match(page, new RegExp(`>${province}<`));
+  }
+  assert.match(page, /value="2">2 personas \(máximo\)<\/option>/);
+  assert.match(page, /name="acepta_condiciones"[^>]*required/);
+  assert.match(page, /Gracias, bienvenido al lanzamiento de Finados Mushuc Runa 2026/);
+  const finadosFooter = finadosPage.match(/<footer class="bg-night[\s\S]*?<\/footer>/)?.[0];
+  const accreditationFooter = page.match(/<footer class="bg-night[\s\S]*?<\/footer>/)?.[0];
+  assert.ok(finadosFooter, 'La página Finados debe incluir su footer de campaña');
+  assert.equal(accreditationFooter, finadosFooter, 'Acreditación debe reutilizar exactamente el footer de Finados');
+
+  assert.match(endpoint, /America\/Guayaquil/);
+  assert.match(endpoint, /2026-09-15 18:00:00/);
+  assert.match(endpoint, /private-data/);
+  assert.match(endpoint, /fputcsv/);
+  assert.match(endpoint, /finadosmushucruna@gmail\.com/);
+  assert.match(endpoint, /mail\(/);
+  assert.match(endpoint, /\^\[=\+\\-@\]/);
+  assert.doesNotMatch(endpoint, /password|passwd|secret\s*=/i);
 });
 
 test('genera las páginas privadas de Finados y publica su acceso en la navegación', async () => {

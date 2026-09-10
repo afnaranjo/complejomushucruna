@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { buildSite } from '../scripts/build.mjs';
-import { setMenuState } from '../src/site.js';
+import { isMediaAccreditationOpen, setMenuState } from '../src/site.js';
 
 async function buildFixture(prefix) {
   const output = await mkdtemp(join(tmpdir(), prefix));
@@ -112,4 +112,22 @@ test('el controlador del menú mantiene sincronizados estado y accesibilidad', (
   setMenuState(button, nav, false);
   assert.equal(attributes.get('aria-expanded'), 'false');
   assert.equal(nav.dataset.open, 'false');
+});
+
+test('la acreditación se bloquea exactamente al llegar la fecha límite', () => {
+  assert.equal(isMediaAccreditationOpen(new Date('2026-09-15T17:59:59-05:00')), true);
+  assert.equal(isMediaAccreditationOpen(new Date('2026-09-15T18:00:00-05:00')), false);
+  assert.equal(isMediaAccreditationOpen(new Date('2026-09-16T09:00:00-05:00')), false);
+});
+
+test('la acreditación mantiene la línea gráfica y se adapta a pantallas pequeñas', async () => {
+  const output = await buildFixture('mushuc-media-design-');
+  const css = await readFile(join(output, 'assets/media-accreditation.css'), 'utf8');
+
+  assert.match(css, /\.media-hero__image/);
+  assert.match(css, /\.media-deadline/);
+  assert.match(css, /\.media-form__fields/);
+  assert.match(css, /\.media-thanks__art/);
+  assert.match(css, /@media \(max-width: 760px\)/);
+  assert.match(css, /@media \(max-width: 480px\)/);
 });

@@ -13,6 +13,7 @@ test('la navegación institucional prioriza venta, Finados y tour en el orden ap
     '/',
     'https://www.mushucticket.com/',
     '/finados/',
+    '/acreditacion-de-medios/',
     'https://guiap.com/360/mr2023-2024/',
     '/granja/',
     '/historia/',
@@ -22,6 +23,7 @@ test('la navegación institucional prioriza venta, Finados y tour en el orden ap
     'INICIO',
     'VENTA DE STANDS',
     'FINADOS 2026',
+    'ACREDITACIÓN DE MEDIOS',
     'TOUR VIRTUAL',
     'GRANJA',
     'HISTORIA',
@@ -38,6 +40,10 @@ test('la navegación institucional prioriza venta, Finados y tour en el orden ap
     emphasis: 'finados',
   });
   assert.deepEqual(primaryNavigation[3], {
+    label: 'ACREDITACIÓN DE MEDIOS',
+    href: '/acreditacion-de-medios/',
+  });
+  assert.deepEqual(primaryNavigation[4], {
     label: 'TOUR VIRTUAL',
     href: site.tourUrl,
   });

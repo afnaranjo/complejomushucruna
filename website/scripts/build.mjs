@@ -43,6 +43,10 @@ export async function buildSite(outputDirectory = join(websiteRoot, 'dist')) {
   await mkdir(join(output, 'assets'), { recursive: true });
   await cp(join(websiteRoot, 'src', 'styles.css'), join(output, 'assets', 'styles.css'));
   await cp(join(websiteRoot, 'src', 'site.js'), join(output, 'assets', 'site.js'));
+  await cp(
+    join(websiteRoot, 'src', 'media-accreditation', 'media-accreditation.css'),
+    join(output, 'assets', 'media-accreditation.css'),
+  );
 
   const publicDirectory = join(websiteRoot, 'public');
   try {

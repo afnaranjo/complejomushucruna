@@ -103,3 +103,14 @@ test('serializa las pruebas que compilan Tailwind durante el preflight', async (
   assert.match(source, /\['--test', '--test-concurrency=1', \.\.\.testFiles\]/);
   assert.equal(packageConfig.scripts.test, 'node --test --test-concurrency=1 tests/*.test.mjs');
 });
+
+test('el despliegue verifica la página y el estado público de la acreditación', async () => {
+  const source = await readFile(deployScript, 'utf8');
+
+  assert.match(source, /\['\/acreditacion-de-medios\/', 200\]/);
+  assert.match(source, /\['\/api\/acreditacion-medios\/', 200\]/);
+  assert.match(source, /command -v php/);
+  assert.match(source, /function_exists\(\"mail\"\)/);
+  assert.match(source, /target, 'php -l'/);
+  assert.match(source, /lintMediaAccreditationEndpoint\(config\)/);
+});

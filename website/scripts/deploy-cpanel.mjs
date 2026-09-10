@@ -1,4 +1,5 @@
 import { execFileSync, spawn, spawnSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 import { access, readFile, readdir, stat } from 'node:fs/promises';
 import { dirname, isAbsolute, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -24,7 +25,8 @@ function run(command, args, options = {}) {
   const result = spawnSync(command, args, {
     cwd: options.cwd ?? websiteRoot,
     encoding: 'utf8',
-    stdio: options.silent ? 'ignore' : ['ignore', 'pipe', 'pipe'],
+    input: options.input,
+    stdio: options.silent ? ['pipe', 'ignore', 'pipe'] : ['pipe', 'pipe', 'pipe'],
   });
 
   if (result.error) fail(`No se pudo ejecutar ${command}.`);
@@ -154,7 +156,7 @@ function sshBaseArgs(config) {
 
 function checkRemote(config) {
   const target = `${config.DEPLOY_SSH_USER}@${config.DEPLOY_SSH_HOST}`;
-  const command = `test -d ${config.DEPLOY_REMOTE_ROOT} && test -w ${config.DEPLOY_REMOTE_ROOT}`;
+  const command = `test -d ${config.DEPLOY_REMOTE_ROOT} && test -w ${config.DEPLOY_REMOTE_ROOT} && command -v php >/dev/null && php -r 'exit(function_exists("mail") ? 0 : 1);'`;
   run('ssh', [...sshBaseArgs(config), target, command], {
     silent: true,
     label: 'La validación SSH',
@@ -252,6 +254,8 @@ async function verifyPublicSite(config) {
   const checks = [
     ['/', 200],
     ['/finados/', 200],
+    ['/acreditacion-de-medios/', 200],
+    ['/api/acreditacion-medios/', 200],
     ['/assets/styles.css', 200],
     ['/assets/finados/finados.css', 200],
     [`/__verificacion-${Date.now()}`, 404],
@@ -268,7 +272,28 @@ async function verifyPublicSite(config) {
     if (response.status !== expectedStatus) {
       fail(`La ruta pública ${path} respondió ${response.status}; se esperaba ${expectedStatus}.`);
     }
+    if (path === '/api/acreditacion-medios/') {
+      let payload;
+      try {
+        payload = await response.json();
+      } catch {
+        fail('El endpoint de acreditación no respondió JSON ejecutable.');
+      }
+      if (typeof payload.open !== 'boolean' || payload.deadline !== '2026-09-15T18:00:00-05:00') {
+        fail('El endpoint de acreditación no confirmó la fecha límite configurada.');
+      }
+    }
   }
+}
+
+function lintMediaAccreditationEndpoint(config) {
+  const target = `${config.DEPLOY_SSH_USER}@${config.DEPLOY_SSH_HOST}`;
+  const source = readFileSync(join(websiteRoot, 'public', 'api', 'acreditacion-medios', 'index.php'), 'utf8');
+  run('ssh', [...sshBaseArgs(config), target, 'php -l'], {
+    input: source,
+    silent: true,
+    label: 'La validación PHP de la acreditación',
+  });
 }
 
 async function runProjectChecks() {
@@ -308,6 +333,7 @@ async function main() {
   await runProjectChecks();
   console.log('Verificando acceso SSH y destino remoto…');
   checkRemote(config);
+  lintMediaAccreditationEndpoint(config);
 
   if (mode === '--check') {
     console.log(`Prevuelo completo para ${publicHostname}; no se modificó el servidor.`);
