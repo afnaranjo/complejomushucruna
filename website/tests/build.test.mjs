@@ -152,6 +152,34 @@ test('publica una acreditación de medios completa, limitada por fecha y respald
   assert.doesNotMatch(endpoint, /password|passwd|secret\s*=/i);
 });
 
+test('publica invitaciones fuera del menú y registra RSVP en archivos compatibles con Excel', async () => {
+  const output = await mkdtemp(join(tmpdir(), 'mushuc-invitaciones-'));
+  const files = await buildSite(output);
+  const page = await readFile(join(output, 'invitaciones/index.html'), 'utf8');
+  const endpoint = await readFile(join(output, 'api/invitaciones-rsvp/index.php'), 'utf8');
+  const home = await readFile(join(output, 'index.html'), 'utf8');
+  const sitemap = await readFile(join(output, 'sitemap.xml'), 'utf8');
+
+  assert.ok(files.includes('invitaciones/index.html'));
+  assert.ok(files.includes('api/invitaciones-rsvp/index.php'));
+  assert.match(page, /<title>Invitaciones \| Finados Mushuc Runa 2026<\/title>/);
+  assert.match(page, /<meta name="robots" content="noindex, nofollow, noarchive">/);
+  assert.match(page, /<link rel="canonical" href="https:\/\/complejomushucruna\.com\/invitaciones\/">/);
+  assert.match(page, /Brunch/);
+  assert.match(page, /Confirmar asistencia/);
+  assert.match(page, /api\/invitaciones-rsvp/);
+  assert.doesNotMatch(home, /href="\/invitaciones\//);
+  assert.doesNotMatch(sitemap, /complejomushucruna\.com\/invitaciones\//);
+
+  assert.match(endpoint, /private-data/);
+  assert.match(endpoint, /confirmaciones-invitaciones-finados-2026\.csv/);
+  assert.match(endpoint, /confirmaciones-invitaciones-finados-2026\.xlsx/);
+  assert.match(endpoint, /ZipArchive/);
+  assert.match(endpoint, /fputcsv/);
+  assert.match(endpoint, /America\/Guayaquil/);
+  assert.doesNotMatch(endpoint, /password|passwd|secret\s*=/i);
+});
+
 test('genera las páginas privadas de Finados y publica su acceso en la navegación', async () => {
   const output = await mkdtemp(join(tmpdir(), 'mushuc-finados-preview-'));
   const files = await buildSite(output);

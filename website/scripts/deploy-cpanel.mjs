@@ -156,7 +156,7 @@ function sshBaseArgs(config) {
 
 function checkRemote(config) {
   const target = `${config.DEPLOY_SSH_USER}@${config.DEPLOY_SSH_HOST}`;
-  const command = `test -d ${config.DEPLOY_REMOTE_ROOT} && test -w ${config.DEPLOY_REMOTE_ROOT} && command -v php >/dev/null && php -r 'exit(function_exists("mail") ? 0 : 1);'`;
+  const command = `test -d ${config.DEPLOY_REMOTE_ROOT} && test -w ${config.DEPLOY_REMOTE_ROOT} && command -v php >/dev/null && php -r 'exit(function_exists("mail") && class_exists("ZipArchive") ? 0 : 1);'`;
   run('ssh', [...sshBaseArgs(config), target, command], {
     silent: true,
     label: 'La validación SSH',
@@ -256,6 +256,8 @@ async function verifyPublicSite(config) {
     ['/finados/', 200],
     ['/acreditacion-de-medios/', 200],
     ['/api/acreditacion-medios/', 200],
+    ['/invitaciones/', 200],
+    ['/api/invitaciones-rsvp/', 200],
     ['/assets/styles.css', 200],
     ['/assets/finados/finados.css', 200],
     [`/__verificacion-${Date.now()}`, 404],
@@ -283,6 +285,17 @@ async function verifyPublicSite(config) {
         fail('El endpoint de acreditación no confirmó la fecha límite configurada.');
       }
     }
+    if (path === '/api/invitaciones-rsvp/') {
+      let payload;
+      try {
+        payload = await response.json();
+      } catch {
+        fail('El endpoint de invitaciones no respondió JSON ejecutable.');
+      }
+      if (payload.ready !== true || payload.workbook !== 'confirmaciones-invitaciones-finados-2026.xlsx') {
+        fail('El endpoint de invitaciones no confirmó la generación del archivo Excel.');
+      }
+    }
   }
 }
 
@@ -293,6 +306,16 @@ function lintMediaAccreditationEndpoint(config) {
     input: source,
     silent: true,
     label: 'La validación PHP de la acreditación',
+  });
+}
+
+function lintInvitationEndpoint(config) {
+  const target = `${config.DEPLOY_SSH_USER}@${config.DEPLOY_SSH_HOST}`;
+  const source = readFileSync(join(websiteRoot, 'public', 'api', 'invitaciones-rsvp', 'index.php'), 'utf8');
+  run('ssh', [...sshBaseArgs(config), target, 'php -l'], {
+    input: source,
+    silent: true,
+    label: 'La validación PHP de invitaciones',
   });
 }
 
@@ -334,6 +357,7 @@ async function main() {
   console.log('Verificando acceso SSH y destino remoto…');
   checkRemote(config);
   lintMediaAccreditationEndpoint(config);
+  lintInvitationEndpoint(config);
 
   if (mode === '--check') {
     console.log(`Prevuelo completo para ${publicHostname}; no se modificó el servidor.`);
