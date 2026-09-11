@@ -261,6 +261,46 @@
     box-shadow: 10px 10px 0 #00d2d6;
   }
 
+  .stands-hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+  }
+
+  .stands-section-button {
+    display: inline-flex;
+    min-height: 3.5rem;
+    align-items: center;
+    justify-content: center;
+    gap: .8rem;
+    border: 2px solid #f4eada;
+    border-radius: 999px;
+    background: #f4eada;
+    padding: .9rem 1.5rem;
+    box-shadow: 7px 7px 0 #6e2ce0;
+    color: #241146;
+    font-size: .76rem;
+    font-weight: 950;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    transition: transform 160ms ease, box-shadow 160ms ease;
+  }
+
+  .stands-section-button:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 10px 10px 0 #6e2ce0;
+  }
+
+  .stands-online-note {
+    color: #f4eada;
+    font-size: clamp(1.15rem, 2.4vw, 1.65rem);
+    font-weight: 900;
+    line-height: 1.35;
+    text-wrap: balance;
+  }
+
   .stands-countdown {
     border: 2px solid #f4eada;
     background: rgba(36, 17, 70, .78);
@@ -533,6 +573,7 @@
   .stands-policies {
     position: relative;
     overflow: hidden;
+    scroll-margin-top: 1rem;
     border-top: 2px solid #f4eada;
     background:
       radial-gradient(circle at 92% 8%, rgba(110, 44, 224, .5), transparent 26rem),
@@ -568,6 +609,10 @@
     font-size: clamp(4rem, 9vw, 8.5rem);
     line-height: .88;
     word-spacing: .04em;
+  }
+
+  .stands-policies-title {
+    color: #f4eada;
   }
 
   .stands-policy-grid {
@@ -623,6 +668,7 @@
     border-color: #ff2e8a;
     background: #391f6f;
     box-shadow: 8px 8px 0 #ff2e8a;
+    color: #f4eada;
   }
 
   .stands-policy-label {
@@ -1352,6 +1398,15 @@
 
   .stands-access-fact {
     min-height: 7.5rem;
+  }
+
+  .stands-hero-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .stands-hero-actions > a {
+    width: 100%;
   }
 
   .stands-story-title {

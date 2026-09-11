@@ -91,8 +91,8 @@ test('empaqueta la experiencia Finados con recursos locales y optimizados', asyn
   assert.match(landing, /https:\/\/www\.tiktok\.com\/@finadosmushucruna/);
   assert.match(landing, /https:\/\/www\.instagram\.com\/finadosmushucruna\//);
   assert.match(standsPage, /Más de 500 stands/);
-  assert.match(standsPage, /\/assets\/finados\/finados\.css\?v=20260911/);
-  assert.match(standsPage, /\/assets\/finados\/finados\.js\?v=20260911/);
+  assert.match(standsPage, /\/assets\/finados\/finados\.css\?v=20260911-2/);
+  assert.match(standsPage, /\/assets\/finados\/finados\.js\?v=20260911-2/);
   assert.match(standsPage, /Venta 100% online/);
   assert.match(standsPage, /https:\/\/mushucticket\.com\//);
   assert.doesNotMatch(standsPage, /reserva\.mushucticket\.com\/customers/);
@@ -106,6 +106,9 @@ test('empaqueta la experiencia Finados con recursos locales y optimizados', asyn
   assert.match(standsPage, /data-countdown-value="minutes">--<\/strong>\s*<small>Minutos<\/small>/);
   assert.match(standsPage, /data-countdown-value="seconds">--<\/strong>\s*<small>Segundos<\/small>/);
   assert.doesNotMatch(standsPage, /Haz clic en el botón y adquiere tu stand/);
+  assert.match(standsPage, /class="stands-online-note[^>]*">Venta exclusivamente online a través del canal de compra\.<\/p>/);
+  assert.match(standsPage, /class="stands-section-button" href="#politicas-generales"[^>]*>Políticas y mapa/);
+  assert.doesNotMatch(standsPage, /href="#politicas-generales"[^>]*target="_blank"/);
   assert.match(standsPage, /Correo electrónico/);
   assert.match(standsPage, /Cédula de ciudadanía/);
   assert.match(standsPage, /RUC habilitado/);
@@ -114,6 +117,9 @@ test('empaqueta la experiencia Finados con recursos locales y optimizados', asyn
   assert.match(standsPage, /\/assets\/finados\/expositora-requisitos\.webp/);
   assert.match(standsPage, /Políticas generales/);
   assert.match(standsPage, /Sanciones del 100% de la garantía/);
+  assert.match(standsPage, /id="politicas-generales" class="stands-policies[^\"]*text-lienzo/);
+  assert.match(finadosStyles, /\.stands-online-note\{[^}]*font-size:clamp\(1\.15rem/);
+  assert.match(finadosStyles, /\.stands-policy-card--sanctions\{[^}]*color:#f4eada/);
   assert.match(standsPage, /\/assets\/finados\/mapa-accesos\.svg\?v=20260911/);
   assert.match(standsPage, /class="button-outline-light" href="\/finados\/" target="_blank" rel="noopener noreferrer"/);
   assert.match(standsPage, /class="footer-link" href="\/finados\/" target="_blank" rel="noopener noreferrer"/);

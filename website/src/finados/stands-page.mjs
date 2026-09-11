@@ -3,7 +3,7 @@ import { escapeHtml, externalAttributes } from '../render/html.mjs';
 
 const purchaseUrl = 'https://mushucticket.com/';
 const campaignAssetVersion = '20260903';
-const campaignRuntimeVersion = '20260911';
+const campaignRuntimeVersion = '20260911-2';
 const newTabAttributes = ' target="_blank" rel="noopener noreferrer"';
 
 export function renderStandsAccessPage(page) {
@@ -91,8 +91,11 @@ export function renderStandsAccessPage(page) {
         </div>
 
         <div class="hero-enter mt-10" data-hero-item>
-          <a class="stands-purchase-button" href="${purchaseUrl}"${externalAttributes(purchaseUrl)}>Comprar mi stand <span aria-hidden="true">↗</span></a>
-          <p class="mx-auto mt-5 max-w-2xl text-sm font-bold text-lienzo/65">Venta exclusivamente online a través del canal de compra.</p>
+          <div class="stands-hero-actions">
+            <a class="stands-purchase-button" href="${purchaseUrl}"${externalAttributes(purchaseUrl)}>Comprar mi stand <span aria-hidden="true">↗</span></a>
+            <a class="stands-section-button" href="#politicas-generales" aria-label="Ir a políticas generales y mapa de accesos">Políticas y mapa <span aria-hidden="true">↓</span></a>
+          </div>
+          <p class="stands-online-note mx-auto mt-7 max-w-3xl">Venta exclusivamente online a través del canal de compra.</p>
         </div>
       </div>
     </section>
@@ -152,7 +155,7 @@ export function renderStandsAccessPage(page) {
       </div>
     </section>
 
-    <section id="politicas-generales" class="stands-policies px-4 py-20 text-night sm:py-28" aria-labelledby="politicas-title">
+    <section id="politicas-generales" class="stands-policies px-4 py-20 text-lienzo sm:py-28" aria-labelledby="politicas-title">
       <div class="mx-auto w-[min(100%,88rem)]">
         <header class="stands-policies-heading" data-reveal>
           <p class="kicker text-fuchsia">Feria Finados Mushuc Runa 2026</p>

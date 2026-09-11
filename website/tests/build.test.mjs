@@ -248,8 +248,8 @@ test('genera las páginas privadas de Finados y publica su acceso en la navegaci
   assert.equal((landing.match(/<h1\b/g) ?? []).length, 1);
   assert.doesNotMatch(landing, /2 nov|120K|\$12/i);
   assert.match(stands, /<meta name="robots" content="noindex, nofollow, noarchive">/);
-  assert.match(stands, /\/assets\/finados\/finados\.css\?v=20260911/);
-  assert.match(stands, /\/assets\/finados\/finados\.js\?v=20260911/);
+  assert.match(stands, /\/assets\/finados\/finados\.css\?v=20260911-2/);
+  assert.match(stands, /\/assets\/finados\/finados\.js\?v=20260911-2/);
   assert.match(stands, /Acceso para compra de stands/);
   assert.match(stands, /14 de septiembre/);
   assert.match(stands, /datetime="2026-09-14T08:00:00-05:00"/);
@@ -270,13 +270,16 @@ test('genera las páginas privadas de Finados y publica su acceso en la navegaci
   assert.match(stands, /data-countdown-value="minutes">--<\/strong>\s*<small>Minutos<\/small>/);
   assert.match(stands, /data-countdown-value="seconds">--<\/strong>\s*<small>Segundos<\/small>/);
   assert.doesNotMatch(stands, /Haz clic en el botón y adquiere tu stand para ser parte de la expoferia más grande del Ecuador\./);
+  assert.match(stands, /class="stands-online-note[^>]*">Venta exclusivamente online a través del canal de compra\.<\/p>/);
+  assert.match(stands, /class="stands-section-button" href="#politicas-generales"[^>]*>Políticas y mapa/);
+  assert.doesNotMatch(stands, /href="#politicas-generales"[^>]*target="_blank"/);
   assert.match(stands, /Correo electrónico/);
   assert.match(stands, /Cédula de ciudadanía <span>PDF<\/span>/);
   assert.match(stands, /RUC habilitado <span>PDF<\/span>/);
   assert.match(stands, /Catálogo de productos <span>PDF<\/span>/);
   assert.match(stands, /Te recomendamos utilizar un computador/);
   assert.match(stands, /\/assets\/finados\/expositora-requisitos\.webp/);
-  assert.match(stands, /id="politicas-generales"/);
+  assert.match(stands, /id="politicas-generales" class="stands-policies[^\"]*text-lienzo/);
   assert.match(stands, /Venta de stands <strong>solo en línea<\/strong>: lunes 14 de septiembre, 8:00 am/);
   assert.match(stands, /Artesanías<\/span><strong>\$25<\/strong>/);
   assert.match(stands, /Comercio y productores<\/span><strong>\$50<\/strong>/);
