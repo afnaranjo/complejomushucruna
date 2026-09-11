@@ -48,6 +48,8 @@ test('cada página entrega metadatos, canonical y un único h1', async () => {
 
   assert.match(home, /<title>Complejo Mushuc Runa/);
   assert.match(home, /<meta name="description" content="[^"]+">/);
+  assert.match(home, /<meta name="google-site-verification" content="nEfLh1DS-VLhCWOMJGp2cLwFXuBijd9P7KrWpk85fLQ">/);
+  assert.equal((home.match(/name="google-site-verification"/g) ?? []).length, 1);
   assert.match(home, /<link rel="canonical" href="https:\/\/complejomushucruna.com\/">/);
   assert.match(home, /<link rel="icon" href="\/assets\/icons\/logo-complejo-mushuc-runa\.svg\?v=20260904" type="image\/svg\+xml">/);
   assert.equal((home.match(/<h1\b/g) ?? []).length, 1);
