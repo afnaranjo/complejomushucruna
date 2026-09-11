@@ -211,6 +211,7 @@ export const assetManifest = Object.freeze([
   { path: '/assets/finados/icons/paloma.svg', kind: 'campaign-icon' },
   { path: '/assets/finados/expositor-artesanias.webp', kind: 'campaign-image' },
   { path: '/assets/finados/expositora-requisitos.webp', kind: 'campaign-image' },
+  { path: '/assets/finados/mapa-accesos.svg', kind: 'campaign-map' },
   { path: '/assets/finados/favicon-finados.png', kind: 'campaign-icon' },
   { path: '/assets/finados/guaynaa-finados.webp', kind: 'campaign-image' },
   { path: '/assets/finados/guaynaa-finados-960.webp', kind: 'campaign-image' },

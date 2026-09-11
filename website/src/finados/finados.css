@@ -530,6 +530,325 @@
     line-height: 1.6;
   }
 
+  .stands-policies {
+    position: relative;
+    overflow: hidden;
+    border-top: 2px solid #f4eada;
+    background:
+      radial-gradient(circle at 92% 8%, rgba(110, 44, 224, .5), transparent 26rem),
+      #241146;
+    color: #f4eada;
+  }
+
+  .stands-policies::before {
+    position: absolute;
+    top: 10rem;
+    right: -10rem;
+    width: 27rem;
+    height: 27rem;
+    border: 4.5rem solid rgba(255, 46, 138, .14);
+    border-radius: 50%;
+    content: "";
+  }
+
+  .stands-policies-heading,
+  .stands-policy-grid {
+    position: relative;
+    z-index: 1;
+  }
+
+  .stands-policies-heading {
+    max-width: 62rem;
+    border-left: .8rem solid #00d2d6;
+    padding-left: clamp(1rem, 3vw, 2rem);
+  }
+
+  .stands-policies-title,
+  .stands-map-title {
+    font-size: clamp(4rem, 9vw, 8.5rem);
+    line-height: .88;
+    word-spacing: .04em;
+  }
+
+  .stands-policy-grid {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .stands-policy-card {
+    min-width: 0;
+    border: 2px solid #f4eada;
+    background: #391f6f;
+    padding: clamp(1.35rem, 3vw, 2.4rem);
+    box-shadow: 8px 8px 0 rgba(0, 210, 214, .75);
+  }
+
+  .stands-policy-card--purchase {
+    background: #f4eada;
+    color: #241146;
+    box-shadow: 8px 8px 0 #ff2e8a;
+  }
+
+  .stands-policy-card--warranty {
+    background: #ffc42e;
+    color: #241146;
+    box-shadow: 8px 8px 0 #6e2ce0;
+  }
+
+  .stands-policy-card--dates,
+  .stands-policy-card--fair,
+  .stands-policy-card--sanctions {
+    grid-column: 1 / -1;
+  }
+
+  .stands-policy-card--dates {
+    background: #e5dbff;
+    color: #241146;
+    box-shadow: 8px 8px 0 #ff2e8a;
+  }
+
+  .stands-policy-card--vehicles {
+    background: #00d2d6;
+    color: #241146;
+    box-shadow: 8px 8px 0 #ffc42e;
+  }
+
+  .stands-policy-card--fair {
+    background: #f4eada;
+    color: #241146;
+    box-shadow: 8px 8px 0 #00d2d6;
+  }
+
+  .stands-policy-card--sanctions {
+    border-color: #ff2e8a;
+    background: #391f6f;
+    box-shadow: 8px 8px 0 #ff2e8a;
+  }
+
+  .stands-policy-label {
+    display: flex;
+    align-items: center;
+    gap: .8rem;
+    font-family: "Anton", "Arial Narrow", sans-serif;
+    font-size: clamp(1.75rem, 4vw, 3rem);
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  .stands-policy-label > span {
+    display: grid;
+    width: 2.6rem;
+    height: 2.6rem;
+    flex: 0 0 auto;
+    place-items: center;
+    border-radius: 50%;
+    background: #ff2e8a;
+    color: #241146;
+    font-family: "Inter", sans-serif;
+    font-size: .66rem;
+    font-weight: 950;
+    letter-spacing: .08em;
+  }
+
+  .stands-policy-card--warranty .stands-policy-label > span,
+  .stands-policy-card--vehicles .stands-policy-label > span {
+    background: #391f6f;
+    color: #f4eada;
+  }
+
+  .stands-policy-list,
+  .stands-sanctions-list {
+    display: grid;
+    gap: .85rem;
+    list-style: none;
+    padding: 0;
+  }
+
+  .stands-policy-list li,
+  .stands-sanctions-list li {
+    display: grid;
+    min-width: 0;
+    grid-template-columns: 2rem minmax(0, 1fr);
+    align-items: start;
+    gap: .75rem;
+  }
+
+  .stands-policy-list li > span,
+  .stands-sanctions-list li > span {
+    display: grid;
+    width: 2rem;
+    height: 2rem;
+    place-items: center;
+    border-radius: .45rem;
+    background: #ff2e8a;
+    color: #f4eada;
+    font-size: .68rem;
+    font-weight: 950;
+  }
+
+  .stands-policy-list p,
+  .stands-sanctions-list p {
+    padding-top: .18rem;
+    font-size: clamp(.95rem, 1.6vw, 1.06rem);
+    line-height: 1.55;
+  }
+
+  .stands-policy-list a {
+    font-weight: 900;
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: .2em;
+  }
+
+  .stands-policy-subtitle {
+    font-size: .78rem;
+    font-weight: 950;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+  }
+
+  .stands-warranty-values {
+    display: grid;
+    gap: .65rem;
+  }
+
+  .stands-warranty-values p {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    border-bottom: 2px solid rgba(36, 17, 70, .35);
+    padding-bottom: .65rem;
+    font-size: .76rem;
+    font-weight: 950;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+  }
+
+  .stands-warranty-values strong {
+    font-family: "Anton", "Arial Narrow", sans-serif;
+    font-size: 2.4rem;
+    font-weight: 400;
+    line-height: 1;
+  }
+
+  .stands-key-dates,
+  .stands-vehicle-grid {
+    display: grid;
+    gap: .9rem;
+  }
+
+  .stands-key-dates > div,
+  .stands-vehicle-grid > div {
+    border: 2px solid #241146;
+    background: #f4eada;
+    padding: 1rem;
+  }
+
+  .stands-key-dates time {
+    display: flex;
+    flex-direction: column;
+    color: #6e2ce0;
+    font-family: "Anton", "Arial Narrow", sans-serif;
+    font-size: clamp(2.8rem, 6vw, 4.4rem);
+    line-height: .85;
+    text-transform: uppercase;
+  }
+
+  .stands-key-dates time small {
+    margin-top: .55rem;
+    color: #241146;
+    font-family: "Inter", sans-serif;
+    font-size: .66rem;
+    font-weight: 950;
+    letter-spacing: .08em;
+    line-height: 1.2;
+  }
+
+  .stands-key-dates p,
+  .stands-vehicle-grid p {
+    margin-top: .8rem;
+    font-size: .9rem;
+    font-weight: 650;
+    line-height: 1.5;
+  }
+
+  .stands-vehicle-grid > div > span {
+    display: block;
+    color: #391f6f;
+    font-size: .67rem;
+    font-weight: 950;
+    letter-spacing: .11em;
+    line-height: 1.35;
+    text-transform: uppercase;
+  }
+
+  .stands-vehicle-grid > div > strong {
+    display: block;
+    margin-top: .65rem;
+    font-family: "Anton", "Arial Narrow", sans-serif;
+    font-size: clamp(2rem, 4vw, 3.25rem);
+    font-weight: 400;
+    line-height: .95;
+  }
+
+  .stands-policy-list--columns,
+  .stands-sanctions-list {
+    gap: 1rem 1.75rem;
+  }
+
+  .stands-sanctions-list li > span {
+    background: #e01b24;
+  }
+
+  .stands-map {
+    position: relative;
+    overflow: hidden;
+    background: #ffc42e;
+  }
+
+  .stands-map::after {
+    position: absolute;
+    right: -8rem;
+    bottom: -8rem;
+    width: 22rem;
+    height: 22rem;
+    border: 4rem solid rgba(255, 46, 138, .34);
+    border-radius: 50%;
+    content: "";
+  }
+
+  .stands-map-heading,
+  .stands-map-frame {
+    position: relative;
+    z-index: 1;
+  }
+
+  .stands-map-frame {
+    overflow: hidden;
+    border: 3px solid #241146;
+    background: #f4eada;
+    box-shadow: 14px 14px 0 #ff2e8a;
+  }
+
+  .stands-map-frame img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .stands-map-frame figcaption {
+    border-top: 2px solid #241146;
+    background: #241146;
+    padding: .85rem 1rem;
+    color: #f4eada;
+    font-size: .66rem;
+    font-weight: 950;
+    letter-spacing: .1em;
+    line-height: 1.4;
+    text-transform: uppercase;
+  }
+
   .hero-stands {
     background: #241146;
   }
@@ -967,6 +1286,20 @@
 }
 
 @media (min-width: 1024px) {
+  .stands-policy-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .stands-key-dates {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .stands-vehicle-grid,
+  .stands-policy-list--columns,
+  .stands-sanctions-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .stands-requirements-grid {
     grid-template-columns: minmax(0, 1.12fr) minmax(24rem, .88fr);
   }
@@ -1039,6 +1372,30 @@
     width: 6.6rem;
     height: 6.6rem;
     font-size: .58rem;
+  }
+
+  .stands-policies-title,
+  .stands-map-title {
+    font-size: clamp(3.45rem, 17vw, 5rem);
+    line-height: .94;
+  }
+
+  .stands-policy-card {
+    box-shadow: 6px 6px 0 rgba(0, 210, 214, .75);
+  }
+
+  .stands-policy-label {
+    align-items: flex-start;
+    font-size: 2rem;
+  }
+
+  .stands-warranty-values p {
+    align-items: flex-end;
+  }
+
+  .stands-map-frame {
+    margin-right: .45rem;
+    box-shadow: 8px 8px 0 #ff2e8a;
   }
 
   .artist-title {

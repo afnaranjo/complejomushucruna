@@ -57,6 +57,7 @@ test('empaqueta la experiencia Finados con recursos locales y optimizados', asyn
   const encounterIcon = await readFile(join(output, 'assets/finados/icons/encuentro.svg'), 'utf8');
   const growthIcon = await readFile(join(output, 'assets/finados/icons/crecimiento.svg'), 'utf8');
   const spectatorIcon = await readFile(join(output, 'assets/finados/icons/espectador.svg'), 'utf8');
+  const accessMap = await readFile(join(output, 'assets/finados/mapa-accesos.svg'), 'utf8');
   const williamLuna = await readFile(join(output, 'assets/finados/william-luna.svg'), 'utf8');
   const lasNanas = await readFile(join(output, 'assets/finados/las-nanas.svg'), 'utf8');
   const complexFavicon = await readFile(join(output, 'assets/icons/logo-complejo-mushuc-runa.svg'), 'utf8');
@@ -90,8 +91,8 @@ test('empaqueta la experiencia Finados con recursos locales y optimizados', asyn
   assert.match(landing, /https:\/\/www\.tiktok\.com\/@finadosmushucruna/);
   assert.match(landing, /https:\/\/www\.instagram\.com\/finadosmushucruna\//);
   assert.match(standsPage, /Más de 500 stands/);
-  assert.match(standsPage, /\/assets\/finados\/finados\.css\?v=20260903-2/);
-  assert.match(standsPage, /\/assets\/finados\/finados\.js\?v=20260903-2/);
+  assert.match(standsPage, /\/assets\/finados\/finados\.css\?v=20260911/);
+  assert.match(standsPage, /\/assets\/finados\/finados\.js\?v=20260911/);
   assert.match(standsPage, /Venta 100% online/);
   assert.match(standsPage, /https:\/\/mushucticket\.com\//);
   assert.doesNotMatch(standsPage, /reserva\.mushucticket\.com\/customers/);
@@ -111,6 +112,11 @@ test('empaqueta la experiencia Finados con recursos locales y optimizados', asyn
   assert.match(standsPage, /Catálogo de productos/);
   assert.match(standsPage, /Te recomendamos utilizar un computador/);
   assert.match(standsPage, /\/assets\/finados\/expositora-requisitos\.webp/);
+  assert.match(standsPage, /Políticas generales/);
+  assert.match(standsPage, /Sanciones del 100% de la garantía/);
+  assert.match(standsPage, /\/assets\/finados\/mapa-accesos\.svg\?v=20260911/);
+  assert.match(standsPage, /class="button-outline-light" href="\/finados\/" target="_blank" rel="noopener noreferrer"/);
+  assert.match(standsPage, /class="footer-link" href="\/finados\/" target="_blank" rel="noopener noreferrer"/);
   assert.match(finadosScript, /data-stands-countdown/);
   assert.match(finadosScript, /dataset\.target/);
   assert.match(campaignLogo, /viewBox="0 0 766 449"/);
@@ -120,6 +126,10 @@ test('empaqueta la experiencia Finados con recursos locales y optimizados', asyn
   assert.match(spectatorIcon, /viewBox="0 0 1271 587"/);
   assert.match(spectatorIcon, /fill:#00d2d6/);
   assert.doesNotMatch(spectatorIcon, /<image/);
+  assert.match(accessMap, /viewBox="0 0 3508 2481"/);
+  assert.doesNotMatch(accessMap, /<script\b/i);
+  assert.doesNotMatch(accessMap, /<foreignObject\b/i);
+  assert.doesNotMatch(accessMap, /(?:href|xlink:href)\s*=\s*["']https?:\/\//i);
   assert.match(williamLuna, /viewBox="0 0 1600 801"/);
   assert.match(lasNanas, /viewBox="0 0 1600 801"/);
   assert.doesNotMatch(williamLuna, /<script\b/i);

@@ -3,7 +3,8 @@ import { escapeHtml, externalAttributes } from '../render/html.mjs';
 
 const purchaseUrl = 'https://mushucticket.com/';
 const campaignAssetVersion = '20260903';
-const campaignRuntimeVersion = '20260903-2';
+const campaignRuntimeVersion = '20260911';
+const newTabAttributes = ' target="_blank" rel="noopener noreferrer"';
 
 export function renderStandsAccessPage(page) {
   const canonical = `${site.baseUrl}${page.route}`;
@@ -30,7 +31,7 @@ export function renderStandsAccessPage(page) {
 
   <header class="stands-access-nav absolute inset-x-0 top-3 z-40">
     <div class="mx-auto flex h-20 w-[min(100%-2rem,88rem)] items-center justify-end sm:h-24">
-      <a class="button-outline-light" href="/finados/">Volver a Finados</a>
+      <a class="button-outline-light" href="/finados/"${newTabAttributes}>Volver a Finados</a>
     </div>
   </header>
 
@@ -40,7 +41,7 @@ export function renderStandsAccessPage(page) {
       <img class="stands-access-spectator absolute -z-20" src="/assets/finados/icons/espectador.svg?v=${campaignAssetVersion}" alt="" width="1271" height="587" aria-hidden="true">
 
       <div class="stands-access-shell mx-auto w-[min(100%,74rem)]">
-        <a class="stands-access-brand hero-enter mx-auto block" href="/finados/" aria-label="Finados 2026, volver a la landing" data-hero-item>
+        <a class="stands-access-brand hero-enter mx-auto block" href="/finados/"${newTabAttributes} aria-label="Finados 2026, volver a la landing" data-hero-item>
           <img class="mx-auto h-auto w-[min(17rem,72vw)] sm:w-80" src="/assets/finados/logo-finados.svg?v=${campaignAssetVersion}" width="766" height="449" alt="Mushuc Runa Finados 2026, legado que nos une">
         </a>
         <p class="hero-enter kicker mt-10 text-cyan" data-hero-item>Venta de stands · Finados 2026</p>
@@ -150,12 +151,115 @@ export function renderStandsAccessPage(page) {
         </aside>
       </div>
     </section>
+
+    <section id="politicas-generales" class="stands-policies px-4 py-20 text-night sm:py-28" aria-labelledby="politicas-title">
+      <div class="mx-auto w-[min(100%,88rem)]">
+        <header class="stands-policies-heading" data-reveal>
+          <p class="kicker text-fuchsia">Feria Finados Mushuc Runa 2026</p>
+          <h2 id="politicas-title" class="stands-policies-title mt-5 font-display uppercase">Políticas generales</h2>
+          <p class="mt-6 max-w-3xl text-lg font-semibold leading-relaxed text-lienzo/75 sm:text-xl">Información para la compra, operación y salida de los expositores.</p>
+        </header>
+
+        <div class="stands-policy-grid mt-12">
+          <article class="stands-policy-card stands-policy-card--purchase" data-reveal>
+            <p class="stands-policy-label"><span aria-hidden="true">01</span> Compra de stands</p>
+            <ol class="stands-policy-list mt-7">
+              <li><span aria-hidden="true">1</span><p>Venta de stands <strong>solo en línea</strong>: lunes 14 de septiembre, 8:00 am, en <a href="${purchaseUrl}"${externalAttributes(purchaseUrl)}>www.mushucticket.com</a>, hasta agotar stock.</p></li>
+              <li><span aria-hidden="true">2</span><p>Se autoriza la adquisición de <strong>un (1) stand por RUC</strong>.</p></li>
+              <li><span aria-hidden="true">3</span><p>El costo aplica según la <strong>lista de precios oficial de Feria Finados Mushuc Runa 2026</strong>.</p></li>
+            </ol>
+          </article>
+
+          <article class="stands-policy-card stands-policy-card--warranty" data-reveal>
+            <p class="stands-policy-label"><span aria-hidden="true">02</span> Garantía</p>
+            <div class="stands-warranty-values mt-7" aria-label="Valores de garantía por categoría">
+              <p><span>Artesanías</span><strong>$25</strong></p>
+              <p><span>Comercio y productores</span><strong>$50</strong></p>
+              <p><span>Gastronomía</span><strong>$200</strong></p>
+            </div>
+            <h3 class="stands-policy-subtitle mt-8">Condiciones de reembolso</h3>
+            <ol class="stands-policy-list stands-policy-list--compact mt-4">
+              <li><span aria-hidden="true">1</span><p>Tener cuenta de ahorros activa en Coop. Mushuc Runa.</p></li>
+              <li><span aria-hidden="true">2</span><p>Devolución general: <strong>30 días</strong>.</p></li>
+              <li><span aria-hidden="true">3</span><p>Devolución zona gastronómica: <strong>60 días</strong>.</p></li>
+            </ol>
+          </article>
+
+          <article class="stands-policy-card stands-policy-card--dates" data-reveal>
+            <p class="stands-policy-label"><span aria-hidden="true">03</span> Fechas clave</p>
+            <div class="stands-key-dates mt-8">
+              <div><time datetime="2026-10-26">26–27 <small>octubre · oficinas</small></time><p>Entrega de gafetes, Juan Benigno Vela y Montalvo, 9:00–17:00.</p></div>
+              <div><time datetime="2026-10-29">29 <small>octubre · complejo</small></time><p>Entrega de gafetes, de 8:00–20:00.</p></div>
+              <div><time datetime="2026-10-30T14:00:00-05:00">30 <small>octubre · 14:00</small></time><p>Fecha límite de stand listo, previa revisión de comisarios.</p></div>
+              <div><time datetime="2026-11-03">3 <small>noviembre · salida</small></time><p>Salida oficial con salvoconducto: peatonal 18:00, vehicular 21:00.</p></div>
+            </div>
+          </article>
+
+          <article class="stands-policy-card stands-policy-card--vehicles" data-reveal>
+            <p class="stands-policy-label"><span aria-hidden="true">04</span> Vehículos</p>
+            <div class="stands-vehicle-grid mt-8">
+              <div>
+                <span>Ingreso libre para expositores</span>
+                <strong>5:00–10:00 am</strong>
+                <p>Desde las 11:00, restricción total: grúa al parqueadero V2 + $25.</p>
+              </div>
+              <div>
+                <span>Abastecimiento fuera de horario de circulación interna</span>
+                <strong>Uso de estación de transbordo</strong>
+                <p>El expositor deberá utilizar la estación de transbordo, ubicada en los parqueaderos. Costo: $5.</p>
+              </div>
+            </div>
+          </article>
+
+          <article class="stands-policy-card stands-policy-card--fair" data-reveal>
+            <p class="stands-policy-label"><span aria-hidden="true">05</span> Durante la feria</p>
+            <ol class="stands-policy-list stands-policy-list--columns mt-8">
+              <li><span aria-hidden="true">9</span><p>Atención mínima: <strong>11:00 a 20:00</strong>.</p></li>
+              <li><span aria-hidden="true">10</span><p>Respetar el <strong>área contratada</strong>.</p></li>
+              <li><span aria-hidden="true">11</span><p>Gafete <strong>personal e intransferible</strong>; da acceso a feria, baños y duchas. Sin gafete, se paga la entrada de $3,00.</p></li>
+              <li><span aria-hidden="true">12</span><p>Portar el gafete en todo momento y <strong>registrar entrada/salida</strong> en los scanners.</p></li>
+              <li><span aria-hidden="true">14</span><p>Administración se reserva el derecho de <strong>cambiar ubicaciones</strong>, con previo aviso.</p></li>
+              <li><span aria-hidden="true">15</span><p><strong>Respeto</strong> al staff, expositores y visitantes.</p></li>
+              <li><span aria-hidden="true">16</span><p><strong>Prohibido ingerir bebidas alcohólicas</strong>, atender en estado etílico o bajo efectos de sustancias sujetas a fiscalización.</p></li>
+              <li><span aria-hidden="true">17</span><p>Equipos de enfriamiento entregados son de uso exclusivo de <strong>bebidas de auspiciantes</strong>.</p></li>
+              <li><span aria-hidden="true">18</span><p>Asaderos: deben contar con <strong>campana y extractor de humo</strong> obligatorios.</p></li>
+              <li><span aria-hidden="true">19</span><p>Incumplimiento: <strong>primera vez, llamado de atención</strong>. En reincidencia, se ejecuta el <strong>100% de la garantía</strong>, con evidencia fotográfica.</p></li>
+            </ol>
+          </article>
+
+          <article class="stands-policy-card stands-policy-card--sanctions" data-reveal>
+            <p class="stands-policy-label"><span aria-hidden="true">06</span> Sanciones del 100% de la garantía</p>
+            <ol class="stands-sanctions-list mt-8">
+              <li><span aria-hidden="true">1</span><p>No retirar los gafetes en las fechas establecidas.</p></li>
+              <li><span aria-hidden="true">2</span><p>Vender productos no autorizados.</p></li>
+              <li><span aria-hidden="true">3</span><p>Abandonar la feria antes del 3 de noviembre, 18:00.</p></li>
+              <li><span aria-hidden="true">4</span><p>Exceder el área asignada afectando a terceros.</p></li>
+              <li><span aria-hidden="true">5</span><p>Ingresar bebidas o licor no autorizado para negocio.</p></li>
+              <li><span aria-hidden="true">6</span><p>Falsificar, duplicar o dar mal uso al gafete.</p></li>
+            </ol>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="mapa-accesos" class="stands-map px-4 py-20 text-night sm:py-28" aria-labelledby="mapa-accesos-title">
+      <div class="mx-auto w-[min(100%,96rem)]">
+        <header class="stands-map-heading" data-reveal>
+          <p class="kicker text-night">Ubicación y circulación</p>
+          <h2 id="mapa-accesos-title" class="stands-map-title mt-5 font-display uppercase">Mapa de accesos</h2>
+        </header>
+        <figure class="stands-map-frame mt-10" data-reveal>
+          <img src="/assets/finados/mapa-accesos.svg?v=20260911" width="3508" height="2481" loading="lazy" alt="Mapa oficial de accesos de la Feria Finados Mushuc Runa 2026">
+          <figcaption>Mapa de accesos · Feria Finados Mushuc Runa 2026</figcaption>
+        </figure>
+      </div>
+    </section>
   </main>
 
   <footer class="bg-night px-4 py-10 text-lienzo">
     <div class="mx-auto flex w-[min(100%,74rem)] flex-col gap-7 border-t border-lienzo/30 pt-8 sm:flex-row sm:items-end sm:justify-between">
       <img class="h-auto w-36" src="/assets/finados/logo-finados.svg?v=${campaignAssetVersion}" width="766" height="449" alt="Finados 2026">
-      <a class="footer-link" href="/finados/">Volver a Finados <span aria-hidden="true">↗</span></a>
+      <a class="footer-link" href="/finados/"${newTabAttributes}>Volver a Finados <span aria-hidden="true">↗</span></a>
     </div>
   </footer>
 </body>
