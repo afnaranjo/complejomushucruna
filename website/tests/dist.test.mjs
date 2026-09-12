@@ -91,8 +91,8 @@ test('empaqueta la experiencia Finados con recursos locales y optimizados', asyn
   assert.match(landing, /https:\/\/www\.tiktok\.com\/@finadosmushucruna/);
   assert.match(landing, /https:\/\/www\.instagram\.com\/finadosmushucruna\//);
   assert.match(standsPage, /Más de 500 stands/);
-  assert.match(standsPage, /\/assets\/finados\/finados\.css\?v=20260911-2/);
-  assert.match(standsPage, /\/assets\/finados\/finados\.js\?v=20260911-2/);
+  assert.match(standsPage, /\/assets\/finados\/finados\.css\?v=20260912/);
+  assert.match(standsPage, /\/assets\/finados\/finados\.js\?v=20260912/);
   assert.match(standsPage, /Venta 100% online/);
   assert.match(standsPage, /https:\/\/mushucticket\.com\//);
   assert.doesNotMatch(standsPage, /reserva\.mushucticket\.com\/customers/);

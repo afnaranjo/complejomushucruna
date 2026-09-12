@@ -3,7 +3,7 @@ import { escapeHtml, externalAttributes } from '../render/html.mjs';
 
 const purchaseUrl = 'https://mushucticket.com/';
 const campaignAssetVersion = '20260903';
-const campaignRuntimeVersion = '20260911-2';
+const campaignRuntimeVersion = '20260912';
 const newTabAttributes = ' target="_blank" rel="noopener noreferrer"';
 
 export function renderStandsAccessPage(page) {
@@ -226,7 +226,16 @@ export function renderStandsAccessPage(page) {
               <li><span aria-hidden="true">16</span><p><strong>Prohibido ingerir bebidas alcohólicas</strong>, atender en estado etílico o bajo efectos de sustancias sujetas a fiscalización.</p></li>
               <li><span aria-hidden="true">17</span><p>Equipos de enfriamiento entregados son de uso exclusivo de <strong>bebidas de auspiciantes</strong>.</p></li>
               <li><span aria-hidden="true">18</span><p>Asaderos: deben contar con <strong>campana y extractor de humo</strong> obligatorios.</p></li>
-              <li><span aria-hidden="true">19</span><p>Incumplimiento: <strong>primera vez, llamado de atención</strong>. En reincidencia, se ejecuta el <strong>100% de la garantía</strong>, con evidencia fotográfica.</p></li>
+              <li>
+                <span aria-hidden="true">19</span>
+                <div>
+                  <p>Incumplimiento:</p>
+                  <ol class="stands-policy-sublist">
+                    <li><strong>Primera vez, llamado de atención.</strong></li>
+                    <li>Reincidencia, se ejecuta el <strong>100% de la garantía</strong>, con evidencia fotográfica.</li>
+                  </ol>
+                </div>
+              </li>
             </ol>
           </article>
 

@@ -250,8 +250,8 @@ test('genera las páginas privadas de Finados y publica su acceso en la navegaci
   assert.equal((landing.match(/<h1\b/g) ?? []).length, 1);
   assert.doesNotMatch(landing, /2 nov|120K|\$12/i);
   assert.match(stands, /<meta name="robots" content="noindex, nofollow, noarchive">/);
-  assert.match(stands, /\/assets\/finados\/finados\.css\?v=20260911-2/);
-  assert.match(stands, /\/assets\/finados\/finados\.js\?v=20260911-2/);
+  assert.match(stands, /\/assets\/finados\/finados\.css\?v=20260912/);
+  assert.match(stands, /\/assets\/finados\/finados\.js\?v=20260912/);
   assert.match(stands, /Acceso para compra de stands/);
   assert.match(stands, /14 de septiembre/);
   assert.match(stands, /datetime="2026-09-14T08:00:00-05:00"/);
@@ -290,6 +290,7 @@ test('genera las páginas privadas de Finados y publica su acceso en la navegaci
   assert.match(stands, /Fecha límite de stand listo, previa revisión de comisarios/);
   assert.match(stands, /Uso de estación de transbordo/);
   assert.match(stands, /Atención mínima: <strong>11:00 a 20:00<\/strong>/);
+  assert.match(stands, /<ol class="stands-policy-sublist">\s*<li><strong>Primera vez, llamado de atención\.<\/strong><\/li>\s*<li>Reincidencia, se ejecuta el <strong>100% de la garantía<\/strong>, con evidencia fotográfica\.<\/li>\s*<\/ol>/);
   assert.match(stands, /Sanciones del 100% de la garantía/);
   assert.match(stands, /Falsificar, duplicar o dar mal uso al gafete/);
   assert.match(stands, /id="mapa-accesos"/);

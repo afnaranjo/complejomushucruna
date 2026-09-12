@@ -739,6 +739,24 @@
     line-height: 1.55;
   }
 
+  .stands-policy-sublist {
+    margin-top: .25rem;
+    padding-left: 1.4rem;
+    list-style: decimal;
+  }
+
+  .stands-policy-sublist li {
+    display: list-item;
+    min-width: auto;
+    padding-left: .2rem;
+    font-size: clamp(.95rem, 1.6vw, 1.06rem);
+    line-height: 1.55;
+  }
+
+  .stands-policy-sublist li::marker {
+    font-weight: 900;
+  }
+
   .stands-policy-list a {
     font-weight: 900;
     text-decoration: underline;
