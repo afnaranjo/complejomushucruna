@@ -10,7 +10,7 @@ const finadosSocialLinks = [
 
 const purchaseUrl = 'https://mushucticket.com/';
 const campaignAssetVersion = '20260903';
-const campaignRuntimeVersion = '20260903-2';
+const campaignRuntimeVersion = '20260912-2';
 
 const axes = [
   {
@@ -119,7 +119,7 @@ export function renderFinadosPage(page) {
             <div class="hero-online-card" aria-label="Venta online">
               <span>Venta</span>
               <strong>Online</strong>
-              <a class="hero-online-action" href="${purchaseUrl}"${externalAttributes(purchaseUrl)}>Reservar mi stand <span aria-hidden="true">↗</span></a>
+              <a class="hero-online-action" href="${purchaseUrl}" data-stands-purchase-link${externalAttributes(purchaseUrl)}>Reservar mi stand <span aria-hidden="true">↗</span></a>
             </div>
           </div>
         </div>

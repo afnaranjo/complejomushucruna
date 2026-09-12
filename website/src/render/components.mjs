@@ -33,7 +33,7 @@ export function homeFinadosHero() {
           <div class="hero-finados__online" aria-label="Venta online">
             <span>Venta</span>
             <strong>Online</strong>
-            <a href="${purchaseUrl}"${externalAttributes(purchaseUrl)}>Reservar mi stand <span aria-hidden="true">↗</span></a>
+            <a href="${purchaseUrl}" data-stands-purchase-link${externalAttributes(purchaseUrl)}>Reservar mi stand <span aria-hidden="true">↗</span></a>
           </div>
         </div>
       </div>

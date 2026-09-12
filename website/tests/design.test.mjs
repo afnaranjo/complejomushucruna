@@ -6,6 +6,11 @@ import { join } from 'node:path';
 
 import { buildSite } from '../scripts/build.mjs';
 import { isMediaAccreditationOpen, setMenuState } from '../src/site.js';
+import {
+  activateStandsSaleLinks,
+  isStandsSaleActivated,
+  STANDS_SALE_DESTINATION,
+} from '../src/stands-sale-schedule.js';
 
 async function buildFixture(prefix) {
   const output = await mkdtemp(join(tmpdir(), prefix));
@@ -112,6 +117,21 @@ test('el controlador del menú mantiene sincronizados estado y accesibilidad', (
   setMenuState(button, nav, false);
   assert.equal(attributes.get('aria-expanded'), 'false');
   assert.equal(nav.dataset.open, 'false');
+});
+
+test('activa la reserva de stands exactamente a las 07:58 de Ecuador', () => {
+  assert.equal(isStandsSaleActivated(new Date('2026-09-14T07:57:59-05:00')), false);
+  assert.equal(isStandsSaleActivated(new Date('2026-09-14T07:58:00-05:00')), true);
+
+  const hrefs = [];
+  const link = { setAttribute: (name, value) => name === 'href' && hrefs.push(value) };
+  const root = { querySelectorAll: () => [link] };
+
+  assert.equal(activateStandsSaleLinks(root, new Date('2026-09-14T07:57:59-05:00')), 0);
+  assert.deepEqual(hrefs, []);
+  assert.equal(activateStandsSaleLinks(root, new Date('2026-09-14T07:58:00-05:00')), 1);
+  assert.deepEqual(hrefs, [STANDS_SALE_DESTINATION]);
+  assert.equal(STANDS_SALE_DESTINATION, 'https://reserva.mushucticket.com/customers');
 });
 
 test('la acreditación se bloquea exactamente al llegar la fecha límite', () => {

@@ -3,7 +3,7 @@ import { escapeHtml, externalAttributes } from '../render/html.mjs';
 
 const purchaseUrl = 'https://mushucticket.com/';
 const campaignAssetVersion = '20260903';
-const campaignRuntimeVersion = '20260912';
+const campaignRuntimeVersion = '20260912-2';
 const newTabAttributes = ' target="_blank" rel="noopener noreferrer"';
 
 export function renderStandsAccessPage(page) {
@@ -67,8 +67,8 @@ export function renderStandsAccessPage(page) {
           </article>
         </div>
 
-        <div class="stands-countdown hero-enter mx-auto mt-10 max-w-5xl" data-hero-item data-stands-countdown data-target="2026-09-14T08:00:00-05:00">
-          <div class="stands-countdown-grid" aria-hidden="true">
+        <div class="stands-countdown hero-enter mx-auto mt-10 max-w-5xl" data-hero-item data-stands-countdown data-target="2026-09-14T08:00:00-05:00" data-switch-at="2026-09-14T07:58:00-05:00">
+          <div class="stands-countdown-grid" data-countdown-clock aria-hidden="true">
             <span class="stands-countdown-unit">
               <strong data-countdown-value="days">--</strong>
               <small>Días</small>
@@ -86,13 +86,14 @@ export function renderStandsAccessPage(page) {
               <small>Segundos</small>
             </span>
           </div>
+          <p class="stands-countdown-welcome" data-countdown-welcome hidden>Bienvenidos a Finados Mushuc Runa 2026.</p>
           <span class="sr-only" aria-live="polite" data-countdown-status>La venta de stands inicia el 14 de septiembre.</span>
           <noscript><p>La venta de stands inicia el 14 de septiembre.</p></noscript>
         </div>
 
         <div class="hero-enter mt-10" data-hero-item>
           <div class="stands-hero-actions">
-            <a class="stands-purchase-button" href="${purchaseUrl}"${externalAttributes(purchaseUrl)}>Comprar mi stand <span aria-hidden="true">↗</span></a>
+            <a class="stands-purchase-button" href="${purchaseUrl}" data-stands-purchase-link${externalAttributes(purchaseUrl)}>Comprar mi stand <span aria-hidden="true">↗</span></a>
             <a class="stands-section-button" href="#politicas-generales" aria-label="Ir a políticas generales y mapa de accesos">Políticas y mapa <span aria-hidden="true">↓</span></a>
           </div>
           <p class="stands-online-note mx-auto mt-7 max-w-3xl">Venta exclusivamente online a través del canal de compra.</p>
@@ -150,7 +151,7 @@ export function renderStandsAccessPage(page) {
           <span>Acceso de compra</span>
           <strong>100% online</strong>
           <p>La venta de stands inicia el 14 de septiembre.</p>
-          <a class="button-dark mt-7" href="${purchaseUrl}"${externalAttributes(purchaseUrl)}>Ir a comprar <span aria-hidden="true">↗</span></a>
+          <a class="button-dark mt-7" href="${purchaseUrl}" data-stands-purchase-link${externalAttributes(purchaseUrl)}>Ir a comprar <span aria-hidden="true">↗</span></a>
         </aside>
       </div>
     </section>
@@ -167,7 +168,7 @@ export function renderStandsAccessPage(page) {
           <article class="stands-policy-card stands-policy-card--purchase" data-reveal>
             <p class="stands-policy-label"><span aria-hidden="true">01</span> Compra de stands</p>
             <ol class="stands-policy-list mt-7">
-              <li><span aria-hidden="true">1</span><p>Venta de stands <strong>solo en línea</strong>: lunes 14 de septiembre, 8:00 am, en <a href="${purchaseUrl}"${externalAttributes(purchaseUrl)}>www.mushucticket.com</a>, hasta agotar stock.</p></li>
+              <li><span aria-hidden="true">1</span><p>Venta de stands <strong>solo en línea</strong>: lunes 14 de septiembre, 8:00 am, en <a href="${purchaseUrl}" data-stands-purchase-link${externalAttributes(purchaseUrl)}>www.mushucticket.com</a>, hasta agotar stock.</p></li>
               <li><span aria-hidden="true">2</span><p>Se autoriza la adquisición de <strong>un (1) stand por RUC</strong>.</p></li>
               <li><span aria-hidden="true">3</span><p>El costo aplica según la <strong>lista de precios oficial de Feria Finados Mushuc Runa 2026</strong>.</p></li>
             </ol>

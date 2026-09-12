@@ -4,6 +4,7 @@ import { escapeHtml, externalAttributes } from './html.mjs';
 
 const institutionalAssetVersion = '20260904';
 const homeAssetVersion = '20260909';
+const siteRuntimeVersion = '20260912';
 
 function navigation(currentRoute) {
   return primaryNavigation.map((item) => {
@@ -11,7 +12,8 @@ function navigation(currentRoute) {
     const actionClass = item.emphasis
       ? ` class="main-nav__action main-nav__action--${escapeHtml(item.emphasis)}"`
       : '';
-    return `<li><a${actionClass} href="${item.href}"${current}${externalAttributes(item.href)}>${escapeHtml(item.label)}</a></li>`;
+    const purchaseLink = item.emphasis === 'stands' ? ' data-stands-purchase-link' : '';
+    return `<li><a${actionClass} href="${item.href}"${purchaseLink}${current}${externalAttributes(item.href)}>${escapeHtml(item.label)}</a></li>`;
   }).join('');
 }
 
@@ -53,7 +55,7 @@ export function renderLayout(page) {
   ${page.heroImage || isHome ? `<link rel="preload" as="image" href="${page.heroImage ?? '/assets/finados/expositor-artesanias.webp'}" fetchpriority="high">` : ''}
   <link rel="stylesheet" href="/assets/styles.css?v=${homeAssetVersion}">
   ${page.stylesheet ? `<link rel="stylesheet" href="${page.stylesheet}">` : ''}
-  <script type="module" src="/assets/site.js"></script>
+  <script type="module" src="/assets/site.js?v=${siteRuntimeVersion}"></script>
 </head>
 <body${bodyClass ? ` class="${bodyClass}"` : ''}>
   <a class="skip-link" href="#contenido">Ir al contenido</a>

@@ -1,3 +1,5 @@
+import { setupStandsSaleSchedule } from '../stands-sale-schedule.js';
+
 const root = document.documentElement;
 const header = document.querySelector('[data-header]');
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -31,16 +33,29 @@ const standsCountdown = document.querySelector('[data-stands-countdown]');
 
 if (standsCountdown) {
   const target = Date.parse(standsCountdown.dataset.target);
+  const switchAt = Date.parse(standsCountdown.dataset.switchAt);
   const values = Object.fromEntries(
     [...standsCountdown.querySelectorAll('[data-countdown-value]')]
       .map((item) => [item.dataset.countdownValue, item]),
   );
+  const clock = standsCountdown.querySelector('[data-countdown-clock]');
+  const welcome = standsCountdown.querySelector('[data-countdown-welcome]');
   const status = standsCountdown.querySelector('[data-countdown-status]');
   let announcedDay = null;
   let timer;
 
   const renderCountdown = () => {
-    const remaining = Math.max(0, target - Date.now());
+    const now = Date.now();
+    if (Number.isFinite(switchAt) && now >= switchAt) {
+      if (clock) clock.hidden = true;
+      if (welcome) welcome.hidden = false;
+      standsCountdown.classList.add('is-live');
+      status.textContent = 'Bienvenidos a Finados Mushuc Runa 2026.';
+      window.clearInterval(timer);
+      return;
+    }
+
+    const remaining = Math.max(0, target - now);
     const days = Math.floor(remaining / 86_400_000);
     const hours = Math.floor((remaining % 86_400_000) / 3_600_000);
     const minutes = Math.floor((remaining % 3_600_000) / 60_000);
@@ -65,7 +80,9 @@ if (standsCountdown) {
   };
 
   if (Number.isFinite(target)) {
-    renderCountdown();
     timer = window.setInterval(renderCountdown, 1_000);
+    renderCountdown();
   }
 }
+
+setupStandsSaleSchedule(document);

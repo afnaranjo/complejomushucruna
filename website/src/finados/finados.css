@@ -359,6 +359,27 @@
     text-transform: uppercase;
   }
 
+  .stands-countdown-welcome {
+    display: grid;
+    min-height: 7rem;
+    place-items: center;
+    border: 2px solid #241146;
+    background: #f4eada;
+    padding: clamp(1.5rem, 4vw, 3rem);
+    box-shadow: 7px 7px 0 #00d2d6;
+    color: #241146;
+    font-family: "Anton", "Arial Narrow", sans-serif;
+    font-size: clamp(2.3rem, 6vw, 5rem);
+    line-height: .95;
+    text-align: center;
+    text-wrap: balance;
+    text-transform: uppercase;
+  }
+
+  .stands-countdown-welcome[hidden] {
+    display: none;
+  }
+
   .stands-countdown.is-live {
     border-color: #00d2d6;
     box-shadow: 8px 8px 0 #ffc42e;

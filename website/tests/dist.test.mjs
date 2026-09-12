@@ -47,6 +47,7 @@ test('empaqueta la experiencia Finados con recursos locales y optimizados', asyn
   const standsPage = await readFile(join(output, 'acceso-compra-stands/index.html'), 'utf8');
   const finadosStyles = await readFile(join(output, 'assets/finados/finados.css'), 'utf8');
   const finadosScript = await readFile(join(output, 'assets/finados/finados.js'), 'utf8');
+  const saleSchedule = await readFile(join(output, 'assets/stands-sale-schedule.js'), 'utf8');
   const css = await stat(join(output, 'assets/finados/finados.css'));
   const js = await stat(join(output, 'assets/finados/finados.js'));
   const exhibitor = await stat(join(output, 'assets/finados/expositor-artesanias.webp'));
@@ -67,15 +68,15 @@ test('empaqueta la experiencia Finados con recursos locales y optimizados', asyn
   const kjarkas = await stat(join(output, 'assets/finados/kjarkas-finados.webp'));
   const kjarkasMobile = await stat(join(output, 'assets/finados/kjarkas-finados-960.webp'));
 
-  assert.match(landing, /\/assets\/finados\/finados\.css\?v=20260903-2/);
-  assert.match(landing, /\/assets\/finados\/finados\.js\?v=20260903-2/);
+  assert.match(landing, /\/assets\/finados\/finados\.css\?v=20260912-2/);
+  assert.match(landing, /\/assets\/finados\/finados\.js\?v=20260912-2/);
   assert.match(landing, /rel="icon" href="\/assets\/finados\/favicon-finados\.png"/);
   assert.match(landing, /rel="preload" as="image" href="\/assets\/finados\/expositor-artesanias\.webp"/);
   assert.match(landing, /Venta de stands/);
   assert.match(landing, /14 de septiembre/);
   assert.match(landing, /datetime="2026-09-14"/);
   assert.match(landing, /Venta online/);
-  assert.match(landing, /href="https:\/\/mushucticket\.com\/"/);
+  assert.match(landing, /href="https:\/\/mushucticket\.com\/" data-stands-purchase-link/);
   assert.doesNotMatch(landing, /reserva\.mushucticket\.com\/customers/);
   assert.match(landing, /\/assets\/finados\/logo-finados\.svg\?v=20260903/);
   assert.match(landing, /class="hero-paloma"/);
@@ -91,14 +92,16 @@ test('empaqueta la experiencia Finados con recursos locales y optimizados', asyn
   assert.match(landing, /https:\/\/www\.tiktok\.com\/@finadosmushucruna/);
   assert.match(landing, /https:\/\/www\.instagram\.com\/finadosmushucruna\//);
   assert.match(standsPage, /Más de 500 stands/);
-  assert.match(standsPage, /\/assets\/finados\/finados\.css\?v=20260912/);
-  assert.match(standsPage, /\/assets\/finados\/finados\.js\?v=20260912/);
+  assert.match(standsPage, /\/assets\/finados\/finados\.css\?v=20260912-2/);
+  assert.match(standsPage, /\/assets\/finados\/finados\.js\?v=20260912-2/);
   assert.match(standsPage, /Venta 100% online/);
   assert.match(standsPage, /https:\/\/mushucticket\.com\//);
   assert.doesNotMatch(standsPage, /reserva\.mushucticket\.com\/customers/);
   assert.match(standsPage, /\/assets\/finados\/icons\/espectador\.svg\?v=20260903/);
   assert.match(standsPage, /data-stands-countdown/);
   assert.match(standsPage, /data-target="2026-09-14T08:00:00-05:00"/);
+  assert.match(standsPage, /data-switch-at="2026-09-14T07:58:00-05:00"/);
+  assert.match(standsPage, /data-countdown-welcome hidden>Bienvenidos a Finados Mushuc Runa 2026\.<\/p>/);
   assert.match(standsPage, /08:00 <small>AM<\/small>/);
   assert.doesNotMatch(standsPage, /stands-countdown-heading/);
   assert.match(standsPage, /data-countdown-value="days">--<\/strong>\s*<small>Días<\/small>/);
@@ -125,6 +128,11 @@ test('empaqueta la experiencia Finados con recursos locales y optimizados', asyn
   assert.match(standsPage, /class="footer-link" href="\/finados\/" target="_blank" rel="noopener noreferrer"/);
   assert.match(finadosScript, /data-stands-countdown/);
   assert.match(finadosScript, /dataset\.target/);
+  assert.match(finadosScript, /dataset\.switchAt/);
+  assert.match(finadosScript, /setupStandsSaleSchedule/);
+  assert.match(saleSchedule, /2026-09-14T07:58:00-05:00/);
+  assert.match(saleSchedule, /https:\/\/reserva\.mushucticket\.com\/customers/);
+  assert.match(finadosStyles, /\.stands-countdown-welcome\{/);
   assert.match(campaignLogo, /viewBox="0 0 766 449"/);
   assert.match(legacyIcon, /viewBox="0 0 899 969"/);
   assert.match(encounterIcon, /viewBox="0 0 574 702"/);

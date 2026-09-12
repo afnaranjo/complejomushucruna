@@ -73,16 +73,17 @@ test('la portada adopta la cabecera de venta de Finados y simplifica la navegaci
   assert.match(home, /class="site-header site-header--finados"/);
   assert.match(home, /\/assets\/icons\/logo-complejo\.svg\?v=20260909/);
   assert.match(home, /\/assets\/styles\.css\?v=20260909/);
+  assert.match(home, /\/assets\/site\.js\?v=20260912/);
   assert.match(home, /Finados 2026 · Venta de stands/);
   assert.match(home, /14 de septiembre/);
   assert.match(home, /Venta online/);
-  assert.match(home, /href="https:\/\/mushucticket\.com\/"/);
+  assert.match(home, /href="https:\/\/mushucticket\.com\/" data-stands-purchase-link/);
   assert.match(home, /\/assets\/finados\/expositor-artesanias\.webp/);
   assert.doesNotMatch(mainNavigation, /href="\/experiencias\/"/);
   assert.doesNotMatch(mainNavigation, /href="\/eventos\/"/);
   assert.match(
     mainNavigation,
-    /class="main-nav__action main-nav__action--stands" href="https:\/\/www\.mushucticket\.com\/" target="_blank" rel="noopener noreferrer">VENTA DE STANDS<\/a>/,
+    /class="main-nav__action main-nav__action--stands" href="https:\/\/www\.mushucticket\.com\/" data-stands-purchase-link target="_blank" rel="noopener noreferrer">VENTA DE STANDS<\/a>/,
   );
   assert.match(
     mainNavigation,
@@ -227,10 +228,10 @@ test('genera las páginas privadas de Finados y publica su acceso en la navegaci
   assert.doesNotMatch(sitemap, /complejomushucruna\.com\/finados\//);
   assert.doesNotMatch(sitemap, /complejomushucruna\.com\/acceso-compra-stands\//);
   assert.match(landing, /<meta name="robots" content="noindex, nofollow, noarchive">/);
-  assert.match(landing, /\/assets\/finados\/finados\.css\?v=20260903-2/);
-  assert.match(landing, /\/assets\/finados\/finados\.js\?v=20260903-2/);
+  assert.match(landing, /\/assets\/finados\/finados\.css\?v=20260912-2/);
+  assert.match(landing, /\/assets\/finados\/finados\.js\?v=20260912-2/);
   assert.match(landing, /Finados 2026 · Venta de stands/);
-  assert.match(landing, /href="https:\/\/mushucticket\.com\/"/);
+  assert.match(landing, /href="https:\/\/mushucticket\.com\/" data-stands-purchase-link/);
   assert.doesNotMatch(landing, /reserva\.mushucticket\.com\/customers/);
   assert.match(landing, /Guaynaa enciende el Megaescenario/);
   assert.match(landing, /Los Kjarkas: la raíz que nos une/);
@@ -250,8 +251,8 @@ test('genera las páginas privadas de Finados y publica su acceso en la navegaci
   assert.equal((landing.match(/<h1\b/g) ?? []).length, 1);
   assert.doesNotMatch(landing, /2 nov|120K|\$12/i);
   assert.match(stands, /<meta name="robots" content="noindex, nofollow, noarchive">/);
-  assert.match(stands, /\/assets\/finados\/finados\.css\?v=20260912/);
-  assert.match(stands, /\/assets\/finados\/finados\.js\?v=20260912/);
+  assert.match(stands, /\/assets\/finados\/finados\.css\?v=20260912-2/);
+  assert.match(stands, /\/assets\/finados\/finados\.js\?v=20260912-2/);
   assert.match(stands, /Acceso para compra de stands/);
   assert.match(stands, /14 de septiembre/);
   assert.match(stands, /datetime="2026-09-14T08:00:00-05:00"/);
@@ -263,6 +264,8 @@ test('genera las páginas privadas de Finados y publica su acceso en la navegaci
   assert.match(stands, /\/assets\/finados\/logo-finados\.svg\?v=20260903/);
   assert.match(stands, /data-stands-countdown/);
   assert.match(stands, /data-target="2026-09-14T08:00:00-05:00"/);
+  assert.match(stands, /data-switch-at="2026-09-14T07:58:00-05:00"/);
+  assert.match(stands, /data-countdown-welcome hidden>Bienvenidos a Finados Mushuc Runa 2026\.<\/p>/);
   assert.match(stands, /14 de septiembre/);
   assert.match(stands, /08:00 <small>AM<\/small>/);
   assert.match(stands, /class="stands-countdown-grid"/);
@@ -271,6 +274,7 @@ test('genera las páginas privadas de Finados y publica su acceso en la navegaci
   assert.match(stands, /data-countdown-value="hours">--<\/strong>\s*<small>Horas<\/small>/);
   assert.match(stands, /data-countdown-value="minutes">--<\/strong>\s*<small>Minutos<\/small>/);
   assert.match(stands, /data-countdown-value="seconds">--<\/strong>\s*<small>Segundos<\/small>/);
+  assert.equal((stands.match(/data-stands-purchase-link/g) ?? []).length, 3);
   assert.doesNotMatch(stands, /Haz clic en el botón y adquiere tu stand para ser parte de la expoferia más grande del Ecuador\./);
   assert.match(stands, /class="stands-online-note[^>]*">Venta exclusivamente online a través del canal de compra\.<\/p>/);
   assert.match(stands, /class="stands-section-button" href="#politicas-generales"[^>]*>Políticas y mapa/);
@@ -298,7 +302,7 @@ test('genera las páginas privadas de Finados y publica su acceso en la navegaci
   assert.ok(stands.indexOf('Sé parte de nuestra historia') < stands.indexOf('id="politicas-generales"'));
   assert.ok(stands.indexOf('id="politicas-generales"') < stands.indexOf('id="mapa-accesos"'));
   assert.match(stands, /class="button-outline-light" href="\/finados\/" target="_blank" rel="noopener noreferrer"/);
-  assert.match(stands, /href="https:\/\/mushucticket\.com\/" target="_blank" rel="noopener noreferrer"/);
+  assert.match(stands, /href="https:\/\/mushucticket\.com\/" data-stands-purchase-link target="_blank" rel="noopener noreferrer"/);
   assert.match(stands, /class="footer-link" href="\/finados\/" target="_blank" rel="noopener noreferrer"/);
   assert.equal((stands.match(/<h1\b/g) ?? []).length, 1);
 });

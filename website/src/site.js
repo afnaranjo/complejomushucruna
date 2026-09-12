@@ -1,3 +1,5 @@
+import { setupStandsSaleSchedule } from './stands-sale-schedule.js';
+
 export function setMenuState(button, navigation, open) {
   button.setAttribute('aria-expanded', String(open));
   navigation.dataset.open = String(open);
@@ -255,4 +257,5 @@ if (typeof document !== 'undefined') {
   setupMenu(document);
   setupReveals(document);
   setupMediaAccreditation(document);
+  setupStandsSaleSchedule(document);
 }
