@@ -10,7 +10,7 @@ const finadosSocialLinks = [
 
 const purchaseUrl = 'https://mushucticket.com/';
 const campaignAssetVersion = '20260903';
-const campaignRuntimeVersion = '20260912-2';
+const campaignRuntimeVersion = '20260914-1';
 
 const axes = [
   {
@@ -153,16 +153,16 @@ export function renderFinadosPage(page) {
       <div class="mx-auto grid w-[min(100%-2rem,88rem)] gap-10 lg:grid-cols-[0.72fr_1.28fr] lg:items-center">
         <div class="artist-copy lg:pr-6">
           <p class="kicker text-purple" data-reveal>Música folclórica</p>
-          <h2 id="kjarkas-title" class="artist-title mt-5 font-display uppercase" data-reveal>Los Kjarkas: la raíz que nos une</h2>
+          <h2 id="kjarkas-title" class="artist-title mt-5 font-display uppercase" data-reveal>Kjarkas: la raíz que nos une</h2>
           <p class="mt-7 max-w-lg font-sans text-lg leading-relaxed text-night/75" data-reveal>Una noche de memoria, identidad andina y canciones que atraviesan generaciones.</p>
           <p class="artist-date mt-8" data-reveal><span>Sábado</span><time datetime="2026-10-31">31 de octubre</time></p>
         </div>
         <figure class="artist-poster artist-poster-light" data-reveal>
           <picture>
             <source media="(max-width: 700px)" srcset="/assets/finados/kjarkas-finados-960.webp">
-            <img src="/assets/finados/kjarkas-finados.webp" srcset="/assets/finados/kjarkas-finados-960.webp 960w, /assets/finados/kjarkas-finados.webp 1440w" sizes="(max-width: 1023px) calc(100vw - 2rem), 62vw" width="1440" height="721" alt="Arte oficial de Los Kjarkas para el Megaescenario de Finados 2026" loading="lazy">
+            <img src="/assets/finados/kjarkas-finados.webp" srcset="/assets/finados/kjarkas-finados-960.webp 960w, /assets/finados/kjarkas-finados.webp 1440w" sizes="(max-width: 1023px) calc(100vw - 2rem), 62vw" width="1440" height="721" alt="Arte oficial de Kjarkas para el Megaescenario de Finados 2026" loading="lazy">
           </picture>
-          <figcaption>Los Kjarkas · Sábado 31 de octubre</figcaption>
+          <figcaption>Kjarkas · Sábado 31 de octubre</figcaption>
         </figure>
       </div>
     </section>

@@ -1,4 +1,4 @@
-import { setupStandsSaleSchedule } from './stands-sale-schedule.js';
+import { setupStandsSaleSchedule } from './stands-sale-schedule.js?v=20260914-1';
 
 export function setMenuState(button, navigation, open) {
   button.setAttribute('aria-expanded', String(open));

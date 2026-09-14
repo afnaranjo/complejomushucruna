@@ -119,17 +119,17 @@ test('el controlador del menú mantiene sincronizados estado y accesibilidad', (
   assert.equal(nav.dataset.open, 'false');
 });
 
-test('activa la reserva de stands exactamente a las 07:58 de Ecuador', () => {
-  assert.equal(isStandsSaleActivated(new Date('2026-09-14T07:57:59-05:00')), false);
-  assert.equal(isStandsSaleActivated(new Date('2026-09-14T07:58:00-05:00')), true);
+test('activa la reserva de stands exactamente a las 08:05 de Ecuador', () => {
+  assert.equal(isStandsSaleActivated(new Date('2026-09-14T08:04:59-05:00')), false);
+  assert.equal(isStandsSaleActivated(new Date('2026-09-14T08:05:00-05:00')), true);
 
   const hrefs = [];
   const link = { setAttribute: (name, value) => name === 'href' && hrefs.push(value) };
   const root = { querySelectorAll: () => [link] };
 
-  assert.equal(activateStandsSaleLinks(root, new Date('2026-09-14T07:57:59-05:00')), 0);
+  assert.equal(activateStandsSaleLinks(root, new Date('2026-09-14T08:04:59-05:00')), 0);
   assert.deepEqual(hrefs, []);
-  assert.equal(activateStandsSaleLinks(root, new Date('2026-09-14T07:58:00-05:00')), 1);
+  assert.equal(activateStandsSaleLinks(root, new Date('2026-09-14T08:05:00-05:00')), 1);
   assert.deepEqual(hrefs, [STANDS_SALE_DESTINATION]);
   assert.equal(STANDS_SALE_DESTINATION, 'https://reserva.mushucticket.com/customers');
 });

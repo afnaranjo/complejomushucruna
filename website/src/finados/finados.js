@@ -1,4 +1,4 @@
-import { setupStandsSaleSchedule } from '../stands-sale-schedule.js';
+import { setupStandsSaleSchedule } from '../stands-sale-schedule.js?v=20260914-1';
 
 const root = document.documentElement;
 const header = document.querySelector('[data-header]');

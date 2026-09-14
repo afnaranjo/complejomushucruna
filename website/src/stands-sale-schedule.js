@@ -1,4 +1,5 @@
-export const STANDS_SALE_SWITCH_AT = '2026-09-14T07:58:00-05:00';
+export const STANDS_WELCOME_SWITCH_AT = '2026-09-14T07:59:00-05:00';
+export const STANDS_SALE_SWITCH_AT = '2026-09-14T08:05:00-05:00';
 export const STANDS_SALE_DESTINATION = 'https://reserva.mushucticket.com/customers';
 
 export function isStandsSaleActivated(now = new Date(), switchAt = STANDS_SALE_SWITCH_AT) {

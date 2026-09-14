@@ -4,7 +4,7 @@ import { escapeHtml, externalAttributes } from './html.mjs';
 
 const institutionalAssetVersion = '20260904';
 const homeAssetVersion = '20260909';
-const siteRuntimeVersion = '20260912';
+const siteRuntimeVersion = '20260914-1';
 
 function navigation(currentRoute) {
   return primaryNavigation.map((item) => {

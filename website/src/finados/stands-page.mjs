@@ -1,9 +1,10 @@
 import { site } from '../data/site.mjs';
 import { escapeHtml, externalAttributes } from '../render/html.mjs';
+import { STANDS_WELCOME_SWITCH_AT } from '../stands-sale-schedule.js';
 
 const purchaseUrl = 'https://mushucticket.com/';
 const campaignAssetVersion = '20260903';
-const campaignRuntimeVersion = '20260912-2';
+const campaignRuntimeVersion = '20260914-1';
 const newTabAttributes = ' target="_blank" rel="noopener noreferrer"';
 
 export function renderStandsAccessPage(page) {
@@ -67,7 +68,7 @@ export function renderStandsAccessPage(page) {
           </article>
         </div>
 
-        <div class="stands-countdown hero-enter mx-auto mt-10 max-w-5xl" data-hero-item data-stands-countdown data-target="2026-09-14T08:00:00-05:00" data-switch-at="2026-09-14T07:58:00-05:00">
+        <div class="stands-countdown hero-enter mx-auto mt-10 max-w-5xl" data-hero-item data-stands-countdown data-target="2026-09-14T08:00:00-05:00" data-switch-at="${STANDS_WELCOME_SWITCH_AT}">
           <div class="stands-countdown-grid" data-countdown-clock aria-hidden="true">
             <span class="stands-countdown-unit">
               <strong data-countdown-value="days">--</strong>
