@@ -154,7 +154,7 @@ test('el despliegue verifica las páginas, habilita Voceros y conserva su config
   assert.match(source, /target, 'php -l'/);
   assert.match(source, /lintPhpEndpoints\(config\)/);
   assert.match(source, /_google-sheets\.php/);
-  assert.match(source, /uploadGoogleSheetsConfig\(config\)/);
+  assert.doesNotMatch(source, /uploadGoogleSheetsConfig\(config\)/);
   assert.match(source, /verifyGoogleSheetsBridge\(config\)/);
   assert.match(source, /verificacion-sin-escritura/);
 });

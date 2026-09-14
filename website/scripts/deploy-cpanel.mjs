@@ -221,33 +221,6 @@ function backupRemote(config) {
   });
 }
 
-function uploadGoogleSheetsConfig(config) {
-  if (!config.GOOGLE_SHEETS_WEB_APP_URL) return;
-  const target = `${config.DEPLOY_SSH_USER}@${config.DEPLOY_SSH_HOST}`;
-  const privateDirectory = `/home/${config.DEPLOY_SSH_USER}/private-data`;
-  const destination = `${privateDirectory}/google-sheets-config.json`;
-  const temporary = `${destination}.tmp`;
-  const contents = JSON.stringify({
-    webAppUrl: config.GOOGLE_SHEETS_WEB_APP_URL,
-    token: config.GOOGLE_SHEETS_TOKEN,
-  });
-  const command = [
-    'set -eu',
-    'umask 077',
-    `mkdir -p ${privateDirectory}`,
-    `chmod 700 ${privateDirectory}`,
-    `cat > ${temporary}`,
-    `chmod 600 ${temporary}`,
-    `mv ${temporary} ${destination}`,
-  ].join('; ');
-
-  run('ssh', [...sshBaseArgs(config), target, command], {
-    input: contents,
-    silent: true,
-    label: 'La configuración privada de Google Sheets',
-  });
-}
-
 function uploadVocerosRegistrationConfig(config) {
   const target = `${config.DEPLOY_SSH_USER}@${config.DEPLOY_SSH_HOST}`;
   const privateDirectory = `/home/${config.DEPLOY_SSH_USER}/private-data`;
@@ -491,8 +464,7 @@ async function main() {
 
   console.log('Creando una copia de seguridad recuperable en el servidor…');
   backupRemote(config);
-  console.log('Actualizando la configuración privada de Google Sheets…');
-  uploadGoogleSheetsConfig(config);
+  console.log('Conservando la credencial remota existente de Google Sheets…');
   console.log('Habilitando el registro de Voceros con su configuración legal…');
   uploadVocerosRegistrationConfig(config);
   console.log('Comprobando el puente privado de Google Sheets…');
