@@ -4,7 +4,7 @@ import { renderFinadosFooter } from './footer.mjs';
 import { renderFinadosNavigation } from './navigation.mjs';
 
 const campaignAssetVersion = '20260914-1';
-const campaignRuntimeVersion = '20260914-4';
+const campaignRuntimeVersion = '20260914-5';
 
 const levels = Object.freeze([
   {
@@ -175,7 +175,7 @@ export function renderVocerosPage(page) {
           <p>Solo vistas orgánicas: el contenido impulsado con pauta no suma.</p>
           <p>Los niveles cierran el 30 de octubre al mediodía. Los premios económicos cierran el 8 de noviembre para que lo que grabes en la feria también sume.</p>
           <p>El monto de los premios económicos se anuncia en la comunidad a más tardar el 16 de octubre. Hasta entonces no hay cifra: preferimos decirlo cuando podamos cumplirlo.</p>
-          <a href="#documentos-legales">Bases completas del Termómetro <span aria-hidden="true">↓</span></a>
+          <a href="/finados/voceros/bases-del-termometro/" target="_blank" rel="noopener noreferrer">Bases completas del Termómetro <span aria-hidden="true">↗</span></a>
         </aside>
       </div>
     </section>
@@ -239,7 +239,7 @@ export function renderVocerosPage(page) {
           <p>Sin superlativos ni promesas: cuenta lo que viste.</p>
           <p>Sin rostros ni datos de menores de edad sin permiso del adulto responsable.</p>
           <p>Respeto a la comunidad Chibuleo, expositores y público. Pide permiso antes de grabar.</p>
-          <a href="#documentos-legales">Revisar Políticas del Vocero <span aria-hidden="true">↓</span></a>
+          <a href="/finados/voceros/politicas-del-vocero/" target="_blank" rel="noopener noreferrer">Revisar Políticas del Vocero <span aria-hidden="true">↗</span></a>
         </div>
       </div>
     </section>
@@ -294,9 +294,9 @@ export function renderVocerosPage(page) {
             <p class="voceros-age-message" data-voceros-age-message aria-live="polite"></p>
 
             <div class="voceros-consents">
-              <label><input type="checkbox" name="consentimiento_politicas" value="Sí" required><span>He leído y acepto las <a href="#documentos-legales">Políticas del Vocero</a> y las <a href="#documentos-legales">Bases del Termómetro</a>.</span></label>
-              <label><input type="checkbox" name="autorizacion_imagen" value="Sí" required><span>Autorizo al Complejo Intercultural y Deportivo Mushuc Runa a usar mi imagen, mi voz y el contenido que publique como vocero en sus canales oficiales y materiales de la feria, con mi crédito y sin pago adicional. He leído la <a href="#documentos-legales">Autorización de uso de imagen y contenido</a>.</span></label>
-              <label><input type="checkbox" name="consentimiento_datos" value="Sí" required><span>Autorizo el tratamiento de mis datos personales para gestionar el programa de voceros conforme a la Ley Orgánica de Protección de Datos Personales del Ecuador. He leído la <a href="#documentos-legales">Política de Privacidad</a>.</span></label>
+              <label><input type="checkbox" name="consentimiento_politicas" value="Sí" required><span>He leído y acepto las <a href="/finados/voceros/politicas-del-vocero/" target="_blank" rel="noopener noreferrer">Políticas del Vocero</a> y las <a href="/finados/voceros/bases-del-termometro/" target="_blank" rel="noopener noreferrer">Bases del Termómetro</a>.</span></label>
+              <label><input type="checkbox" name="autorizacion_imagen" value="Sí" required><span>Autorizo al responsable del programa a usar mi imagen, mi voz y el contenido que publique como vocero en sus canales oficiales y materiales de la feria, con mi crédito y sin pago adicional. He leído la <a href="/finados/voceros/autorizacion-de-imagen/" target="_blank" rel="noopener noreferrer">Autorización de uso de imagen y contenido</a>.</span></label>
+              <label><input type="checkbox" name="consentimiento_datos" value="Sí" required><span>Autorizo el tratamiento de mis datos personales para gestionar el programa de voceros conforme a la Ley Orgánica de Protección de Datos Personales del Ecuador. He leído la <a href="/finados/voceros/politica-de-privacidad/" target="_blank" rel="noopener noreferrer">Política de Privacidad</a>.</span></label>
             </div>
 
             <p class="voceros-form__status" data-voceros-status aria-live="polite"></p>
@@ -315,16 +315,38 @@ export function renderVocerosPage(page) {
 
     <section class="voceros-documents" id="documentos-legales" aria-labelledby="documentos-title">
       <div class="voceros-shell">
-        <div class="voceros-heading" data-reveal><p>Documentos del programa</p><h2 id="documentos-title">Antes de abrir el registro</h2></div>
-        <p data-reveal>Las Políticas del Vocero, las Bases del Termómetro, la Política de Privacidad y la Autorización de uso de imagen deben publicarse en sus versiones definitivas antes de activar el formulario.</p>
-        <ul data-reveal><li>Políticas del Vocero</li><li>Bases del Termómetro</li><li>Política de Privacidad</li><li>Autorización de uso de imagen</li><li>Contacto para ejercer derechos</li></ul>
+        <div class="voceros-heading" data-reveal><p>Documentos del programa</p><h2 id="documentos-title">Lee antes de registrarte</h2></div>
+        <p data-reveal>Consulta las reglas de participación, la medición del Termómetro y el tratamiento de tus datos. Cada documento se abre en una pestaña nueva para que puedas revisarlo sin perder lo que llenaste.</p>
+        <ul data-reveal>
+          <li><a href="/finados/voceros/politicas-del-vocero/" target="_blank" rel="noopener noreferrer">Políticas del Vocero <span aria-hidden="true">↗</span></a></li>
+          <li><a href="/finados/voceros/bases-del-termometro/" target="_blank" rel="noopener noreferrer">Bases del Termómetro <span aria-hidden="true">↗</span></a></li>
+          <li><a href="/finados/voceros/politica-de-privacidad/" target="_blank" rel="noopener noreferrer">Política de Privacidad <span aria-hidden="true">↗</span></a></li>
+          <li><a href="/finados/voceros/autorizacion-de-imagen/" target="_blank" rel="noopener noreferrer">Autorización de uso de imagen <span aria-hidden="true">↗</span></a></li>
+          <li><a href="/finados/voceros/ejercer-derechos/" target="_blank" rel="noopener noreferrer">Contacto para ejercer derechos <span aria-hidden="true">↗</span></a></li>
+        </ul>
         <small>Última actualización de esta página: 14 de septiembre de 2026.</small>
       </div>
     </section>
   </main>
 
   <dialog class="voceros-thanks" data-voceros-thanks aria-labelledby="voceros-thanks-title">
-    <div><p>Registro recibido</p><h2 id="voceros-thanks-title">Ya eres parte de la comunidad</h2><p>Revisa tu correo para conocer los siguientes pasos y la confirmación de tu registro.</p><button type="button" data-voceros-thanks-close>Cerrar</button></div>
+    <div class="voceros-thanks__art">
+      <img src="/assets/finados/logo-finados.svg?v=${campaignAssetVersion}" width="766" height="449" alt="Finados 2026">
+      <p>Registro recibido</p>
+      <h2 id="voceros-thanks-title">Ya eres parte de la comunidad</h2>
+      <dl class="voceros-thanks__data">
+        <div><dt>Vocero</dt><dd data-voceros-receipt-name></dd></div>
+        <div><dt>WhatsApp</dt><dd data-voceros-receipt-whatsapp></dd></div>
+        <div><dt>Fecha de nacimiento</dt><dd data-voceros-receipt-birth></dd></div>
+        <div><dt>Ciudad</dt><dd data-voceros-receipt-city></dd></div>
+        <div><dt>Participación anterior</dt><dd data-voceros-receipt-previous></dd></div>
+      </dl>
+      <p>Revisa tu correo para conocer los siguientes pasos y la confirmación de tu registro.</p>
+      <div class="voceros-thanks__actions">
+        <button type="button" data-voceros-download>Descargar imagen</button>
+        <button class="voceros-thanks__close" type="button" data-voceros-thanks-close>Cerrar</button>
+      </div>
+    </div>
   </dialog>
 
   ${renderFinadosFooter()}

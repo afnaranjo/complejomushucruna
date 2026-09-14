@@ -366,12 +366,17 @@ test('construye la landing de Voceros y prepara su registro seguro hacia la hoja
   const css = await readFile(join(output, 'assets/finados/voceros.css'), 'utf8');
   const endpoint = await readFile(join(output, 'api/voceros/index.php'), 'utf8');
   const endpointConfig = await readFile(join(output, 'api/voceros/.htaccess'), 'utf8');
+  const vocerosScript = await readFile(join(output, 'assets/finados/voceros.js'), 'utf8');
   const sheetsIntegration = await readFile(join(process.cwd(), '..', 'integrations', 'google-sheets', 'Code.gs'), 'utf8');
 
   assert.ok(files.includes('finados/voceros/index.html'));
   assert.ok(files.includes('assets/finados/voceros.css'));
   assert.ok(files.includes('assets/finados/voceros.js'));
   assert.ok(files.includes('api/voceros/index.php'));
+  for (const legalPage of [
+    'politicas-del-vocero', 'bases-del-termometro', 'politica-de-privacidad',
+    'autorizacion-de-imagen', 'ejercer-derechos',
+  ]) assert.ok(files.includes(`finados/voceros/${legalPage}/index.html`));
   assert.match(endpointConfig, /DirectoryIndex index\.php/);
   assert.match(page, /<title>Voceros \| Finados Mushuc Runa 2026<\/title>/);
   assert.match(page, /<meta name="robots" content="noindex, nofollow, noarchive">/);
@@ -392,6 +397,18 @@ test('construye la landing de Voceros y prepara su registro seguro hacia la hoja
   assert.match(page, /Llena al menos uno/);
   assert.match(page, /Entre 16 y 17 necesitas autorización escrita/);
   assert.match(page, /Política de Privacidad/);
+  assert.match(page, /data-voceros-download>Descargar imagen/);
+  assert.match(page, /data-voceros-receipt-name/);
+  assert.match(page, /data-voceros-receipt-whatsapp/);
+  assert.match(page, /data-voceros-receipt-birth/);
+  assert.match(page, /data-voceros-receipt-city/);
+  assert.match(page, /data-voceros-receipt-previous/);
+  assert.match(vocerosScript, /registro-vocero-finados-mushuc-runa-2026\.png/);
+  assert.match(vocerosScript, /formData\.get\('nombre_completo'\)/);
+  assert.match(vocerosScript, /formData\.get\('whatsapp'\)/);
+  assert.match(vocerosScript, /formData\.get\('fecha_nacimiento'\)/);
+  assert.match(vocerosScript, /formData\.get\('ciudad'\)/);
+  assert.match(vocerosScript, /formData\.get\('vocero_previo'\)/);
   assert.match(page, /Última actualización de esta página: 14 de septiembre de 2026/);
   assert.doesNotMatch(page, /la más grande|\$\d+/i);
 
@@ -406,4 +423,30 @@ test('construye la landing de Voceros y prepara su registro seguro hacia la hoja
   assert.match(sheetsIntegration, /voceros: '1Z4MzXyyyA-V8wb1a2eaOodjb_VzqQm1qTDOtBf1gyuI'/);
   assert.match(sheetsIntegration, /insertSheet\('Consentimientos'\)/);
   assert.match(sheetsIntegration, /record\.nombre_completo/);
+
+  const legalExpectations = [
+    ['politicas-del-vocero', 'Políticas del Vocero', 'Participación voluntaria y gratuita'],
+    ['bases-del-termometro', 'Bases del Termómetro', 'Vistas válidas'],
+    ['politica-de-privacidad', 'Política de Privacidad', 'Responsable y contacto'],
+    ['autorizacion-de-imagen', 'Autorización de uso de imagen y contenido', 'Edición e integridad'],
+    ['ejercer-derechos', 'Contacto para ejercer derechos', 'Autoridad de control'],
+  ];
+  for (const [slug, title, requiredText] of legalExpectations) {
+    const legalPage = await readFile(join(output, `finados/voceros/${slug}/index.html`), 'utf8');
+    assert.match(legalPage, new RegExp(`<h1>${title}</h1>`));
+    assert.match(legalPage, new RegExp(requiredText));
+    assert.match(legalPage, /Ley Orgánica de Protección de Datos Personales/);
+    assert.match(legalPage, /<meta name="robots" content="noindex, nofollow, noarchive">/);
+  }
+  const privacyPage = await readFile(join(output, 'finados/voceros/politica-de-privacidad/index.html'), 'utf8');
+  assert.doesNotMatch(privacyPage, /Validación organizacional pendiente/);
+  assert.match(privacyPage, /Eventos Finados 2026/);
+  assert.match(privacyPage, /\+593 980 346 729/);
+  assert.match(privacyPage, /Santa Lucía, Tisaleo, Tungurahua/);
+  assert.match(privacyPage, /kari16ch@hotmail\.com/);
+  assert.match(privacyPage, /tres años contados desde el envío del formulario/);
+  assert.doesNotMatch(privacyPage, /\bRUC\b/);
+  assert.match(endpoint, /'responsable', 'direccion', 'telefono', 'contactEmail'/);
+  assert.match(endpoint, /retentionYears/);
+  assert.doesNotMatch(endpoint, /'ruc'/);
 });

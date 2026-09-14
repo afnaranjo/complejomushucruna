@@ -14,7 +14,7 @@ $now = new DateTimeImmutable('now', $timezone);
 $privateDirectory = dirname(__DIR__, 4) . DIRECTORY_SEPARATOR . 'private-data';
 
 const POLICY_TEXT = 'He leído y acepto las Políticas del Vocero y las Bases del Termómetro.';
-const IMAGE_TEXT = 'Autorizo al Complejo Intercultural y Deportivo Mushuc Runa a usar mi imagen, mi voz y el contenido que publique como vocero en sus canales oficiales y en materiales de la feria, digitales e impresos, con mi crédito y sin pago adicional. Entiendo que esta autorización no es exclusiva, que mi contenido sigue siendo mío y que puedo pedir por escrito que se retire de los canales digitales oficiales. He leído la Autorización de uso de imagen y contenido.';
+const IMAGE_TEXT = 'Autorizo al responsable del programa a usar mi imagen, mi voz y el contenido que publique como vocero en sus canales oficiales y materiales de la feria, con mi crédito y sin pago adicional. He leído la Autorización de uso de imagen y contenido.';
 const DATA_TEXT = 'Autorizo el tratamiento de mis datos personales para gestionar el programa de voceros, conforme a la Ley Orgánica de Protección de Datos Personales del Ecuador. He leído la Política de Privacidad y conozco mis derechos de acceso, rectificación, eliminación, oposición y portabilidad.';
 
 function json_response(int $status, array $payload): void
@@ -32,12 +32,13 @@ function registration_config(string $directory): ?array
     $config = is_string($contents) ? json_decode($contents, true) : null;
     if (!is_array($config) || ($config['enabled'] ?? false) !== true) return null;
     foreach ([
-        'responsable', 'ruc', 'direccion', 'contactEmail', 'retentionUntil',
+        'responsable', 'direccion', 'telefono', 'contactEmail',
         'policiesVersion', 'thermometerVersion', 'imageVersion', 'privacyVersion',
     ] as $field) {
         if (!is_string($config[$field] ?? null) || trim($config[$field]) === '') return null;
     }
     if (!filter_var($config['contactEmail'], FILTER_VALIDATE_EMAIL)) return null;
+    if ((int) ($config['retentionYears'] ?? 0) !== 3) return null;
     return $config;
 }
 

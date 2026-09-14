@@ -8,6 +8,18 @@ const websiteRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const repositoryRoot = resolve(websiteRoot, '..');
 const defaultConfigPath = join(websiteRoot, '.env.deploy');
 const publicHostname = 'complejomushucruna.com';
+const vocerosRegistrationConfig = Object.freeze({
+  enabled: true,
+  responsable: 'Eventos Finados 2026',
+  direccion: 'Santa Lucía, Tisaleo, Tungurahua – Panamericana Sur km 12, vía Ambato–Riobamba',
+  telefono: '+593 980 346 729',
+  contactEmail: 'kari16ch@hotmail.com',
+  retentionYears: 3,
+  policiesVersion: '2026-09-14',
+  thermometerVersion: '2026-09-14',
+  imageVersion: '2026-09-14',
+  privacyVersion: '2026-09-14',
+});
 const allowedKeys = new Set([
   'DEPLOY_SSH_HOST',
   'DEPLOY_SSH_USER',
@@ -236,6 +248,28 @@ function uploadGoogleSheetsConfig(config) {
   });
 }
 
+function uploadVocerosRegistrationConfig(config) {
+  const target = `${config.DEPLOY_SSH_USER}@${config.DEPLOY_SSH_HOST}`;
+  const privateDirectory = `/home/${config.DEPLOY_SSH_USER}/private-data`;
+  const destination = `${privateDirectory}/voceros-registration.json`;
+  const temporary = `${destination}.tmp`;
+  const command = [
+    'set -eu',
+    'umask 077',
+    `mkdir -p ${privateDirectory}`,
+    `chmod 700 ${privateDirectory}`,
+    `cat > ${temporary}`,
+    `chmod 600 ${temporary}`,
+    `mv ${temporary} ${destination}`,
+  ].join('; ');
+
+  run('ssh', [...sshBaseArgs(config), target, command], {
+    input: JSON.stringify(vocerosRegistrationConfig),
+    silent: true,
+    label: 'La configuración privada del registro de Voceros',
+  });
+}
+
 function verifyGoogleSheetsBridge(config) {
   if (!config.GOOGLE_SHEETS_WEB_APP_URL) return;
   const target = `${config.DEPLOY_SSH_USER}@${config.DEPLOY_SSH_HOST}`;
@@ -331,6 +365,11 @@ async function verifyPublicSite(config) {
     ['/', 200],
     ['/finados/', 200],
     ['/finados/voceros/', 200],
+    ['/finados/voceros/politicas-del-vocero/', 200],
+    ['/finados/voceros/bases-del-termometro/', 200],
+    ['/finados/voceros/politica-de-privacidad/', 200],
+    ['/finados/voceros/autorizacion-de-imagen/', 200],
+    ['/finados/voceros/ejercer-derechos/', 200],
     ['/acreditacion-de-medios/', 200],
     ['/api/acreditacion-medios/', 200],
     ['/api/voceros/', 200],
@@ -371,8 +410,8 @@ async function verifyPublicSite(config) {
       } catch {
         fail('El endpoint de Voceros no respondió JSON ejecutable.');
       }
-      if (typeof payload.open !== 'boolean' || payload.timezone !== 'America/Guayaquil') {
-        fail('El endpoint de Voceros no confirmó su estado público.');
+      if (payload.open !== true || payload.timezone !== 'America/Guayaquil') {
+        fail('El endpoint de Voceros no confirmó que el registro esté habilitado.');
       }
     }
     if (path === '/api/invitaciones-rsvp/') {
@@ -454,6 +493,8 @@ async function main() {
   backupRemote(config);
   console.log('Actualizando la configuración privada de Google Sheets…');
   uploadGoogleSheetsConfig(config);
+  console.log('Habilitando el registro de Voceros con su configuración legal…');
+  uploadVocerosRegistrationConfig(config);
   console.log('Comprobando el puente privado de Google Sheets…');
   verifyGoogleSheetsBridge(config);
   console.log('Subiendo la salida estática sin eliminar archivos exclusivos del servidor…');

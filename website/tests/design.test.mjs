@@ -6,7 +6,7 @@ import { join } from 'node:path';
 
 import { buildSite } from '../scripts/build.mjs';
 import { isMediaAccreditationOpen, setMenuState } from '../src/site.js';
-import { ageOnDate, isValidEcuadorianId } from '../src/finados/voceros.js';
+import { ageOnDate, formatVocerosBirthDate, isValidEcuadorianId } from '../src/finados/voceros.js';
 import {
   activateStandsSaleLinks,
   isStandsSaleActivated,
@@ -146,6 +146,7 @@ test('el registro de Voceros valida cédulas ecuatorianas y la edad mínima', ()
   assert.equal(isValidEcuadorianId('0102030401'), false);
   assert.equal(ageOnDate('2010-09-14', new Date(2026, 8, 14)), 16);
   assert.equal(ageOnDate('2010-09-15', new Date(2026, 8, 14)), 15);
+  assert.equal(formatVocerosBirthDate('2000-01-31'), '31/01/2000');
 });
 
 test('la acreditación mantiene la línea gráfica y se adapta a pantallas pequeñas', async () => {

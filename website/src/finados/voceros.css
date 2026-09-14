@@ -801,7 +801,6 @@
 }
 
 .voceros-documents li {
-  padding: .7rem .9rem;
   border: 2px solid var(--voceros-night);
   border-radius: 999px;
   background: var(--voceros-canvas);
@@ -809,6 +808,24 @@
   font-weight: 900;
   letter-spacing: .08em;
   text-transform: uppercase;
+}
+
+.voceros-documents li a {
+  display: block;
+  padding: .7rem .9rem;
+  color: inherit;
+  text-decoration: none;
+}
+
+.voceros-documents li:has(a) {
+  transition: background-color 180ms ease, color 180ms ease, transform 180ms ease;
+}
+
+.voceros-documents li:has(a):hover,
+.voceros-documents li:has(a):focus-within {
+  background: var(--voceros-night);
+  color: var(--voceros-canvas);
+  transform: translateY(-2px);
 }
 
 .voceros-documents small { font-weight: 750; }
@@ -831,6 +848,12 @@
   text-align: center;
 }
 
+.voceros-thanks__art > img {
+  width: min(13rem, 58%);
+  height: auto;
+  margin: 0 auto 1rem;
+}
+
 .voceros-thanks h2 {
   margin: .8rem 0 1rem;
   font-family: "Anton", "Arial Narrow", sans-serif;
@@ -840,7 +863,180 @@
   text-transform: uppercase;
 }
 
+.voceros-thanks__data {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  max-width: 34rem;
+  padding: 0;
+  margin: 1.6rem auto;
+  text-align: left;
+  gap: .75rem;
+}
+
+.voceros-thanks__data div {
+  padding: .8rem;
+  border: 1px solid rgba(244, 234, 218, .45);
+  background: rgba(36, 17, 70, .28);
+}
+
+.voceros-thanks__data div:first-child { grid-column: 1 / -1; }
+.voceros-thanks__data dt {
+  color: var(--voceros-yellow);
+  font-size: .63rem;
+  font-weight: 900;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+.voceros-thanks__data dd {
+  margin: .25rem 0 0;
+  overflow-wrap: anywhere;
+  font-size: .92rem;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.voceros-thanks__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: .9rem;
+}
+
 .voceros-thanks button { width: auto; margin-top: 1rem; }
+.voceros-thanks button:disabled { cursor: wait; opacity: .7; }
+.voceros-thanks .voceros-thanks__close {
+  background: transparent;
+  box-shadow: none;
+  color: var(--voceros-canvas);
+}
+
+.voceros-legal-page { background: var(--voceros-canvas); }
+
+.voceros-legal__hero {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(10rem, 18vw, 15rem) 0 clamp(4rem, 8vw, 7rem);
+  background:
+    radial-gradient(circle at 86% 18%, rgba(255, 46, 138, .55) 0 9rem, transparent 9.15rem),
+    linear-gradient(135deg, var(--voceros-night), var(--voceros-purple));
+  color: var(--voceros-canvas);
+}
+
+.voceros-legal__hero::after {
+  position: absolute;
+  right: -6rem;
+  bottom: -12rem;
+  width: 25rem;
+  height: 25rem;
+  border: 5rem solid var(--voceros-yellow);
+  border-radius: 50%;
+  content: '';
+  opacity: .95;
+}
+
+.voceros-legal__hero .voceros-shell { position: relative; z-index: 1; }
+.voceros-legal__hero p,
+.voceros-legal__hero small {
+  display: block;
+  font-size: .72rem;
+  font-weight: 900;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+.voceros-legal__hero p { color: var(--voceros-cyan); }
+.voceros-legal__hero h1 {
+  max-width: 68rem;
+  margin: 1rem 0;
+  font-family: "Anton", "Arial Narrow", sans-serif;
+  font-size: clamp(4rem, 11vw, 9rem);
+  font-weight: 400;
+  line-height: .9;
+  text-transform: uppercase;
+}
+.voceros-legal__hero > div > span {
+  display: block;
+  max-width: 50rem;
+  font-size: clamp(1rem, 2vw, 1.3rem);
+  font-weight: 700;
+  line-height: 1.55;
+}
+.voceros-legal__hero small { margin-top: 1.5rem; color: var(--voceros-yellow); }
+
+.voceros-legal__back {
+  display: inline-flex;
+  margin-bottom: 2.5rem;
+  color: var(--voceros-canvas);
+  font-size: .76rem;
+  font-weight: 900;
+  letter-spacing: .08em;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.voceros-legal__layout {
+  display: grid;
+  padding-block: clamp(3.5rem, 7vw, 7rem);
+  gap: 3rem;
+}
+
+.voceros-legal__content { counter-reset: legal-section; }
+.voceros-legal__content > section {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  padding: 1.5rem 0 2rem;
+  border-top: 1px solid rgba(36, 17, 70, .28);
+  gap: 1rem;
+}
+.voceros-legal__content h2 {
+  margin: 0;
+  color: var(--voceros-purple);
+  font-family: "Anton", "Arial Narrow", sans-serif;
+  font-size: clamp(1.6rem, 3vw, 2.3rem);
+  font-weight: 400;
+  line-height: 1.05;
+  text-transform: uppercase;
+}
+.voceros-legal__content p,
+.voceros-legal__content li {
+  font-size: 1rem;
+  line-height: 1.7;
+}
+.voceros-legal__content p { margin: 0; }
+.voceros-legal__content ul,
+.voceros-legal__content ol { margin: 0; padding-left: 1.3rem; }
+
+.voceros-legal__pending {
+  padding: 1.4rem;
+  margin-bottom: 2.5rem;
+  border: 2px solid var(--voceros-night);
+  background: var(--voceros-yellow);
+  box-shadow: 8px 8px 0 var(--voceros-fuchsia);
+}
+.voceros-legal__pending strong {
+  display: block;
+  margin-bottom: .5rem;
+  font-size: .78rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.voceros-legal__sources {
+  align-self: start;
+  padding: 1.5rem;
+  border: 2px solid var(--voceros-night);
+  background: #fff;
+}
+.voceros-legal__sources h2 {
+  margin: 0 0 .8rem;
+  font-family: "Anton", "Arial Narrow", sans-serif;
+  font-size: 2rem;
+  font-weight: 400;
+  text-transform: uppercase;
+}
+.voceros-legal__sources p,
+.voceros-legal__sources li { font-size: .85rem; line-height: 1.55; }
+.voceros-legal__sources ul { padding-left: 1.2rem; }
+.voceros-legal__sources a { color: var(--voceros-purple); font-weight: 800; }
 
 [data-reveal] {
   opacity: 0;
@@ -885,6 +1081,10 @@
   }
   .voceros-registration__grid { grid-template-columns: minmax(20rem, .72fr) minmax(0, 1.28fr); align-items: start; }
   .voceros-registration .voceros-heading { position: sticky; top: 9rem; }
+  .voceros-legal__layout { grid-template-columns: minmax(0, 1fr) minmax(17rem, .35fr); }
+  .voceros-legal__sources { position: sticky; top: 9rem; }
+  .voceros-legal__content > section { grid-template-columns: minmax(14rem, .42fr) minmax(0, 1fr); }
+  .voceros-legal__content > section > :not(h2) { grid-column: 2; }
 }
 
 @media (max-width: 699px) {
@@ -896,6 +1096,13 @@
   .voceros-section { padding-block: 4.5rem; }
   .voceros-level { box-shadow: 5px 5px 0 rgba(244, 234, 218, .2); }
   .voceros-principles article { min-height: 19rem; }
+  .voceros-thanks > div { padding: 1.5rem 1rem; }
+  .voceros-thanks h2 { font-size: clamp(2.6rem, 14vw, 4rem); }
+  .voceros-thanks__data { grid-template-columns: 1fr; }
+  .voceros-thanks__data div:first-child { grid-column: auto; }
+  .voceros-thanks__actions { display: grid; }
+  .voceros-thanks button { width: 100%; }
+  .voceros-legal__hero::after { right: -11rem; opacity: .4; }
 }
 
 @media (prefers-reduced-motion: reduce) {

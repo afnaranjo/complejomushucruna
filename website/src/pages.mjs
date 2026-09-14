@@ -23,6 +23,7 @@ import {
 import { renderFinadosPage } from './finados/page.mjs';
 import { renderFinadosDignitiesPage } from './finados/dignities-page.mjs';
 import { renderStandsAccessPage } from './finados/stands-page.mjs';
+import { renderVocerosLegalPage } from './finados/voceros-legal-page.mjs';
 import { renderVocerosPage } from './finados/voceros-page.mjs';
 import { renderMediaAccreditationBody } from './media-accreditation/page.mjs';
 
@@ -254,6 +255,21 @@ const finadosVocerosPage = {
   render: renderVocerosPage,
 };
 
+const vocerosLegalPages = [
+  ['politicas-del-vocero', 'Políticas del Vocero', 'policies'],
+  ['bases-del-termometro', 'Bases del Termómetro', 'thermometer'],
+  ['politica-de-privacidad', 'Política de Privacidad', 'privacy'],
+  ['autorizacion-de-imagen', 'Autorización de uso de imagen', 'image'],
+  ['ejercer-derechos', 'Contacto para ejercer derechos', 'rights'],
+].map(([slug, title, documentKey]) => ({
+  route: `/finados/voceros/${slug}/`,
+  title,
+  description: `${title} de la Comunidad de Voceros de Finados Mushuc Runa 2026.`,
+  documentKey,
+  indexable: false,
+  render: renderVocerosLegalPage,
+}));
+
 const standsAccessPage = {
   route: '/acceso-compra-stands/',
   title: 'Acceso para compra de stands',
@@ -267,6 +283,7 @@ export const pages = Object.freeze([
   ...archivePages,
   finadosPreview,
   finadosVocerosPage,
+  ...vocerosLegalPages,
   finadosDignitiesPage,
   standsAccessPage,
 ]);

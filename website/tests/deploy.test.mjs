@@ -133,15 +133,22 @@ test('serializa las pruebas que compilan Tailwind durante el preflight', async (
   assert.equal(packageConfig.scripts.test, 'node --test --test-concurrency=1 tests/*.test.mjs');
 });
 
-test('el despliegue verifica la página y el estado público de la acreditación', async () => {
+test('el despliegue verifica las páginas, habilita Voceros y conserva su configuración fuera del sitio público', async () => {
   const source = await readFile(deployScript, 'utf8');
 
   assert.match(source, /\['\/acreditacion-de-medios\/', 200\]/);
   assert.match(source, /\['\/api\/acreditacion-medios\/', 200\]/);
   assert.match(source, /\['\/finados\/voceros\/', 200\]/);
+  assert.match(source, /\['\/finados\/voceros\/politicas-del-vocero\/', 200\]/);
+  assert.match(source, /\['\/finados\/voceros\/politica-de-privacidad\/', 200\]/);
+  assert.match(source, /\['\/finados\/voceros\/ejercer-derechos\/', 200\]/);
   assert.match(source, /\['\/api\/voceros\/', 200\]/);
   assert.match(source, /\['\/assets\/finados\/voceros\.css', 200\]/);
-  assert.match(source, /El endpoint de Voceros no confirmó su estado público/);
+  assert.match(source, /payload\.open !== true/);
+  assert.match(source, /uploadVocerosRegistrationConfig\(config\)/);
+  assert.match(source, /voceros-registration\.json/);
+  assert.match(source, /Eventos Finados 2026/);
+  assert.match(source, /retentionYears: 3/);
   assert.match(source, /command -v php/);
   assert.match(source, /function_exists\(\"mail\"\)/);
   assert.match(source, /target, 'php -l'/);
