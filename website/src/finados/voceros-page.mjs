@@ -4,7 +4,7 @@ import { renderFinadosFooter } from './footer.mjs';
 import { renderFinadosNavigation } from './navigation.mjs';
 
 const campaignAssetVersion = '20260914-1';
-const campaignRuntimeVersion = '20260914-7';
+const campaignRuntimeVersion = '20260914-8';
 
 const levels = Object.freeze([
   {
@@ -258,6 +258,7 @@ export function renderVocerosPage(page) {
 
         <form class="voceros-form" action="/api/voceros/" method="post" data-voceros-form novalidate>
           <div class="voceros-form__trap" aria-hidden="true"><label for="website">No completar</label><input id="website" name="website" type="text" tabindex="-1" autocomplete="off"></div>
+          <input type="hidden" name="submission_id">
           <input type="hidden" name="url_origen" data-voceros-origin>
           <input type="hidden" name="utm_source"><input type="hidden" name="utm_medium"><input type="hidden" name="utm_campaign"><input type="hidden" name="utm_content"><input type="hidden" name="utm_term">
 
@@ -344,8 +345,10 @@ export function renderVocerosPage(page) {
       <p>Revisa tu correo para conocer los siguientes pasos y la confirmación de tu registro.</p>
       <div class="voceros-thanks__actions">
         <button type="button" data-voceros-download>Descargar imagen</button>
+        <button type="button" data-voceros-share><span>Compartir</span><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="2.5"></circle><circle cx="6" cy="12" r="2.5"></circle><circle cx="18" cy="19" r="2.5"></circle><path d="m8.2 10.8 7.6-4.4M8.2 13.2l7.6 4.4"></path></svg></button>
         <button class="voceros-thanks__close" type="button" data-voceros-thanks-close>Cerrar</button>
       </div>
+      <p class="voceros-thanks__share-status" data-voceros-share-status aria-live="polite"></p>
     </div>
   </dialog>
 

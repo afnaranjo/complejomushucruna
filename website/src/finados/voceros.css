@@ -909,6 +909,30 @@
 }
 
 .voceros-thanks button { width: auto; margin-top: 1rem; }
+.voceros-thanks button[data-voceros-share] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--voceros-cyan);
+  box-shadow: 6px 6px 0 var(--voceros-fuchsia);
+  gap: .55rem;
+}
+.voceros-thanks button[data-voceros-share] svg {
+  width: 1.2rem;
+  height: 1.2rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+.voceros-thanks__share-status {
+  min-height: 1.3rem;
+  margin: 1rem auto 0;
+  font-size: .78rem;
+  font-weight: 750;
+  line-height: 1.45;
+}
 .voceros-thanks button:disabled { cursor: wait; opacity: .7; }
 .voceros-thanks .voceros-thanks__close {
   background: transparent;

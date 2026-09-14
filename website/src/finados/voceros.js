@@ -83,14 +83,23 @@ function loadCanvasImage(source) {
   });
 }
 
-export async function downloadVocerosReceipt(receipt) {
+const vocerosReceiptFilename = 'registro-vocero-finados-mushuc-runa-2026.png';
+
+function createSubmissionId() {
+  const bytes = new Uint8Array(16);
+  if (globalThis.crypto?.getRandomValues) globalThis.crypto.getRandomValues(bytes);
+  else for (let index = 0; index < bytes.length; index += 1) bytes[index] = Math.floor(Math.random() * 256);
+  return [...bytes].map((value) => value.toString(16).padStart(2, '0')).join('');
+}
+
+export async function createVocerosReceiptBlob(receipt) {
   const canvas = document.createElement('canvas');
   canvas.width = 1080;
-  canvas.height = 1350;
+  canvas.height = 1920;
   const context = canvas.getContext('2d');
-  if (!context) return;
+  if (!context) throw new Error('No fue posible preparar la imagen.');
 
-  const gradient = context.createLinearGradient(0, 0, 1080, 1350);
+  const gradient = context.createLinearGradient(0, 0, 1080, 1920);
   gradient.addColorStop(0, '#241146');
   gradient.addColorStop(.62, '#4d1aa2');
   gradient.addColorStop(1, '#6e2ce0');
@@ -104,17 +113,17 @@ export async function downloadVocerosReceipt(receipt) {
   }
   context.strokeStyle = '#00d2d6';
   context.lineWidth = 5;
-  context.strokeRect(18, 18, 1044, 1314);
+  context.strokeRect(18, 18, 1044, 1884);
   context.fillStyle = '#ff2e8a';
   context.save();
-  context.translate(-150, 525);
+  context.translate(-150, 670);
   context.rotate(-.35);
   context.fillRect(0, 0, 440, 78);
   context.restore();
   context.strokeStyle = '#ffc42e';
   context.lineWidth = 72;
   context.beginPath();
-  context.arc(985, 1275, 175, 0, Math.PI * 2);
+  context.arc(985, 1845, 175, 0, Math.PI * 2);
   context.stroke();
 
   const logo = await loadCanvasImage('/assets/finados/logo-finados.svg?v=20260914-1');
@@ -127,10 +136,10 @@ export async function downloadVocerosReceipt(receipt) {
   context.textAlign = 'center';
   context.fillStyle = '#00d2d6';
   context.font = '700 27px Inter, Arial, sans-serif';
-  context.fillText('REGISTRO RECIBIDO · COMUNIDAD DE VOCEROS', 540, 370);
+  context.fillText('REGISTRO RECIBIDO · COMUNIDAD DE VOCEROS', 540, 455);
   context.fillStyle = '#f4eada';
   context.font = '400 80px Anton, Impact, sans-serif';
-  drawWrappedText(context, 'YA ERES PARTE DE FINADOS MUSHUC RUNA 2026', 540, 475, 850, 86, 3);
+  drawWrappedText(context, 'YA ERES PARTE DE FINADOS MUSHUC RUNA 2026', 540, 575, 850, 86, 3);
 
   const details = [
     ['VOCERO', receipt.name],
@@ -139,22 +148,55 @@ export async function downloadVocerosReceipt(receipt) {
     ['CIUDAD', receipt.city],
     ['PARTICIPACIÓN ANTERIOR', receipt.previous],
   ];
-  let y = 760;
+  let y = 960;
   for (const [label, value] of details) {
     context.fillStyle = '#ffc42e';
     context.font = '700 22px Inter, Arial, sans-serif';
     context.fillText(label, 540, y);
     context.fillStyle = '#ffffff';
     context.font = '700 32px Inter, Arial, sans-serif';
-    y = drawWrappedText(context, value, 540, y + 40, 790, 39, 2) + 30;
+    y = drawWrappedText(context, value, 540, y + 44, 790, 42, 2) + 48;
   }
 
   const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+  if (!blob) throw new Error('No fue posible preparar la imagen.');
+  return blob;
+}
+
+function downloadReceiptBlob(blob) {
   const link = document.createElement('a');
-  link.download = 'registro-vocero-finados-mushuc-runa-2026.png';
-  link.href = blob ? URL.createObjectURL(blob) : canvas.toDataURL('image/png');
+  link.download = vocerosReceiptFilename;
+  link.href = URL.createObjectURL(blob);
   link.click();
-  if (blob) setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+  setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+}
+
+export async function downloadVocerosReceipt(receipt) {
+  downloadReceiptBlob(await createVocerosReceiptBlob(receipt));
+}
+
+export async function shareVocerosReceipt(receipt, navigatorImplementation = globalThis.navigator) {
+  const blob = await createVocerosReceiptBlob(receipt);
+  const file = typeof File === 'function'
+    ? new File([blob], vocerosReceiptFilename, { type: 'image/png' })
+    : null;
+  const payload = file ? { files: [file] } : null;
+  if (payload && typeof navigatorImplementation?.share === 'function'
+      && typeof navigatorImplementation?.canShare === 'function'
+      && navigatorImplementation.canShare(payload)) {
+    try {
+      await navigatorImplementation.share({
+        ...payload,
+        title: 'Registro de Voceros · Finados Mushuc Runa 2026',
+        text: 'Ya soy parte de la comunidad de Voceros de Finados Mushuc Runa 2026.',
+      });
+      return 'shared';
+    } catch (error) {
+      if (error?.name === 'AbortError') return 'cancelled';
+    }
+  }
+  downloadReceiptBlob(blob);
+  return 'downloaded';
 }
 
 export function setupVocerosForm(root = document, fetchImplementation = globalThis.fetch) {
@@ -173,12 +215,19 @@ export function setupVocerosForm(root = document, fetchImplementation = globalTh
   const consents = ['consentimiento_politicas', 'autorizacion_imagen', 'consentimiento_datos'].map((name) => form.elements[name]);
   const dialog = root.querySelector('[data-voceros-thanks]');
   const download = dialog?.querySelector('[data-voceros-download]');
+  const share = dialog?.querySelector('[data-voceros-share]');
+  const shareStatus = dialog?.querySelector('[data-voceros-share-status]');
+  const submissionId = form.elements.submission_id;
   let registrationOpen = false;
   let receipt = { name: '', whatsapp: '', birth: '', city: '', previous: '' };
 
   const syncSubmit = () => {
     const allConsents = consents.every((input) => input.checked);
     submit.disabled = !registrationOpen || !allConsents;
+  };
+
+  const renewSubmissionId = () => {
+    if (submissionId) submissionId.value = createSubmissionId();
   };
 
   const setOpen = (open, message = '') => {
@@ -243,7 +292,20 @@ export function setupVocerosForm(root = document, fetchImplementation = globalTh
       download.textContent = originalText;
     }
   });
+  share?.addEventListener('click', async () => {
+    share.disabled = true;
+    if (shareStatus) shareStatus.textContent = '';
+    try {
+      const result = await shareVocerosReceipt(receipt);
+      if (shareStatus && result === 'downloaded') {
+        shareStatus.textContent = 'Tu dispositivo no permite compartir directamente; descargamos la imagen para que puedas enviarla.';
+      }
+    } finally {
+      share.disabled = false;
+    }
+  });
 
+  renewSubmissionId();
   setOpen(false);
   if (typeof fetchImplementation === 'function') {
     fetchImplementation(form.action, { method: 'GET', headers: { Accept: 'application/json' }, cache: 'no-store' })
@@ -289,6 +351,7 @@ export function setupVocerosForm(root = document, fetchImplementation = globalTh
       if (!response.ok || payload.ok !== true) throw new Error(payload.message || 'No fue posible completar el registro.');
       receipt = submittedReceipt;
       form.reset();
+      renewSubmissionId();
       syncAge();
       syncProfiles();
       status.textContent = '';

@@ -73,6 +73,11 @@ function valid_ecuadorian_id(string $value): bool
     return preg_match('/^\d{10}$/', $value) === 1;
 }
 
+function valid_submission_id(string $value): bool
+{
+    return preg_match('/^[a-f0-9]{32}$/', $value) === 1;
+}
+
 function valid_https_url(string $value): bool
 {
     if ($value === '') return true;
@@ -242,7 +247,10 @@ try {
         $urlOrigin = 'https://complejomushucruna.com/finados/voceros/';
     }
 
-    $registrationId = bin2hex(random_bytes(16));
+    $registrationId = strtolower(clean_required('submission_id', 32, 32));
+    if (!valid_submission_id($registrationId)) {
+        throw new InvalidArgumentException('No fue posible identificar este envío. Recarga la página e inténtalo nuevamente.');
+    }
     $submittedAt = $now->format(DateTimeInterface::ATOM);
     $status = $age < 18 ? 'Pendiente de autorización del representante' : 'Registrado';
     $ip = isset($_SERVER['REMOTE_ADDR']) ? substr((string) $_SERVER['REMOTE_ADDR'], 0, 64) : '';
@@ -263,8 +271,6 @@ try {
         $representative['representante_correo'], $tracking['utm_source'], $tracking['utm_medium'], $tracking['utm_campaign'],
         $tracking['utm_content'], $tracking['utm_term'],
     ];
-    append_csv($privateDirectory . DIRECTORY_SEPARATOR . 'voceros-finados-2026.csv', $mainHeader, [$mainRow]);
-
     $consentDefinitions = [
         ['politicas', $config['policiesVersion'] . ' + ' . $config['thermometerVersion'], POLICY_TEXT],
         ['imagen', $config['imageVersion'], IMAGE_TEXT],
@@ -285,10 +291,6 @@ try {
             'id_registro' => $registrationId,
         ];
     }
-    $consentHeader = ['Tipo', 'Aceptado', 'Versión', 'SHA-256', 'Fecha y hora', 'IP', 'Navegador', 'URL', 'Método', 'ID de registro'];
-    $consentRows = array_map(static fn(array $consent): array => array_values($consent), $consents);
-    append_csv($privateDirectory . DIRECTORY_SEPARATOR . 'consentimientos-voceros-finados-2026.csv', $consentHeader, $consentRows);
-
     $googleSheetsStatus = google_sheets_deliver($privateDirectory, 'voceros', [
         'submittedAt' => $submittedAt,
         'id' => $registrationId,
@@ -298,6 +300,21 @@ try {
         ...$tracking,
         'consents' => $consents,
     ]);
+    if ($googleSheetsStatus !== 'synced') {
+        json_response(503, [
+            'ok' => false,
+            'message' => 'No pudimos confirmar el registro en Google Sheets. Tus datos quedaron protegidos para reintento; vuelve a presionar Enviar en unos minutos.',
+        ]);
+    }
+
+    try {
+        append_csv($privateDirectory . DIRECTORY_SEPARATOR . 'voceros-finados-2026.csv', $mainHeader, [$mainRow]);
+        $consentHeader = ['Tipo', 'Aceptado', 'Versión', 'SHA-256', 'Fecha y hora', 'IP', 'Navegador', 'URL', 'Método', 'ID de registro'];
+        $consentRows = array_map(static fn(array $consent): array => array_values($consent), $consents);
+        append_csv($privateDirectory . DIRECTORY_SEPARATOR . 'consentimientos-voceros-finados-2026.csv', $consentHeader, $consentRows);
+    } catch (Throwable $backupError) {
+        error_log('El registro llegó a Google Sheets, pero falló el respaldo CSV: ' . $backupError->getMessage());
+    }
 
     json_response(200, [
         'ok' => true,

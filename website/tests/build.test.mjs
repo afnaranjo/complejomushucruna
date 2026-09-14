@@ -398,12 +398,19 @@ test('construye la landing de Voceros y prepara su registro seguro hacia la hoja
   assert.match(page, /Entre 16 y 17 necesitas autorización escrita/);
   assert.match(page, /Política de Privacidad/);
   assert.match(page, /data-voceros-download>Descargar imagen/);
+  assert.match(page, /data-voceros-share/);
+  assert.match(page, /<span>Compartir<\/span><svg/);
+  assert.match(page, /name="submission_id"/);
   assert.match(page, /data-voceros-receipt-name/);
   assert.match(page, /data-voceros-receipt-whatsapp/);
   assert.match(page, /data-voceros-receipt-birth/);
   assert.match(page, /data-voceros-receipt-city/);
   assert.match(page, /data-voceros-receipt-previous/);
   assert.match(vocerosScript, /registro-vocero-finados-mushuc-runa-2026\.png/);
+  assert.match(vocerosScript, /canvas\.width = 1080/);
+  assert.match(vocerosScript, /canvas\.height = 1920/);
+  assert.match(vocerosScript, /navigatorImplementation\.canShare/);
+  assert.match(vocerosScript, /navigatorImplementation\.share/);
   assert.match(vocerosScript, /formData\.get\('nombre_completo'\)/);
   assert.match(vocerosScript, /formData\.get\('whatsapp'\)/);
   assert.match(vocerosScript, /formData\.get\('fecha_nacimiento'\)/);
@@ -418,6 +425,8 @@ test('construye la landing de Voceros y prepara su registro seguro hacia la hoja
   assert.match(endpoint, /America\/Guayaquil/);
   assert.match(endpoint, /consentimientos-voceros-finados-2026\.csv/);
   assert.match(endpoint, /google_sheets_deliver\(\$privateDirectory, 'voceros'/);
+  assert.match(endpoint, /\$googleSheetsStatus !== 'synced'/);
+  assert.match(endpoint, /valid_submission_id/);
   assert.match(endpoint, /hash\('sha256'/);
   assert.doesNotMatch(endpoint, /password|passwd|secret\s*=/i);
 
