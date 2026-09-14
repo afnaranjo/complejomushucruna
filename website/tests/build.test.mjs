@@ -51,6 +51,7 @@ test('genera las rutas institucionales y el archivo histórico', async () => {
     'historia/index.html',
     'visitanos/index.html',
     'acceso-compra-stands/index.html',
+    'finados/dignidades-finados-2025/index.html',
     'eventos/archivo/finados-2021/index.html',
     'eventos/archivo/navidad-2025/index.html',
   ]) {
@@ -237,16 +238,31 @@ test('genera las páginas privadas de Finados y publica su acceso en la navegaci
   const home = await readFile(join(output, 'index.html'), 'utf8');
   const landing = await readFile(join(output, 'finados/index.html'), 'utf8');
   const stands = await readFile(join(output, 'acceso-compra-stands/index.html'), 'utf8');
+  const dignities = await readFile(join(output, 'finados/dignidades-finados-2025/index.html'), 'utf8');
   const sitemap = await readFile(join(output, 'sitemap.xml'), 'utf8');
 
   assert.ok(files.includes('finados/index.html'));
   assert.ok(files.includes('acceso-compra-stands/index.html'));
+  assert.ok(files.includes('finados/dignidades-finados-2025/index.html'));
   assert.match(home, /href="\/finados\/">FINADOS 2026<\/a>/);
   assert.doesNotMatch(sitemap, /complejomushucruna\.com\/finados\//);
   assert.doesNotMatch(sitemap, /complejomushucruna\.com\/acceso-compra-stands\//);
+  assert.doesNotMatch(sitemap, /complejomushucruna\.com\/finados\/dignidades-finados-2025\//);
+  assert.match(landing, /href="\/finados\/dignidades-finados-2025\/">Dignidades Finados 2025<\/a>/);
+  assert.match(dignities, /<title>Dignidades Finados 2025 \| Mushuc Runa<\/title>/);
+  assert.match(dignities, /<h1[^>]*>[\s\S]*Dignidades[\s\S]*Finados 2025[\s\S]*<\/h1>/);
+  assert.match(dignities, /Euler Caicedo/);
+  assert.match(dignities, /ganador del concurso a Rey Pan/);
+  assert.match(dignities, /Tierra Canela/);
+  assert.match(dignities, /agrupación ganadora del concurso a Señorita Colada Morada/);
+  assert.match(dignities, /euler-caicedo-rey-pan\.webp\?v=20260914-1/);
+  assert.match(dignities, /tierra-canela-colada-morada\.webp\?v=20260914-1/);
+  assert.match(dignities, /auspiciantes-finados-2025\.webp\?v=20260914-1/);
+  assert.ok(dignities.indexOf('id="ganadores"') < dignities.indexOf('class="dignities-sponsors"'));
+  assert.equal((dignities.match(/<h1\b/g) ?? []).length, 1);
   assert.match(landing, /<meta name="robots" content="noindex, nofollow, noarchive">/);
-  assert.match(landing, /\/assets\/finados\/finados\.css\?v=20260914-1/);
-  assert.match(landing, /\/assets\/finados\/finados\.js\?v=20260914-1/);
+  assert.match(landing, /\/assets\/finados\/finados\.css\?v=20260914-2/);
+  assert.match(landing, /\/assets\/finados\/finados\.js\?v=20260914-2/);
   assert.match(landing, /Finados 2026 · Venta de stands/);
   assert.match(landing, /href="https:\/\/mushucticket\.com\/" data-stands-purchase-link/);
   assert.doesNotMatch(landing, /reserva\.mushucticket\.com\/customers/);
@@ -269,8 +285,8 @@ test('genera las páginas privadas de Finados y publica su acceso en la navegaci
   assert.equal((landing.match(/<h1\b/g) ?? []).length, 1);
   assert.doesNotMatch(landing, /2 nov|120K|\$12/i);
   assert.match(stands, /<meta name="robots" content="noindex, nofollow, noarchive">/);
-  assert.match(stands, /\/assets\/finados\/finados\.css\?v=20260914-1/);
-  assert.match(stands, /\/assets\/finados\/finados\.js\?v=20260914-1/);
+  assert.match(stands, /\/assets\/finados\/finados\.css\?v=20260914-2/);
+  assert.match(stands, /\/assets\/finados\/finados\.js\?v=20260914-2/);
   assert.match(stands, /Acceso para compra de stands/);
   assert.match(stands, /14 de septiembre/);
   assert.match(stands, /datetime="2026-09-14T08:00:00-05:00"/);

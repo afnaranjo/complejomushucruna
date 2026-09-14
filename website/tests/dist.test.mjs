@@ -49,6 +49,7 @@ test('empaqueta la experiencia Finados con recursos locales y optimizados', asyn
   await buildSite(output);
   const landing = await readFile(join(output, 'finados/index.html'), 'utf8');
   const standsPage = await readFile(join(output, 'acceso-compra-stands/index.html'), 'utf8');
+  const dignitiesPage = await readFile(join(output, 'finados/dignidades-finados-2025/index.html'), 'utf8');
   const finadosStyles = await readFile(join(output, 'assets/finados/finados.css'), 'utf8');
   const siteScript = await readFile(join(output, 'assets/site.js'), 'utf8');
   const finadosScript = await readFile(join(output, 'assets/finados/finados.js'), 'utf8');
@@ -72,9 +73,12 @@ test('empaqueta la experiencia Finados con recursos locales y optimizados', asyn
   const guaynaaMobile = await stat(join(output, 'assets/finados/guaynaa-finados-960.webp'));
   const kjarkas = await stat(join(output, 'assets/finados/kjarkas-finados.webp'));
   const kjarkasMobile = await stat(join(output, 'assets/finados/kjarkas-finados-960.webp'));
+  const reyPanWinner = await stat(join(output, 'assets/finados/dignidades-2025/euler-caicedo-rey-pan.webp'));
+  const coladaWinner = await stat(join(output, 'assets/finados/dignidades-2025/tierra-canela-colada-morada.webp'));
+  const dignitiesSponsors = await stat(join(output, 'assets/finados/dignidades-2025/auspiciantes-finados-2025.webp'));
 
-  assert.match(landing, /\/assets\/finados\/finados\.css\?v=20260914-1/);
-  assert.match(landing, /\/assets\/finados\/finados\.js\?v=20260914-1/);
+  assert.match(landing, /\/assets\/finados\/finados\.css\?v=20260914-2/);
+  assert.match(landing, /\/assets\/finados\/finados\.js\?v=20260914-2/);
   assert.match(landing, /rel="icon" href="\/assets\/finados\/favicon-finados\.png"/);
   assert.match(landing, /rel="preload" as="image" href="\/assets\/finados\/expositor-artesanias\.webp"/);
   assert.match(landing, /Venta de stands/);
@@ -98,8 +102,10 @@ test('empaqueta la experiencia Finados con recursos locales y optimizados', asyn
   assert.match(landing, /https:\/\/www\.tiktok\.com\/@finadosmushucruna/);
   assert.match(landing, /https:\/\/www\.instagram\.com\/finadosmushucruna\//);
   assert.match(standsPage, /Más de 500 stands/);
-  assert.match(standsPage, /\/assets\/finados\/finados\.css\?v=20260914-1/);
-  assert.match(standsPage, /\/assets\/finados\/finados\.js\?v=20260914-1/);
+  assert.match(standsPage, /\/assets\/finados\/finados\.css\?v=20260914-2/);
+  assert.match(standsPage, /\/assets\/finados\/finados\.js\?v=20260914-2/);
+  assert.match(dignitiesPage, /Dignidades Finados 2025/);
+  assert.match(dignitiesPage, /Auspiciantes Finados 2025/);
   assert.match(standsPage, /Venta 100% online/);
   assert.match(standsPage, /https:\/\/mushucticket\.com\//);
   assert.doesNotMatch(standsPage, /reserva\.mushucticket\.com\/customers/);
@@ -181,4 +187,7 @@ test('empaqueta la experiencia Finados con recursos locales y optimizados', asyn
   assert.ok(guaynaaMobile.size < guaynaa.size, 'La variante móvil de Guaynaa debe ser menor');
   assert.ok(kjarkas.size < 250_000, `Kjarkas Finados demasiado grande: ${kjarkas.size}`);
   assert.ok(kjarkasMobile.size < kjarkas.size, 'La variante móvil de Kjarkas debe ser menor');
+  assert.ok(reyPanWinner.size < 300_000, `Arte de Rey Pan demasiado grande: ${reyPanWinner.size}`);
+  assert.ok(coladaWinner.size < 350_000, `Arte de Señorita Colada Morada demasiado grande: ${coladaWinner.size}`);
+  assert.ok(dignitiesSponsors.size < 80_000, `Franja de auspiciantes demasiado grande: ${dignitiesSponsors.size}`);
 });

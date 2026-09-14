@@ -4,7 +4,7 @@ import { STANDS_WELCOME_SWITCH_AT } from '../stands-sale-schedule.js';
 
 const purchaseUrl = 'https://mushucticket.com/';
 const campaignAssetVersion = '20260903';
-const campaignRuntimeVersion = '20260914-1';
+const campaignRuntimeVersion = '20260914-2';
 const newTabAttributes = ' target="_blank" rel="noopener noreferrer"';
 
 export function renderStandsAccessPage(page) {

@@ -10,7 +10,7 @@ const finadosSocialLinks = [
 
 const purchaseUrl = 'https://mushucticket.com/';
 const campaignAssetVersion = '20260903';
-const campaignRuntimeVersion = '20260914-1';
+const campaignRuntimeVersion = '20260914-2';
 
 const axes = [
   {
@@ -90,9 +90,12 @@ export function renderFinadosPage(page) {
   <header class="campaign-header fixed inset-x-0 top-3 z-40 transition-colors duration-200" data-header>
     <div class="mx-auto flex h-20 w-[min(100%-2rem,88rem)] items-center justify-between sm:h-24">
       <a href="#inicio" aria-label="Finados 2026, inicio">
-        <img class="h-auto w-28 sm:w-36" src="/assets/finados/logo-finados.svg?v=${campaignAssetVersion}" width="766" height="449" alt="Finados 2026, legado que nos une">
+        <img class="h-auto w-20 sm:w-36" src="/assets/finados/logo-finados.svg?v=${campaignAssetVersion}" width="766" height="449" alt="Finados 2026, legado que nos une">
       </a>
-      <a class="button-outline-light" href="/">Volver al Complejo</a>
+      <nav class="dignities-header-nav" aria-label="Navegación de Finados">
+        <a class="button-outline-light" href="/finados/dignidades-finados-2025/">Dignidades Finados 2025</a>
+        <a class="button-outline-light hidden md:inline-flex" href="/">Volver al Complejo</a>
+      </nav>
     </div>
   </header>
 

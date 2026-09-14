@@ -1,6 +1,7 @@
 @import "tailwindcss" source(none);
 @source "./page.mjs";
 @source "./stands-page.mjs";
+@source "./dignities-page.mjs";
 
 @font-face {
   font-family: "Anton";
@@ -1323,6 +1324,284 @@
     color: #ffc42e;
     content: "✦";
   }
+
+  .dignities-header-nav {
+    display: flex;
+    align-items: center;
+    gap: .55rem;
+  }
+
+  .dignities-page {
+    background: #fff8ef;
+  }
+
+  .dignities-hero {
+    position: relative;
+    isolation: isolate;
+    min-height: min(52rem, 92svh);
+    overflow: hidden;
+    background: #ff9408;
+    color: #fff;
+  }
+
+  .dignities-hero-rays {
+    position: absolute;
+    z-index: -2;
+    inset: 0;
+    background:
+      linear-gradient(115deg, rgba(77, 22, 105, .12), transparent 45%),
+      repeating-conic-gradient(from 228deg at 66% 38%, #ff9b08 0deg 11deg, #ef7e18 11deg 22deg);
+  }
+
+  .dignities-hero::after {
+    position: absolute;
+    z-index: -1;
+    right: -12rem;
+    bottom: 3rem;
+    width: 35rem;
+    height: 35rem;
+    border: 5rem solid rgba(255, 40, 128, .82);
+    border-radius: 50%;
+    content: "";
+  }
+
+  .dignities-hero-grid {
+    display: grid;
+    align-items: center;
+    width: min(calc(100% - 2rem), 88rem);
+    min-height: min(52rem, 92svh);
+    margin-inline: auto;
+    padding-block: 9rem 7rem;
+    gap: 3rem;
+  }
+
+  .dignities-hero-copy {
+    max-width: 54rem;
+  }
+
+  .dignities-kicker,
+  .dignity-number {
+    margin: 0;
+    font-size: .74rem;
+    font-weight: 900;
+    letter-spacing: .2em;
+    line-height: 1.35;
+    text-transform: uppercase;
+  }
+
+  .dignities-title {
+    margin: 1rem 0 0;
+    font-family: "Anton", "Arial Narrow", sans-serif;
+    font-size: clamp(4.5rem, 12vw, 10rem);
+    font-weight: 400;
+    letter-spacing: -.025em;
+    line-height: .84;
+    text-transform: uppercase;
+  }
+
+  .dignities-title span {
+    display: block;
+  }
+
+  .dignities-title span:last-child {
+    color: #401565;
+    text-shadow: .04em .04em 0 #ff2e8a;
+  }
+
+  .dignities-intro {
+    max-width: 46rem;
+    margin: 1.75rem 0 0;
+    font-family: "DM Serif Display", Georgia, serif;
+    font-size: clamp(1.25rem, 2.2vw, 1.85rem);
+    line-height: 1.35;
+  }
+
+  .dignities-hero-button {
+    display: inline-flex;
+    min-height: 3.25rem;
+    align-items: center;
+    justify-content: center;
+    margin-top: 2rem;
+    border: 2px solid #401565;
+    border-radius: 999px;
+    background: #401565;
+    box-shadow: 6px 6px 0 #ff2e8a;
+    padding: .85rem 1.4rem;
+    color: #fff;
+    font-size: .72rem;
+    font-weight: 900;
+    letter-spacing: .13em;
+    line-height: 1;
+    text-decoration: none;
+    text-transform: uppercase;
+  }
+
+  .dignities-edition-mark {
+    display: grid;
+    width: min(21rem, 76vw);
+    min-height: 21rem;
+    justify-self: center;
+    align-content: center;
+    border: .7rem solid #fff;
+    border-radius: 50%;
+    background: #401565;
+    box-shadow: 1.25rem 1.25rem 0 rgba(255, 46, 138, .92);
+    padding: 2rem;
+    text-align: center;
+    transform: rotate(4deg);
+  }
+
+  .dignities-edition-mark strong {
+    font-family: "DM Serif Display", Georgia, serif;
+    font-size: 8rem;
+    font-weight: 400;
+    line-height: .65;
+  }
+
+  .dignities-edition-mark sup {
+    font-family: "Inter", sans-serif;
+    font-size: 1.4rem;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .dignities-edition-mark span,
+  .dignities-edition-mark b {
+    display: block;
+    margin-top: .6rem;
+    font-size: .8rem;
+    font-weight: 900;
+    letter-spacing: .23em;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  .dignities-edition-mark b {
+    color: #ffbc14;
+    font-size: 2.5rem;
+    letter-spacing: .08em;
+  }
+
+  .dignities-weave {
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0;
+    height: 1.2rem;
+    background:
+      linear-gradient(45deg, transparent 40%, #401565 40% 60%, transparent 60%) 0 0 / 1.25rem 1.25rem,
+      linear-gradient(-45deg, transparent 40%, #ff2e8a 40% 60%, transparent 60%) .62rem 0 / 1.25rem 1.25rem,
+      #ffbc14;
+  }
+
+  .dignities-winners {
+    padding-block: 6rem;
+  }
+
+  .dignities-section-heading,
+  .dignities-sponsors-heading {
+    width: min(calc(100% - 2rem), 88rem);
+    margin-inline: auto;
+  }
+
+  .dignities-section-heading h2,
+  .dignities-sponsors-heading h2 {
+    max-width: 62rem;
+    margin: .85rem 0 0;
+    font-family: "Anton", "Arial Narrow", sans-serif;
+    font-size: clamp(3.6rem, 8vw, 7rem);
+    font-weight: 400;
+    letter-spacing: -.02em;
+    line-height: .92;
+    text-transform: uppercase;
+  }
+
+  .dignity-winner {
+    display: grid;
+    width: min(calc(100% - 2rem), 88rem);
+    align-items: center;
+    margin: 5rem auto 0;
+    border: 3px solid #401565;
+    box-shadow: 12px 12px 0 #401565;
+    padding: clamp(1rem, 3vw, 2.5rem);
+    gap: clamp(2rem, 6vw, 6rem);
+  }
+
+  .dignity-winner--rey-pan {
+    background: #f7940a;
+  }
+
+  .dignity-winner--colada {
+    background: #f4e1eb;
+  }
+
+  .dignity-poster {
+    margin: 0;
+    overflow: hidden;
+    border: 4px solid #fff;
+    background: #fff;
+    box-shadow: 10px 10px 0 rgba(64, 21, 101, .9);
+  }
+
+  .dignity-poster img {
+    width: 100%;
+    aspect-ratio: 1080 / 1218;
+    object-fit: cover;
+  }
+
+  .dignity-poster figcaption {
+    border-top: 2px solid #401565;
+    padding: .85rem 1rem;
+    color: #401565;
+    font-size: .68rem;
+    font-weight: 900;
+    letter-spacing: .12em;
+    line-height: 1.35;
+    text-transform: uppercase;
+  }
+
+  .dignity-copy {
+    color: #401565;
+  }
+
+  .dignity-copy h3 {
+    margin: 1.1rem 0 0;
+    font-family: "DM Serif Display", Georgia, serif;
+    font-size: clamp(4rem, 8vw, 7rem);
+    font-weight: 400;
+    letter-spacing: -.03em;
+    line-height: .76;
+    text-transform: uppercase;
+  }
+
+  .dignity-copy > p:last-child {
+    max-width: 33rem;
+    margin: 2rem 0 0;
+    font-size: 1.08rem;
+    font-weight: 600;
+    line-height: 1.65;
+  }
+
+  .dignities-sponsors {
+    overflow: hidden;
+    border-top: 1rem solid #ff2e8a;
+    background: #fff;
+    padding: 5rem 0 4rem;
+  }
+
+  .dignities-sponsors-scroll {
+    width: min(calc(100% - 2rem), 88rem);
+    margin: 2.5rem auto 0;
+    overflow-x: auto;
+    border: 2px solid #401565;
+    background: #fff;
+    box-shadow: 8px 8px 0 #ffbc14;
+    scrollbar-color: #ff2e8a #f4e1eb;
+  }
+
+  .dignities-sponsors-scroll img {
+    width: 100%;
+    min-width: 60rem;
+  }
 }
 
 .hero-enter {
@@ -1371,6 +1650,18 @@
 }
 
 @media (min-width: 1024px) {
+  .dignities-hero-grid {
+    grid-template-columns: minmax(0, 1.35fr) minmax(18rem, .65fr);
+  }
+
+  .dignity-winner {
+    grid-template-columns: minmax(24rem, .95fr) minmax(0, 1.05fr);
+  }
+
+  .dignity-winner--colada .dignity-poster {
+    order: 2;
+  }
+
   .stands-policy-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -1417,6 +1708,60 @@
 }
 
 @media (max-width: 639px) {
+  .dignities-header-nav .button-outline-light {
+    min-height: 2.5rem;
+    padding: .55rem .72rem;
+    font-size: .52rem;
+    letter-spacing: .09em;
+  }
+
+  .dignities-hero {
+    min-height: 48rem;
+  }
+
+  .dignities-hero-grid {
+    min-height: 48rem;
+    padding-block: 8rem 5rem;
+    gap: 2rem;
+  }
+
+  .dignities-title {
+    font-size: clamp(4.2rem, 21vw, 5.6rem);
+  }
+
+  .dignities-edition-mark {
+    width: 13.5rem;
+    min-height: 13.5rem;
+    border-width: .45rem;
+    box-shadow: .75rem .75rem 0 rgba(255, 46, 138, .92);
+    padding: 1rem;
+  }
+
+  .dignities-edition-mark strong {
+    font-size: 5.2rem;
+  }
+
+  .dignities-edition-mark b {
+    font-size: 1.8rem;
+  }
+
+  .dignities-winners {
+    padding-block: 4.5rem;
+  }
+
+  .dignity-winner {
+    margin-top: 3rem;
+    box-shadow: 7px 7px 0 #401565;
+  }
+
+  .dignity-copy h3 {
+    font-size: clamp(3.6rem, 19vw, 5rem);
+  }
+
+  .dignities-sponsors-scroll img {
+    min-width: 52rem;
+  }
+
   .stands-access-nav .button-outline-light {
     min-height: 2.7rem;
     padding: .65rem .85rem;

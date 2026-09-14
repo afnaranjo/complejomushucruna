@@ -21,6 +21,7 @@ import {
   visitPanel,
 } from './render/components.mjs';
 import { renderFinadosPage } from './finados/page.mjs';
+import { renderFinadosDignitiesPage } from './finados/dignities-page.mjs';
 import { renderStandsAccessPage } from './finados/stands-page.mjs';
 import { renderMediaAccreditationBody } from './media-accreditation/page.mjs';
 
@@ -236,6 +237,14 @@ const finadosPreview = {
   render: renderFinadosPage,
 };
 
+const finadosDignitiesPage = {
+  route: '/finados/dignidades-finados-2025/',
+  title: 'Dignidades Finados 2025',
+  description: 'Ganadores de Rey Pan y Señorita Colada Morada de Finados Mushuc Runa 2025.',
+  indexable: false,
+  render: renderFinadosDignitiesPage,
+};
+
 const standsAccessPage = {
   route: '/acceso-compra-stands/',
   title: 'Acceso para compra de stands',
@@ -244,4 +253,4 @@ const standsAccessPage = {
   render: renderStandsAccessPage,
 };
 
-export const pages = Object.freeze([...mainPages, ...archivePages, finadosPreview, standsAccessPage]);
+export const pages = Object.freeze([...mainPages, ...archivePages, finadosPreview, finadosDignitiesPage, standsAccessPage]);
