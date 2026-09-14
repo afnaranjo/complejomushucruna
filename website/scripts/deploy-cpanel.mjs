@@ -13,7 +13,7 @@ const vocerosRegistrationConfig = Object.freeze({
   responsable: 'Eventos Finados 2026',
   direccion: 'Santa Lucía, Tisaleo, Tungurahua – Panamericana Sur km 12, vía Ambato–Riobamba',
   telefono: '+593 980 346 729',
-  contactEmail: 'kari16ch@hotmail.com',
+  contactEmail: 'facturacioncomplejomushuc@gmail.com',
   retentionYears: 3,
   policiesVersion: '2026-09-14',
   thermometerVersion: '2026-09-14',

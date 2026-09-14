@@ -443,7 +443,7 @@ test('construye la landing de Voceros y prepara su registro seguro hacia la hoja
   assert.match(privacyPage, /Eventos Finados 2026/);
   assert.match(privacyPage, /\+593 980 346 729/);
   assert.match(privacyPage, /Santa Lucía, Tisaleo, Tungurahua/);
-  assert.match(privacyPage, /kari16ch@hotmail\.com/);
+  assert.match(privacyPage, /facturacioncomplejomushuc@gmail\.com/);
   assert.match(privacyPage, /tres años contados desde el envío del formulario/);
   assert.doesNotMatch(privacyPage, /\bRUC\b/);
   assert.match(endpoint, /'responsable', 'direccion', 'telefono', 'contactEmail'/);

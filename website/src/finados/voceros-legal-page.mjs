@@ -10,7 +10,7 @@ const controller = Object.freeze({
   name: 'Eventos Finados 2026',
   address: 'Santa Lucía, Tisaleo, Tungurahua – Panamericana Sur km 12, vía Ambato–Riobamba',
   phone: '+593 980 346 729',
-  email: 'kari16ch@hotmail.com',
+  email: 'facturacioncomplejomushuc@gmail.com',
   retention: 'tres años contados desde el envío del formulario',
 });
 
