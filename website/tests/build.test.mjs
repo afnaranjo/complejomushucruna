@@ -232,23 +232,41 @@ test('publica invitaciones fuera del menú y registra RSVP en archivos compatibl
   assert.doesNotMatch(endpoint, /password|passwd|secret\s*=/i);
 });
 
-test('genera las páginas privadas de Finados y publica su acceso en la navegación', async () => {
+test('genera las páginas de Finados y ordena sus subpáginas en un menú desplegable', async () => {
   const output = await mkdtemp(join(tmpdir(), 'mushuc-finados-preview-'));
   const files = await buildSite(output);
   const home = await readFile(join(output, 'index.html'), 'utf8');
   const landing = await readFile(join(output, 'finados/index.html'), 'utf8');
   const stands = await readFile(join(output, 'acceso-compra-stands/index.html'), 'utf8');
+  const voceros = await readFile(join(output, 'finados/voceros/index.html'), 'utf8');
   const dignities = await readFile(join(output, 'finados/dignidades-finados-2025/index.html'), 'utf8');
   const sitemap = await readFile(join(output, 'sitemap.xml'), 'utf8');
 
   assert.ok(files.includes('finados/index.html'));
   assert.ok(files.includes('acceso-compra-stands/index.html'));
+  assert.ok(files.includes('finados/voceros/index.html'));
   assert.ok(files.includes('finados/dignidades-finados-2025/index.html'));
   assert.match(home, /href="\/finados\/">FINADOS 2026<\/a>/);
   assert.doesNotMatch(sitemap, /complejomushucruna\.com\/finados\//);
   assert.doesNotMatch(sitemap, /complejomushucruna\.com\/acceso-compra-stands\//);
+  assert.doesNotMatch(sitemap, /complejomushucruna\.com\/finados\/voceros\//);
   assert.doesNotMatch(sitemap, /complejomushucruna\.com\/finados\/dignidades-finados-2025\//);
-  assert.match(landing, /href="\/finados\/dignidades-finados-2025\/">Dignidades Finados 2025<\/a>/);
+  for (const page of [home, landing, voceros, dignities]) {
+    const navigation = page.match(/<(?:ul class="main-nav__submenu"|ul class="campaign-submenu__list")[\s\S]*?<\/ul>/)?.[0] ?? '';
+    const expected = ['Programación artística', 'Dignidades 2025'];
+    for (let index = 1; index < expected.length; index += 1) {
+      assert.ok(
+        navigation.toLocaleLowerCase('es').indexOf(expected[index - 1].toLocaleLowerCase('es'))
+          < navigation.toLocaleLowerCase('es').indexOf(expected[index].toLocaleLowerCase('es')),
+        `El submenú debe ordenar ${expected[index - 1]} antes de ${expected[index]}`,
+      );
+    }
+  }
+  for (const page of [home, landing, stands, voceros, dignities]) {
+    const navigation = page.match(/<(?:ul class="main-nav__submenu"|ul class="campaign-submenu__list")[\s\S]*?<\/ul>/)?.[0] ?? '';
+    assert.doesNotMatch(navigation, />Voceros<\/a>/i);
+  }
+  assert.match(landing, /href="\/finados\/dignidades-finados-2025\/">Dignidades 2025<\/a>/);
   assert.match(dignities, /<title>Dignidades Finados 2025 \| Mushuc Runa<\/title>/);
   assert.match(dignities, /<h1[^>]*>[\s\S]*Dignidades[\s\S]*Finados 2025[\s\S]*<\/h1>/);
   assert.match(dignities, /Euler Caicedo/);
@@ -339,4 +357,53 @@ test('genera las páginas privadas de Finados y publica su acceso en la navegaci
   assert.match(stands, /href="https:\/\/mushucticket\.com\/" data-stands-purchase-link target="_blank" rel="noopener noreferrer"/);
   assert.match(stands, /class="footer-link" href="\/finados\/" target="_blank" rel="noopener noreferrer"/);
   assert.equal((stands.match(/<h1\b/g) ?? []).length, 1);
+});
+
+test('construye la landing de Voceros y prepara su registro seguro hacia la hoja autorizada', async () => {
+  const output = await mkdtemp(join(tmpdir(), 'mushuc-voceros-'));
+  const files = await buildSite(output);
+  const page = await readFile(join(output, 'finados/voceros/index.html'), 'utf8');
+  const css = await readFile(join(output, 'assets/finados/voceros.css'), 'utf8');
+  const endpoint = await readFile(join(output, 'api/voceros/index.php'), 'utf8');
+  const endpointConfig = await readFile(join(output, 'api/voceros/.htaccess'), 'utf8');
+  const sheetsIntegration = await readFile(join(process.cwd(), '..', 'integrations', 'google-sheets', 'Code.gs'), 'utf8');
+
+  assert.ok(files.includes('finados/voceros/index.html'));
+  assert.ok(files.includes('assets/finados/voceros.css'));
+  assert.ok(files.includes('assets/finados/voceros.js'));
+  assert.ok(files.includes('api/voceros/index.php'));
+  assert.match(endpointConfig, /DirectoryIndex index\.php/);
+  assert.match(page, /<title>Voceros \| Finados Mushuc Runa 2026<\/title>/);
+  assert.match(page, /<meta name="robots" content="noindex, nofollow, noarchive">/);
+  assert.equal((page.match(/<h1\b/g) ?? []).length, 1);
+  assert.match(page, /Volví a la feria/);
+  assert.match(page, /Sube de nivel/);
+  assert.match(page, /No te damos una plantilla/);
+  assert.match(page, /<li>Video vertical en TikTok\.<\/li>/);
+  assert.doesNotMatch(page, /reels de Instagram|reels o video de Facebook|En Instagram y Facebook usa|Lo publicado del 1 al 13 de septiembre/i);
+  assert.match(css, /\.voceros-support \.voceros-heading h2\s*\{[^}]*max-width:\s*100%[^}]*overflow-wrap:\s*anywhere/s);
+  assert.match(page, /action="\/api\/voceros\/" method="post"/);
+  assert.match(page, /data-voceros-fields disabled/);
+  for (const field of [
+    'nombre_completo', 'cedula', 'fecha_nacimiento', 'whatsapp', 'correo', 'ciudad',
+    'tiktok', 'instagram', 'facebook', 'red_principal', 'vocero_previo', 'fuente_comunidad',
+    'retiro_kit', 'consentimiento_politicas', 'autorizacion_imagen', 'consentimiento_datos',
+  ]) assert.match(page, new RegExp(`name="${field}"`));
+  assert.match(page, /Llena al menos uno/);
+  assert.match(page, /Entre 16 y 17 necesitas autorización escrita/);
+  assert.match(page, /Política de Privacidad/);
+  assert.match(page, /Última actualización de esta página: 14 de septiembre de 2026/);
+  assert.doesNotMatch(page, /la más grande|\$\d+/i);
+
+  assert.match(endpoint, /voceros-registration\.json/);
+  assert.match(endpoint, /valid_ecuadorian_id/);
+  assert.match(endpoint, /America\/Guayaquil/);
+  assert.match(endpoint, /consentimientos-voceros-finados-2026\.csv/);
+  assert.match(endpoint, /google_sheets_deliver\(\$privateDirectory, 'voceros'/);
+  assert.match(endpoint, /hash\('sha256'/);
+  assert.doesNotMatch(endpoint, /password|passwd|secret\s*=/i);
+
+  assert.match(sheetsIntegration, /voceros: '1Z4MzXyyyA-V8wb1a2eaOodjb_VzqQm1qTDOtBf1gyuI'/);
+  assert.match(sheetsIntegration, /insertSheet\('Consentimientos'\)/);
+  assert.match(sheetsIntegration, /record\.nombre_completo/);
 });

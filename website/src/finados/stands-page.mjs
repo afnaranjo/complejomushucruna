@@ -1,6 +1,7 @@
 import { site } from '../data/site.mjs';
 import { escapeHtml, externalAttributes } from '../render/html.mjs';
 import { STANDS_WELCOME_SWITCH_AT } from '../stands-sale-schedule.js';
+import { renderFinadosNavigation } from './navigation.mjs';
 
 const purchaseUrl = 'https://mushucticket.com/';
 const campaignAssetVersion = '20260903';
@@ -31,7 +32,8 @@ export function renderStandsAccessPage(page) {
   <div class="chumbi-line fixed inset-x-0 top-0 z-50 h-3" aria-hidden="true"></div>
 
   <header class="stands-access-nav absolute inset-x-0 top-3 z-40">
-    <div class="mx-auto flex h-20 w-[min(100%-2rem,88rem)] items-center justify-end sm:h-24">
+    <div class="mx-auto flex h-20 w-[min(100%-2rem,88rem)] items-center justify-end gap-3 sm:h-24">
+      ${renderFinadosNavigation({ currentRoute: page.route, showComplexLink: false })}
       <a class="button-outline-light" href="/finados/"${newTabAttributes}>Volver a Finados</a>
     </div>
   </header>

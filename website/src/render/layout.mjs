@@ -13,7 +13,15 @@ function navigation(currentRoute) {
       ? ` class="main-nav__action main-nav__action--${escapeHtml(item.emphasis)}"`
       : '';
     const purchaseLink = item.emphasis === 'stands' ? ' data-stands-purchase-link' : '';
-    return `<li><a${actionClass} href="${item.href}"${purchaseLink}${current}${externalAttributes(item.href)}>${escapeHtml(item.label)}</a></li>`;
+    const children = item.children?.length
+      ? `<button class="main-nav__submenu-toggle" type="button" aria-expanded="false" aria-label="Mostrar páginas de ${escapeHtml(item.label)}" data-submenu-toggle><span aria-hidden="true">⌄</span></button>
+        <ul class="main-nav__submenu">${item.children.map((child) => {
+          const childCurrent = child.href.split('#')[0] === currentRoute ? ' aria-current="page"' : '';
+          return `<li><a href="${escapeHtml(child.href)}"${childCurrent}>${escapeHtml(child.label)}</a></li>`;
+        }).join('')}</ul>`
+      : '';
+    const itemClass = children ? ' class="main-nav__item main-nav__item--has-submenu" data-submenu' : '';
+    return `<li${itemClass}><a${actionClass} href="${item.href}"${purchaseLink}${current}${externalAttributes(item.href)}>${escapeHtml(item.label)}</a>${children}</li>`;
   }).join('');
 }
 

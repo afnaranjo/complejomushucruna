@@ -204,7 +204,7 @@ a {
   height: auto;
 }
 
-.main-nav ul,
+.main-nav > ul,
 .site-footer ul {
   display: flex;
   align-items: center;
@@ -262,6 +262,68 @@ a {
   background: currentColor;
 }
 
+.main-nav__item--has-submenu {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.main-nav__submenu-toggle {
+  display: grid;
+  width: 1.65rem;
+  height: 1.65rem;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.main-nav .main-nav__submenu {
+  position: absolute;
+  top: calc(100% + 0.45rem);
+  left: 50%;
+  display: none;
+  width: min(18rem, 80vw);
+  padding: 0.55rem;
+  margin: 0;
+  border: 2px solid #f4eada;
+  border-radius: 1rem;
+  background: #241146;
+  box-shadow: 6px 6px 0 #00d2d6;
+  list-style: none;
+  transform: translateX(-50%);
+}
+
+.main-nav__item--has-submenu:hover > .main-nav__submenu,
+.main-nav__item--has-submenu:focus-within > .main-nav__submenu,
+.main-nav__item--has-submenu[data-open="true"] > .main-nav__submenu {
+  display: grid;
+}
+
+.main-nav .main-nav__submenu a {
+  display: block;
+  padding: 0.75rem 0.85rem;
+  border-radius: 0.6rem;
+  color: #f4eada;
+  font-size: 0.7rem;
+  line-height: 1.25;
+}
+
+.main-nav .main-nav__submenu a:hover,
+.main-nav .main-nav__submenu a:focus-visible,
+.main-nav .main-nav__submenu a[aria-current="page"] {
+  background: #ff2e8a;
+  color: #241146;
+}
+
+.main-nav .main-nav__submenu a::after {
+  display: none;
+}
+
 .home-chumbi {
   position: absolute;
   z-index: 30;
@@ -296,7 +358,7 @@ a {
   object-fit: contain;
 }
 
-.site-header--finados .main-nav ul {
+.site-header--finados .main-nav > ul {
   gap: clamp(0.4rem, 0.85vw, 0.8rem);
 }
 
@@ -1568,8 +1630,28 @@ a {
     display: block;
   }
 
-  .main-nav ul {
+  .main-nav > ul {
     display: block;
+  }
+
+  .main-nav__item--has-submenu {
+    display: grid;
+    grid-template-columns: 1fr auto;
+  }
+
+  .main-nav__submenu-toggle {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+
+  .main-nav .main-nav__submenu {
+    position: static;
+    grid-column: 1 / -1;
+    width: 100%;
+    margin: 0.15rem 0 0.75rem;
+    border-width: 1px;
+    box-shadow: 4px 4px 0 #00d2d6;
+    transform: none;
   }
 
   .main-nav a {

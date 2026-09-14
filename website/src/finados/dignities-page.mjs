@@ -1,6 +1,7 @@
 import { site } from '../data/site.mjs';
 import { escapeHtml } from '../render/html.mjs';
 import { renderFinadosFooter } from './footer.mjs';
+import { renderFinadosNavigation } from './navigation.mjs';
 
 const campaignAssetVersion = '20260914-1';
 const campaignRuntimeVersion = '20260914-2';
@@ -32,10 +33,7 @@ export function renderFinadosDignitiesPage(page) {
       <a href="/finados/" aria-label="Volver a Finados 2026">
         <img class="h-auto w-20 sm:w-36" src="/assets/finados/logo-finados.svg?v=20260903" width="766" height="449" alt="Finados 2026, legado que nos une">
       </a>
-      <nav class="dignities-header-nav" aria-label="Navegación de Finados">
-        <a class="button-outline-light" href="/finados/">Finados 2026</a>
-        <a class="button-outline-light hidden md:inline-flex" href="/">Volver al Complejo</a>
-      </nav>
+      ${renderFinadosNavigation({ currentRoute: page.route })}
     </div>
   </header>
 

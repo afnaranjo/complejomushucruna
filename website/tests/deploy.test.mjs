@@ -138,6 +138,10 @@ test('el despliegue verifica la página y el estado público de la acreditación
 
   assert.match(source, /\['\/acreditacion-de-medios\/', 200\]/);
   assert.match(source, /\['\/api\/acreditacion-medios\/', 200\]/);
+  assert.match(source, /\['\/finados\/voceros\/', 200\]/);
+  assert.match(source, /\['\/api\/voceros\/', 200\]/);
+  assert.match(source, /\['\/assets\/finados\/voceros\.css', 200\]/);
+  assert.match(source, /El endpoint de Voceros no confirmó su estado público/);
   assert.match(source, /command -v php/);
   assert.match(source, /function_exists\(\"mail\"\)/);
   assert.match(source, /target, 'php -l'/);

@@ -1,6 +1,7 @@
 import { routeOptions, site } from '../data/site.mjs';
 import { escapeHtml, externalAttributes } from '../render/html.mjs';
 import { renderFinadosFooter } from './footer.mjs';
+import { renderFinadosNavigation } from './navigation.mjs';
 
 const finadosSocialLinks = [
   { label: 'Facebook', href: 'https://www.facebook.com/FinadosMushucRunaEc' },
@@ -92,10 +93,7 @@ export function renderFinadosPage(page) {
       <a href="#inicio" aria-label="Finados 2026, inicio">
         <img class="h-auto w-20 sm:w-36" src="/assets/finados/logo-finados.svg?v=${campaignAssetVersion}" width="766" height="449" alt="Finados 2026, legado que nos une">
       </a>
-      <nav class="dignities-header-nav" aria-label="Navegación de Finados">
-        <a class="button-outline-light" href="/finados/dignidades-finados-2025/">Dignidades Finados 2025</a>
-        <a class="button-outline-light hidden md:inline-flex" href="/">Volver al Complejo</a>
-      </nav>
+      ${renderFinadosNavigation({ currentRoute: page.route })}
     </div>
   </header>
 

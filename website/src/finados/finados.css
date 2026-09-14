@@ -115,6 +115,101 @@
     background: rgba(36, 17, 70, .96);
   }
 
+  .campaign-nav {
+    display: flex;
+    align-items: center;
+    gap: .65rem;
+    font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+  }
+
+  .campaign-submenu {
+    position: relative;
+    display: flex;
+    align-items: stretch;
+    border: 2px solid #f4eada;
+    border-radius: 999px;
+    background: #ff2e8a;
+    color: #241146;
+    box-shadow: 5px 5px 0 #00d2d6;
+  }
+
+  .campaign-submenu__home,
+  .campaign-nav__complex {
+    display: inline-flex;
+    min-height: 2.9rem;
+    align-items: center;
+    justify-content: center;
+    padding: .7rem 1rem;
+    font-size: .7rem;
+    font-weight: 900;
+    letter-spacing: .12em;
+    line-height: 1;
+    text-decoration: none;
+    text-transform: uppercase;
+  }
+
+  .campaign-submenu__toggle {
+    display: grid;
+    width: 2.75rem;
+    min-height: 2.75rem;
+    place-items: center;
+    padding: 0;
+    border: 0;
+    border-left: 1px solid rgba(36, 17, 70, .32);
+    background: transparent;
+    color: currentColor;
+    cursor: pointer;
+    font-size: 1.05rem;
+  }
+
+  .campaign-nav__complex {
+    border: 2px solid #f4eada;
+    border-radius: 999px;
+    color: #f4eada;
+  }
+
+  .campaign-submenu__list {
+    position: absolute;
+    z-index: 20;
+    top: calc(100% + .75rem);
+    right: 0;
+    display: none;
+    width: min(20rem, calc(100vw - 2rem));
+    padding: .55rem;
+    margin: 0;
+    border: 2px solid #f4eada;
+    border-radius: 1rem;
+    background: #241146;
+    box-shadow: 7px 7px 0 #00d2d6;
+    list-style: none;
+  }
+
+  .campaign-submenu:hover .campaign-submenu__list,
+  .campaign-submenu:focus-within .campaign-submenu__list,
+  .campaign-submenu[data-open="true"] .campaign-submenu__list {
+    display: grid;
+  }
+
+  .campaign-submenu__list a {
+    display: block;
+    padding: .85rem .9rem;
+    border-radius: .65rem;
+    color: #f4eada;
+    font-size: .72rem;
+    font-weight: 850;
+    letter-spacing: .08em;
+    line-height: 1.25;
+    text-decoration: none;
+    text-transform: uppercase;
+  }
+
+  .campaign-submenu__list a:hover,
+  .campaign-submenu__list a:focus-visible,
+  .campaign-submenu__list a[aria-current="page"] {
+    background: #ff2e8a;
+    color: #241146;
+  }
+
   .stands-access-page,
   .stands-access-hero {
     background: #241146;
@@ -1708,6 +1803,26 @@
 }
 
 @media (max-width: 639px) {
+  .campaign-nav {
+    gap: .35rem;
+  }
+
+  .campaign-submenu__home {
+    min-height: 2.45rem;
+    padding: .55rem .65rem;
+    font-size: .56rem;
+    letter-spacing: .08em;
+  }
+
+  .campaign-submenu__toggle {
+    width: 2.35rem;
+    min-height: 2.35rem;
+  }
+
+  .campaign-nav__complex {
+    display: none;
+  }
+
   .dignities-header-nav .button-outline-light {
     min-height: 2.5rem;
     padding: .55rem .72rem;

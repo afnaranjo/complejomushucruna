@@ -23,6 +23,7 @@ import {
 import { renderFinadosPage } from './finados/page.mjs';
 import { renderFinadosDignitiesPage } from './finados/dignities-page.mjs';
 import { renderStandsAccessPage } from './finados/stands-page.mjs';
+import { renderVocerosPage } from './finados/voceros-page.mjs';
 import { renderMediaAccreditationBody } from './media-accreditation/page.mjs';
 
 const historyParagraphs = [
@@ -245,6 +246,14 @@ const finadosDignitiesPage = {
   render: renderFinadosDignitiesPage,
 };
 
+const finadosVocerosPage = {
+  route: '/finados/voceros/',
+  title: 'Voceros',
+  description: 'Comunidad de voceros de Finados Mushuc Runa 2026: niveles, tendencias, acompañamiento y registro.',
+  indexable: false,
+  render: renderVocerosPage,
+};
+
 const standsAccessPage = {
   route: '/acceso-compra-stands/',
   title: 'Acceso para compra de stands',
@@ -253,4 +262,11 @@ const standsAccessPage = {
   render: renderStandsAccessPage,
 };
 
-export const pages = Object.freeze([...mainPages, ...archivePages, finadosPreview, finadosDignitiesPage, standsAccessPage]);
+export const pages = Object.freeze([
+  ...mainPages,
+  ...archivePages,
+  finadosPreview,
+  finadosVocerosPage,
+  finadosDignitiesPage,
+  standsAccessPage,
+]);

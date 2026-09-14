@@ -330,12 +330,15 @@ async function verifyPublicSite(config) {
   const checks = [
     ['/', 200],
     ['/finados/', 200],
+    ['/finados/voceros/', 200],
     ['/acreditacion-de-medios/', 200],
     ['/api/acreditacion-medios/', 200],
+    ['/api/voceros/', 200],
     ['/invitaciones/', 200],
     ['/api/invitaciones-rsvp/', 200],
     ['/assets/styles.css', 200],
     ['/assets/finados/finados.css', 200],
+    ['/assets/finados/voceros.css', 200],
     [`/__verificacion-${Date.now()}`, 404],
   ];
 
@@ -361,6 +364,17 @@ async function verifyPublicSite(config) {
         fail('El endpoint de acreditación no confirmó la fecha límite configurada.');
       }
     }
+    if (path === '/api/voceros/') {
+      let payload;
+      try {
+        payload = await response.json();
+      } catch {
+        fail('El endpoint de Voceros no respondió JSON ejecutable.');
+      }
+      if (typeof payload.open !== 'boolean' || payload.timezone !== 'America/Guayaquil') {
+        fail('El endpoint de Voceros no confirmó su estado público.');
+      }
+    }
     if (path === '/api/invitaciones-rsvp/') {
       let payload;
       try {
@@ -380,6 +394,7 @@ function lintPhpEndpoints(config) {
   const files = [
     ['acreditación', join(websiteRoot, 'public', 'api', 'acreditacion-medios', 'index.php')],
     ['invitaciones', join(websiteRoot, 'public', 'api', 'invitaciones-rsvp', 'index.php')],
+    ['voceros', join(websiteRoot, 'public', 'api', 'voceros', 'index.php')],
     ['integración de Google Sheets', join(websiteRoot, 'public', 'api', '_google-sheets.php')],
   ];
   for (const [label, path] of files) {

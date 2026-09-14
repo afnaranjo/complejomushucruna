@@ -1,9 +1,10 @@
 # Conexión de formularios con Google Sheets
 
-El puente recibe los registros de producción y los guarda por separado en las dos hojas autorizadas:
+El puente recibe los registros de producción y los guarda por separado en las tres hojas autorizadas:
 
 - `media`: acreditación de medios.
 - `brunch`: confirmaciones de invitaciones.
+- `voceros`: registros de la comunidad de voceros. La primera pestaña conserva las fichas y la pestaña `Consentimientos` guarda el registro de auditoría de cada autorización.
 
 La publicación requiere una única autorización del propietario de las hojas:
 
@@ -19,3 +20,5 @@ El archivo privado debe tener esta forma y permisos `0600`:
 ```
 
 Si Google no responde temporalmente, el sitio conserva el registro en su respaldo local y lo coloca en `google-sheets-pending.jsonl` para reintentar en el siguiente envío.
+
+El formulario de voceros permanece cerrado por defecto. Para habilitarlo, además de la conexión anterior, debe existir `private-data/voceros-registration.json` con `enabled: true` y los datos legales aprobados: responsable, RUC, dirección, correo de derechos, plazo de conservación y las cuatro versiones documentales. El archivo es privado y nunca se versiona.

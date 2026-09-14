@@ -10,7 +10,15 @@ export const site = Object.freeze({
 export const primaryNavigation = Object.freeze([
   { label: 'INICIO', href: '/' },
   { label: 'VENTA DE STANDS', href: 'https://www.mushucticket.com/', emphasis: 'stands' },
-  { label: 'FINADOS 2026', href: '/finados/', emphasis: 'finados' },
+  {
+    label: 'FINADOS 2026',
+    href: '/finados/',
+    emphasis: 'finados',
+    children: Object.freeze([
+      { label: 'PROGRAMACIÓN ARTÍSTICA', href: '/finados/#artistas' },
+      { label: 'DIGNIDADES 2025', href: '/finados/dignidades-finados-2025/' },
+    ]),
+  },
   { label: 'ACREDITACIÓN DE MEDIOS', href: '/acreditacion-de-medios/' },
   { label: 'TOUR VIRTUAL', href: site.tourUrl },
   { label: 'GRANJA', href: '/granja/' },

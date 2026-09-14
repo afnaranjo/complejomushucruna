@@ -38,6 +38,10 @@ test('la navegación institucional prioriza venta, Finados y tour en el orden ap
     label: 'FINADOS 2026',
     href: '/finados/',
     emphasis: 'finados',
+    children: [
+      { label: 'PROGRAMACIÓN ARTÍSTICA', href: '/finados/#artistas' },
+      { label: 'DIGNIDADES 2025', href: '/finados/dignidades-finados-2025/' },
+    ],
   });
   assert.deepEqual(primaryNavigation[3], {
     label: 'ACREDITACIÓN DE MEDIOS',

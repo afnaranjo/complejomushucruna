@@ -41,6 +41,37 @@ export function setupReveals(root = document) {
   elements.forEach((element) => observer.observe(element));
 }
 
+export function setSubmenuState(item, toggle, open) {
+  item.dataset.open = String(open);
+  toggle.setAttribute('aria-expanded', String(open));
+}
+
+export function setupSubmenus(root = document) {
+  const items = [...root.querySelectorAll('[data-submenu]')];
+  if (!items.length) return;
+
+  for (const item of items) {
+    const toggle = item.querySelector('[data-submenu-toggle]');
+    if (!toggle) continue;
+    toggle.addEventListener('click', (event) => {
+      event.stopPropagation();
+      const nextState = toggle.getAttribute('aria-expanded') !== 'true';
+      for (const other of items) {
+        const otherToggle = other.querySelector('[data-submenu-toggle]');
+        if (otherToggle) setSubmenuState(other, otherToggle, other === item && nextState);
+      }
+    });
+  }
+
+  root.addEventListener('click', (event) => {
+    if (event.target.closest('[data-submenu]')) return;
+    for (const item of items) {
+      const toggle = item.querySelector('[data-submenu-toggle]');
+      if (toggle) setSubmenuState(item, toggle, false);
+    }
+  });
+}
+
 export const MEDIA_ACCREDITATION_DEADLINE = '2026-09-15T18:00:00-05:00';
 
 export function isMediaAccreditationOpen(now = new Date(), deadline = MEDIA_ACCREDITATION_DEADLINE) {
@@ -255,6 +286,7 @@ export function setupMediaAccreditation(root = document, fetchImplementation = g
 
 if (typeof document !== 'undefined') {
   setupMenu(document);
+  setupSubmenus(document);
   setupReveals(document);
   setupMediaAccreditation(document);
   setupStandsSaleSchedule(document);

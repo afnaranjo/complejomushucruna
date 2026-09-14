@@ -13,6 +13,45 @@ function updateHeader() {
 updateHeader();
 window.addEventListener('scroll', updateHeader, { passive: true });
 
+function setupCampaignSubmenus() {
+  const submenus = [...document.querySelectorAll('[data-campaign-submenu]')];
+  for (const submenu of submenus) {
+    const toggle = submenu.querySelector('[data-campaign-submenu-toggle]');
+    if (!toggle) continue;
+    toggle.addEventListener('click', (event) => {
+      event.stopPropagation();
+      const open = toggle.getAttribute('aria-expanded') !== 'true';
+      for (const other of submenus) {
+        const otherToggle = other.querySelector('[data-campaign-submenu-toggle]');
+        if (!otherToggle) continue;
+        const next = other === submenu && open;
+        other.dataset.open = String(next);
+        otherToggle.setAttribute('aria-expanded', String(next));
+      }
+    });
+  }
+
+  document.addEventListener('click', (event) => {
+    if (event.target.closest('[data-campaign-submenu]')) return;
+    for (const submenu of submenus) {
+      const toggle = submenu.querySelector('[data-campaign-submenu-toggle]');
+      submenu.dataset.open = 'false';
+      toggle?.setAttribute('aria-expanded', 'false');
+    }
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape') return;
+    for (const submenu of submenus) {
+      const toggle = submenu.querySelector('[data-campaign-submenu-toggle]');
+      submenu.dataset.open = 'false';
+      toggle?.setAttribute('aria-expanded', 'false');
+    }
+  });
+}
+
+setupCampaignSubmenus();
+
 const revealItems = document.querySelectorAll('[data-reveal]');
 
 if (reducedMotion || !('IntersectionObserver' in window)) {
