@@ -1,18 +1,5 @@
 export function isValidEcuadorianId(value) {
-  const digits = String(value).replace(/\D/g, '');
-  if (!/^\d{10}$/.test(digits)) return false;
-  const province = Number(digits.slice(0, 2));
-  const third = Number(digits[2]);
-  if (province < 1 || province > 24 || third >= 6) return false;
-
-  let total = 0;
-  for (let index = 0; index < 9; index += 1) {
-    let product = Number(digits[index]) * (index % 2 === 0 ? 2 : 1);
-    if (product > 9) product -= 9;
-    total += product;
-  }
-  const verifier = (10 - (total % 10)) % 10;
-  return verifier === Number(digits[9]);
+  return /^\d{10}$/.test(String(value).trim());
 }
 
 export function ageOnDate(birthValue, reference = new Date()) {
@@ -220,7 +207,7 @@ export function setupVocerosForm(root = document, fetchImplementation = globalTh
 
   const syncId = () => {
     if (!id.value) return id.setCustomValidity('');
-    id.setCustomValidity(isValidEcuadorianId(id.value) ? '' : 'Ingresa una cédula ecuatoriana válida de 10 dígitos.');
+    id.setCustomValidity(isValidEcuadorianId(id.value) ? '' : 'Ingresa una cédula de 10 dígitos.');
   };
 
   const syncProfiles = () => {

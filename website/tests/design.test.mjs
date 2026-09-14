@@ -141,9 +141,11 @@ test('la acreditación se bloquea exactamente al llegar la fecha límite', () =>
   assert.equal(isMediaAccreditationOpen(new Date('2026-09-16T09:00:00-05:00')), false);
 });
 
-test('el registro de Voceros valida cédulas ecuatorianas y la edad mínima', () => {
+test('el registro de Voceros valida el formato de cédula y la edad mínima', () => {
   assert.equal(isValidEcuadorianId('0102030400'), true);
-  assert.equal(isValidEcuadorianId('0102030401'), false);
+  assert.equal(isValidEcuadorianId('1804383218'), true);
+  assert.equal(isValidEcuadorianId('180438321'), false);
+  assert.equal(isValidEcuadorianId('18043832A8'), false);
   assert.equal(ageOnDate('2010-09-14', new Date(2026, 8, 14)), 16);
   assert.equal(ageOnDate('2010-09-15', new Date(2026, 8, 14)), 15);
   assert.equal(formatVocerosBirthDate('2000-01-31'), '31/01/2000');

@@ -4,7 +4,7 @@ import { renderFinadosFooter } from './footer.mjs';
 import { renderFinadosNavigation } from './navigation.mjs';
 
 const campaignAssetVersion = '20260914-1';
-const campaignRuntimeVersion = '20260914-5';
+const campaignRuntimeVersion = '20260914-6';
 
 const controller = Object.freeze({
   name: 'Eventos Finados 2026',

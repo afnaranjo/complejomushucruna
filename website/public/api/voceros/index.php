@@ -70,17 +70,7 @@ function require_choice(string $value, array $allowed): string
 
 function valid_ecuadorian_id(string $value): bool
 {
-    if (preg_match('/^\d{10}$/', $value) !== 1) return false;
-    $province = (int) substr($value, 0, 2);
-    $third = (int) $value[2];
-    if ($province < 1 || $province > 24 || $third >= 6) return false;
-    $total = 0;
-    for ($index = 0; $index < 9; $index++) {
-        $product = ((int) $value[$index]) * ($index % 2 === 0 ? 2 : 1);
-        if ($product > 9) $product -= 9;
-        $total += $product;
-    }
-    return ((10 - ($total % 10)) % 10) === (int) $value[9];
+    return preg_match('/^\d{10}$/', $value) === 1;
 }
 
 function valid_https_url(string $value): bool
@@ -218,7 +208,7 @@ try {
         'consentimiento_datos' => require_choice(clean_required('consentimiento_datos', 4), ['Sí']),
     ];
 
-    if (!valid_ecuadorian_id($data['cedula'])) throw new InvalidArgumentException('Ingresa una cédula ecuatoriana válida.');
+    if (!valid_ecuadorian_id($data['cedula'])) throw new InvalidArgumentException('Ingresa una cédula de 10 dígitos.');
     if (preg_match('/^09\d{8}$/', $data['whatsapp']) !== 1) throw new InvalidArgumentException('Ingresa un WhatsApp con formato 09XXXXXXXX.');
     if (!filter_var($data['correo'], FILTER_VALIDATE_EMAIL)) throw new InvalidArgumentException('Ingresa un correo electrónico válido.');
     if ($data['tiktok'] === '' && $data['instagram'] === '' && $data['facebook'] === '') {
@@ -238,7 +228,7 @@ try {
         foreach ($representative as $value) {
             if ($value === '') throw new InvalidArgumentException('Completa los datos de tu representante legal.');
         }
-        if (!valid_ecuadorian_id($representative['representante_cedula'])) throw new InvalidArgumentException('Revisa la cédula del representante legal.');
+        if (!valid_ecuadorian_id($representative['representante_cedula'])) throw new InvalidArgumentException('La cédula del representante debe tener 10 dígitos.');
         if (preg_match('/^09\d{8}$/', $representative['representante_telefono']) !== 1) throw new InvalidArgumentException('Revisa el teléfono del representante legal.');
         if (!filter_var($representative['representante_correo'], FILTER_VALIDATE_EMAIL)) throw new InvalidArgumentException('Revisa el correo del representante legal.');
     }
