@@ -175,8 +175,8 @@ export async function downloadVocerosReceipt(receipt) {
   downloadReceiptBlob(await createVocerosReceiptBlob(receipt));
 }
 
-export async function shareVocerosReceipt(receipt, navigatorImplementation = globalThis.navigator) {
-  const blob = await createVocerosReceiptBlob(receipt);
+export async function shareVocerosReceipt(receipt, navigatorImplementation = globalThis.navigator, preparedBlob = null) {
+  const blob = preparedBlob || await createVocerosReceiptBlob(receipt);
   const file = typeof File === 'function'
     ? new File([blob], vocerosReceiptFilename, { type: 'image/png' })
     : null;
@@ -220,6 +220,7 @@ export function setupVocerosForm(root = document, fetchImplementation = globalTh
   const submissionId = form.elements.submission_id;
   let registrationOpen = false;
   let receipt = { name: '', whatsapp: '', birth: '', city: '', previous: '' };
+  let receiptBlob = null;
 
   const syncSubmit = () => {
     const allConsents = consents.every((input) => input.checked);
@@ -286,7 +287,8 @@ export function setupVocerosForm(root = document, fetchImplementation = globalTh
     const originalText = download.textContent;
     download.textContent = 'Preparando imagen…';
     try {
-      await downloadVocerosReceipt(receipt);
+      if (receiptBlob) downloadReceiptBlob(receiptBlob);
+      else await downloadVocerosReceipt(receipt);
     } finally {
       download.disabled = false;
       download.textContent = originalText;
@@ -296,7 +298,7 @@ export function setupVocerosForm(root = document, fetchImplementation = globalTh
     share.disabled = true;
     if (shareStatus) shareStatus.textContent = '';
     try {
-      const result = await shareVocerosReceipt(receipt);
+      const result = await shareVocerosReceipt(receipt, globalThis.navigator, receiptBlob);
       if (shareStatus && result === 'downloaded') {
         shareStatus.textContent = 'Tu dispositivo no permite compartir directamente; descargamos la imagen para que puedas enviarla.';
       }
@@ -350,6 +352,12 @@ export function setupVocerosForm(root = document, fetchImplementation = globalTh
       const payload = await response.json().catch(() => ({}));
       if (!response.ok || payload.ok !== true) throw new Error(payload.message || 'No fue posible completar el registro.');
       receipt = submittedReceipt;
+      receiptBlob = null;
+      if (share) share.disabled = true;
+      createVocerosReceiptBlob(receipt)
+        .then((blob) => { receiptBlob = blob; })
+        .catch(() => {})
+        .finally(() => { if (share) share.disabled = false; });
       form.reset();
       renewSubmissionId();
       syncAge();
