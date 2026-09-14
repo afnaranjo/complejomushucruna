@@ -157,13 +157,19 @@
 
 .voceros-button {
   margin-top: 2rem;
+  background: var(--voceros-cyan);
+  box-shadow: 6px 6px 0 var(--voceros-fuchsia);
 }
 
-.voceros-button:hover,
-.voceros-button:focus-visible,
 .voceros-conditions a:hover,
 .voceros-rules__list a:hover {
   box-shadow: 3px 3px 0 var(--voceros-cyan);
+  transform: translate(3px, 3px);
+}
+
+.voceros-button:hover,
+.voceros-button:focus-visible {
+  box-shadow: 3px 3px 0 var(--voceros-fuchsia);
   transform: translate(3px, 3px);
 }
 

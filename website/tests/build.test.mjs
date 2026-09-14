@@ -411,6 +411,7 @@ test('construye la landing de Voceros y prepara su registro seguro hacia la hoja
   assert.match(vocerosScript, /formData\.get\('vocero_previo'\)/);
   assert.match(page, /Última actualización de esta página: 14 de septiembre de 2026/);
   assert.doesNotMatch(page, /la más grande|\$\d+/i);
+  assert.match(css, /\.voceros-button\s*\{[^}]*background: var\(--voceros-cyan\);[^}]*box-shadow: 6px 6px 0 var\(--voceros-fuchsia\)/s);
 
   assert.match(endpoint, /voceros-registration\.json/);
   assert.match(endpoint, /valid_ecuadorian_id/);
