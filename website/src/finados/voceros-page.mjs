@@ -267,7 +267,7 @@ export function renderVocerosPage(page) {
             <legend class="sr-only">Datos para registrarte como vocero</legend>
             <div class="voceros-form__fields">
               ${textField({ name: 'nombre_completo', label: 'Nombre y apellido completos', autocomplete: 'name', minlength: '5', maxlength: '160' })}
-              ${textField({ name: 'cedula', label: 'Cédula', inputmode: 'numeric', minlength: '10', maxlength: '10', placeholder: 'Ej.: 1804383218' })}
+              ${textField({ name: 'cedula', label: 'Cédula', inputmode: 'numeric', minlength: '10', maxlength: '10', placeholder: 'Ej.: 1808743587' })}
               ${textField({ name: 'fecha_nacimiento', label: 'Fecha de nacimiento', type: 'date', maxlength: '' })}
               ${textField({ name: 'whatsapp', label: 'Número de WhatsApp', type: 'tel', autocomplete: 'tel', inputmode: 'numeric', minlength: '10', maxlength: '10', placeholder: 'Ej.: 0995874566' })}
               ${textField({ name: 'correo', label: 'Correo electrónico', type: 'email', autocomplete: 'email' })}

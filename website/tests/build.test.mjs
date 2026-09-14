@@ -397,7 +397,7 @@ test('construye la landing de Voceros y prepara su registro seguro hacia la hoja
   assert.match(page, /Llena al menos uno/);
   assert.match(page, /Entre 16 y 17 necesitas autorización escrita/);
   assert.match(page, /Política de Privacidad/);
-  assert.match(page, /name="cedula"[^>]*placeholder="Ej\.: 1804383218"/);
+  assert.match(page, /name="cedula"[^>]*placeholder="Ej\.: 1808743587"/);
   assert.match(page, /name="whatsapp"[^>]*placeholder="Ej\.: 0995874566"/);
   assert.match(page, /data-voceros-download>Descargar imagen/);
   assert.match(page, /data-voceros-share/);
