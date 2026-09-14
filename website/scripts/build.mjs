@@ -11,6 +11,7 @@ const websiteRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const execFileAsync = promisify(execFile);
 
 const cookieConsentMarkup = `  <aside class="cookie-consent" data-cookie-consent hidden role="region" aria-label="Preferencias de cookies">
+    <p class="cookie-consent__message">Nuestro sitio web utiliza cookies para mejorar tu navegación.</p>
     <button class="cookie-consent__accept" type="button" data-cookie-consent-accept aria-label="Aceptar el uso de cookies">Aceptar</button>
   </aside>`;
 
@@ -19,10 +20,10 @@ export function injectCookieConsent(html) {
   if (!/<\/head>/i.test(html) || !/<\/body>/i.test(html)) return html;
 
   return html
-    .replace(/<\/head>/i, '  <link rel="stylesheet" href="/assets/cookie-consent.css?v=20260914-1">\n</head>')
+    .replace(/<\/head>/i, '  <link rel="stylesheet" href="/assets/cookie-consent.css?v=20260914-2">\n</head>')
     .replace(
       /<\/body>/i,
-      `${cookieConsentMarkup}\n  <script type="module" src="/assets/cookie-consent.js?v=20260914-1"></script>\n</body>`,
+      `${cookieConsentMarkup}\n  <script type="module" src="/assets/cookie-consent.js?v=20260914-2"></script>\n</body>`,
     );
 }
 
