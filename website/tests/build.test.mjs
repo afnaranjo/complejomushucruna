@@ -397,6 +397,8 @@ test('construye la landing de Voceros y prepara su registro seguro hacia la hoja
   assert.match(page, /Llena al menos uno/);
   assert.match(page, /Entre 16 y 17 necesitas autorización escrita/);
   assert.match(page, /Política de Privacidad/);
+  assert.match(page, /name="cedula"[^>]*placeholder="Ej\.: 1804383218"/);
+  assert.match(page, /name="whatsapp"[^>]*placeholder="Ej\.: 0995874566"/);
   assert.match(page, /data-voceros-download>Descargar imagen/);
   assert.match(page, /data-voceros-share/);
   assert.match(page, /<span>Compartir<\/span><svg/);
@@ -428,6 +430,7 @@ test('construye la landing de Voceros y prepara su registro seguro hacia la hoja
   assert.match(endpoint, /\$googleSheetsStatus !== 'synced'/);
   assert.match(endpoint, /valid_submission_id/);
   assert.match(endpoint, /hash\('sha256'/);
+  assert.doesNotMatch(endpoint, /register_rate_attempt|Se alcanzó el límite de envíos|json_response\(429/);
   assert.doesNotMatch(endpoint, /password|passwd|secret\s*=/i);
 
   assert.match(sheetsIntegration, /voceros: '1Z4MzXyyyA-V8wb1a2eaOodjb_VzqQm1qTDOtBf1gyuI'/);

@@ -75,12 +75,13 @@ function select(name, label, values) {
   </label>`;
 }
 
-function textField({ name, label, type = 'text', autocomplete = '', inputmode = '', minlength = '', maxlength = '180', optional = false }) {
+function textField({ name, label, type = 'text', autocomplete = '', inputmode = '', minlength = '', maxlength = '180', placeholder = '', optional = false }) {
   const attrs = [
     autocomplete ? ` autocomplete="${autocomplete}"` : '',
     inputmode ? ` inputmode="${inputmode}"` : '',
     minlength ? ` minlength="${minlength}"` : '',
     maxlength ? ` maxlength="${maxlength}"` : '',
+    placeholder ? ` placeholder="${placeholder}"` : '',
     optional ? '' : ' required',
   ].join('');
   return `<label class="voceros-field" for="${name}">
@@ -266,9 +267,9 @@ export function renderVocerosPage(page) {
             <legend class="sr-only">Datos para registrarte como vocero</legend>
             <div class="voceros-form__fields">
               ${textField({ name: 'nombre_completo', label: 'Nombre y apellido completos', autocomplete: 'name', minlength: '5', maxlength: '160' })}
-              ${textField({ name: 'cedula', label: 'Cédula', inputmode: 'numeric', minlength: '10', maxlength: '10' })}
+              ${textField({ name: 'cedula', label: 'Cédula', inputmode: 'numeric', minlength: '10', maxlength: '10', placeholder: 'Ej.: 1804383218' })}
               ${textField({ name: 'fecha_nacimiento', label: 'Fecha de nacimiento', type: 'date', maxlength: '' })}
-              ${textField({ name: 'whatsapp', label: 'Número de WhatsApp', type: 'tel', autocomplete: 'tel', inputmode: 'numeric', minlength: '10', maxlength: '10' })}
+              ${textField({ name: 'whatsapp', label: 'Número de WhatsApp', type: 'tel', autocomplete: 'tel', inputmode: 'numeric', minlength: '10', maxlength: '10', placeholder: 'Ej.: 0995874566' })}
               ${textField({ name: 'correo', label: 'Correo electrónico', type: 'email', autocomplete: 'email' })}
               ${textField({ name: 'ciudad', label: 'Ciudad', autocomplete: 'address-level2', maxlength: '100' })}
               ${textField({ name: 'tiktok', label: 'Enlace de tu perfil de TikTok', type: 'url', autocomplete: 'url', optional: true, maxlength: '300' })}

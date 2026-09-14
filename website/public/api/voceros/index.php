@@ -110,36 +110,6 @@ function append_csv(string $path, array $header, array $rows): void
     @chmod($path, 0600);
 }
 
-function register_rate_attempt(string $directory): void
-{
-    $address = isset($_SERVER['REMOTE_ADDR']) ? (string) $_SERVER['REMOTE_ADDR'] : 'unknown';
-    $rateDirectory = $directory . DIRECTORY_SEPARATOR . 'rate-voceros';
-    if (!is_dir($rateDirectory) && !mkdir($rateDirectory, 0700, true) && !is_dir($rateDirectory)) {
-        throw new RuntimeException('No se pudo preparar el control de envíos.');
-    }
-    $path = $rateDirectory . DIRECTORY_SEPARATOR . hash('sha256', $address) . '.json';
-    $handle = fopen($path, 'c+');
-    if ($handle === false || !flock($handle, LOCK_EX)) throw new RuntimeException('No se pudo validar el envío.');
-    $contents = stream_get_contents($handle);
-    $attempts = is_string($contents) && $contents !== '' ? json_decode($contents, true) : [];
-    $attempts = is_array($attempts) ? $attempts : [];
-    $threshold = time() - 3600;
-    $attempts = array_values(array_filter($attempts, static fn($timestamp): bool => is_int($timestamp) && $timestamp >= $threshold));
-    if (count($attempts) >= 5) {
-        flock($handle, LOCK_UN);
-        fclose($handle);
-        json_response(429, ['ok' => false, 'message' => 'Se alcanzó el límite de envíos. Inténtalo más tarde.']);
-    }
-    $attempts[] = time();
-    rewind($handle);
-    ftruncate($handle, 0);
-    fwrite($handle, json_encode($attempts));
-    fflush($handle);
-    flock($handle, LOCK_UN);
-    fclose($handle);
-    @chmod($path, 0600);
-}
-
 $config = registration_config($privateDirectory);
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET' || $_SERVER['REQUEST_METHOD'] === 'HEAD') {
@@ -182,7 +152,6 @@ try {
         throw new RuntimeException('No se pudo preparar el almacenamiento.');
     }
     @chmod($privateDirectory, 0700);
-    register_rate_attempt($privateDirectory);
 
     $birthValue = clean_required('fecha_nacimiento', 10, 10);
     $birth = DateTimeImmutable::createFromFormat('!Y-m-d', $birthValue, $timezone);
