@@ -35,9 +35,13 @@ test('mantiene pequeños los recursos propios de código', async () => {
   await buildSite(output);
   const css = await stat(join(output, 'assets/styles.css'));
   const js = await stat(join(output, 'assets/site.js'));
+  const cookieCss = await stat(join(output, 'assets/cookie-consent.css'));
+  const cookieJs = await stat(join(output, 'assets/cookie-consent.js'));
 
   assert.ok(css.size < 100_000, `CSS demasiado grande: ${css.size}`);
   assert.ok(js.size < 30_000, `JavaScript demasiado grande: ${js.size}`);
+  assert.ok(cookieCss.size < 5_000, `CSS de cookies demasiado grande: ${cookieCss.size}`);
+  assert.ok(cookieJs.size < 5_000, `JavaScript de cookies demasiado grande: ${cookieJs.size}`);
 });
 
 test('empaqueta la experiencia Finados con recursos locales y optimizados', async () => {

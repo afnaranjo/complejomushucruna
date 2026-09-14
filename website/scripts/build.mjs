@@ -1,4 +1,4 @@
-import { cp, mkdir, readdir, rm, writeFile } from 'node:fs/promises';
+import { cp, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { dirname, join, relative, resolve } from 'node:path';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
@@ -9,6 +9,22 @@ import { renderLayout } from '../src/render/layout.mjs';
 
 const websiteRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const execFileAsync = promisify(execFile);
+
+const cookieConsentMarkup = `  <aside class="cookie-consent" data-cookie-consent hidden role="region" aria-label="Preferencias de cookies">
+    <button class="cookie-consent__accept" type="button" data-cookie-consent-accept aria-label="Aceptar el uso de cookies">Aceptar</button>
+  </aside>`;
+
+export function injectCookieConsent(html) {
+  if (html.includes('data-cookie-consent')) return html;
+  if (!/<\/head>/i.test(html) || !/<\/body>/i.test(html)) return html;
+
+  return html
+    .replace(/<\/head>/i, '  <link rel="stylesheet" href="/assets/cookie-consent.css?v=20260914-1">\n</head>')
+    .replace(
+      /<\/body>/i,
+      `${cookieConsentMarkup}\n  <script type="module" src="/assets/cookie-consent.js?v=20260914-1"></script>\n</body>`,
+    );
+}
 
 async function listFiles(directory, root = directory) {
   const entries = await readdir(directory, { withFileTypes: true });
@@ -44,6 +60,8 @@ export async function buildSite(outputDirectory = join(websiteRoot, 'dist')) {
   await cp(join(websiteRoot, 'src', 'styles.css'), join(output, 'assets', 'styles.css'));
   await cp(join(websiteRoot, 'src', 'site.js'), join(output, 'assets', 'site.js'));
   await cp(join(websiteRoot, 'src', 'stands-sale-schedule.js'), join(output, 'assets', 'stands-sale-schedule.js'));
+  await cp(join(websiteRoot, 'src', 'cookie-consent.css'), join(output, 'assets', 'cookie-consent.css'));
+  await cp(join(websiteRoot, 'src', 'cookie-consent.js'), join(output, 'assets', 'cookie-consent.js'));
   await cp(
     join(websiteRoot, 'src', 'media-accreditation', 'media-accreditation.css'),
     join(output, 'assets', 'media-accreditation.css'),
@@ -65,6 +83,13 @@ export async function buildSite(outputDirectory = join(websiteRoot, 'dist')) {
     '--minify',
   ], { cwd: websiteRoot });
   await cp(join(websiteRoot, 'src', 'finados', 'finados.js'), join(finadosAssets, 'finados.js'));
+
+  const htmlFiles = (await listFiles(output)).filter((file) => file.endsWith('.html'));
+  for (const htmlFile of htmlFiles) {
+    const path = join(output, htmlFile);
+    const html = await readFile(path, 'utf8');
+    await writeFile(path, injectCookieConsent(html), 'utf8');
+  }
 
   return (await listFiles(output)).sort();
 }

@@ -7,6 +7,22 @@ import { join } from 'node:path';
 import { buildSite } from '../scripts/build.mjs';
 import { escapeHtml } from '../src/render/html.mjs';
 
+test('agrega una barra de cookies mínima en todas las páginas HTML', async () => {
+  const output = await mkdtemp(join(tmpdir(), 'mushuc-cookie-consent-'));
+  const files = await buildSite(output);
+  const htmlFiles = files.filter((file) => file.endsWith('.html'));
+
+  assert.ok(htmlFiles.length >= 14);
+  for (const htmlFile of htmlFiles) {
+    const html = await readFile(join(output, htmlFile), 'utf8');
+    assert.equal((html.match(/data-cookie-consent(?:\s|>)/g) ?? []).length, 1, `${htmlFile} debe incluir una barra`);
+    assert.equal((html.match(/data-cookie-consent-accept/g) ?? []).length, 1, `${htmlFile} debe incluir un botón`);
+    assert.match(html, />Aceptar<\/button>/, `${htmlFile} debe mostrar únicamente la acción Aceptar`);
+    assert.match(html, /\/assets\/cookie-consent\.css\?v=20260914-1/);
+    assert.match(html, /\/assets\/cookie-consent\.js\?v=20260914-1/);
+  }
+});
+
 test('escapa contenido que no debe convertirse en HTML activo', () => {
   assert.equal(
     escapeHtml('<script>alert("Mushuc")</script>'),
