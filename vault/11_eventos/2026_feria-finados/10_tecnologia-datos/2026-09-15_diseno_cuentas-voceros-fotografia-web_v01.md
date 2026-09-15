@@ -18,6 +18,8 @@ Convertir el registro de Voceros en un flujo autenticado con dos perfiles claram
 - **Administrador:** conserva el panel privado y puede revisar todos los registros, fotografías, estados y notas.
 - **Vocero:** crea su propia cuenta, inicia sesión y solo puede completar, consultar o editar su registro mientras esté en estado `Nuevo` o `Pendiente de autorización`.
 
+Cada respuesta de sesión identificará explícitamente el rol como `administrador` o `vocero`; el rol se decide en el servidor y nunca se acepta desde el navegador.
+
 La fotografía será obligatoria para los registros nuevos y servirá para verificar identidad y preparar una credencial o gafete. No será una imagen pública ni se enviará a Google Sheets.
 
 ## Alcance aprobado
@@ -73,11 +75,11 @@ El endpoint anónimo actual `/api/voceros/` dejará de aceptar altas cuando se p
 
 Las migraciones serán nuevas y aditivas para MySQL y SQLite:
 
-- `vocero_accounts`: identificador público, correo cifrado, índice ciego del correo, hash de contraseña, estado activo/bloqueado y fechas de creación, actualización y último acceso.
+- `vocero_accounts`: identificador público, correo cifrado, índice ciego del correo, hash de contraseña, evidencia de lectura del aviso de privacidad, estado activo/bloqueado y fechas de creación, actualización y último acceso.
 - `vocero_account_attempts`: intentos de acceso limitados por cuenta e IP mediante hashes HMAC.
 - `vocero_password_resets`: token guardado únicamente como hash, fecha de expiración, fecha de consumo y administrador que lo creó.
+- `vocero_account_links`: relación uno a uno entre `vocero_accounts` y `voceros`; los registros históricos no tendrán una fila de vínculo.
 - `vocero_photos`: relación única con `voceros`, clave aleatoria de almacenamiento, tipo, tamaño, dimensiones, hash SHA-256 y fecha.
-- `voceros.account_id`: relación única y anulable con `vocero_accounts`. Los registros históricos conservarán `NULL`.
 
 El correo será obligatorio, único y no se guardará en texto claro. Cada cuenta podrá tener como máximo un registro. No se asociarán automáticamente cuentas nuevas con registros históricos, porque una coincidencia de correo no acredita propiedad.
 
@@ -139,6 +141,13 @@ Las fotos, sus rutas y sus nombres lógicos no se incluirán en Google Sheets, C
 El uso operativo de la fotografía para identidad y gafete estará cubierto por el consentimiento de datos. La autorización para usar públicamente imagen, voz o contenido seguirá siendo un consentimiento separado; subir la foto no equivale por sí solo a autorizar su publicación.
 
 La Política de Privacidad añadirá la fotografía entre los datos tratados y explicará las finalidades de identificación, gestión del programa y elaboración/entrega de gafete. El texto visible del checkbox y el texto que calcula el hash serán idénticos. Las versiones `privacyVersion` e `imageVersion` pasarán a `2026-09-15`; los consentimientos históricos no se reescribirán.
+
+Los textos canónicos serán:
+
+- **Cuenta:** “Confirmo que he leído la Política de Privacidad y autorizo el tratamiento de mi correo electrónico para crear y proteger mi cuenta de Vocero.”
+- **Políticas:** “He leído y acepto las Políticas del Vocero y las Bases del Termómetro.”
+- **Imagen pública:** “Autorizo por separado al responsable del programa a usar mi imagen, mi voz y el contenido que publique como vocero en sus canales oficiales y materiales de la feria, con mi crédito y sin pago adicional. Entiendo que la fotografía que subo para identificación y gafete no se publicará por ese solo hecho. He leído la Autorización de uso de imagen y contenido.”
+- **Datos y foto operativa:** “Autorizo el tratamiento de mis datos personales, incluida la fotografía que subo, para verificar mi identidad, gestionar mi participación y, si corresponde, elaborar y entregar mi credencial o gafete. He leído la Política de Privacidad y conozco mis derechos de acceso, rectificación, eliminación, oposición y portabilidad.”
 
 El plazo aprobado es de tres años desde el envío. La documentación no afirmará que existe eliminación automática mientras no se configure una ejecución programada. La revocación o eliminación autorizada deberá contemplar fila de base, archivo, exportaciones y política de respaldos.
 
