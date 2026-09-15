@@ -57,10 +57,11 @@ final class BackupCommand
             Operations::writeExclusive($directory . '/manifest.json', json_encode($manifest, JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT) . "\n");
             // Only the intermediate created by this run is removed; previous backups are untouched.
             unlink($raw);
-            fwrite(STDOUT, json_encode(['backups' => 1, 'bytes' => $manifest['bytes'], 'sha256' => $manifest['sha256']]) . "\n");
+            $receipt = json_encode(['backups' => 1, 'bytes' => $manifest['bytes'], 'sha256' => $manifest['sha256']]) . "\n";
+            if (file_put_contents('php://stdout', $receipt) !== strlen($receipt)) throw new RuntimeException('Receipt failed.');
             return 0;
         } catch (Throwable $error) {
-            fwrite(STDERR, $error instanceof MissingDumpBinary
+            file_put_contents('php://stderr', $error instanceof MissingDumpBinary
                 ? "No está disponible mysqldump. Usa Backup Wizard de cPanel y verifica la descarga privada antes de continuar.\n"
                 : "No se pudo completar el respaldo. No uses archivos sin manifiesto verificado.\n");
             return 1;

@@ -183,6 +183,9 @@ test('backend carga las excepciones globales antes de ejecutar el respaldo empaq
   const transport = recordingTransport();
   await deployBackend(fixtureConfig(), transport, { release: '20260914-abcdef' });
   const input = transport.operations.find(item => item.id === 'backup-database').input;
+  assert.doesNotMatch(input, /\bSTD(?:OUT|ERR)\b/);
+  assert.match(input, /php:\/\/stdout/);
+  assert.match(input, /php:\/\/stderr/);
   const result = spawnSync('php', [], {
     input,
     encoding: 'utf8',
