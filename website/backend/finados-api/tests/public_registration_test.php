@@ -7,6 +7,8 @@ foreach (['Database', 'Crypto', 'Audit', 'VocerosRepository'] as $class) require
 // Execute the shipped endpoint, with only private configuration and external transport replaced.
 $endpoint = __DIR__ . '/../../../public/api/voceros/index.php';
 require_once $endpoint;
+$publicTestOriginalLog = ini_get('error_log');
+ini_set('error_log', temp_file(''));
 
 function public_fixture(int $number = 1, array $overrides = []): array
 {
@@ -28,6 +30,7 @@ $testConfig = Finados\Config::fromFile(temp_file(json_encode([
 ])));
 $publicDb = Finados\Database::connect($testConfig);
 $publicDb->exec(file_get_contents(__DIR__ . '/../migrations/001_initial_sqlite.sql'));
+$publicDb->exec(file_get_contents(__DIR__ . '/../migrations/002_sheets_outbox_sqlite.sql'));
 $publicCrypto = new Finados\Crypto($testConfig);
 $publicRepository = new Finados\VocerosRepository($publicDb, $publicCrypto);
 $legal = ['policiesVersion' => 'p1', 'thermometerVersion' => 't1', 'imageVersion' => 'i1', 'privacyVersion' => 'd1'];
@@ -68,11 +71,15 @@ same(200, $response['status']);
 same(true, $response['json']['ok']);
 same('stored', $response['json']['database']);
 same('queued', $response['json']['googleSheets']);
-same(true, is_file($publicPrivateDirectory . '/google-sheets-pending.jsonl'));
-$queued = json_decode(trim(file_get_contents($publicPrivateDirectory . '/google-sheets-pending.jsonl')), true);
-same('voceros', $queued['kind']);
-same(public_fixture()['submission_id'], $queued['record']['id']);
-same(3, count($queued['record']['consents']));
+// A successful queued receipt must have a durable database job, never just an audit label.
+same(1, (int) $publicDb->query("SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'sheets_outbox'")->fetchColumn());
+$queued = $publicDb->query('SELECT * FROM sheets_outbox')->fetch();
+$queuedPayload = json_decode($publicCrypto->decrypt($queued['payload_enc']), true);
+same(public_fixture()['submission_id'], $queuedPayload['id']);
+same(3, count($queuedPayload['consents']));
+same('Sí', $queuedPayload['consentimiento_politicas'] ?? null);
+same('Sí', $queuedPayload['autorizacion_imagen'] ?? null);
+same('Sí', $queuedPayload['consentimiento_datos'] ?? null);
 same(public_fixture()['submission_id'], $response['json']['registrationId']);
 same(1, (int) $publicDb->query('SELECT COUNT(*) FROM voceros')->fetchColumn());
 same(3, (int) $publicDb->query('SELECT COUNT(*) FROM vocero_consents')->fetchColumn());
@@ -95,7 +102,7 @@ same(['politicas', 'imagen', 'datos'], array_column($detail['consents'], 'consen
 
 // Replay and identity collisions must not create another consent bundle or consume the IP quota.
 same(200, $submit(public_fixture())['status']);
-same(1, count(file($publicPrivateDirectory . '/google-sheets-pending.jsonl')));
+same(1, (int) $publicDb->query('SELECT COUNT(*) FROM sheets_outbox')->fetchColumn());
 same(1, (int) $publicDb->query('SELECT COUNT(*) FROM voceros')->fetchColumn());
 foreach (['cedula', 'correo', 'whatsapp'] as $field) {
     $duplicate = $submit(public_fixture(20, [$field => public_fixture()[$field]]));
@@ -170,7 +177,7 @@ try {
 // Code and data have independent server-owned locations; only the connection is substituted.
 $bootstrapRoot = $publicPrivateDirectory . '/apps';
 mkdir($bootstrapRoot . '/src', 0700, true);
-foreach (['Config', 'Database', 'Crypto', 'Audit', 'VocerosRepository'] as $class) copy(__DIR__ . '/../src/' . $class . '.php', $bootstrapRoot . '/src/' . $class . '.php');
+foreach (['Config', 'Database', 'Crypto', 'Audit', 'VocerosRepository', 'SheetsOutbox', 'SheetsTransport'] as $class) copy(__DIR__ . '/../src/' . $class . '.php', $bootstrapRoot . '/src/' . $class . '.php');
 $productionConfig = $publicPrivateDirectory . '/finados-backend.json';
 file_put_contents($productionConfig, json_encode([
     'environment' => 'production', 'databaseDsn' => 'mysql:host=example.invalid;dbname=synthetic',
@@ -203,6 +210,7 @@ $concurrentConfig = temp_file(json_encode([
 ]));
 $concurrentDb = Finados\Database::connect(Finados\Config::fromFile($concurrentConfig));
 $concurrentDb->exec(file_get_contents(__DIR__ . '/../migrations/001_initial_sqlite.sql'));
+$concurrentDb->exec(file_get_contents(__DIR__ . '/../migrations/002_sheets_outbox_sqlite.sql'));
 $worker = 'require ' . var_export($endpoint, true) . ';'
     . 'foreach (["Config", "Database", "Crypto", "Audit", "VocerosRepository"] as $class) require_once '
     . var_export(realpath(__DIR__ . '/../src') . '/', true) . '.$class.".php";'
@@ -231,3 +239,4 @@ sort($statuses);
 same([200, 200, 200, 200, 200, 429, 429, 429], $statuses);
 same(5, (int) $concurrentDb->query('SELECT COUNT(*) FROM voceros')->fetchColumn());
 same(15, (int) $concurrentDb->query('SELECT COUNT(*) FROM vocero_consents')->fetchColumn());
+ini_set('error_log', $publicTestOriginalLog);

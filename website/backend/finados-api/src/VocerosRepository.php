@@ -11,6 +11,8 @@ use PDOException;
 use RuntimeException;
 use Throwable;
 
+require_once __DIR__ . '/SheetsOutbox.php';
+
 final class DuplicateRegistration extends RuntimeException {}
 final class RegistrationRateLimit extends RuntimeException {}
 
@@ -129,11 +131,9 @@ final class VocerosRepository
             }
             $existing = $this->findSubmissionId($record['submission_id']);
             if ($existing !== null) {
-                $query = $this->pdo->prepare("SELECT COUNT(*) FROM audit_log WHERE subject_public_id = ? AND event_type = 'vocero.sheets_synced'");
-                $query->execute([$existing]);
-                $synced = (int) $query->fetchColumn() > 0;
+                $sheets = (new SheetsOutbox($this->pdo, $this->crypto))->ensure($existing);
                 $this->pdo->commit();
-                return ['public_id' => $existing, 'created' => false, 'sheets' => $synced ? 'synced' : 'queued'];
+                return ['public_id' => $existing, 'created' => false, 'sheets' => $sheets];
             }
             $query = $this->pdo->prepare('SELECT COUNT(*) FROM voceros WHERE cedula_idx = ? OR email_idx = ? OR whatsapp_idx = ?');
             $query->execute([$this->crypto->lookup($record['cedula']), $this->crypto->lookup($record['email']), $this->crypto->lookup($record['whatsapp'])]);
@@ -143,6 +143,7 @@ final class VocerosRepository
             if ((int) $query->fetchColumn() >= 5) throw new RegistrationRateLimit('Registration quota reached.');
             $record['registration_ip'] = $ip;
             $publicId = $this->create($record, $consents);
+            (new SheetsOutbox($this->pdo, $this->crypto))->ensure($publicId);
             $this->pdo->commit();
             return ['public_id' => $publicId, 'created' => true, 'sheets' => 'queued'];
         } catch (Throwable $exception) {
@@ -156,10 +157,9 @@ final class VocerosRepository
         }
     }
 
-    public function recordSheetsResult(string $publicId, string $status): void
+    public function syncSheets(string $submissionId, callable $send): string
     {
-        if (!in_array($status, ['synced', 'queued'], true)) throw new InvalidArgumentException('Invalid synchronization result.');
-        $this->audit->log('vocero.sheets_' . $status, null, 'vocero', $publicId);
+        return (new SheetsOutbox($this->pdo, $this->crypto))->deliver($submissionId, $send);
     }
 
     public function list(array $filters): array

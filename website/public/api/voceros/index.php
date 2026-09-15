@@ -238,27 +238,16 @@ function voceros_handle_request(array $server, array $post, ?callable $bootstrap
         ], $consents);
         $receipt = $repository->createPublic($record, $databaseConsents, $ip);
         $googleSheetsStatus = $receipt['sheets'];
-        if ($receipt['created']) {
-            $sheetsPayload = [
-                'submittedAt' => $submittedAt, 'id' => $registrationId, 'status' => $status,
-                ...$data, ...$representative, ...$tracking, 'consents' => $consents,
-            ];
+        if ($googleSheetsStatus !== 'synced') {
             try {
-                $googleSheetsStatus = ($sheets ?? 'google_sheets_deliver')($privateDirectory, 'voceros', $sheetsPayload);
-                $googleSheetsStatus = $googleSheetsStatus === 'synced' ? 'synced' : 'queued';
+                $googleSheetsStatus = $repository->syncSheets($registrationId, static function (array $payload) use ($sheets, $privateDirectory): string {
+                    if ($sheets !== null) return $sheets($privateDirectory, 'voceros', $payload);
+                    return Finados\SheetsTransport::deliver($privateDirectory, $payload);
+                });
             } catch (Throwable $error) {
-                // The canonical transaction already committed. Its success must survive a secondary failure.
+                // Both canonical data and encrypted outbox committed before this external attempt.
                 $googleSheetsStatus = 'queued';
-                try {
-                    google_sheets_enqueue($privateDirectory, 'voceros', $sheetsPayload);
-                } catch (Throwable $queueError) {
-                    error_log('Voceros: secondary queue is unavailable; canonical registration is stored.');
-                }
-            }
-            try {
-                $repository->recordSheetsResult($receipt['public_id'], $googleSheetsStatus);
-            } catch (Throwable $error) {
-                error_log('Voceros: secondary synchronization status could not be recorded.');
+                error_log('Voceros: Sheets delivery deferred; durable job retained.');
             }
         }
 
