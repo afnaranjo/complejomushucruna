@@ -12,19 +12,20 @@ use Throwable;
 
 require_once __DIR__ . '/Auth.php';
 require_once __DIR__ . '/Crypto.php';
+require_once __DIR__ . '/Audit.php';
 
 final class VoceroAuth
 {
     private readonly Closure $clock;
     private readonly Crypto $crypto;
+    private readonly Audit $audit;
     private readonly array $accountConsent;
-    private const DUMMY_ARGON2ID_HASH = '$argon2id$v=19$m=65536,t=4,p=1$cXdlcnR5dWlvcGFzZGZoZw$3OsG3gSTK7Hy28lbd1VbgtMAxaDPPlWTYy25ioTGJwA';
-    private const DUMMY_BCRYPT_HASH = '$2y$12$N7H6WSb3fDyozFDIRLI3QuSiJ6Y9KohPpm2HnWgEkiIIwNpWhJaNG';
 
     public function __construct(private readonly PDO $pdo, private readonly Config $config, ?callable $clock = null)
     {
         $this->clock = $clock === null ? static fn (): int => time() : Closure::fromCallable($clock);
         $this->crypto = new Crypto($config);
+        $this->audit = new Audit($pdo, $this->crypto);
         $this->accountConsent = self::accountConsent();
     }
 
@@ -59,11 +60,12 @@ final class VoceroAuth
                 $account['created_at'], $account['updated_at'],
             ]);
             $account['id'] = (int) $this->pdo->lastInsertId();
+            $this->audit->log('vocero_account.registered', null, 'vocero_account', $account['public_id'], [], $ip);
             $this->commit();
             $transactionStarted = false;
         } catch (\PDOException $error) {
             if ($transactionStarted) $this->rollBack();
-            if (!$this->isUniqueViolation($error)) throw $error;
+            if (!$this->isEmailDuplicateViolation($error)) throw $error;
         }
         // The caller receives the same opaque result for a fresh or duplicate account, without a session.
         return [];
@@ -91,13 +93,13 @@ final class VoceroAuth
             $blocked = $this->isBlocked($emailAttempts->fetchAll(), $now) || $this->isBlocked($ipAttempts->fetchAll(), $now);
             $valid = false;
             if (!$blocked) {
-                $hash = $account ? $account['password_hash'] : self::dummyHash();
+                $hash = $account ? $account['password_hash'] : Auth::dummyPasswordHash();
                 $verified = password_verify($password, $hash);
                 $valid = $verified && $account && (int) $account['active'] === 1;
                 $record = $this->pdo->prepare('INSERT INTO vocero_login_attempts (email_idx, ip_hash, succeeded, attempted_at) VALUES (?, ?, ?, ?)');
                 $record->execute([$emailIndex, $ipHash, (int) $valid, gmdate('Y-m-d H:i:s', $now)]);
                 if ($valid) {
-                    if (password_needs_rehash($hash, self::passwordAlgorithm())) $hash = Auth::hashPassword($password);
+                    if (Auth::needsPasswordRehash($hash)) $hash = Auth::hashPassword($password);
                     $this->pdo->prepare('UPDATE vocero_accounts SET password_hash = ?, last_login_at = ?, updated_at = ? WHERE id = ?')
                         ->execute([$hash, gmdate('Y-m-d H:i:s', $now), gmdate('Y-m-d H:i:s', $now), $account['id']]);
                     $account['password_hash'] = $hash;
@@ -249,18 +251,16 @@ final class VoceroAuth
         return $now < $blockedUntil;
     }
 
-    private static function passwordAlgorithm(): string
+    private function isEmailDuplicateViolation(\PDOException $error): bool
     {
-        return defined('PASSWORD_ARGON2ID') ? PASSWORD_ARGON2ID : PASSWORD_BCRYPT;
-    }
-
-    private static function dummyHash(): string
-    {
-        return defined('PASSWORD_ARGON2ID') ? self::DUMMY_ARGON2ID_HASH : self::DUMMY_BCRYPT_HASH;
-    }
-
-    private function isUniqueViolation(\PDOException $error): bool
-    {
-        return in_array((string) $error->getCode(), ['19', '23000'], true);
+        $driver = $this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+        if ($driver === 'sqlite') {
+            return in_array((string) $error->getCode(), ['19', '23000'], true)
+                && preg_match('/UNIQUE constraint failed: vocero_accounts\\.email_idx$/D', $error->getMessage()) === 1;
+        }
+        $info = $error->errorInfo;
+        return $driver === 'mysql'
+            && (int) ($info[1] ?? 0) === 1062
+            && preg_match("/for key ['`]vocero_accounts\\.email_idx['`]$/D", (string) ($info[2] ?? '')) === 1;
     }
 }

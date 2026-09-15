@@ -103,6 +103,7 @@ final class Router
                 return $this->json(200, ['authenticated' => $user !== null, 'user' => $user, 'csrf' => $this->voceroAuth->csrfToken()], $headers);
             }
             if (in_array($path, ['/api/vocero/auth/register', '/api/vocero/auth/login', '/api/vocero/auth/logout'], true) && $method === 'POST') {
+                if (($server['HTTP_ORIGIN'] ?? null) !== $this->config->allowedOrigin()) throw new Forbidden();
                 if (!is_string($ip) || inet_pton($ip) === false) throw new Forbidden();
                 $this->voceroAuth->verifyCsrf($token);
                 if ($path === '/api/vocero/auth/register') {

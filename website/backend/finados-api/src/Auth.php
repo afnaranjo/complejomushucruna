@@ -14,6 +14,8 @@ require_once __DIR__ . '/Http.php';
 final class Auth
 {
     private readonly Closure $clock;
+    private const DUMMY_ARGON2ID_HASH = '$argon2id$v=19$m=65536,t=4,p=1$cXdlcnR5dWlvcGFzZGZoZw$3OsG3gSTK7Hy28lbd1VbgtMAxaDPPlWTYy25ioTGJwA';
+    private const DUMMY_BCRYPT_HASH = '$2y$12$N7H6WSb3fDyozFDIRLI3QuSiJ6Y9KohPpm2HnWgEkiIIwNpWhJaNG';
 
     public function __construct(private readonly PDO $pdo, private readonly Config $config, ?callable $clock = null)
     {
@@ -47,13 +49,13 @@ final class Auth
             $valid = false;
             if (!$blocked) {
                 // Use the real hash for absent usernames too, avoiding a fast missing-user branch.
-                $hash = $admin ? $admin['password_hash'] : self::hashPassword(bin2hex(random_bytes(24)));
+                $hash = $admin ? $admin['password_hash'] : self::dummyPasswordHash();
                 $verified = password_verify($password, $hash);
                 $valid = $verified && $username === 'admin' && $admin && (int) $admin['active'] === 1;
                 $record = $this->pdo->prepare('INSERT INTO login_attempts (username_hash, ip_hash, succeeded, attempted_at) VALUES (?, ?, ?, ?)');
                 $record->execute([$usernameHash, $ipHash, (int) $valid, gmdate('Y-m-d H:i:s', $now)]);
                 if ($valid) {
-                    if (password_needs_rehash($hash, self::passwordAlgorithm())) {
+                    if (self::needsPasswordRehash($hash)) {
                         $hash = self::hashPassword($password);
                     }
                     $this->pdo->prepare('UPDATE admin_users SET password_hash = ?, last_login_at = ? WHERE id = ?')
@@ -131,12 +133,29 @@ final class Auth
 
     public static function hashPassword(#[\SensitiveParameter] string $password): string
     {
-        return password_hash($password, self::passwordAlgorithm());
+        return password_hash($password, self::passwordAlgorithm(), self::passwordOptions());
     }
 
-    private static function passwordAlgorithm(): string
+    public static function passwordAlgorithm(): string
     {
         return defined('PASSWORD_ARGON2ID') ? PASSWORD_ARGON2ID : PASSWORD_BCRYPT;
+    }
+
+    public static function passwordOptions(): array
+    {
+        return defined('PASSWORD_ARGON2ID')
+            ? ['memory_cost' => 65536, 'time_cost' => 4, 'threads' => 1]
+            : ['cost' => 12];
+    }
+
+    public static function needsPasswordRehash(string $hash): bool
+    {
+        return password_needs_rehash($hash, self::passwordAlgorithm(), self::passwordOptions());
+    }
+
+    public static function dummyPasswordHash(): string
+    {
+        return defined('PASSWORD_ARGON2ID') ? self::DUMMY_ARGON2ID_HASH : self::DUMMY_BCRYPT_HASH;
     }
 
     private function credentialVersion(string $hash): string

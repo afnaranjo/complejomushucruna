@@ -355,7 +355,7 @@ Resultado esperado: fallo por rutas y módulos inexistentes.
 
 - [ ] **Paso 3: renderizar acceso, perfil y restablecimiento**
 
-`acceso` mostrará dos modos claros: `Crear cuenta` e `Iniciar sesión`. La creación exigirá un checkbox “He leído la Política de Privacidad” y enviará únicamente `privacy_acknowledged=1`; el servidor derivará versión y hash del catálogo. `mi-registro` mostrará estado, formulario agrupado y bloque dominante de fotografía. `restablecer` pedirá contraseña y confirmación. Todas tendrán CSP cerrada, `noindex`, referrer `no-referrer`, API de producción fija y API loopback solo en build de desarrollo.
+`acceso` mostrará dos modos claros: `Crear cuenta` e `Iniciar sesión`. La creación exigirá un checkbox “He leído la Política de Privacidad” y enviará únicamente JSON `privacyAcknowledged: true`; el servidor derivará versión y hash del catálogo, responderá “Cuenta creada; inicia sesión” sin autenticar y el inicio de sesión será independiente. `mi-registro` mostrará estado, formulario agrupado y bloque dominante de fotografía. `restablecer` pedirá contraseña y confirmación. Todas tendrán CSP cerrada, `noindex`, referrer `no-referrer`, API de producción fija y API loopback solo en build de desarrollo.
 
 - [ ] **Paso 4: extraer el formulario y preservar el contenido**
 

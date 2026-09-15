@@ -76,6 +76,14 @@ same('003_vocero_accounts', $pdo->query("SELECT version FROM schema_migrations W
 same(['email_idx', 'ip_hash', 'attempted_at'], array_column($pdo->query("PRAGMA index_info('idx_vocero_login_window')")->fetchAll(), 'name'));
 same(['email_idx', 'attempted_at'], array_column($pdo->query("PRAGMA index_info('idx_vocero_login_email_window')")->fetchAll(), 'name'));
 same(['ip_hash', 'attempted_at'], array_column($pdo->query("PRAGMA index_info('idx_vocero_login_ip_window')")->fetchAll(), 'name'));
+$passwordInfo = password_get_info(Auth::hashPassword('contraseña válida'));
+same(defined('PASSWORD_ARGON2ID') ? 'argon2id' : 'bcrypt', $passwordInfo['algoName']);
+same(defined('PASSWORD_ARGON2ID') ? 65536 : 12, defined('PASSWORD_ARGON2ID') ? $passwordInfo['options']['memory_cost'] : $passwordInfo['options']['cost']);
+if (defined('PASSWORD_ARGON2ID')) {
+    same(4, $passwordInfo['options']['time_cost']);
+    same(1, $passwordInfo['options']['threads']);
+}
+same(false, Auth::needsPasswordRehash(Auth::dummyPasswordHash()));
 
 // Registration must fail without a locally derived privacy acknowledgement.
 $clock = 1800000000;
@@ -88,11 +96,26 @@ same([], $auth->register('  Vocero@Example.Invalid  ', 'contraseña válida', tr
 same($beforeId, session_id());
 same(PHP_SESSION_NONE, session_status());
 same(2, (int) $pdo->query('SELECT COUNT(*) FROM vocero_accounts')->fetchColumn());
+same(1, (int) $pdo->query("SELECT COUNT(*) FROM audit_log WHERE event_type = 'vocero_account.registered'")->fetchColumn());
+$registrationAudit = $pdo->query("SELECT actor_id, subject_type FROM audit_log WHERE event_type = 'vocero_account.registered'")->fetch();
+same(null, $registrationAudit['actor_id']);
+same('vocero_account', $registrationAudit['subject_type']);
 same(false, str_contains((string) $pdo->query("SELECT email_enc FROM vocero_accounts WHERE email_idx <> 'idx-a' ORDER BY id DESC LIMIT 1")->fetchColumn(), 'vocero@example.invalid'));
 foreach (['VOCERO@example.invalid', '  vocero@example.invalid '] as $email) {
     same([], $auth->register($email, 'contraseña válida', true, '192.0.2.40'));
 }
 same(2, (int) $pdo->query('SELECT COUNT(*) FROM vocero_accounts')->fetchColumn());
+same(1, (int) $pdo->query("SELECT COUNT(*) FROM audit_log WHERE event_type = 'vocero_account.registered'")->fetchColumn());
+$integrityEmailIndex = hash_hmac('sha256', 'integrity@example.invalid', str_repeat('h', 32));
+$pdo->exec("CREATE TRIGGER reject_other_integrity BEFORE INSERT ON vocero_accounts WHEN NEW.email_idx = '$integrityEmailIndex' BEGIN SELECT RAISE(ABORT, 'NOT NULL constraint failed: vocero_accounts.synthetic'); END");
+throws(fn () => $auth->register('integrity@example.invalid', 'contraseña válida', true, '192.0.2.40'), PDOException::class);
+$pdo->exec('DROP TRIGGER reject_other_integrity');
+same(2, (int) $pdo->query('SELECT COUNT(*) FROM vocero_accounts')->fetchColumn());
+$pdo->exec("CREATE TRIGGER fail_vocero_registration_audit BEFORE INSERT ON audit_log WHEN NEW.event_type = 'vocero_account.registered' BEGIN SELECT RAISE(ABORT, 'audit unavailable'); END");
+throws(fn () => $auth->register('audit-failure@example.invalid', 'contraseña válida', true, '192.0.2.40'), PDOException::class);
+$pdo->exec('DROP TRIGGER fail_vocero_registration_audit');
+same(2, (int) $pdo->query('SELECT COUNT(*) FROM vocero_accounts')->fetchColumn());
+same(1, (int) $pdo->query("SELECT COUNT(*) FROM audit_log WHERE event_type = 'vocero_account.registered'")->fetchColumn());
 
 // Login rotates the session and CSRF while retaining only a server-issued role.
 $pdo->exec('DELETE FROM vocero_login_attempts');
@@ -182,6 +205,14 @@ same(false, $session['authenticated']);
 same(null, $session['user']);
 same(true, is_string($session['csrf']));
 $server += ['CONTENT_TYPE' => 'application/json', 'HTTP_X_CSRF_TOKEN' => $session['csrf']];
+$missingOrigin = ['REMOTE_ADDR' => '192.0.2.42', 'CONTENT_TYPE' => 'application/json', 'HTTP_X_CSRF_TOKEN' => $session['csrf']];
+same(403, $router->handle('POST', '/api/vocero/auth/register', $missingOrigin, json_encode([
+    'email' => 'missing-origin@example.invalid', 'password' => 'contraseña válida', 'privacyAcknowledged' => true,
+], JSON_THROW_ON_ERROR))->status);
+$wrongOrigin = ['HTTP_ORIGIN' => 'https://attacker.invalid', 'REMOTE_ADDR' => '192.0.2.42', 'CONTENT_TYPE' => 'application/json', 'HTTP_X_CSRF_TOKEN' => $session['csrf']];
+same(403, $router->handle('POST', '/api/vocero/auth/login', $wrongOrigin, json_encode([
+    'email' => 'route@example.invalid', 'password' => 'contraseña válida',
+], JSON_THROW_ON_ERROR))->status);
 $rejectedRole = vocero_response_body($router->handle('POST', '/api/vocero/auth/register', $server, json_encode([
     'email' => 'route@example.invalid', 'password' => 'contraseña válida', 'privacyAcknowledged' => true, 'role' => 'administrador',
 ], JSON_THROW_ON_ERROR)));
@@ -210,5 +241,6 @@ $routeLogin = vocero_response_body($router->handle('POST', '/api/vocero/auth/log
 same(true, $routeLogin['authenticated']);
 same('vocero', $routeLogin['user']['role']);
 $logoutServer = ['HTTP_ORIGIN' => 'https://example.invalid', 'REMOTE_ADDR' => '192.0.2.42', 'CONTENT_TYPE' => 'application/json', 'HTTP_X_CSRF_TOKEN' => $routeLogin['csrf']];
+same(403, $router->handle('POST', '/api/vocero/auth/logout', ['REMOTE_ADDR' => '192.0.2.42', 'CONTENT_TYPE' => 'application/json', 'HTTP_X_CSRF_TOKEN' => $routeLogin['csrf']], '{}')->status);
 same(['ok' => true], vocero_response_body($router->handle('POST', '/api/vocero/auth/logout', $logoutServer, '{}')));
 close_vocero_session();
