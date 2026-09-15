@@ -317,5 +317,6 @@ $process = proc_open([dirname(PHP_BINARY) . '/php-cgi', '-d', 'error_log=' . $ap
 fclose($pipes[0]); $frontOutput = stream_get_contents($pipes[1]); $frontErrors = stream_get_contents($pipes[2]);
 fclose($pipes[1]); fclose($pipes[2]); same(0, proc_close($process)); same('', $frontErrors);
 same(true, str_contains($frontOutput, 'Status: 503'));
+same(true, str_contains($frontOutput, 'X-Finados-Diagnostic: B1'));
 $frontBody = json_decode(explode("\r\n\r\n", $frontOutput, 2)[1], true);
 same(['ok' => false, 'code' => 'service_unavailable', 'message' => 'Servicio no disponible.'], $frontBody);
