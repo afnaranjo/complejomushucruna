@@ -11,7 +11,13 @@
     "check": "npm test && npm run build && node scripts/check-dist.mjs",
     "deploy:validate": "node scripts/deploy-cpanel.mjs --validate-config",
     "deploy:check": "node scripts/deploy-cpanel.mjs --check",
-    "deploy": "node scripts/deploy-cpanel.mjs --deploy"
+    "deploy": "node scripts/deploy-cpanel.mjs --deploy",
+    "backend:validate": "node scripts/deploy-finados-backend.mjs --validate-config",
+    "backend:check": "node scripts/deploy-finados-backend.mjs --check",
+    "backend:deploy": "node scripts/deploy-finados-backend.mjs --deploy",
+    "backend:admin": "node scripts/deploy-finados-backend.mjs --admin",
+    "backend:import:check": "node scripts/deploy-finados-backend.mjs --import-check",
+    "backend:import": "node scripts/deploy-finados-backend.mjs --import"
   },
   "devDependencies": {
     "@tailwindcss/cli": "^4.3.3",

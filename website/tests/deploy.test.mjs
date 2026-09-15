@@ -9,6 +9,251 @@ import { fileURLToPath } from 'node:url';
 const websiteRoot = fileURLToPath(new URL('..', import.meta.url));
 const deployScript = join(websiteRoot, 'scripts', 'deploy-cpanel.mjs');
 
+function fixtureConfig(overrides = {}) {
+  return {
+    DEPLOY_SSH_HOST: 'hosting.example.test', DEPLOY_SSH_USER: 'usuario_cpanel',
+    DEPLOY_SSH_PORT: '22', DEPLOY_SSH_KEY: '/private/tmp/fixture-key',
+    DEPLOY_REMOTE_ROOT: '/home/usuario_cpanel/public_html/complejomushucruna.com',
+    DEPLOY_SITE_URL: 'https://complejomushucruna.com',
+    FINADOS_APP_ROOT: '/home/usuario_cpanel/apps/finados-api',
+    FINADOS_BACKEND_ROOT: '/home/usuario_cpanel/apps/finados-api/current',
+    FINADOS_API_DOCROOT: '/home/usuario_cpanel/public_html/finados.complejomushucruna.com',
+    FINADOS_CONFIG_PATH: '/home/usuario_cpanel/private-data/finados-backend.json',
+    FINADOS_BACKUP_ROOT: '/home/usuario_cpanel/backups/finados-api',
+    FINADOS_PUBLIC_ROOTS: '["/home/usuario_cpanel/public_html/complejomushucruna.com","/home/usuario_cpanel/public_html/finados.complejomushucruna.com"]',
+    ...overrides,
+  };
+}
+
+function recordingTransport(overrides = {}) {
+  return {
+    commands: [], writes: [], output: [], operations: [],
+    async repository() { return { branch: 'main', dirty: false, head: 'a'.repeat(40), remoteHead: 'a'.repeat(40), ...overrides.repository }; },
+    async run(operation) {
+      this.commands.push(operation.command);
+      this.operations.push(operation);
+      if (operation.write) this.writes.push(operation);
+      if (operation.id === overrides.failAt) throw new Error('fixture-password');
+      if (operation.id === 'probe') return JSON.stringify({ phpVersion: '8.2.12', phpModules: ['PDO', 'pdo_mysql', 'openssl', 'session'], paths: true, databaseProbe: '1', ...overrides.probe });
+      return '';
+    },
+    async upload(operation) { this.writes.push(operation); },
+    async interactive(operation) { this.writes.push(operation); },
+    async health() { return { status: 200, ok: true }; },
+  };
+}
+
+test('backend prevuelo ejecuta lecturas sin migración ni escritura y devuelve salud del subdominio', async () => {
+  const { checkBackend } = await import('../scripts/deploy-finados-backend.mjs');
+  const transport = recordingTransport();
+  const result = await checkBackend(fixtureConfig(), transport);
+  assert.equal(result.healthUrl, 'https://finados.complejomushucruna.com/api/health');
+  assert.equal(result.database, 'ready');
+  assert.equal(transport.writes.length, 0);
+  assert.ok(transport.commands.every(command => !command.includes('--delete') && !command.includes('rm -rf')));
+  assert.doesNotMatch(transport.output.join('\n'), /fixture-password|fixture-key/);
+});
+
+test('backend prevuelo bloquea rama, cambios, divergencia, PHP, módulos y DB inválidos', async () => {
+  const { checkBackend } = await import('../scripts/deploy-finados-backend.mjs');
+  for (const overrides of [
+    { repository: { branch: 'feature' } }, { repository: { dirty: true } }, { repository: { remoteHead: 'b'.repeat(40) } },
+    { probe: { phpVersion: '8.0.30' } }, { probe: { phpModules: ['PDO'] } },
+    { probe: { paths: false } }, { probe: { databaseProbe: '0' } }, { failAt: 'probe' },
+  ]) {
+    const transport = recordingTransport(overrides);
+    await assert.rejects(checkBackend(fixtureConfig(), transport), error => !error.message.includes('fixture-password'));
+    assert.equal(transport.writes.length, 0);
+  }
+});
+
+test('backend rechaza rutas públicas, amplias o ambiguas antes de conectar', async () => {
+  const { checkBackend } = await import('../scripts/deploy-finados-backend.mjs');
+  for (const overrides of [
+    { FINADOS_APP_ROOT: '/' }, { FINADOS_CONFIG_PATH: '/home/usuario_cpanel/public_html/config.json' },
+    { FINADOS_API_DOCROOT: '/home/usuario_cpanel' }, { FINADOS_BACKEND_ROOT: '/home/usuario_cpanel/apps/finados-api' },
+    { FINADOS_PUBLIC_ROOTS: '[]' }, { FINADOS_BACKUP_ROOT: '/home/usuario_cpanel/apps/finados-api/backups' },
+  ]) await assert.rejects(checkBackend(fixtureConfig(overrides), recordingTransport()));
+});
+
+test('backend acepta el docroot exacto de cPanel como carpeta hermana de public_html', async () => {
+  const { checkBackend } = await import('../scripts/deploy-finados-backend.mjs');
+  const config = fixtureConfig({
+    FINADOS_API_DOCROOT: '/home/usuario_cpanel/finados.complejomushucruna.com',
+    FINADOS_PUBLIC_ROOTS: '["/home/usuario_cpanel/public_html/complejomushucruna.com","/home/usuario_cpanel/finados.complejomushucruna.com"]',
+  });
+  assert.equal((await checkBackend(config, recordingTransport())).database, 'ready');
+});
+
+test('backend despliega solo después de respaldo y no activa current si falla migración', async () => {
+  const { deployBackend } = await import('../scripts/deploy-finados-backend.mjs');
+  const transport = recordingTransport();
+  await deployBackend(fixtureConfig(), transport, { release: '20260914-abcdef' });
+  const ids = transport.writes.map(item => item.id);
+  assert.ok(ids.indexOf('backup-files') < ids.indexOf('backup-database'));
+  assert.ok(ids.indexOf('backup-database') < ids.indexOf('upload-release'));
+  assert.ok(ids.indexOf('migrate') < ids.indexOf('activate'));
+  assert.ok(ids.indexOf('activate') < ids.indexOf('install-api'));
+  const failed = recordingTransport({ failAt: 'migrate' });
+  await assert.rejects(deployBackend(fixtureConfig(), failed, { release: '20260914-abcdef' }));
+  assert.ok(!failed.writes.some(item => item.id === 'activate'));
+  const backupFailed = recordingTransport({ failAt: 'backup-database' });
+  await assert.rejects(deployBackend(fixtureConfig(), backupFailed, { release: '20260914-abcdef' }));
+  assert.ok(!backupFailed.writes.some(item => item.id === 'upload-release'));
+});
+
+test('backend admin exige TTY e importación real ejecuta primero dry-run', async () => {
+  const { administerBackend, importBackend } = await import('../scripts/deploy-finados-backend.mjs');
+  const transport = recordingTransport();
+  await assert.rejects(administerBackend(fixtureConfig(), transport, { tty: false }));
+  assert.equal(transport.writes.length, 0);
+  await administerBackend(fixtureConfig(), transport, { tty: true });
+  assert.equal(transport.writes[0].id, 'admin');
+  assert.equal(transport.writes[0].capture, false);
+  const options = { voceros: '/home/usuario_cpanel/private-data/voceros.csv', consents: '/home/usuario_cpanel/private-data/consents.csv' };
+  const preview = recordingTransport();
+  await importBackend(fixtureConfig(), preview, options);
+  assert.equal(preview.writes.length, 0);
+  const real = recordingTransport();
+  await importBackend(fixtureConfig(), real, { ...options, execute: true });
+  assert.equal(real.writes.at(-1).id, 'import');
+  assert.match(real.commands[0], /--dry-run/);
+});
+
+test('backend todos los programas PHP enviados por SSH compilan con el intérprete real', async () => {
+  const { deployBackend, installPublicBootstrap } = await import('../scripts/deploy-finados-backend.mjs');
+  const transport = recordingTransport();
+  await deployBackend(fixtureConfig(), transport, { release: '20260914-abcdef' });
+  await installPublicBootstrap(fixtureConfig(), transport);
+  for (const operation of transport.operations.filter(item => item.input)) {
+    const result = spawnSync('php', ['-l'], { input: operation.input, encoding: 'utf8' });
+    assert.equal(result.status, 0, `${operation.id}: ${result.stdout} ${result.stderr}`);
+  }
+});
+
+test('backend bootstrap real conserva PHP strict_types e instalación repetida', async () => {
+  const { installPublicBootstrap } = await import('../scripts/deploy-finados-backend.mjs');
+  const { mkdir } = await import('node:fs/promises');
+  const temp = await mkdtemp(join(tmpdir(), 'finados-bootstrap-'));
+  await mkdir(join(temp, 'api/voceros'), { recursive: true });
+  const endpoint = join(temp, 'api/voceros/index.php');
+  await writeFile(endpoint, "<?php\ndeclare(strict_types=1);\nfunction voceros_bootstrap() {}\necho getenv('FINADOS_BACKEND_ROOT');\n");
+  const transport = recordingTransport();
+  await installPublicBootstrap(fixtureConfig(), transport);
+  for (let i = 0; i < 2; i++) {
+    const input = transport.operations[0].input.replaceAll('/home/usuario_cpanel/public_html/complejomushucruna.com', temp)
+      .replaceAll('.finados-', `.finados-${i}-`);
+    const result = spawnSync('php', [], { input, encoding: 'utf8' });
+    assert.equal(result.status, 0, result.stderr);
+    const endpointResult = spawnSync('php', [endpoint], { encoding: 'utf8' });
+    assert.equal(endpointResult.status, 0, endpointResult.stderr);
+    assert.equal(endpointResult.stdout, '/home/usuario_cpanel/apps/finados-api/current');
+  }
+});
+
+test('backend activación sin symlinks conserva current anterior y publica una copia completa', async () => {
+  const { deployBackend } = await import('../scripts/deploy-finados-backend.mjs');
+  const { mkdir } = await import('node:fs/promises');
+  const temp = await mkdtemp(join(tmpdir(), 'finados-activate-'));
+  await mkdir(join(temp, 'releases/20260914-abcdef/src'), { recursive: true });
+  await mkdir(join(temp, 'current/src'), { recursive: true });
+  await writeFile(join(temp, 'current/src/old.php'), 'old');
+  await writeFile(join(temp, 'releases/20260914-abcdef/src/new.php'), 'new');
+  const transport = recordingTransport();
+  await deployBackend(fixtureConfig(), transport, { release: '20260914-abcdef' });
+  const input = transport.operations.find(item => item.id === 'activate').input.replaceAll('/home/usuario_cpanel/apps/finados-api', temp);
+  const result = spawnSync('php', ['-d', 'disable_functions=symlink'], { input, encoding: 'utf8' });
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(await readFile(join(temp, 'current/src/new.php'), 'utf8'), 'new');
+  assert.equal(await readFile(join(temp, 'previous-20260914-abcdef/src/old.php'), 'utf8'), 'old');
+});
+
+test('backend gateway real carga la release y preserva directivas ajenas del subdominio', async () => {
+  const { deployBackend } = await import('../scripts/deploy-finados-backend.mjs');
+  const { mkdir } = await import('node:fs/promises');
+  const temp = await mkdtemp(join(tmpdir(), 'finados-gateway-'));
+  await mkdir(join(temp, 'docroot/api'), { recursive: true });
+  await mkdir(join(temp, 'current/public'), { recursive: true });
+  await writeFile(join(temp, 'current/public/index.php'), "<?php echo getenv('FINADOS_CONFIG_PATH');");
+  await writeFile(join(temp, 'docroot/api/.htaccess'), '# hosting-owned\nHeader set X-Test yes\n');
+  const transport = recordingTransport();
+  await deployBackend(fixtureConfig(), transport, { release: '20260914-abcdef' });
+  const input = transport.operations.find(item => item.id === 'install-api').input
+    .replaceAll('/home/usuario_cpanel/public_html/finados.complejomushucruna.com', join(temp, 'docroot'))
+    .replaceAll('/home/usuario_cpanel/apps/finados-api/current', join(temp, 'current'));
+  const result = spawnSync('php', [], { input, encoding: 'utf8' });
+  assert.equal(result.status, 0, result.stderr);
+  const response = spawnSync('php', [join(temp, 'docroot/api/index.php')], { encoding: 'utf8' });
+  assert.equal(response.status, 0, response.stderr);
+  assert.equal(response.stdout, '/home/usuario_cpanel/private-data/finados-backend.json');
+  assert.ok((await readFile(join(temp, 'docroot/api/.htaccess'), 'utf8')).startsWith('# hosting-owned\nHeader set X-Test yes\n'));
+  await writeFile(join(temp, 'docroot/api/index.php'), '<?php echo "another application";');
+  const rejected = spawnSync('php', [], { input, encoding: 'utf8' });
+  assert.notEqual(rejected.status, 0);
+  assert.equal(await readFile(join(temp, 'docroot/api/index.php'), 'utf8'), '<?php echo "another application";');
+});
+
+test('backend bootstrap no sigue un ancestro API que apunta fuera del docroot', async () => {
+  const { installPublicBootstrap } = await import('../scripts/deploy-finados-backend.mjs');
+  const { mkdir, symlink } = await import('node:fs/promises');
+  const temp = await mkdtemp(join(tmpdir(), 'finados-alias-'));
+  await mkdir(join(temp, 'docroot'));
+  await mkdir(join(temp, 'outside/voceros'), { recursive: true });
+  const endpoint = join(temp, 'outside/voceros/index.php');
+  const original = '<?php function voceros_bootstrap() {}';
+  await writeFile(endpoint, original);
+  await symlink(join(temp, 'outside'), join(temp, 'docroot/api'));
+  const transport = recordingTransport();
+  await installPublicBootstrap(fixtureConfig(), transport);
+  const input = transport.operations[0].input.replaceAll('/home/usuario_cpanel/public_html/complejomushucruna.com', join(temp, 'docroot'));
+  const result = spawnSync('php', [], { input, encoding: 'utf8' });
+  assert.notEqual(result.status, 0);
+  assert.equal(await readFile(endpoint, 'utf8'), original);
+});
+
+test('backend migración aplica versiones posteriores en orden y no repite las registradas', async () => {
+  const { deployBackend } = await import('../scripts/deploy-finados-backend.mjs');
+  const { mkdir } = await import('node:fs/promises');
+  const temp = await mkdtemp(join(tmpdir(), 'finados-migrations-'));
+  await mkdir(join(temp, 'src'));
+  await mkdir(join(temp, 'migrations'));
+  await writeFile(join(temp, 'src/Config.php'), '<?php namespace Finados; class Config { static function fromProductionEnvironment() { return null; } }');
+  await writeFile(join(temp, 'src/Database.php'), `<?php namespace Finados;
+class Database { static function connect($config) { return new MigrationDatabase(); } }
+class MigrationDatabase {
+  function query($sql) { return new class { function fetchColumn() { return 1; } }; }
+  function exec($sql) { echo json_encode(['sql'=>$sql]) . "\\n"; }
+  function prepare($sql) { return new MigrationStatement($sql); }
+}
+class MigrationStatement {
+  private $value;
+  function __construct(private $sql) {}
+  function execute($args) {
+    $this->value = $args[0];
+    if (str_starts_with($this->sql, 'INSERT')) {
+      file_put_contents(__DIR__ . '/versions', $args[0] . "\\n", FILE_APPEND);
+      echo json_encode(['version'=>$args[0]]) . "\\n";
+    }
+  }
+  function fetchColumn() { return in_array($this->value, file_exists(__DIR__.'/versions') ? file(__DIR__.'/versions', FILE_IGNORE_NEW_LINES) : []) ? $this->value : false; }
+}`);
+  await writeFile(join(temp, 'migrations/001_initial_mysql.sql'), 'CREATE TABLE initial_table (id INT);');
+  await writeFile(join(temp, 'migrations/002_later_mysql.sql'), 'CREATE TABLE later_table (id INT);');
+  const transport = recordingTransport();
+  await deployBackend(fixtureConfig(), transport, { release: '20260914-abcdef' });
+  const input = transport.operations.find(item => item.id === 'migrate').input
+    .replaceAll('/home/usuario_cpanel/apps/finados-api/releases/20260914-abcdef', temp);
+  const first = spawnSync('php', [], { input, encoding: 'utf8' });
+  assert.equal(first.status, 0, first.stderr);
+  const output = first.stdout.trim().split('\n').map(line => JSON.parse(line));
+  assert.deepEqual(output.filter(item => item.version).map(item => item.version), ['001_initial_mysql', '002_later_mysql']);
+  assert.ok(output.some(item => item.sql?.includes('later_table')));
+  const second = spawnSync('php', [], { input, encoding: 'utf8' });
+  assert.equal(second.status, 0, second.stderr);
+  assert.ok(!second.stdout.includes('later_table'));
+  assert.ok(!second.stdout.includes('"version"'));
+});
+
 async function configFixture(overrides = {}) {
   const directory = await mkdtemp(join(tmpdir(), 'mushuc-deploy-'));
   const keyFile = join(directory, 'id_rsa_complejo');

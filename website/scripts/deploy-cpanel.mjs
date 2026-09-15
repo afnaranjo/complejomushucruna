@@ -2,7 +2,7 @@ import { execFileSync, spawn, spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { access, readFile, readdir, stat } from 'node:fs/promises';
 import { dirname, isAbsolute, join, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const websiteRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const repositoryRoot = resolve(websiteRoot, '..');
@@ -29,6 +29,8 @@ const allowedKeys = new Set([
   'DEPLOY_SITE_URL',
   'GOOGLE_SHEETS_WEB_APP_URL',
   'GOOGLE_SHEETS_TOKEN',
+  'FINADOS_APP_ROOT', 'FINADOS_BACKEND_ROOT', 'FINADOS_API_DOCROOT',
+  'FINADOS_CONFIG_PATH', 'FINADOS_BACKUP_ROOT', 'FINADOS_PUBLIC_ROOTS',
 ]);
 const requiredKeys = new Set([
   'DEPLOY_SSH_HOST',
@@ -153,7 +155,7 @@ async function validateConfig(config) {
   };
 }
 
-async function loadConfig(path) {
+export async function loadConfig(path) {
   return validateConfig(await readDeployConfig(path));
 }
 
@@ -337,6 +339,8 @@ async function verifyPublicSite(config) {
   const checks = [
     ['/', 200],
     ['/finados/', 200],
+    ['/admin/', 200],
+    ['/admin/voceros/', 200],
     ['/finados/voceros/', 200],
     ['/finados/voceros/politicas-del-vocero/', 200],
     ['/finados/voceros/bases-del-termometro/', 200],
@@ -407,6 +411,7 @@ function lintPhpEndpoints(config) {
     ['acreditación', join(websiteRoot, 'public', 'api', 'acreditacion-medios', 'index.php')],
     ['invitaciones', join(websiteRoot, 'public', 'api', 'invitaciones-rsvp', 'index.php')],
     ['voceros', join(websiteRoot, 'public', 'api', 'voceros', 'index.php')],
+    ['bootstrap de Voceros', join(websiteRoot, 'public', 'api', '_voceros-bootstrap.php')],
     ['integración de Google Sheets', join(websiteRoot, 'public', 'api', '_google-sheets.php')],
   ];
   for (const [label, path] of files) {
@@ -445,16 +450,23 @@ function parseArguments(argv) {
 async function main() {
   const { mode, configPath } = parseArguments(process.argv.slice(2));
   const config = await loadConfig(configPath);
+  const backendDeploy = await import('./deploy-finados-backend.mjs');
 
   if (mode === '--validate-config') {
+    if (config.FINADOS_APP_ROOT) backendDeploy.validateBackendConfig(config);
     console.log(`Configuración válida para ${publicHostname}.`);
     return;
   }
 
+  backendDeploy.validateBackendConfig(config);
   verifyRepository();
   await runProjectChecks();
   console.log('Verificando acceso SSH y destino remoto…');
   checkRemote(config);
+  await backendDeploy.checkBackend(config);
+  // The public endpoint cannot switch to MySQL until a validated backend release exists.
+  await backendDeploy.createTransport(config).run({ id: 'installed-backend', write: false,
+    command: `test -d '${config.FINADOS_BACKEND_ROOT}/src' && test -f '${config.FINADOS_BACKEND_ROOT}/public/index.php'` });
   lintPhpEndpoints(config);
 
   if (mode === '--check') {
@@ -471,6 +483,7 @@ async function main() {
   verifyGoogleSheetsBridge(config);
   console.log('Subiendo la salida estática sin eliminar archivos exclusivos del servidor…');
   await uploadDist(config);
+  await backendDeploy.installPublicBootstrap(config);
   console.log('Restaurando permisos públicos de las carpetas transferidas…');
   normalizeRemotePermissions(config);
   console.log('Verificando las rutas públicas por HTTPS…');
@@ -478,7 +491,7 @@ async function main() {
   console.log(`Despliegue verificado en https://${publicHostname}.`);
 }
 
-main().catch((error) => {
+if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) main().catch((error) => {
   console.error(error instanceof Error ? error.message : 'El despliegue falló.');
   process.exitCode = 1;
 });

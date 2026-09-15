@@ -1,4 +1,5 @@
 dist/
+output/
 .env.backend
 backend/finados-api/var/
 *finados-backend.json
