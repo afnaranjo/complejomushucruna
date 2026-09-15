@@ -38,7 +38,8 @@ async function listFiles(directory, root = directory) {
   return files;
 }
 
-export async function buildSite(outputDirectory = join(websiteRoot, 'dist')) {
+export async function buildSite(outputDirectory = join(websiteRoot, 'dist'), { adminEnvironment = 'production' } = {}) {
+  if (!['production', 'development'].includes(adminEnvironment)) throw new Error('Entorno administrativo no permitido.');
   const output = resolve(outputDirectory);
   await rm(output, { recursive: true, force: true });
   await mkdir(output, { recursive: true });
@@ -47,7 +48,7 @@ export async function buildSite(outputDirectory = join(websiteRoot, 'dist')) {
     const relativePath = page.route === '/' ? 'index.html' : `${page.route.slice(1)}index.html`;
     const target = join(output, relativePath);
     await mkdir(dirname(target), { recursive: true });
-    const html = page.render ? page.render(page) : renderLayout(page);
+    const html = page.render ? page.render(page.route.startsWith('/admin/') ? { ...page, adminEnvironment } : page) : renderLayout(page);
     await writeFile(target, `${html}\n`, 'utf8');
   }
 
@@ -87,8 +88,21 @@ export async function buildSite(outputDirectory = join(websiteRoot, 'dist')) {
   await cp(join(websiteRoot, 'src', 'finados', 'voceros.css'), join(finadosAssets, 'voceros.css'));
   await cp(join(websiteRoot, 'src', 'finados', 'voceros.js'), join(finadosAssets, 'voceros.js'));
 
+  const adminAssets = join(output, 'assets', 'admin');
+  await mkdir(adminAssets, { recursive: true });
+  await execFileAsync(process.execPath, [
+    join(websiteRoot, 'node_modules', '@tailwindcss', 'cli', 'dist', 'index.mjs'),
+    '-i', join(websiteRoot, 'src', 'admin', 'admin.css'),
+    '-o', join(adminAssets, 'admin.css'), '--minify',
+  ], { cwd: websiteRoot });
+  const adminScript = await readFile(join(websiteRoot, 'src', 'admin', 'admin.js'), 'utf8');
+  await writeFile(join(adminAssets, 'admin.js'), adminEnvironment === 'production'
+    ? adminScript.replace("const LOCAL_API = 'http://127.0.0.1:4174/api';", 'const LOCAL_API = null;')
+    : adminScript, 'utf8');
+
   const htmlFiles = (await listFiles(output)).filter((file) => file.endsWith('.html'));
   for (const htmlFile of htmlFiles) {
+    if (htmlFile.startsWith('admin/')) continue;
     const path = join(output, htmlFile);
     const html = await readFile(path, 'utf8');
     await writeFile(path, injectCookieConsent(html), 'utf8');

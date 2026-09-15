@@ -26,6 +26,7 @@ import { renderStandsAccessPage } from './finados/stands-page.mjs';
 import { renderVocerosLegalPage } from './finados/voceros-legal-page.mjs';
 import { renderVocerosPage } from './finados/voceros-page.mjs';
 import { renderMediaAccreditationBody } from './media-accreditation/page.mjs';
+import { renderAdminLoginPage, renderAdminVocerosPage } from './admin/page.mjs';
 
 const historyParagraphs = [
   'Al pie del volcán Carihuayrazo, cerca al Puñalica y de frente a los Llimpes, se levanta el Complejo Intercultural y Deportivo Mushuc Runa, en honor al hombre nuevo, que se abre espacio en este mundo globalizado. Desde la parte alta se puede apreciar la explanada que acoge a varios poblados de Ambato, Tisaleo, Quero y Cevallos. La obra que inició en el 2012 bajo la inspiración de Luis Alfonso Chango, tiene un toque campestre y natural, dotado de funcionalidad moderna. El proyecto fue inspirado en la reivindicación de los indígenas que hasta hace poco, sólo servían como peones de estas tierras.',
@@ -279,6 +280,8 @@ const standsAccessPage = {
 };
 
 export const pages = Object.freeze([
+  { route: '/admin/', title: 'Iniciar sesión', indexable: false, render: renderAdminLoginPage },
+  { route: '/admin/voceros/', title: 'Voceros · Administración', indexable: false, render: renderAdminVocerosPage },
   ...mainPages,
   ...archivePages,
   finadosPreview,

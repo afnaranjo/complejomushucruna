@@ -1,0 +1,71 @@
+import { escapeHtml as esc } from '../render/html.mjs';
+import { STATUSES, PREVIOUS_PARTICIPATION } from './admin.js';
+
+const options = values => values.map(value => `<option value="${esc(value)}">${esc(value)}</option>`).join('');
+const select = (name, label, values) => `<label>${label}<select name="${name}"><option value="">Todos</option>${options(values)}</select></label>`;
+function layout(page, content) {
+  const api = page.adminEnvironment === 'development' ? 'http://127.0.0.1:4174/api' : 'https://finados.complejomushucruna.com/api';
+  return `<!doctype html>
+<html lang="es"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${esc(page.title)} | Complejo Mushuc Runa</title>
+<meta name="description" content="Acceso administrativo a los registros de Voceros de Finados Mushuc Runa.">
+<link rel="canonical" href="https://complejomushucruna.com${esc(page.route)}">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src ${api}/; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta name="admin-api-base" content="${api}">
+<link rel="icon" href="/assets/finados/favicon-finados.png">
+<link rel="stylesheet" href="/assets/admin/admin.css?v=20260914-1">
+<script type="module" src="/assets/admin/admin.js?v=20260914-1"></script>
+</head><body class="admin-page">
+<a class="skip-link" href="#contenido">Ir al contenido</a>
+<header class="admin-header"><a href="/finados/voceros/" aria-label="Volver a Voceros"><img src="/assets/finados/logo-finados.svg" width="132" height="60" alt="Finados Mushuc Runa"></a><span class="header-context">Administración <span aria-hidden="true">/</span> Voceros</span>${page.route === '/admin/voceros/' ? '<button type="button" class="button-quiet" data-admin-logout disabled>Cerrar sesión</button>' : ''}</header>
+${content}
+<noscript><p class="notice">Activa JavaScript para iniciar sesión y administrar los registros.</p></noscript>
+</body></html>`;
+}
+
+export function renderAdminLoginPage(page) {
+  return layout(page, `<main id="contenido" class="login-workspace">
+<div class="login-intro"><p class="eyebrow">Finados 2026</p><h1>Iniciar sesión</h1><p>Acceso del equipo de Voceros.</p></div>
+<form data-admin-login class="login-form">
+<fieldset disabled data-login-fields>
+<label for="username">Usuario</label><input id="username" name="username" autocomplete="username" maxlength="100" required autocapitalize="none" spellcheck="false">
+<label for="password">Contraseña</label><div class="password-field"><input id="password" type="password" name="password" autocomplete="current-password" maxlength="1024" required><button type="button" class="button-quiet" data-toggle-password aria-controls="password" aria-pressed="false">Mostrar</button></div>
+<button class="button-primary login-submit" type="submit">Iniciar sesión</button>
+</fieldset>
+<p class="feedback" data-admin-feedback role="status" aria-live="polite" aria-atomic="true">Comprobando acceso…</p>
+<button type="button" class="button-quiet" data-session-retry hidden>Reintentar conexión</button>
+</form>
+<details class="access-help"><summary>¿Necesitas restablecer tu acceso?</summary><p>Solicita al responsable técnico restablecer la contraseña mediante SSH. No compartas tu contraseña por mensajes.</p></details>
+<a class="return-link" href="/finados/voceros/">← Volver a Voceros</a>
+</main>`);
+}
+
+export function renderAdminVocerosPage(page) {
+  return layout(page, `<main id="contenido" class="admin-workspace" data-admin-voceros>
+<div class="workspace-heading"><div><p class="eyebrow">Finados 2026</p><h1>Registros de Voceros</h1><p data-admin-user>Comprobando acceso…</p></div><button type="button" class="button-primary" data-admin-export disabled>Exportar CSV</button></div>
+<p class="feedback" data-admin-feedback role="status" aria-live="polite" aria-atomic="true"></p>
+<button type="button" class="button-quiet" data-session-retry hidden>Reintentar conexión</button>
+<section aria-label="Resumen de todos los registros" class="summary" data-admin-dashboard aria-busy="true"></section>
+<details class="activity"><summary>Actividad y estados de todos los registros</summary><div class="activity-columns"><div><h2>Por estado</h2><dl data-status-counts></dl></div><div><h2>Registros por fecha (UTC)</h2><dl data-date-counts></dl></div></div></details>
+<form class="filters" data-admin-filters><fieldset disabled data-panel-fields>
+<legend>Filtrar registros</legend>
+<div class="filter-grid"><label class="search-field">Buscar<input type="search" name="search" maxlength="180" placeholder="Nombre, cédula, teléfono o correo"></label>
+${select('status', 'Estado', STATUSES)}<label>Ciudad exacta<input name="city" maxlength="100" placeholder="Todas las ciudades"></label>
+${select('main_network', 'Red principal', ['TikTok', 'Instagram', 'Facebook'])}
+${select('previous_participation', 'Participación anterior', PREVIOUS_PARTICIPATION)}
+<label>Desde (UTC)<input type="date" name="date_from"></label><label>Hasta (UTC)<input type="date" name="date_to"></label></div>
+<div class="filter-actions"><button type="submit" class="button-primary">Aplicar filtros</button><button type="reset" class="button-quiet">Limpiar</button><label>Por página<select name="pageSize"><option>25</option><option>50</option><option>100</option></select></label></div>
+</fieldset></form>
+<section class="records" aria-labelledby="records-title" aria-busy="true" data-records-region><div class="records-heading"><h2 id="records-title" tabindex="-1">Registros</h2><p data-record-count>—</p></div>
+<p data-list-message role="status">Cargando registros…</p>
+<table><caption class="sr-only">Voceros registrados. Abre un registro para revisar sus datos y notas.</caption><thead><tr><th scope="col">Vocero</th><th scope="col">Contacto</th><th scope="col">Ciudad / red</th><th scope="col">Registro</th><th scope="col">Estado</th><th scope="col"><span class="sr-only">Acciones</span></th></tr></thead><tbody data-records></tbody></table>
+<nav class="pagination" aria-label="Paginación de registros"><button class="button-quiet" data-previous disabled>← Anterior</button><span data-page-label>Página —</span><button class="button-quiet" data-next disabled>Siguiente →</button></nav></section>
+<dialog class="detail-dialog" aria-labelledby="detail-title" data-detail><div class="detail-heading"><h2 id="detail-title" tabindex="-1">Detalle del vocero</h2><button type="button" class="button-quiet" data-detail-close aria-label="Cerrar detalle">Cerrar ×</button></div>
+<p class="feedback" data-detail-feedback role="status" aria-live="polite" aria-atomic="true"></p><div data-detail-content></div>
+<form data-status-form><fieldset disabled><label>Estado del registro<select name="status" required>${options(STATUSES)}</select></label><button class="button-primary" type="submit">Guardar estado</button></fieldset></form>
+<section class="notes-section"><h3>Notas internas</h3><ol data-notes></ol><form data-note-form><fieldset disabled><label>Añadir nota<textarea name="body" rows="3" maxlength="2000" required></textarea></label><button class="button-primary" type="submit">Guardar nota</button></fieldset></form></section>
+</dialog></main>`);
+}

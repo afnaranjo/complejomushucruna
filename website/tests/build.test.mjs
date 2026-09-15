@@ -7,7 +7,7 @@ import { join } from 'node:path';
 import { buildSite } from '../scripts/build.mjs';
 import { escapeHtml } from '../src/render/html.mjs';
 
-test('agrega un aviso de cookies compacto en todas las páginas HTML', async () => {
+test('agrega un aviso de cookies compacto en páginas públicas y excluye admin', async () => {
   const output = await mkdtemp(join(tmpdir(), 'mushuc-cookie-consent-'));
   const files = await buildSite(output);
   const htmlFiles = files.filter((file) => file.endsWith('.html'));
@@ -15,6 +15,10 @@ test('agrega un aviso de cookies compacto en todas las páginas HTML', async () 
   assert.ok(htmlFiles.length >= 14);
   for (const htmlFile of htmlFiles) {
     const html = await readFile(join(output, htmlFile), 'utf8');
+    if (htmlFile.startsWith('admin/')) {
+      assert.doesNotMatch(html, /cookie-consent/);
+      continue;
+    }
     assert.equal((html.match(/data-cookie-consent(?:\s|>)/g) ?? []).length, 1, `${htmlFile} debe incluir una barra`);
     assert.equal((html.match(/data-cookie-consent-accept/g) ?? []).length, 1, `${htmlFile} debe incluir un botón`);
     assert.match(html, /Nuestro sitio web utiliza cookies para mejorar tu navegación\./);
