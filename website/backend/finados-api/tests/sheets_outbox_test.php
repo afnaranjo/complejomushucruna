@@ -60,6 +60,7 @@ same(false, str_contains(file_get_contents($outboxRoot . '/test.log'), 'outbox@e
 same(false, $outboxRepo->createPublic($outboxRecord, $outboxConsents, '192.0.2.4')['created']);
 
 // Receiver acceptance followed by process death must recover after the lease expires.
+$outboxDb->exec('UPDATE sheets_outbox SET next_attempt_at = 0'); // Simulate reaching the retry deadline.
 $acceptedPath = $outboxRoot . '/receiver.json';
 $process = proc_open([PHP_BINARY, '-r', $workerPrefix
     . '(new Finados\\SheetsOutbox($pdo,$crypto))->deliver(' . var_export($outboxRecord['submission_id'], true)
@@ -102,9 +103,11 @@ file_put_contents($outboxRoot . '/google-sheets-config.json', json_encode($trans
 $thirdRecord = array_replace($outboxRecord, ['submission_id' => str_repeat('c', 32), 'cedula' => '1800000024', 'whatsapp' => '0990000024', 'email' => 'third@example.invalid']);
 $outboxRepo->createPublic($thirdRecord, $outboxConsents, '192.0.2.4');
 foreach ([['ok' => true], ['ok' => true, 'submission_id' => str_repeat('f', 32)], ['ok' => false, 'submission_id' => str_repeat('c', 32)]] as $badReceipt) {
+    $outboxDb->exec('UPDATE sheets_outbox SET next_attempt_at = 0');
     same('queued', $outbox->deliver($thirdRecord['submission_id'], static fn ($payload) => Finados\SheetsTransport::deliver($outboxRoot, $payload,
         static fn () => [200, json_encode($badReceipt)])));
 }
+$outboxDb->exec('UPDATE sheets_outbox SET next_attempt_at = 0');
 same('synced', $outbox->deliver($thirdRecord['submission_id'], static fn ($payload) => Finados\SheetsTransport::deliver($outboxRoot, $payload,
     static fn () => [200, '{"ok":true,"submission_id":"cccccccccccccccccccccccccccccccc"}'])));
 
@@ -116,6 +119,7 @@ $outboxDb->exec("CREATE TRIGGER fail_ack BEFORE INSERT ON audit_log WHEN NEW.eve
 same('queued', $outbox->deliver($legacyRecord['submission_id'], static fn () => 'synced'));
 same('pending', $outboxDb->query("SELECT state FROM sheets_outbox WHERE submission_id = 'dddddddddddddddddddddddddddddddd'")->fetchColumn());
 $outboxDb->exec('DROP TRIGGER fail_ack');
+$outboxDb->exec('UPDATE sheets_outbox SET next_attempt_at = 0');
 // No network call when secondary configuration is absent; CLI re-runs retain exactly one pending job.
 unlink($outboxRoot . '/google-sheets-config.json');
 $cliResult = operations_cli('reconcile-sheets', ['--config', $outboxRoot . '/config.json']);
@@ -123,10 +127,61 @@ same(['synced' => 0, 'queued' => 1], json_decode($cliResult['out'], true));
 same(0, $cliResult['code']);
 same('', $cliResult['err']);
 $cliRepeated = operations_cli('reconcile-sheets', ['--config', $outboxRoot . '/config.json']);
-same($cliResult, $cliRepeated);
+same(['synced' => 0, 'queued' => 0], json_decode($cliRepeated['out'], true));
+same(0, $cliRepeated['code']);
+same('', $cliRepeated['err']);
+$outboxDb->exec('UPDATE sheets_outbox SET next_attempt_at = 0');
 same('synced', $outbox->deliver($legacyRecord['submission_id'], static function ($payload): string {
     same('Persona Prueba', $payload['nombre_completo']);
     return 'synced';
 }));
 same(['synced' => 0, 'queued' => 0], json_decode(operations_cli('reconcile-sheets', ['--config', $outboxRoot . '/config.json'])['out'], true));
+
+// A persistent failure in the oldest full batch must not starve the 101st job after a restart.
+[$fairRoot] = operations_fixture();
+$fairConfig = Finados\Config::fromFile($fairRoot . '/config.json');
+$fairDb = Finados\Database::connect($fairConfig);
+$fairDb->exec(file_get_contents(__DIR__ . '/../migrations/002_sheets_outbox_sqlite.sql'));
+$fairCrypto = new Finados\Crypto($fairConfig);
+$fairRepo = new Finados\VocerosRepository($fairDb, $fairCrypto);
+$fairWorker = new Finados\SheetsOutbox($fairDb, $fairCrypto);
+for ($i = 1; $i <= 101; $i++) {
+    $fairDb->beginTransaction();
+    $id = $fairRepo->create(array_replace($outboxRecord, ['submission_id' => sprintf('%032x', $i)]), $outboxConsents);
+    $fairWorker->ensure($id);
+    $fairDb->commit();
+}
+$lastId = sprintf('%032x', 101);
+$fairReceiver = static fn (array $payload): string => $payload['id'] === $lastId ? 'synced' : 'queued';
+same(['synced' => 0, 'queued' => 100], $fairWorker->reconcile($fairReceiver));
+$restartedWorker = new Finados\SheetsOutbox(Finados\Database::connect($fairConfig), $fairCrypto);
+same(['synced' => 1, 'queued' => 0], $restartedWorker->reconcile($fairReceiver));
+same(['synced' => 0, 'queued' => 0], $restartedWorker->reconcile($fairReceiver));
+same(101, (int) $fairDb->query('SELECT SUM(attempts) FROM sheets_outbox')->fetchColumn());
+same(100, (int) $fairDb->query("SELECT COUNT(*) FROM sheets_outbox WHERE state = 'pending' AND payload_enc IS NOT NULL")->fetchColumn());
+
+// Direct replays honor the same waiting period; repeated failures eventually cap their delay.
+$firstFairId = sprintf('%032x', 1);
+same('queued', $fairWorker->deliver($firstFairId, static fn () => 'synced'));
+same(101, (int) $fairDb->query('SELECT SUM(attempts) FROM sheets_outbox')->fetchColumn());
+$fairDb->exec("UPDATE sheets_outbox SET attempts = 999, next_attempt_at = 0 WHERE submission_id = '00000000000000000000000000000001'");
+$beforeBackoff = time();
+same('queued', $fairWorker->deliver($firstFairId, static fn () => 'queued'));
+$scheduled = (int) $fairDb->query("SELECT next_attempt_at FROM sheets_outbox WHERE submission_id = '00000000000000000000000000000001'")->fetchColumn();
+same(true, $scheduled >= $beforeBackoff + 3600 && $scheduled <= time() + 3600);
+
+// When a lease expires during delivery, the stale worker must not erase its successor's retry deadline.
+$secondFairId = sprintf('%032x', 2);
+$fairDb->exec("UPDATE sheets_outbox SET next_attempt_at = 0 WHERE submission_id = '00000000000000000000000000000002'");
+$successorDeadline = null;
+same('queued', $fairWorker->deliver($secondFairId, static function () use ($fairDb, $restartedWorker, $secondFairId, &$successorDeadline): string {
+    $fairDb->exec("UPDATE sheets_outbox SET lease_until = 0 WHERE submission_id = '00000000000000000000000000000002'");
+    same('queued', $restartedWorker->deliver($secondFairId, static fn () => 'queued'));
+    $successorDeadline = (int) $fairDb->query("SELECT next_attempt_at FROM sheets_outbox WHERE submission_id = '00000000000000000000000000000002'")->fetchColumn();
+    return 'synced';
+}));
+same(true, $successorDeadline > time());
+same($successorDeadline, (int) $fairDb->query("SELECT next_attempt_at FROM sheets_outbox WHERE submission_id = '00000000000000000000000000000002'")->fetchColumn());
+same(3, (int) $fairDb->query("SELECT attempts FROM sheets_outbox WHERE submission_id = '00000000000000000000000000000002'")->fetchColumn());
+same(100, (int) $fairDb->query("SELECT COUNT(*) FROM sheets_outbox WHERE state = 'pending' AND payload_enc IS NOT NULL")->fetchColumn());
 ini_set('error_log', $originalLog);

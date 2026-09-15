@@ -68,8 +68,9 @@ final class SheetsOutbox
     {
         $token = bin2hex(random_bytes(16));
         // Atomic compare-and-set works with both SQLite and InnoDB. A crashed worker loses its lease.
-        $query = $this->pdo->prepare("UPDATE sheets_outbox SET lease_token = ?, lease_until = ?, attempts = attempts + 1 WHERE submission_id = ? AND state = 'pending' AND lease_until <= ?");
-        $query->execute([$token, time() + 120, $submissionId, time()]);
+        $query = $this->pdo->prepare("UPDATE sheets_outbox SET lease_token = ?, lease_until = ?, attempts = attempts + 1 WHERE submission_id = ? AND state = 'pending' AND lease_until <= ? AND next_attempt_at <= ?");
+        $now = time();
+        $query->execute([$token, $now + 120, $submissionId, $now, $now]);
         if ($query->rowCount() !== 1) {
             $query = $this->pdo->prepare('SELECT state FROM sheets_outbox WHERE submission_id = ?');
             $query->execute([$submissionId]);
@@ -77,11 +78,13 @@ final class SheetsOutbox
             if ($state === false) throw new RuntimeException('Durable Sheets job is unavailable.');
             return $state === 'synced' ? 'synced' : 'queued';
         }
+        $delay = 60;
         try {
-            $query = $this->pdo->prepare('SELECT public_id, payload_enc FROM sheets_outbox WHERE submission_id = ? AND lease_token = ?');
+            $query = $this->pdo->prepare('SELECT public_id, payload_enc, attempts FROM sheets_outbox WHERE submission_id = ? AND lease_token = ?');
             $query->execute([$submissionId, $token]);
             $job = $query->fetch();
             $query->closeCursor();
+            $delay = min(3600, 60 * (2 ** min(6, max(0, (int) $job['attempts'] - 1))));
             $payload = json_decode($this->crypto->decrypt($job['payload_enc']), true, 512, JSON_THROW_ON_ERROR);
             if ($send($payload) !== 'synced') return 'queued';
             $this->pdo->beginTransaction();
@@ -97,17 +100,19 @@ final class SheetsOutbox
             error_log('Voceros: Sheets delivery deferred; durable job retained.');
             return 'queued';
         } finally {
-            $query = $this->pdo->prepare('UPDATE sheets_outbox SET lease_token = NULL, lease_until = 0 WHERE submission_id = ? AND lease_token = ?');
-            $query->execute([$submissionId, $token]);
+            // Schedule failure independently of lease expiration. A stale owner cannot delay another worker.
+            $query = $this->pdo->prepare('UPDATE sheets_outbox SET lease_token = NULL, lease_until = 0, next_attempt_at = ? WHERE submission_id = ? AND lease_token = ?');
+            $query->execute([time() + $delay, $submissionId, $token]);
         }
     }
 
     public function reconcile(callable $send, int $maximum = 100): array
     {
         if ($maximum < 1 || $maximum > 1000) throw new RuntimeException('Invalid batch size.');
-        $query = $this->pdo->prepare("SELECT submission_id FROM sheets_outbox WHERE state = 'pending' AND lease_until <= ? ORDER BY created_at, submission_id LIMIT ?");
+        $query = $this->pdo->prepare("SELECT submission_id FROM sheets_outbox WHERE state = 'pending' AND lease_until <= ? AND next_attempt_at <= ? ORDER BY next_attempt_at, created_at, submission_id LIMIT ?");
         $query->bindValue(1, time(), PDO::PARAM_INT);
-        $query->bindValue(2, $maximum, PDO::PARAM_INT);
+        $query->bindValue(2, time(), PDO::PARAM_INT);
+        $query->bindValue(3, $maximum, PDO::PARAM_INT);
         $query->execute();
         $counts = ['synced' => 0, 'queued' => 0];
         foreach ($query->fetchAll(PDO::FETCH_COLUMN) as $id) $counts[$this->deliver($id, $send)]++;
