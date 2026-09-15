@@ -16,24 +16,29 @@ final class Forbidden extends RuntimeException
 
 final class Http
 {
-    public static function startSession(Config $config): void
+    public static function startSession(Config $config, string $scope = 'admin'): void
     {
         if (session_status() === PHP_SESSION_ACTIVE) {
             return;
         }
+        [$name, $sameSite] = match ($scope) {
+            'admin' => ['finados_admin', 'Strict'],
+            'vocero' => ['finados_vocero', 'Lax'],
+            default => throw new RuntimeException('Ámbito de sesión no válido.'),
+        };
         ini_set('session.use_strict_mode', '1');
         ini_set('session.use_only_cookies', '1');
         ini_set('session.use_trans_sid', '0');
         // Application checks enforce idle/absolute expiry; do not let PHP's 24-minute default win.
         ini_set('session.gc_maxlifetime', '43200');
-        session_name('finados_admin');
+        session_name($name);
         session_set_cookie_params([
             'lifetime' => 0,
             'path' => '/',
             'domain' => '',
             'secure' => $config->isProduction(),
             'httponly' => true,
-            'samesite' => 'Strict',
+            'samesite' => $sameSite,
         ]);
         session_cache_limiter('nocache');
         if (!session_start()) {
@@ -50,7 +55,7 @@ final class Http
         $cookie = session_get_cookie_params();
         setcookie(session_name(), '', [
             'expires' => 1, 'path' => $cookie['path'], 'domain' => '',
-            'secure' => $cookie['secure'], 'httponly' => true, 'samesite' => 'Strict',
+            'secure' => $cookie['secure'], 'httponly' => true, 'samesite' => $cookie['samesite'] ?? 'Strict',
         ]);
         session_destroy();
         session_id('');

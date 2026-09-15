@@ -18,7 +18,7 @@ try {
     $raw = file_get_contents('php://input', false, null, 0, 16385);
     if ($raw === false) throw new RuntimeException();
     $bootstrapStage = 'B5';
-    $router->handle($_SERVER['REQUEST_METHOD'] ?? 'GET', $_SERVER['REQUEST_URI'] ?? '/', $_SERVER, $raw)->send();
+    $router->handle($_SERVER['REQUEST_METHOD'] ?? 'GET', $_SERVER['REQUEST_URI'] ?? '/', $_SERVER, $raw, $_POST, $_FILES)->send();
 } catch (Throwable) {
     error_log('Finados API bootstrap failed.');
     $headers = [

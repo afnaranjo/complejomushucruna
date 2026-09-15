@@ -22,7 +22,7 @@ final class Auth
 
     public function login(string $username, #[\SensitiveParameter] string $password, string $ip): array
     {
-        Http::startSession($this->config);
+        Http::startSession($this->config, 'admin');
         $now = ($this->clock)();
         // All supported login names resolve to this single account. Canonicalize also for throttling.
         $username = strtolower(trim($username));
@@ -86,7 +86,7 @@ final class Auth
 
     public function requireUser(): array
     {
-        Http::startSession($this->config);
+        Http::startSession($this->config, 'admin');
         $now = ($this->clock)();
         if (!isset($_SESSION['admin_id'], $_SESSION['authenticated_at'], $_SESSION['last_activity'], $_SESSION['credential_version'])
             || $now - $_SESSION['last_activity'] >= 1800 || $now - $_SESSION['authenticated_at'] >= 43200
@@ -108,13 +108,13 @@ final class Auth
 
     public function logout(): void
     {
-        Http::startSession($this->config);
+        Http::startSession($this->config, 'admin');
         Http::destroySession();
     }
 
     public function csrfToken(): string
     {
-        Http::startSession($this->config);
+        Http::startSession($this->config, 'admin');
         if (!isset($_SESSION['csrf'])) {
             $_SESSION['csrf'] = bin2hex(random_bytes(32));
         }
@@ -123,7 +123,7 @@ final class Auth
 
     public function verifyCsrf(string $token): void
     {
-        Http::startSession($this->config);
+        Http::startSession($this->config, 'admin');
         if ($token === '' || !isset($_SESSION['csrf']) || !hash_equals($_SESSION['csrf'], $token)) {
             throw new Forbidden('Solicitud no válida');
         }
@@ -146,7 +146,7 @@ final class Auth
 
     private function user(array $admin): array
     {
-        return ['id' => (int) $admin['id'], 'public_id' => $admin['public_id'], 'username' => $admin['username']];
+        return ['id' => (int) $admin['id'], 'public_id' => $admin['public_id'], 'username' => $admin['username'], 'role' => 'administrador'];
     }
 
     private function isBlocked(array $attempts, int $now): bool

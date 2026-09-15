@@ -9,7 +9,7 @@ use OutOfBoundsException;
 use PDO;
 use Throwable;
 
-foreach (['Config', 'Database', 'Crypto', 'Audit', 'VocerosRepository', 'Auth'] as $dependency) {
+foreach (['Config', 'Database', 'Crypto', 'Audit', 'VocerosRepository', 'Auth', 'VoceroAuth'] as $dependency) {
     require_once __DIR__ . '/' . $dependency . '.php';
 }
 
@@ -28,6 +28,7 @@ final class Response
 final class Router
 {
     private readonly Auth $auth;
+    private readonly VoceroAuth $voceroAuth;
     private readonly VocerosRepository $repository;
     private readonly Audit $audit;
     private readonly Crypto $crypto;
@@ -40,9 +41,10 @@ final class Router
         $this->audit = new Audit($pdo, $this->crypto);
         $this->repository = new VocerosRepository($pdo, $this->crypto, $this->audit);
         $this->auth = new Auth($pdo, $config);
+        $this->voceroAuth = new VoceroAuth($pdo, $config);
     }
 
-    public function handle(string $method, string $uri, array $server = [], string $rawBody = ''): Response
+    public function handle(string $method, string $uri, array $server = [], string $rawBody = '', array $post = [], array $files = []): Response
     {
         $headers = [
             'Content-Type' => 'application/json; charset=utf-8', 'Cache-Control' => 'no-store', 'Vary' => 'Origin',
@@ -94,6 +96,43 @@ final class Router
                     throw $error;
                 }
                 return $this->json(200, ['authenticated' => true, ...$result], $headers);
+            }
+            // Vocero authentication is deliberately isolated from the administrative guard and session.
+            if ($path === '/api/vocero/auth/session' && $method === 'GET') {
+                try { $user = $this->voceroAuth->requireUser(); } catch (Unauthorized) { $user = null; }
+                return $this->json(200, ['authenticated' => $user !== null, 'user' => $user, 'csrf' => $this->voceroAuth->csrfToken()], $headers);
+            }
+            if (in_array($path, ['/api/vocero/auth/register', '/api/vocero/auth/login', '/api/vocero/auth/logout'], true) && $method === 'POST') {
+                if (!is_string($ip) || inet_pton($ip) === false) throw new Forbidden();
+                $this->voceroAuth->verifyCsrf($token);
+                if ($path === '/api/vocero/auth/register') {
+                    $body = $this->body($server, $rawBody, ['email', 'password', 'privacyAcknowledged']);
+                    if (!is_string($body['email'] ?? null) || !is_string($body['password'] ?? null) || !is_bool($body['privacyAcknowledged'] ?? null)) throw new InvalidArgumentException();
+                    $result = $this->voceroAuth->register($body['email'], $body['password'], $body['privacyAcknowledged'], $ip);
+                    try {
+                        $this->audit->log('vocero_account.registered', null, 'vocero_account', $result['user']['public_id'], [], $ip);
+                    } catch (Throwable $error) {
+                        $this->voceroAuth->logout();
+                        throw $error;
+                    }
+                    return $this->json(201, ['authenticated' => true, ...$result], $headers);
+                }
+                if ($path === '/api/vocero/auth/login') {
+                    $body = $this->body($server, $rawBody, ['email', 'password']);
+                    if (!is_string($body['email'] ?? null) || !is_string($body['password'] ?? null) || strlen($body['email']) > 254 || strlen($body['password']) > 128) throw new InvalidArgumentException();
+                    $result = $this->voceroAuth->login($body['email'], $body['password'], $ip);
+                    try {
+                        $this->audit->log('vocero_account.login', null, 'vocero_account', $result['user']['public_id'], [], $ip);
+                    } catch (Throwable $error) {
+                        $this->voceroAuth->logout();
+                        throw $error;
+                    }
+                    return $this->json(200, ['authenticated' => true, ...$result], $headers);
+                }
+                $user = $this->voceroAuth->requireUser();
+                $this->audit->log('vocero_account.logout', null, 'vocero_account', $user['public_id'], [], $ip);
+                $this->voceroAuth->logout();
+                return $this->json(200, ['ok' => true], $headers);
             }
             $user = $this->auth->requireUser();
             if (!in_array($method, self::METHODS, true)) return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
@@ -150,7 +189,7 @@ final class Router
                 }
                 return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
             }
-            if (in_array($path, ['/api/health', '/api/auth/login', '/api/auth/logout', '/api/auth/session', '/api/voceros', '/api/dashboard'], true)) {
+            if (in_array($path, ['/api/health', '/api/auth/login', '/api/auth/logout', '/api/auth/session', '/api/voceros', '/api/dashboard', '/api/vocero/auth/session', '/api/vocero/auth/register', '/api/vocero/auth/login', '/api/vocero/auth/logout'], true)) {
                 return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
             }
             return $this->error(404, 'not_found', 'Recurso no encontrado.', $headers);
