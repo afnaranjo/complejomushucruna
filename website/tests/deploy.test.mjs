@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, readdir, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -68,7 +68,7 @@ async function publicEndpointInstallFixture(existingSource, endpointSource = rep
   const temp = await mkdtemp(join(tmpdir(), 'finados-first-publish-'));
   await mkdir(join(temp, 'api/voceros'), { recursive: true });
   const endpoint = join(temp, 'api/voceros/index.php');
-  await writeFile(endpoint, existingSource);
+  if (existingSource !== undefined) await writeFile(endpoint, existingSource);
   const transport = recordingTransport();
   transport.run = async operation => {
     const input = operation.input.replaceAll(
@@ -198,6 +198,16 @@ test('backend primer despliegue conserva el endpoint histórico si el reemplazo 
   await assert.rejects(fixture.publish());
 
   assert.equal(await readFile(fixture.endpoint, 'utf8'), historical);
+  assert.deepEqual(await readdir(join(fixture.endpoint, '..')), ['index.php']);
+  assert.deepEqual(fixture.stages, []);
+});
+
+test('backend primer despliegue se detiene si falta el endpoint histórico esperado', async () => {
+  const fixture = await publicEndpointInstallFixture(undefined);
+
+  await assert.rejects(fixture.publish());
+
+  assert.deepEqual(await readdir(join(fixture.endpoint, '..')), []);
   assert.deepEqual(fixture.stages, []);
 });
 
@@ -236,6 +246,7 @@ test('backend bootstrap real conserva PHP strict_types e instalación repetida',
   const temp = await mkdtemp(join(tmpdir(), 'finados-bootstrap-'));
   await mkdir(join(temp, 'api/voceros'), { recursive: true });
   const endpoint = join(temp, 'api/voceros/index.php');
+  await writeFile(endpoint, historicalVocerosEndpoint());
   const source = replacementEndpointSource
     + "if (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__) echo getenv('FINADOS_BACKEND_ROOT');\n";
   const transport = recordingTransport();

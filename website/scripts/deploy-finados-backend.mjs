@@ -180,19 +180,26 @@ if (!is_dir($directory) && !mkdir($directory, 0755)) exit(1);
 $destination = $directory . '/index.php';
 ${main ? `
 $contents = ${literal(source)};
-if (is_file($destination)) {
-  $existingHash = hash_file('sha256', $destination);
-  $approvedHashes = [${approvedLegacyPublicEndpointHashes.map(literal).join(',')}, hash('sha256', $contents)];
-  if (!is_string($existingHash) || !in_array($existingHash, $approvedHashes, true)) exit(1);
-}
+if (!is_file($destination)) exit(1);
+$existingHash = hash_file('sha256', $destination);
+$approvedHashes = [${approvedLegacyPublicEndpointHashes.map(literal).join(',')}, hash('sha256', $contents)];
+if (!is_string($existingHash) || !in_array($existingHash, $approvedHashes, true)) exit(1);
 ` : `
 if (is_file($destination) && !str_contains(file_get_contents($destination), 'FINADOS MANAGED API')) exit(1);
 $contents = ${literal(prefix + `require ${literal(config.FINADOS_BACKEND_ROOT + '/public/index.php')};\n`)};
 `}
 if (is_link($destination)) exit(1);
 $temporary = $directory . ${literal('/.finados-' + releaseId + '.php')};
+$temporaryCreated = false;
+register_shutdown_function(static function () use ($temporary, &$temporaryCreated): void {
+  if (!$temporaryCreated) return;
+  try { if (is_file($temporary) || is_link($temporary)) unlink($temporary); } catch (\\Throwable) {}
+});
 $stream = fopen($temporary, 'x'); if (!$stream) exit(1);
-fwrite($stream, $contents); fclose($stream); chmod($temporary, 0644);
+$temporaryCreated = true;
+$written = fwrite($stream, $contents);
+$closed = fclose($stream);
+if ($written !== strlen($contents) || !$closed || !chmod($temporary, 0644)) exit(1);
 $lint = proc_open([PHP_BINARY, '-l', $temporary], [0=>['file','/dev/null','r'],1=>['file','/dev/null','w'],2=>['file','/dev/null','w']], $pipes);
 if (!is_resource($lint) || proc_close($lint) !== 0) exit(1);
 ${main && source !== undefined ? `
@@ -202,6 +209,7 @@ $health = voceros_handle_request(['REQUEST_METHOD'=>'GET'], []);
 if (($health['status'] ?? null) !== 200 || ($health['json']['open'] ?? false) !== true) exit(1);
 ` : ''}
 if (!rename($temporary, $destination)) exit(1);
+$temporaryCreated = false;
 ${main ? '' : `
 $htaccess = $directory . '/.htaccess';
 if (is_link($htaccess)) exit(1);
