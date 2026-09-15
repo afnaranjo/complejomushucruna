@@ -88,7 +88,7 @@ if (getenv('FINADOS_TEST_TAMPER_ACCOUNT') !== false) {
 $router->handle($_SERVER['REQUEST_METHOD'], $_SERVER['REQUEST_URI'], $_SERVER, file_get_contents('php://input'), $_POST, $_FILES)->send();
 PHP);
 
-function api_request(string $method, string $uri, mixed $body = null, string $cookie = '', ?string $csrf = null, ?string $origin = 'https://complejomushucruna.com', array $server = []): array
+function api_request(string $method, string $uri, mixed $body = null, string $cookie = '', ?string $csrf = null, ?string $origin = 'https://complejomushucruna.com', array $server = [], array $phpIni = []): array
 {
     global $apiWorker, $apiConfigPath, $apiErrorLog, $apiPrivateRoot;
     $raw = $body === null ? '' : (is_string($body) ? $body : json_encode($body === [] ? (object) [] : $body, JSON_THROW_ON_ERROR));
@@ -102,7 +102,14 @@ function api_request(string $method, string $uri, mixed $body = null, string $co
     if ($origin !== null) $env['HTTP_ORIGIN'] = $origin;
     if ($csrf !== null) $env['HTTP_X_CSRF_TOKEN'] = $csrf;
     $pipes = [];
-    $process = proc_open([dirname(PHP_BINARY) . '/php-cgi', '-d', 'session.save_path=' . sys_get_temp_dir(), '-d', 'error_log=' . $apiErrorLog, '-d', 'upload_tmp_dir=' . $apiPrivateRoot, '-d', 'upload_max_filesize=5M', '-d', 'post_max_size=6M', '-f', $apiWorker], [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes, null, $env);
+    $settings = array_replace([
+        'session.save_path' => sys_get_temp_dir(), 'error_log' => $apiErrorLog, 'upload_tmp_dir' => $apiPrivateRoot,
+        'file_uploads' => '1', 'upload_max_filesize' => '5M', 'post_max_size' => '6M', 'memory_limit' => '256M',
+    ], $phpIni);
+    $command = [dirname(PHP_BINARY) . '/php-cgi'];
+    foreach ($settings as $name => $value) array_push($command, '-d', $name . '=' . $value);
+    array_push($command, '-f', $apiWorker);
+    $process = proc_open($command, [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes, null, $env);
     fwrite($pipes[0], $raw); fclose($pipes[0]);
     $output = stream_get_contents($pipes[1]); $errors = stream_get_contents($pipes[2]);
     fclose($pipes[1]); fclose($pipes[2]);
@@ -129,8 +136,71 @@ foreach (['/api/voceros', '/api/voceros/' . $apiId, '/api/dashboard'] as $apiPat
 foreach ([['PATCH', '/api/voceros/' . $apiId], ['POST', '/api/voceros/' . $apiId . '/notes'], ['POST', '/api/voceros/export'], ['POST', '/api/auth/logout']] as [$method, $apiPath]) {
     same(401, api_request($method, $apiPath, [])['status']);
 }
-same(200, api_request('GET', '/api/health', origin: null)['status']);
-same(['ok' => true], api_request('GET', '/api/health')['json']);
+$health = api_request('GET', '/api/health', origin: null);
+same(200, $health['status']);
+same(['ok', 'service', 'contract', 'migration', 'capabilities', 'runtime', 'storage', 'limits'], array_keys($health['json']));
+same([
+    'ok' => true,
+    'service' => 'finados-voceros-api',
+    'contract' => 'vocero-accounts-v1',
+    'migration' => ['version' => '003_vocero_accounts', 'ready' => true],
+    'capabilities' => [
+        'voceroAccounts' => true, 'voceroProfile' => true, 'privatePhoto' => true,
+        'adminPasswordReset' => true, 'photoUpload' => true,
+    ],
+], array_intersect_key($health['json'], array_flip(['ok', 'service', 'contract', 'migration', 'capabilities'])));
+same([
+    'fileinfo' => true, 'gd' => true, 'jpeg' => true, 'png' => true, 'webp' => true,
+    'exif' => true, 'openssl' => true, 'functions' => true,
+], $health['json']['runtime']);
+same([
+    'privateRoot' => true, 'canonical' => true, 'writable' => true, 'permissions' => true,
+], array_intersect_key($health['json']['storage'], array_flip(['privateRoot', 'canonical', 'writable', 'permissions'])));
+same(true, is_int($health['json']['storage']['freeBytes']));
+same(true, $health['json']['storage']['freeBytes'] >= 100 * 1024 * 1024);
+same([
+    'fileUploads' => true, 'uploadMaxBytes' => 5242880, 'postMaxBytes' => 6291456,
+    'memoryBytes' => 268435456,
+], $health['json']['limits']);
+same(false, str_contains($health['body'], $apiPrivateRoot));
+same(false, str_contains($health['body'], $apiConfigPath));
+$thresholdHealth = api_request('GET', '/api/health', phpIni: [
+    'upload_max_filesize' => '5120K', 'post_max_size' => '5505024', 'memory_limit' => '-1',
+]);
+same(200, $thresholdHealth['status']); same(5242880, $thresholdHealth['json']['limits']['uploadMaxBytes']);
+same(5505024, $thresholdHealth['json']['limits']['postMaxBytes']); same(-1, $thresholdHealth['json']['limits']['memoryBytes']);
+same(true, $thresholdHealth['json']['capabilities']['photoUpload']);
+foreach ([
+    ['file_uploads' => '0'], ['upload_max_filesize' => '5242879'], ['post_max_size' => '5505023'],
+] as $settings) {
+    $unhealthy = api_request('GET', '/api/health', phpIni: $settings);
+    same(503, $unhealthy['status']); same(false, $unhealthy['json']['ok']);
+    same(false, $unhealthy['json']['capabilities']['photoUpload']);
+    same(false, $unhealthy['json']['capabilities']['privatePhoto']);
+}
+foreach ([
+    [['memory_limit' => '64M'], 'limits', 'memoryBytes', 67108864],
+    [['disable_functions' => 'imagecreatefromwebp'], 'runtime', 'webp', false],
+    [['disable_functions' => 'openssl_encrypt'], 'runtime', 'openssl', false],
+    [['disable_functions' => 'ob_start'], 'runtime', 'functions', false],
+    [['disable_functions' => 'base64_encode'], 'runtime', 'functions', false],
+    [['disable_functions' => 'umask'], 'runtime', 'functions', false],
+    [['disable_functions' => 'set_error_handler'], 'runtime', 'functions', false],
+    [['disable_functions' => 'restore_error_handler'], 'runtime', 'functions', false],
+    [['disable_functions' => 'clearstatcache'], 'runtime', 'functions', false],
+    [['disable_functions' => 'disk_free_space'], 'storage', 'privateRoot', false],
+] as [$settings, $section, $field, $expected]) {
+    $unhealthy = api_request('GET', '/api/health', phpIni: $settings);
+    same(503, $unhealthy['status']); same(false, $unhealthy['json']['ok']);
+    same($expected, $unhealthy['json'][$section][$field]);
+    same(false, $unhealthy['json']['capabilities']['photoUpload']);
+    same(false, $unhealthy['json']['capabilities']['privatePhoto']);
+}
+$apiPdo->exec("DELETE FROM schema_migrations WHERE version = '003_vocero_accounts'");
+$unmigrated = api_request('GET', '/api/health');
+same(503, $unmigrated['status']); same(false, $unmigrated['json']['migration']['ready']);
+same(false, $unmigrated['json']['capabilities']['voceroAccounts']);
+$apiPdo->exec("INSERT INTO schema_migrations (version, applied_at) VALUES ('003_vocero_accounts', CURRENT_TIMESTAMP)");
 $response = api_request('GET', '/api/voceros', origin: 'https://malicioso.example');
 same(403, $response['status']);
 same(false, isset($response['headers']['access-control-allow-origin']));

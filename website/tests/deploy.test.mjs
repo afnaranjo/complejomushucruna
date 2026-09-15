@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { mkdir, mkdtemp, readFile, readdir, realpath, writeFile } from 'node:fs/promises';
+import { chmod, mkdir, mkdtemp, readFile, readdir, realpath, rm, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -17,6 +17,47 @@ function voceros_handle_request(array $server, array $post): array {
   return ['status' => 200, 'json' => ['open' => false, 'authenticationRequired' => true, 'accessUrl' => '/finados/voceros/acceso/', 'timezone' => 'America/Guayaquil']];
 }
 `;
+
+function healthyBackendResponse(overrides = {}) {
+  return {
+    status: 200,
+    ok: true,
+    service: 'finados-voceros-api',
+    contract: 'vocero-accounts-v1',
+    migration: { version: '003_vocero_accounts', ready: true },
+    capabilities: {
+      voceroAccounts: true,
+      voceroProfile: true,
+      privatePhoto: true,
+      adminPasswordReset: true,
+      photoUpload: true,
+    },
+    runtime: {
+      fileinfo: true,
+      gd: true,
+      jpeg: true,
+      png: true,
+      webp: true,
+      exif: true,
+      openssl: true,
+      functions: true,
+    },
+    storage: {
+      privateRoot: true,
+      canonical: true,
+      writable: true,
+      permissions: true,
+      freeBytes: 100 * 1024 * 1024,
+    },
+    limits: {
+      fileUploads: true,
+      uploadMaxBytes: 5 * 1024 * 1024,
+      postMaxBytes: 5 * 1024 * 1024 + 256 * 1024,
+      memoryBytes: 256 * 1024 * 1024,
+    },
+    ...overrides,
+  };
+}
 
 function fixtureConfig(overrides = {}) {
   return {
@@ -43,12 +84,12 @@ function recordingTransport(overrides = {}) {
       this.operations.push(operation);
       if (operation.write) this.writes.push(operation);
       if (operation.id === overrides.failAt) throw new Error('fixture-password');
-      if (operation.id === 'probe') return JSON.stringify({ phpVersion: '8.2.12', phpModules: ['PDO', 'pdo_mysql', 'openssl', 'session', 'fileinfo', 'gd', 'exif'], paths: true, databaseProbe: '1', media: { jpeg: true, png: true, webp: true, memoryBytes: 268435456, freeBytes: 104857600, privateRoot: true }, ...overrides.probe });
+      if (operation.id === 'probe') return JSON.stringify({ phpVersion: '8.2.12', phpModules: ['PDO', 'pdo_mysql', 'openssl', 'session', 'fileinfo', 'gd', 'exif'], paths: true, databaseProbe: '1', media: { jpeg: true, png: true, webp: true, memoryBytes: 268435456, freeBytes: 104857600, privateRoot: true, fileUploads: true, uploadMaxBytes: 5 * 1024 * 1024, postMaxBytes: 5 * 1024 * 1024 + 256 * 1024 }, ...overrides.probe });
       return '';
     },
     async upload(operation) { this.writes.push(operation); },
     async interactive(operation) { this.writes.push(operation); },
-    async health() { return { status: 200, ok: true }; },
+    async health() { return overrides.health ?? healthyBackendResponse(); },
   };
 }
 
@@ -61,11 +102,25 @@ function historicalVocerosEndpoint() {
   return source;
 }
 
+function recalculateManagedPayloadDigest(source) {
+  const prefix = '// FINADOS MANAGED PAYLOAD SHA256: ';
+  const endMarker = '// FINADOS MANAGED BOOTSTRAP END v1\n';
+  const digestStart = source.indexOf(prefix) + prefix.length;
+  const payloadStart = source.indexOf(endMarker) + endMarker.length;
+  assert.ok(digestStart >= prefix.length && payloadStart >= endMarker.length);
+  const digest = createHash('sha256').update('<?php' + source.slice(payloadStart)).digest('hex');
+  return source.slice(0, digestStart) + digest + source.slice(digestStart + 64);
+}
+
 async function publicEndpointInstallFixture(existingSource, endpointSource = replacementEndpointSource) {
   const { installPublicBootstrap } = await import('../scripts/deploy-finados-backend.mjs');
   const { publishFrontendFiles } = await import('../scripts/deploy-cpanel.mjs');
   const temp = await mkdtemp(join(tmpdir(), 'finados-first-publish-'));
   await mkdir(join(temp, 'api/voceros'), { recursive: true });
+  await mkdir(join(temp, 'private-data'), { mode: 0o700 });
+  const privateDirectory = await realpath(join(temp, 'private-data'));
+  await writeFile(join(privateDirectory, 'finados-backend.json'), '{}', { mode: 0o600 });
+  const ownership = join(privateDirectory, 'voceros-endpoint-ownership.json');
   const endpoint = join(temp, 'api/voceros/index.php');
   if (existingSource !== undefined) await writeFile(endpoint, existingSource);
   const transport = recordingTransport();
@@ -73,20 +128,21 @@ async function publicEndpointInstallFixture(existingSource, endpointSource = rep
     const input = operation.input.replaceAll(
       '/home/usuario_cpanel/public_html/complejomushucruna.com',
       temp,
-    );
+    ).replaceAll('/home/usuario_cpanel/private-data', privateDirectory);
     const result = spawnSync('php', [], { input, encoding: 'utf8' });
     if (result.status !== 0) throw new Error('fixture install failed');
     return result.stdout;
   };
   const stages = [];
-  const publish = () => publishFrontendFiles(fixtureConfig(), {
-    endpointSource,
+  const publish = (source = endpointSource) => publishFrontendFiles(fixtureConfig(), {
+    endpointSource: source,
+    backendHealth: async () => {},
     install: (config, prepared) => installPublicBootstrap(config, transport, { source: prepared }),
     upload: () => stages.push('upload'),
     normalize: () => stages.push('permissions'),
     verify: () => stages.push('HTTPS'),
   });
-  return { endpoint, publish, stages };
+  return { endpoint, ownership, privateDirectory, publish, stages };
 }
 
 test('backend prevuelo ejecuta lecturas sin migración ni escritura y devuelve salud del subdominio', async () => {
@@ -122,7 +178,7 @@ test('backend rechaza rutas públicas, amplias o ambiguas antes de conectar', as
   ]) await assert.rejects(checkBackend(fixtureConfig(overrides), recordingTransport()));
 });
 
-test('preflight rechaza cada capacidad de fotografía ausente y los límites de memoria/espacio', async () => {
+test('preflight rechaza cada capacidad de fotografía ausente y los límites de memoria, espacio y carga PHP', async () => {
   const { checkBackend, photoPreflightSource } = await import('../scripts/deploy-finados-backend.mjs');
   const modules = ['PDO', 'pdo_mysql', 'openssl', 'session', 'fileinfo', 'gd', 'exif'];
   for (const missing of modules) {
@@ -130,8 +186,11 @@ test('preflight rechaza cada capacidad de fotografía ausente y los límites de 
     await assert.rejects(checkBackend(fixtureConfig(), transport));
     assert.equal(transport.writes.length, 0);
   }
-  const valid = { jpeg: true, png: true, webp: true, memoryBytes: 268435456, freeBytes: 104857600, privateRoot: true };
-  for (const change of [{ jpeg: false }, { png: false }, { webp: false }, { memoryBytes: 268435455 }, { freeBytes: 104857599 }, { privateRoot: false }]) {
+  const valid = { jpeg: true, png: true, webp: true, memoryBytes: 268435456, freeBytes: 104857600, privateRoot: true,
+    fileUploads: true, uploadMaxBytes: 5 * 1024 * 1024, postMaxBytes: 5 * 1024 * 1024 + 256 * 1024 };
+  for (const change of [{ jpeg: false }, { png: false }, { webp: false }, { memoryBytes: 268435455 }, { freeBytes: 104857599 },
+    { privateRoot: false }, { fileUploads: false }, { uploadMaxBytes: 5 * 1024 * 1024 - 1 },
+    { postMaxBytes: 5 * 1024 * 1024 + 256 * 1024 - 1 }]) {
     const transport = recordingTransport({ probe: { media: { ...valid, ...change } } });
     await assert.rejects(checkBackend(fixtureConfig(), transport));
     assert.equal(transport.writes.length, 0);
@@ -141,10 +200,17 @@ test('preflight rechaza cada capacidad de fotografía ausente y los límites de 
   const { chmod, symlink, rm } = await import('node:fs/promises');
   try {
     await chmod(temp, 0o700);
-    const run = (root, args = [], roots = []) => spawnSync('php', [...args, '-r', photoPreflightSource(root, roots) + 'echo json_encode($mediaProbe);'], { encoding: 'utf8' });
+    const run = (root, args = [], roots = []) => spawnSync('php', [
+      '-d', 'file_uploads=1', '-d', 'upload_max_filesize=5M', '-d', 'post_max_size=5376K',
+      ...args, '-r', photoPreflightSource(root, roots) + 'echo json_encode($mediaProbe);',
+    ], { encoding: 'utf8' });
     assert.equal(run(temp, ['-d', 'memory_limit=256M']).status, 0);
-    assert.equal(run(temp, ['-d', 'memory_limit=-1']).status, 0);
+    assert.equal(run(temp, ['-d', 'memory_limit=-1', '-d', 'upload_max_filesize=5120K', '-d', 'post_max_size=5505024']).status, 0);
     assert.notEqual(run(temp, ['-d', 'memory_limit=255M']).status, 0);
+    assert.notEqual(run(temp, ['-d', 'file_uploads=0']).status, 0);
+    assert.notEqual(run(temp, ['-d', 'upload_max_filesize=5242879']).status, 0);
+    assert.notEqual(run(temp, ['-d', 'post_max_size=5505023']).status, 0);
+    assert.notEqual(run(temp, ['-d', 'upload_max_filesize=5MB']).status, 0);
     assert.notEqual(run(temp, ['-n']).status, 0);
     await mkdir(join(temp, 'public_html'), { mode: 0o700 });
     assert.notEqual(run(join(temp, 'public_html')).status, 0);
@@ -182,6 +248,42 @@ test('backend despliega solo después de respaldo y no activa current si falla m
   const backupFailed = recordingTransport({ failAt: 'backup-database' });
   await assert.rejects(deployBackend(fixtureConfig(), backupFailed, { release: '20260914-abcdef' }));
   assert.ok(!backupFailed.writes.some(item => item.id === 'upload-release'));
+});
+
+test('backend rechaza salud web anterior, migración 003 ausente, capacidades incompletas y límites insuficientes', async () => {
+  const { deployBackend } = await import('../scripts/deploy-finados-backend.mjs');
+  for (const health of [
+    { status: 200, ok: true },
+    healthyBackendResponse({ migration: { version: '002_sheets_outbox', ready: true } }),
+    healthyBackendResponse({ capabilities: { ...healthyBackendResponse().capabilities, voceroAccounts: false } }),
+    healthyBackendResponse({ limits: { ...healthyBackendResponse().limits, fileUploads: false } }),
+    healthyBackendResponse({ limits: { ...healthyBackendResponse().limits, uploadMaxBytes: 5 * 1024 * 1024 - 1 } }),
+    healthyBackendResponse({ limits: { ...healthyBackendResponse().limits, postMaxBytes: 5 * 1024 * 1024 + 256 * 1024 - 1 } }),
+    healthyBackendResponse({ limits: { ...healthyBackendResponse().limits, memoryBytes: 64 * 1024 * 1024 } }),
+    healthyBackendResponse({ runtime: { ...healthyBackendResponse().runtime, webp: false } }),
+    healthyBackendResponse({ storage: { ...healthyBackendResponse().storage, freeBytes: 100 * 1024 * 1024 - 1 } }),
+  ]) {
+    const transport = recordingTransport({ health });
+    await assert.rejects(deployBackend(fixtureConfig(), transport, { release: '20260914-abcdef' }));
+    assert.ok(transport.writes.some(item => item.id === 'install-api'));
+  }
+});
+
+test('backend no confía solo en capacidades declaradas si faltan pruebas web del runtime y almacenamiento', async () => {
+  const { validateDeployedBackendHealth } = await import('../scripts/deploy-finados-backend.mjs');
+  const incomplete = healthyBackendResponse();
+  delete incomplete.runtime;
+  delete incomplete.storage;
+  delete incomplete.limits.memoryBytes;
+  assert.throws(() => validateDeployedBackendHealth(incomplete));
+});
+
+test('la salud conserva el estado HTTP real aunque el JSON incluya un campo status', async () => {
+  const { normalizeHealthResponse } = await import('../scripts/deploy-finados-backend.mjs');
+  assert.deepEqual(
+    normalizeHealthResponse(503, { status: 200, ok: true }),
+    { status: 503, ok: true },
+  );
 });
 
 test('el inventario del artefacto excluye archivos adicionales no versionados dentro de src', async () => {
@@ -259,6 +361,117 @@ test('backend primer despliegue migra atómicamente el endpoint histórico exact
   assert.deepEqual(fixture.stages, ['upload', 'permissions', 'HTTPS']);
 });
 
+test('backend registra en un manifiesto privado el hash exacto del endpoint instalado', async () => {
+  const fixture = await publicEndpointInstallFixture(historicalVocerosEndpoint());
+
+  await fixture.publish();
+
+  const endpoint = await readFile(fixture.endpoint);
+  assert.deepEqual(JSON.parse(await readFile(fixture.ownership, 'utf8')), {
+    schema: 'finados-voceros-endpoint-ownership-v1',
+    sha256: createHash('sha256').update(endpoint).digest('hex'),
+  });
+  const metadata = await stat(fixture.ownership);
+  assert.equal(metadata.isFile(), true);
+  assert.equal(metadata.mode & 0o777, 0o600);
+});
+
+test('backend recupera de forma idempotente un rename cuyo manifiesto quedó ausente o desfasado', async () => {
+  const firstSource = replacementEndpointSource + "// versión administrada 1\n";
+  const secondSource = replacementEndpointSource + "// versión administrada 2\n";
+  const fixture = await publicEndpointInstallFixture(historicalVocerosEndpoint(), firstSource);
+  await fixture.publish();
+  const firstManifest = await readFile(fixture.ownership);
+
+  await fixture.publish(secondSource);
+  const secondEndpoint = await readFile(fixture.endpoint);
+  const secondHash = createHash('sha256').update(secondEndpoint).digest('hex');
+
+  // Simula interrupción después del rename del endpoint y antes del rename del manifiesto.
+  await writeFile(fixture.ownership, firstManifest, { mode: 0o600 });
+  await fixture.publish(secondSource);
+  assert.equal(JSON.parse(await readFile(fixture.ownership, 'utf8')).sha256, secondHash);
+
+  // La misma recuperación es segura en la primera toma, cuando aún no existía manifiesto.
+  await rm(fixture.ownership);
+  await fixture.publish(secondSource);
+  assert.equal(JSON.parse(await readFile(fixture.ownership, 'utf8')).sha256, secondHash);
+
+  // Sin manifiesto, un v1 distinto del artefacto solicitado no acredita propiedad.
+  await rm(fixture.ownership);
+  await assert.rejects(fixture.publish(secondSource + "// versión administrada 3\n"));
+  assert.deepEqual(await readFile(fixture.endpoint), secondEndpoint);
+});
+
+test('backend rechaza manifiestos de propiedad manipulados, públicos o enlazados', async () => {
+  const fixture = await publicEndpointInstallFixture(historicalVocerosEndpoint());
+  await fixture.publish();
+  const originalEndpoint = await readFile(fixture.endpoint);
+
+  await writeFile(fixture.ownership, '{"schema":"ajeno"}\n');
+  await chmod(fixture.ownership, 0o600);
+  await assert.rejects(fixture.publish(replacementEndpointSource + "// siguiente\n"));
+  assert.deepEqual(await readFile(fixture.endpoint), originalEndpoint);
+
+  await writeFile(fixture.ownership, JSON.stringify({
+    schema: 'finados-voceros-endpoint-ownership-v1',
+    sha256: createHash('sha256').update(originalEndpoint).digest('hex'),
+  }));
+  await chmod(fixture.ownership, 0o644);
+  await assert.rejects(fixture.publish(replacementEndpointSource + "// siguiente\n"));
+
+  const { symlink } = await import('node:fs/promises');
+  await rm(fixture.ownership);
+  await symlink(fixture.endpoint, fixture.ownership);
+  await assert.rejects(fixture.publish(replacementEndpointSource + "// siguiente\n"));
+  assert.deepEqual(await readFile(fixture.endpoint), originalEndpoint);
+});
+
+test('backend rechaza un endpoint existente con múltiples enlaces físicos', async () => {
+  const fixture = await publicEndpointInstallFixture(historicalVocerosEndpoint());
+  const { link } = await import('node:fs/promises');
+  const alias = join(fixture.privateDirectory, 'endpoint-hardlink.php');
+  await link(fixture.endpoint, alias);
+
+  await assert.rejects(fixture.publish());
+
+  assert.deepEqual(await readFile(fixture.endpoint), await readFile(alias));
+  await assert.rejects(readFile(fixture.ownership));
+});
+
+test('backend rechaza sin escribir un endpoint existente escribible por grupo u otros', async () => {
+  const fixture = await publicEndpointInstallFixture(historicalVocerosEndpoint());
+  await fixture.publish();
+  const endpointBefore = await readFile(fixture.endpoint);
+  const ownershipBefore = await readFile(fixture.ownership);
+  const stagesBefore = fixture.stages.length;
+  await chmod(fixture.endpoint, 0o666);
+
+  await assert.rejects(fixture.publish(replacementEndpointSource + "// siguiente segura\n"));
+
+  assert.deepEqual(await readFile(fixture.endpoint), endpointBefore);
+  assert.deepEqual(await readFile(fixture.ownership), ownershipBefore);
+  assert.equal(fixture.stages.length, stagesBefore);
+  assert.equal((await stat(fixture.endpoint)).mode & 0o777, 0o666);
+});
+
+test('backend rechaza sin escribir el directorio del endpoint si es escribible por grupo u otros', async () => {
+  const fixture = await publicEndpointInstallFixture(historicalVocerosEndpoint());
+  await fixture.publish();
+  const endpointBefore = await readFile(fixture.endpoint);
+  const ownershipBefore = await readFile(fixture.ownership);
+  const stagesBefore = fixture.stages.length;
+  const endpointDirectory = join(fixture.endpoint, '..');
+  await chmod(endpointDirectory, 0o775);
+
+  await assert.rejects(fixture.publish(replacementEndpointSource + "// siguiente segura\n"));
+
+  assert.deepEqual(await readFile(fixture.endpoint), endpointBefore);
+  assert.deepEqual(await readFile(fixture.ownership), ownershipBefore);
+  assert.equal(fixture.stages.length, stagesBefore);
+  assert.equal((await stat(endpointDirectory)).mode & 0o777, 0o775);
+});
+
 test('backend primer despliegue conserva el endpoint histórico si el reemplazo no pasa salud', async () => {
   const historical = historicalVocerosEndpoint();
   const unhealthySource = replacementEndpointSource.replace("'status' => 200", "'status' => 503");
@@ -310,10 +523,69 @@ test('backend prepara el mismo endpoint administrado sin alterar bytes en reinte
   assert.equal(preparePublicEndpoint(fixtureConfig(), prepared), prepared);
 });
 
+test('backend actualiza en cadena endpoints administrados verificables y rechaza uno manipulado', async () => {
+  const historical = historicalVocerosEndpoint();
+  const fixture = await publicEndpointInstallFixture(historical);
+  await fixture.publish();
+  const first = await readFile(fixture.endpoint, 'utf8');
+  assert.match(first, /FINADOS MANAGED BOOTSTRAP BEGIN v1/);
+  assert.match(first, /FINADOS MANAGED PAYLOAD SHA256: [a-f0-9]{64}/);
+
+  const secondSource = replacementEndpointSource + "// versión administrada 2\n";
+  await fixture.publish(secondSource);
+  const secondInstalled = await readFile(fixture.endpoint, 'utf8');
+  assert.match(secondInstalled, /versión administrada 2/);
+
+  const futureSource = secondSource.replace('versión administrada 2', 'versión administrada 3');
+  await fixture.publish(futureSource);
+  assert.match(await readFile(fixture.endpoint, 'utf8'), /versión administrada 3/);
+
+  const tampered = recalculateManagedPayloadDigest(
+    secondInstalled.replace('versión administrada 2', 'aplicación ajena'),
+  );
+  await writeFile(fixture.endpoint, tampered);
+  const stagesBeforeRejection = fixture.stages.length;
+  await assert.rejects(fixture.publish(futureSource));
+  assert.equal(await readFile(fixture.endpoint, 'utf8'), tampered);
+  assert.equal(fixture.stages.length, stagesBeforeRejection);
+});
+
+test('backend acepta solo la versión administrada previa explícita sin confiar en sus markers genéricos', async () => {
+  const { preparePublicEndpoint } = await import('../scripts/deploy-finados-backend.mjs');
+  const config = fixtureConfig();
+  const endMarker = '// FINADOS MANAGED BOOTSTRAP END\n';
+  const previousPayload = (await readFile(join(websiteRoot, 'public/api/voceros/index.php'), 'utf8'))
+    .replace(/^<\?php\s*declare\(strict_types=1\);/, '<?php');
+  const previous = `<?php\ndeclare(strict_types=1);\n// FINADOS MANAGED BOOTSTRAP BEGIN\n`
+    + `putenv('FINADOS_CONFIG_PATH=${config.FINADOS_CONFIG_PATH}');\n`
+    + `putenv('FINADOS_BACKEND_ROOT=${config.FINADOS_BACKEND_ROOT}');\n`
+    + `putenv('FINADOS_PUBLIC_ROOTS=${config.FINADOS_PUBLIC_ROOTS.replaceAll('\\', '\\\\').replaceAll("'", "\\'")}');\n`
+    + endMarker + previousPayload.slice(5);
+  const fixture = await publicEndpointInstallFixture(undefined, replacementEndpointSource);
+  const temporaryRoot = join(fixture.endpoint, '../../..');
+  const mappedPrevious = previous.replaceAll(config.DEPLOY_REMOTE_ROOT, temporaryRoot)
+    .replaceAll('/home/usuario_cpanel/private-data', fixture.privateDirectory);
+  await writeFile(fixture.endpoint, mappedPrevious);
+  await fixture.publish();
+  assert.match(await readFile(fixture.endpoint, 'utf8'), /FINADOS MANAGED BOOTSTRAP BEGIN v1/);
+
+  const foreign = mappedPrevious.replace('Crea una cuenta o inicia sesión', 'Aplicación ajena que copió el marker');
+  const rejected = await publicEndpointInstallFixture(undefined, replacementEndpointSource);
+  const rejectedRoot = join(rejected.endpoint, '../../..');
+  const mappedForeign = foreign.replaceAll(temporaryRoot, rejectedRoot)
+    .replaceAll(fixture.privateDirectory, rejected.privateDirectory);
+  await writeFile(rejected.endpoint, mappedForeign);
+  await assert.rejects(rejected.publish());
+  assert.equal(await readFile(rejected.endpoint, 'utf8'), mappedForeign);
+  assert.throws(() => preparePublicEndpoint(config, '<?php\n// FINADOS MANAGED BOOTSTRAP BEGIN\necho "ajeno";'));
+});
+
 test('backend bootstrap real conserva PHP strict_types e instalación repetida', async () => {
   const { installPublicBootstrap } = await import('../scripts/deploy-finados-backend.mjs');
   const temp = await mkdtemp(join(tmpdir(), 'finados-bootstrap-'));
   await mkdir(join(temp, 'api/voceros'), { recursive: true });
+  await mkdir(join(temp, 'private-data'), { mode: 0o700 });
+  const privateDirectory = await realpath(join(temp, 'private-data'));
   const endpoint = join(temp, 'api/voceros/index.php');
   await writeFile(endpoint, historicalVocerosEndpoint());
   const source = replacementEndpointSource
@@ -322,6 +594,7 @@ test('backend bootstrap real conserva PHP strict_types e instalación repetida',
   await installPublicBootstrap(fixtureConfig(), transport, { source });
   for (let i = 0; i < 2; i++) {
     const input = transport.operations[0].input.replaceAll('/home/usuario_cpanel/public_html/complejomushucruna.com', temp)
+      .replaceAll('/home/usuario_cpanel/private-data', privateDirectory)
       .replaceAll('.finados-', `.finados-${i}-`);
     const result = spawnSync('php', [], { input, encoding: 'utf8' });
     assert.equal(result.status, 0, result.stderr);
@@ -437,7 +710,7 @@ class MigrationStatement {
 test('backend frontend mantiene Voceros cerrado si la transferencia o la etapa posterior se interrumpe', async () => {
   const { publishFrontendFiles, uploadVocerosRegistrationConfig } = await import('../scripts/deploy-cpanel.mjs');
   const { mkdir, copyFile } = await import('node:fs/promises');
-  const temp = await mkdtemp(join(tmpdir(), 'finados-publish-'));
+  const temp = await realpath(await mkdtemp(join(tmpdir(), 'finados-publish-')));
   await mkdir(join(temp, 'dist/api/voceros'), { recursive: true });
   await mkdir(join(temp, 'live/api/voceros'), { recursive: true });
   await mkdir(join(temp, 'private'), { mode: 0o700 });
@@ -457,7 +730,7 @@ test('backend frontend mantiene Voceros cerrado si la transferencia o la etapa p
   }));
   await writeFile(join(temp, 'dist/other.html'), 'other');
   const mapPaths = input => input.replaceAll('/home/usuario_cpanel/public_html/complejomushucruna.com', join(temp, 'live'))
-    .replaceAll('/home/usuario_cpanel/private-data/finados-backend.json', join(temp, 'private/backend.json'))
+    .replaceAll('/home/usuario_cpanel/private-data', join(temp, 'private'))
     .replaceAll('/home/usuario_cpanel/apps/finados-api/current', join(temp, 'backend'));
   const readResponse = () => {
     const response = spawnSync('php', ['-r', `$_SERVER['REQUEST_METHOD']='GET'; require '${endpoint}'; $response = voceros_handle_request($_SERVER, []); echo json_encode($response);`],
@@ -496,6 +769,7 @@ test('backend frontend mantiene Voceros cerrado si la transferencia o la etapa p
   for (const failure of ['upload', 'after-transfer']) {
     await assert.rejects(publishFrontendFiles(fixtureConfig(), {
       endpointSource: source,
+      backendHealth: async () => {},
       install: async (config, prepared) => backendModule.installPublicBootstrap(config, transport, { source: prepared }),
       upload: async (...args) => { await upload(...args); if (failure === 'upload') throw new Error('connection lost'); },
       normalize: () => { throw new Error('after-transfer'); },
@@ -511,6 +785,7 @@ test('backend frontend mantiene Voceros cerrado si la transferencia o la etapa p
   ]) {
     await assert.rejects(publishFrontendFiles(fixtureConfig(), {
       endpointSource: badSource,
+      backendHealth: async () => {},
       install: async (config, prepared) => backendModule.installPublicBootstrap(config, transport, { source: prepared }),
       upload: () => assert.fail('do not transfer after failed preparation'),
     }));
@@ -629,10 +904,37 @@ test('normaliza permisos de carpetas después de la transferencia y antes de ver
   const stages = [];
   await publishFrontendFiles(fixtureConfig(), {
     endpointSource: replacementEndpointSource,
+    backendHealth: () => stages.push('backend-health'),
     install: () => stages.push('install'), upload: () => stages.push('upload'),
     normalize: () => stages.push('permissions'), verify: () => stages.push('HTTPS'),
   });
-  assert.deepEqual(stages, ['install', 'upload', 'permissions', 'HTTPS']);
+  assert.deepEqual(stages, ['backend-health', 'install', 'upload', 'permissions', 'HTTPS']);
+});
+
+test('el frontend no instala endpoint ni transfiere archivos si la salud web del backend no cumple el contrato', async () => {
+  const { publishFrontendFiles } = await import('../scripts/deploy-cpanel.mjs');
+  const stages = [];
+  await assert.rejects(publishFrontendFiles(fixtureConfig(), {
+    endpointSource: replacementEndpointSource,
+    backendHealth: async () => { throw new Error('backend anterior'); },
+    install: () => stages.push('install'), upload: () => stages.push('upload'),
+    normalize: () => stages.push('permissions'), verify: () => stages.push('HTTPS'),
+  }));
+  assert.deepEqual(stages, []);
+});
+
+test('el prevuelo frontend comprueba el backend instalado y su salud web antes de aprobar --check', async () => {
+  const { checkFrontendBackend } = await import('../scripts/deploy-cpanel.mjs');
+  const transport = recordingTransport();
+  let healthChecks = 0;
+  transport.health = async () => { healthChecks++; return healthyBackendResponse(); };
+  await checkFrontendBackend(fixtureConfig(), { transport });
+  assert.equal(healthChecks, 1);
+  assert.ok(transport.operations.some(operation => operation.id === 'installed-backend' && operation.write === false));
+  assert.equal(transport.writes.length, 0);
+  const stale = recordingTransport({ health: { status: 200, ok: true } });
+  await assert.rejects(checkFrontendBackend(fixtureConfig(), { transport: stale }));
+  assert.equal(stale.writes.length, 0);
 });
 
 test('transfiere dist por el mismo cliente SSH sin depender de SCP en Windows', async () => {

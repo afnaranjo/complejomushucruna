@@ -27,6 +27,11 @@ final class Response
 
 final class Router
 {
+    private const VOCERO_ACCOUNTS_MIGRATION = '003_vocero_accounts';
+    private const PHOTO_UPLOAD_BYTES = 5 * 1024 * 1024;
+    private const PROFILE_REQUEST_OVERHEAD_BYTES = 256 * 1024;
+    private const PHOTO_MEMORY_BYTES = 256 * 1024 * 1024;
+    private const PRIVATE_FREE_BYTES = 100 * 1024 * 1024;
     private readonly Auth $auth;
     private readonly VoceroAuth $voceroAuth;
     private readonly VocerosRepository $repository;
@@ -75,8 +80,7 @@ final class Router
             // Forwarded headers are untrusted until an explicit proxy trust policy exists.
             $token = $server['HTTP_X_CSRF_TOKEN'] ?? '';
             if ($path === '/api/health' && $method === 'GET') {
-                $this->pdo->query('SELECT 1');
-                return $this->json(200, ['ok' => true], $headers);
+                return $this->health($headers);
             }
             if ($path === '/api/auth/session' && $method === 'GET') {
                 try { $user = $this->auth->requireUser(); } catch (Unauthorized) { $user = null; }
@@ -124,7 +128,7 @@ final class Router
                 }
                 if ($path === '/api/vocero/auth/login') {
                     $body = $this->body($server, $rawBody, ['email', 'password']);
-                    if (!is_string($body['email'] ?? null) || !is_string($body['password'] ?? null) || strlen($body['email']) > 254 || strlen($body['password']) > 128) throw new InvalidArgumentException();
+                    if (!is_string($body['email'] ?? null) || !is_string($body['password'] ?? null)) throw new InvalidArgumentException();
                     $result = $this->voceroAuth->login($body['email'], $body['password'], $ip);
                     try {
                         $this->audit->log('vocero_account.login', null, 'vocero_account', $result['user']['public_id'], [], $ip);
@@ -280,6 +284,135 @@ final class Router
             error_log('Finados API request failed.');
             return $this->error(500, 'internal_error', 'No se pudo completar la solicitud.', $headers);
         }
+    }
+
+    private function health(array $headers): Response
+    {
+        $this->pdo->query('SELECT 1');
+        $migration = $this->pdo->prepare('SELECT version FROM schema_migrations WHERE version = ?');
+        $migration->execute([self::VOCERO_ACCOUNTS_MIGRATION]);
+        $migrationReady = $migration->fetchColumn() === self::VOCERO_ACCOUNTS_MIGRATION;
+
+        $imageFunctions = [
+            'finfo_open', 'getimagesizefromstring', 'imagecreatefromstring', 'imagecreatefromjpeg',
+            'imagecreatefrompng', 'imagecreatefromwebp', 'imagejpeg', 'imagerotate', 'imagesx', 'imagesy',
+            'imagecreatetruecolor', 'imagefill', 'imagecolorallocate', 'imagecopyresampled', 'exif_read_data',
+            'ob_start', 'ob_get_clean',
+        ];
+        if (PHP_VERSION_ID < 80500) $imageFunctions[] = 'imagedestroy';
+        $cryptoFunctions = [
+            'openssl_encrypt', 'openssl_decrypt', 'openssl_get_cipher_methods', 'random_bytes',
+            'base64_encode', 'base64_decode', 'hash', 'hash_hmac', 'hash_equals', 'bin2hex',
+        ];
+        $storageFunctions = [
+            'realpath', 'is_dir', 'is_link', 'is_writable', 'fileperms', 'disk_free_space', 'mkdir', 'chmod',
+            'rename', 'unlink', 'fopen', 'fclose', 'fread', 'fwrite', 'fflush', 'feof', 'flock', 'lstat',
+            'fstat', 'is_uploaded_file', 'is_resource', 'clearstatcache', 'umask', 'set_error_handler',
+            'restore_error_handler', 'array_reverse', 'strlen', 'substr', 'pack', 'unpack', 'ord',
+            'str_starts_with', 'str_ends_with', 'round', 'max',
+        ];
+        $functionsReady = self::functionsAvailable([...$imageFunctions, ...$cryptoFunctions, ...$storageFunctions]);
+        $fileinfo = extension_loaded('fileinfo') && class_exists(\finfo::class, false) && function_exists('finfo_open');
+        $gd = extension_loaded('gd') && function_exists('gd_info');
+        $gdInfo = $gd ? gd_info() : [];
+        $jpeg = $gd && ($gdInfo['JPEG Support'] ?? false) === true
+            && self::functionsAvailable(['imagecreatefromjpeg', 'imagecreatefromstring', 'imagejpeg']);
+        $png = $gd && ($gdInfo['PNG Support'] ?? false) === true
+            && self::functionsAvailable(['imagecreatefrompng', 'imagecreatefromstring']);
+        $webp = $gd && ($gdInfo['WebP Support'] ?? false) === true
+            && self::functionsAvailable(['imagecreatefromwebp', 'imagecreatefromstring']);
+        $exif = extension_loaded('exif') && function_exists('exif_read_data');
+        $openssl = extension_loaded('openssl') && self::functionsAvailable($cryptoFunctions)
+            && in_array('aes-256-gcm', array_map('strtolower', openssl_get_cipher_methods()), true);
+
+        $memorySetting = ini_get('memory_limit');
+        $memoryBytes = is_string($memorySetting) && trim($memorySetting) === '-1'
+            ? -1
+            : (self::iniBytes($memorySetting) ?? 0);
+        $memoryReady = $memoryBytes === -1 || $memoryBytes >= self::PHOTO_MEMORY_BYTES;
+
+        $fileUploads = filter_var(ini_get('file_uploads'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) === true;
+        $uploadMaxBytes = self::iniBytes(ini_get('upload_max_filesize')) ?? 0;
+        $postMaxBytes = self::iniBytes(ini_get('post_max_size')) ?? 0;
+        $uploadLimitsReady = $fileUploads
+            && $uploadMaxBytes >= self::PHOTO_UPLOAD_BYTES
+            && $postMaxBytes >= self::PHOTO_UPLOAD_BYTES + self::PROFILE_REQUEST_OVERHEAD_BYTES;
+
+        $storageFunctionsReady = self::functionsAvailable($storageFunctions);
+        $privateDirectory = $this->config->privateDirectory();
+        $resolvedPrivateDirectory = $storageFunctionsReady ? realpath($privateDirectory) : false;
+        $privateCanonical = is_string($resolvedPrivateDirectory) && $resolvedPrivateDirectory === $privateDirectory
+            && is_dir($privateDirectory) && !is_link($privateDirectory);
+        $privateWritable = $privateCanonical && is_writable($privateDirectory);
+        $mode = $privateCanonical ? @fileperms($privateDirectory) : false;
+        $privatePermissions = is_int($mode) && ($mode & 0077) === 0 && ($mode & 0200) !== 0;
+        $free = $privateCanonical && $storageFunctionsReady ? @disk_free_space($privateDirectory) : false;
+        $freeBytes = self::safeBytes($free);
+        $privateRoot = $storageFunctionsReady && $privateCanonical && $privateWritable && $privatePermissions
+            && $freeBytes >= self::PRIVATE_FREE_BYTES;
+
+        $photoRuntime = $fileinfo && $gd && $jpeg && $png && $webp && $exif && $openssl && $functionsReady
+            && $memoryReady && $privateRoot && $uploadLimitsReady;
+        $photoReady = $migrationReady && $photoRuntime;
+        $ready = $migrationReady && $photoReady;
+
+        return $this->json($ready ? 200 : 503, [
+            'ok' => $ready,
+            'service' => 'finados-voceros-api',
+            'contract' => 'vocero-accounts-v1',
+            'migration' => ['version' => self::VOCERO_ACCOUNTS_MIGRATION, 'ready' => $migrationReady],
+            'capabilities' => [
+                'voceroAccounts' => $migrationReady,
+                'voceroProfile' => $migrationReady,
+                'privatePhoto' => $photoReady,
+                'adminPasswordReset' => $migrationReady,
+                'photoUpload' => $photoReady,
+            ],
+            'runtime' => [
+                'fileinfo' => $fileinfo,
+                'gd' => $gd,
+                'jpeg' => $jpeg,
+                'png' => $png,
+                'webp' => $webp,
+                'exif' => $exif,
+                'openssl' => $openssl,
+                'functions' => $functionsReady,
+            ],
+            'storage' => [
+                'privateRoot' => $privateRoot,
+                'canonical' => $privateCanonical,
+                'writable' => $privateWritable,
+                'permissions' => $privatePermissions,
+                'freeBytes' => $freeBytes,
+            ],
+            'limits' => [
+                'fileUploads' => $fileUploads,
+                'uploadMaxBytes' => $uploadMaxBytes,
+                'postMaxBytes' => $postMaxBytes,
+                'memoryBytes' => $memoryBytes,
+            ],
+        ], $headers);
+    }
+
+    private static function functionsAvailable(array $functions): bool
+    {
+        foreach ($functions as $function) if (!function_exists($function)) return false;
+        return true;
+    }
+
+    private static function safeBytes(int|float|false $value): int
+    {
+        if ($value === false || $value < 0 || !is_finite((float) $value)) return 0;
+        return (int) min((float) PHP_INT_MAX, floor((float) $value));
+    }
+
+    private static function iniBytes(string|false $value): ?int
+    {
+        if (!is_string($value) || preg_match('/^([0-9]+)([KMG]?)$/iD', trim($value), $parts) !== 1) return null;
+        $multiplier = ['' => 1, 'K' => 1024, 'M' => 1024 ** 2, 'G' => 1024 ** 3][strtoupper($parts[2])];
+        $quantity = (int) $parts[1];
+        if ($quantity > intdiv(PHP_INT_MAX, $multiplier)) return null;
+        return $quantity * $multiplier;
     }
 
     private function body(array $server, string $raw, array $allowed): array

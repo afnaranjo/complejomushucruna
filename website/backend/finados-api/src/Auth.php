@@ -14,6 +14,7 @@ require_once __DIR__ . '/Http.php';
 final class Auth
 {
     private readonly Closure $clock;
+    private const BCRYPT_SHA384_PREFIX = 'bcrypt-sha384$v1$';
     private const DUMMY_ARGON2ID_HASH = '$argon2id$v=19$m=65536,t=4,p=1$cXdlcnR5dWlvcGFzZGZoZw$3OsG3gSTK7Hy28lbd1VbgtMAxaDPPlWTYy25ioTGJwA';
     private const DUMMY_BCRYPT_HASH = '$2y$12$N7H6WSb3fDyozFDIRLI3QuSiJ6Y9KohPpm2HnWgEkiIIwNpWhJaNG';
 
@@ -50,7 +51,7 @@ final class Auth
             if (!$blocked) {
                 // Use the real hash for absent usernames too, avoiding a fast missing-user branch.
                 $hash = $admin ? $admin['password_hash'] : self::dummyPasswordHash();
-                $verified = password_verify($password, $hash);
+                $verified = self::verifyPassword($password, $hash);
                 $valid = $verified && $username === 'admin' && $admin && (int) $admin['active'] === 1;
                 $record = $this->pdo->prepare('INSERT INTO login_attempts (username_hash, ip_hash, succeeded, attempted_at) VALUES (?, ?, ?, ?)');
                 $record->execute([$usernameHash, $ipHash, (int) $valid, gmdate('Y-m-d H:i:s', $now)]);
@@ -133,7 +134,34 @@ final class Auth
 
     public static function hashPassword(#[\SensitiveParameter] string $password): string
     {
-        return password_hash($password, self::passwordAlgorithm(), self::passwordOptions());
+        if (defined('PASSWORD_ARGON2ID')) {
+            return password_hash($password, PASSWORD_ARGON2ID, self::passwordOptions());
+        }
+
+        // Bcrypt truncates its input after 72 bytes. A versioned, base64-encoded SHA-384
+        // prehash binds every byte while keeping the bcrypt input to a fixed 64 ASCII bytes.
+        return self::BCRYPT_SHA384_PREFIX . password_hash(
+            self::bcryptPrehash($password),
+            PASSWORD_BCRYPT,
+            self::passwordOptions(),
+        );
+    }
+
+    public static function verifyPassword(#[\SensitiveParameter] string $password, string $hash): bool
+    {
+        if (str_starts_with($hash, self::BCRYPT_SHA384_PREFIX)) {
+            $bcryptHash = substr($hash, strlen(self::BCRYPT_SHA384_PREFIX));
+            if ((password_get_info($bcryptHash)['algoName'] ?? 'unknown') !== 'bcrypt') {
+                return false;
+            }
+            return password_verify(self::bcryptPrehash($password), $bcryptHash);
+        }
+
+        $algorithm = password_get_info($hash)['algoName'] ?? 'unknown';
+        if (!in_array($algorithm, ['bcrypt', 'argon2id'], true)) {
+            return false;
+        }
+        return password_verify($password, $hash);
     }
 
     public static function passwordAlgorithm(): string
@@ -150,12 +178,38 @@ final class Auth
 
     public static function needsPasswordRehash(string $hash): bool
     {
-        return password_needs_rehash($hash, self::passwordAlgorithm(), self::passwordOptions());
+        if (str_starts_with($hash, self::BCRYPT_SHA384_PREFIX)) {
+            $bcryptHash = substr($hash, strlen(self::BCRYPT_SHA384_PREFIX));
+            if ((password_get_info($bcryptHash)['algoName'] ?? 'unknown') !== 'bcrypt') {
+                return true;
+            }
+            return defined('PASSWORD_ARGON2ID')
+                || password_needs_rehash($bcryptHash, PASSWORD_BCRYPT, self::passwordOptions());
+        }
+
+        $algorithm = password_get_info($hash)['algoName'] ?? 'unknown';
+        if ($algorithm === 'bcrypt') {
+            // Every legacy bcrypt credential is upgraded to the non-truncating versioned scheme
+            // (or Argon2id) after its next successful verification.
+            return true;
+        }
+        if ($algorithm === 'argon2id' && defined('PASSWORD_ARGON2ID')) {
+            return password_needs_rehash($hash, PASSWORD_ARGON2ID, self::passwordOptions());
+        }
+        // Never downgrade a valid Argon2id hash on a runtime that cannot generate it.
+        return $algorithm !== 'argon2id';
     }
 
     public static function dummyPasswordHash(): string
     {
-        return defined('PASSWORD_ARGON2ID') ? self::DUMMY_ARGON2ID_HASH : self::DUMMY_BCRYPT_HASH;
+        return defined('PASSWORD_ARGON2ID')
+            ? self::DUMMY_ARGON2ID_HASH
+            : self::BCRYPT_SHA384_PREFIX . self::DUMMY_BCRYPT_HASH;
+    }
+
+    private static function bcryptPrehash(#[\SensitiveParameter] string $password): string
+    {
+        return base64_encode(hash('sha384', $password, true));
     }
 
     private function credentialVersion(string $hash): string

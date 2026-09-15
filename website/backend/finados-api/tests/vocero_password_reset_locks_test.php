@@ -43,14 +43,18 @@ final class ResetMysqlStatement extends PDOStatement
     public function execute(?array $params = null): bool
     {
         if (str_starts_with($this->originalSql, 'SELECT GET_LOCK(')) {
-            same(['finados.voceros.password-reset'], $params);
+            $name = $params[0] ?? null;
+            same(true, $name === 'finados.voceros.password-reset'
+                || (is_string($name) && str_starts_with($name, 'finados.vocero.ip.') && strlen($name) <= 64));
             $this->owner->events[] = 'GET';
             if ($this->owner->acquireFailure !== null) throw $this->owner->acquireFailure;
             $this->lockResult = $this->owner->acquireDenied ? 0 : 1;
             return true;
         }
         if (str_starts_with($this->originalSql, 'SELECT RELEASE_LOCK(')) {
-            same(['finados.voceros.password-reset'], $params);
+            $name = $params[0] ?? null;
+            same(true, $name === 'finados.voceros.password-reset'
+                || (is_string($name) && str_starts_with($name, 'finados.vocero.ip.') && strlen($name) <= 64));
             $this->owner->events[] = 'RELEASE';
             if ($this->owner->releaseFailure !== null) throw $this->owner->releaseFailure;
             $this->lockResult = 1;
@@ -110,7 +114,7 @@ try {
     same(false, session_id() === $resetLockOldSessionId);
     same(false, json_decode($resetLockResponse->body, true)['csrf'] === $resetLockLogin['csrf']);
     same(['GET', 'BEGIN', 'COMMIT', 'RELEASE'], $resetLockDb->events);
-    same(true, password_verify($resetLockNewPassword, $resetLockDb->query('SELECT password_hash FROM vocero_accounts')->fetchColumn()));
+    same(true, Finados\Auth::verifyPassword($resetLockNewPassword, $resetLockDb->query('SELECT password_hash FROM vocero_accounts')->fetchColumn()));
     same(true, is_string($resetLockDb->query('SELECT consumed_at FROM vocero_password_resets')->fetchColumn()));
     same(1, (int) $resetLockDb->query("SELECT COUNT(*) FROM audit_log WHERE event_type = 'vocero.password_reset_consumed'")->fetchColumn());
 

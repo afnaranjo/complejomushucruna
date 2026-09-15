@@ -2,18 +2,30 @@ import { spawnSync } from 'node:child_process';
 import { lstatSync, readFileSync } from 'node:fs';
 import { dirname, join, resolve, posix } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { randomBytes } from 'node:crypto';
+import { createHash, randomBytes } from 'node:crypto';
 import { loadConfig } from './deploy-cpanel.mjs';
 
 const websiteRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const backend = join(websiteRoot, 'backend/finados-api');
 const healthUrl = 'https://finados.complejomushucruna.com/api/health';
 const php = 'php -d display_errors=0 -d log_errors=0';
+const photoUploadBytes = 5 * 1024 * 1024;
+const profileRequestOverheadBytes = 256 * 1024;
 const approvedLegacyPublicEndpointHashes = Object.freeze([
   // website/public/api/voceros/index.php at b85cb0f, verified byte-for-byte
   // against the endpoint in production before the first backend deployment.
   'e3cbffe53c6d6cce453a4aab06e99e19184fb36cba6fa0cc0757a6410959944c',
 ]);
+const approvedPreviousManagedPayloadHashes = Object.freeze([
+  // Normalized website/public/api/voceros/index.php at 0bbd0fd. This is the
+  // only marker-v0 payload accepted while moving to the verifiable v1 format.
+  '92ee73c40b0a8ad383d44437772a270f4764f963e759b42b148325cb8c021a98',
+]);
+const managedBootstrapBegin = '// FINADOS MANAGED BOOTSTRAP BEGIN v1\n';
+const managedPayloadPrefix = '// FINADOS MANAGED PAYLOAD SHA256: ';
+const managedBootstrapEnd = '// FINADOS MANAGED BOOTSTRAP END v1\n';
+const previousBootstrapBegin = '// FINADOS MANAGED BOOTSTRAP BEGIN\n';
+const previousBootstrapEnd = '// FINADOS MANAGED BOOTSTRAP END\n';
 const q = value => `'${String(value).replaceAll("'", "'\\''")}'`;
 const literal = value => `'${String(value).replaceAll('\\', '\\\\').replaceAll("'", "\\'")}'`;
 const within = (path, root) => path === root || path.startsWith(`${root}/`);
@@ -75,20 +87,33 @@ foreach (['pdo','pdo_mysql','openssl','session','fileinfo','gd','exif'] as $modu
 $gd = gd_info();
 foreach (['JPEG Support','PNG Support','WebP Support'] as $format) if (($gd[$format] ?? false) !== true) exit(1);
 foreach (['imagecreatefromjpeg','imagecreatefrompng','imagecreatefromwebp','imagejpeg','exif_read_data'] as $function) if (!function_exists($function)) exit(1);
+$parseIniBytes = static function ($value): ?int {
+  if (!is_string($value) || preg_match('/^([0-9]+)([KMG]?)$/iD', trim($value), $parts) !== 1) return null;
+  $multiplier = [''=>1,'K'=>1024,'M'=>1024 ** 2,'G'=>1024 ** 3][strtoupper($parts[2])];
+  $quantity = (int) $parts[1];
+  if ($quantity > intdiv(PHP_INT_MAX, $multiplier)) return null;
+  return $quantity * $multiplier;
+};
 $memory = trim(ini_get('memory_limit'));
 if ($memory === '-1') $memoryBytes = -1;
 else {
-  if (!preg_match('/^([0-9]+)\\s*([KMG]?)$/iD', $memory, $match)) exit(1);
-  $memoryBytes = (int)$match[1] * (1024 ** ([''=>0,'K'=>1,'M'=>2,'G'=>3][strtoupper($match[2])]));
+  $memoryBytes = $parseIniBytes($memory);
+  if ($memoryBytes === null) exit(1);
   if ($memoryBytes < 256 * 1024 * 1024) exit(1);
 }
+$fileUploads = filter_var(ini_get('file_uploads'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) === true;
+$uploadMaxBytes = $parseIniBytes(ini_get('upload_max_filesize'));
+$postMaxBytes = $parseIniBytes(ini_get('post_max_size'));
+if (!$fileUploads || $uploadMaxBytes === null || $uploadMaxBytes < ${photoUploadBytes}
+  || $postMaxBytes === null || $postMaxBytes < ${photoUploadBytes + profileRequestOverheadBytes}) exit(1);
 $private = ${literal(privateRoot)};
 if (realpath($private) !== $private || !is_dir($private) || is_link($private) || !is_writable($private)
   || (fileperms($private) & 0077) !== 0 || (fileperms($private) & 0200) === 0) exit(1);
 foreach (['public_html','htdocs','www','public','dist'] as $part) if (in_array($part, explode('/', $private), true)) exit(1);
 foreach (json_decode(${literal(JSON.stringify(publicRoots))}, true) as $root) if ($private === $root || str_starts_with($private, $root . '/')) exit(1);
 $free = disk_free_space($private); if ($free === false || $free < 100 * 1024 * 1024) exit(1);
-$mediaProbe = ['jpeg'=>true,'png'=>true,'webp'=>true,'memoryBytes'=>$memoryBytes,'freeBytes'=>(int)$free,'privateRoot'=>true];
+$mediaProbe = ['jpeg'=>true,'png'=>true,'webp'=>true,'memoryBytes'=>$memoryBytes,'freeBytes'=>(int)$free,'privateRoot'=>true,
+  'fileUploads'=>$fileUploads,'uploadMaxBytes'=>$uploadMaxBytes,'postMaxBytes'=>$postMaxBytes];
 `;
 }
 
@@ -142,8 +167,48 @@ export async function checkBackend(config, transport = createTransport(config)) 
     || result.paths !== true || result.databaseProbe !== '1'
     || !['jpeg', 'png', 'webp', 'privateRoot'].every(key => result.media?.[key] === true)
     || !Number.isSafeInteger(result.media?.memoryBytes) || (result.media.memoryBytes !== -1 && result.media.memoryBytes < 268435456)
-    || !Number.isSafeInteger(result.media?.freeBytes) || result.media.freeBytes < 104857600) fail('Prevuelo rechazado: revisa PHP, módulos, memoria, espacio, rutas privadas y base de datos.');
+    || !Number.isSafeInteger(result.media?.freeBytes) || result.media.freeBytes < 104857600
+    || result.media?.fileUploads !== true
+    || !Number.isSafeInteger(result.media?.uploadMaxBytes) || result.media.uploadMaxBytes < photoUploadBytes
+    || !Number.isSafeInteger(result.media?.postMaxBytes) || result.media.postMaxBytes < photoUploadBytes + profileRequestOverheadBytes) {
+    fail('Prevuelo rechazado: revisa PHP, módulos, memoria, cargas, espacio, rutas privadas y base de datos.');
+  }
   return { healthUrl, database: 'ready', commit: repo.head };
+}
+
+export function validateDeployedBackendHealth(health) {
+  const requiredCapabilities = ['voceroAccounts', 'voceroProfile', 'privatePhoto', 'adminPasswordReset', 'photoUpload'];
+  const requiredRuntime = ['fileinfo', 'gd', 'jpeg', 'png', 'webp', 'exif', 'openssl', 'functions'];
+  const requiredStorage = ['privateRoot', 'canonical', 'writable', 'permissions'];
+  if (!health || health.status !== 200 || health.ok !== true || health.service !== 'finados-voceros-api'
+    || health.contract !== 'vocero-accounts-v1'
+    || health.migration?.version !== '003_vocero_accounts' || health.migration?.ready !== true
+    || !requiredCapabilities.every(capability => health.capabilities?.[capability] === true)
+    || !requiredRuntime.every(capability => health.runtime?.[capability] === true)
+    || !requiredStorage.every(capability => health.storage?.[capability] === true)
+    || !Number.isSafeInteger(health.storage?.freeBytes) || health.storage.freeBytes < 104857600
+    || health.limits?.fileUploads !== true
+    || !Number.isSafeInteger(health.limits?.uploadMaxBytes) || health.limits.uploadMaxBytes < photoUploadBytes
+    || !Number.isSafeInteger(health.limits?.postMaxBytes) || health.limits.postMaxBytes < photoUploadBytes + profileRequestOverheadBytes
+    || !Number.isSafeInteger(health.limits?.memoryBytes)
+    || (health.limits.memoryBytes !== -1 && health.limits.memoryBytes < 268435456)) {
+    fail('La API activa no confirma cuentas de Vocero, migración 003 y runtime fotográfico compatible.');
+  }
+  return health;
+}
+
+export function normalizeHealthResponse(status, body) {
+  return body && !Array.isArray(body) && typeof body === 'object'
+    ? { ...body, status }
+    : { status };
+}
+
+export async function checkDeployedBackend(config, transport = createTransport(config)) {
+  validateBackendConfig(config);
+  let health;
+  try { health = await transport.health(healthUrl); }
+  catch { fail('No se pudo verificar la API activa por HTTPS.'); }
+  return validateDeployedBackendHealth(health);
 }
 
 function migrationSource(release) {
@@ -175,35 +240,103 @@ function envPhp(config) {
 
 export function preparePublicEndpoint(config, source) {
   validateBackendConfig(config);
-  if (typeof source !== 'string' || !source.startsWith('<?php') || !source.includes('function voceros_handle_request(')
-    || source.includes('voceros_bootstrap')) fail('Endpoint de Voceros inválido.');
-  const endMarker = '// FINADOS MANAGED BOOTSTRAP END\n';
-  if (source.includes('// FINADOS MANAGED BOOTSTRAP BEGIN\n')) {
-    const offset = source.indexOf(endMarker);
-    if (offset < 0) fail('Bootstrap previo incompleto.');
-    source = '<?php' + source.slice(offset + endMarker.length);
+  if (typeof source !== 'string') fail('Endpoint de Voceros inválido.');
+  const managedHeader = `<?php\ndeclare(strict_types=1);\n${managedBootstrapBegin}${managedPayloadPrefix}`;
+  if (source.startsWith(managedHeader)) {
+    const digestStart = managedHeader.length;
+    const digest = source.slice(digestStart, digestStart + 64);
+    const environmentBlock = `\n${envPhp(config)}\n${managedBootstrapEnd}`;
+    if (!/^[a-f0-9]{64}$/.test(digest) || !source.startsWith(environmentBlock, digestStart + 64)) {
+      fail('Endpoint administrado inválido.');
+    }
+    const payload = '<?php' + source.slice(digestStart + 64 + environmentBlock.length);
+    if (createHash('sha256').update(payload).digest('hex') !== digest) fail('Endpoint administrado inválido.');
+    source = payload;
+  } else if (source.startsWith(`<?php\ndeclare(strict_types=1);\n${previousBootstrapBegin}`)) {
+    const prefix = `<?php\ndeclare(strict_types=1);\n${previousBootstrapBegin}${envPhp(config)}\n${previousBootstrapEnd}`;
+    if (!source.startsWith(prefix)) fail('Endpoint administrado previo inválido.');
+    const payload = '<?php' + source.slice(prefix.length);
+    if (!approvedPreviousManagedPayloadHashes.includes(createHash('sha256').update(payload).digest('hex'))) {
+      fail('Endpoint administrado previo no aprobado.');
+    }
+    source = payload;
+  } else if (source.includes('FINADOS MANAGED BOOTSTRAP')) {
+    fail('Endpoint administrado inválido.');
   }
+  if (!source.startsWith('<?php') || !source.includes('function voceros_handle_request(')
+    || source.includes('voceros_bootstrap')) fail('Endpoint de Voceros inválido.');
   source = source.replace(/^<\?php\s*declare\(strict_types=1\);/, '<?php');
-  return `<?php\ndeclare(strict_types=1);\n// FINADOS MANAGED BOOTSTRAP BEGIN\n${envPhp(config)}\n${endMarker}${source.slice(5)}`;
+  const digest = createHash('sha256').update(source).digest('hex');
+  return `<?php\ndeclare(strict_types=1);\n${managedBootstrapBegin}${managedPayloadPrefix}${digest}\n${envPhp(config)}\n${managedBootstrapEnd}${source.slice(5)}`;
 }
 
 function installSource(config, { main = false, releaseId, source }) {
   if (main && typeof source !== 'string') fail('El endpoint público preparado es obligatorio.');
   const docroot = main ? config.DEPLOY_REMOTE_ROOT : config.FINADOS_API_DOCROOT;
   const directory = main ? `${config.DEPLOY_REMOTE_ROOT}/api/voceros` : `${config.FINADOS_API_DOCROOT}/api`;
+  const ownership = `${posix.dirname(config.FINADOS_CONFIG_PATH)}/voceros-endpoint-ownership.json`;
   const prefix = `<?php\ndeclare(strict_types=1);\n// FINADOS MANAGED ${main ? 'BOOTSTRAP BEGIN' : 'API'}\n${envPhp(config)}\n`;
   return phpSource(`
 $directory = ${literal(directory)};
-if (realpath(dirname($directory)) !== realpath(${literal(docroot)}) . ${literal(main ? '/api' : '')}) exit(1);
+$docroot = ${literal(docroot)};
+$docrootReal = realpath($docroot);
+if (!is_string($docrootReal)
+  || realpath(dirname($directory)) !== $docrootReal . ${literal(main ? '/api' : '')}) exit(1);
 if (is_link($directory) || (file_exists($directory) && !is_dir($directory))) exit(1);
 if (!is_dir($directory) && !mkdir($directory, 0755)) exit(1);
+$directoryReal = realpath($directory);
+$directoryStat = lstat($directory);
+if (!is_string($directoryReal) || is_link($directory) || !is_array($directoryStat)
+  || ($directoryStat['mode'] & 0170000) !== 0040000 || ($directoryStat['mode'] & 0022) !== 0) exit(1);
+$directory = $directoryReal;
 $destination = $directory . '/index.php';
+$destinationPresent = file_exists($destination) || is_link($destination);
+if ($destinationPresent) {
+  $destinationStat = lstat($destination);
+  if (is_link($destination) || !is_array($destinationStat)
+    || ($destinationStat['mode'] & 0170000) !== 0100000
+    || ($destinationStat['nlink'] ?? 0) !== 1
+    || ($destinationStat['mode'] & 0022) !== 0) exit(1);
+}
 ${main ? `
 $contents = ${literal(source)};
-if (!is_file($destination)) exit(1);
-$existingHash = hash_file('sha256', $destination);
-$approvedHashes = [${approvedLegacyPublicEndpointHashes.map(literal).join(',')}, hash('sha256', $contents)];
-if (!is_string($existingHash) || !in_array($existingHash, $approvedHashes, true)) exit(1);
+$ownership = ${literal(ownership)};
+$ownershipDirectory = dirname($ownership);
+if (realpath($ownershipDirectory) !== $ownershipDirectory || is_link($ownershipDirectory)
+  || !is_dir($ownershipDirectory) || !is_writable($ownershipDirectory) || (fileperms($ownershipDirectory) & 0077) !== 0) exit(1);
+foreach (json_decode(${literal(config.FINADOS_PUBLIC_ROOTS)}, true) as $publicRoot) {
+  if ($ownershipDirectory === $publicRoot || str_starts_with($ownershipDirectory, $publicRoot . '/')) exit(1);
+}
+if (!$destinationPresent || !is_file($destination)) exit(1);
+$existing = file_get_contents($destination); if (!is_string($existing)) exit(1);
+$existingHash = hash('sha256', $existing);
+$contentsHash = hash('sha256', $contents);
+$ownershipHash = null;
+$ownershipPresent = file_exists($ownership) || is_link($ownership);
+if ($ownershipPresent) {
+  if (!is_file($ownership) || is_link($ownership)) exit(1);
+  $ownershipStat = lstat($ownership);
+  if (!is_array($ownershipStat) || ($ownershipStat['mode'] & 0777) !== 0600
+    || ($ownershipStat['nlink'] ?? 0) !== 1 || ($ownershipStat['size'] ?? 0) > 512) exit(1);
+  $ownershipDocument = json_decode((string) file_get_contents($ownership), true);
+  if (!is_array($ownershipDocument) || count($ownershipDocument) !== 2
+    || ($ownershipDocument['schema'] ?? null) !== 'finados-voceros-endpoint-ownership-v1'
+    || !is_string($ownershipDocument['sha256'] ?? null)
+    || preg_match('/^[a-f0-9]{64}$/D', $ownershipDocument['sha256']) !== 1) exit(1);
+  $ownershipHash = $ownershipDocument['sha256'];
+}
+$legacyOwned = in_array($existingHash, [${approvedLegacyPublicEndpointHashes.map(literal).join(',')}], true);
+$previousPrefix = ${literal(`<?php\ndeclare(strict_types=1);\n${previousBootstrapBegin}${envPhp(config)}\n${previousBootstrapEnd}`)};
+$previousOwned = false;
+if (str_starts_with($existing, $previousPrefix)) {
+  $previousPayload = '<?php' . substr($existing, strlen($previousPrefix));
+  $previousOwned = in_array(hash('sha256', $previousPayload), [${approvedPreviousManagedPayloadHashes.map(literal).join(',')}], true);
+}
+$manifestOwned = is_string($ownershipHash) && hash_equals($ownershipHash, $existingHash);
+$idempotentRecovery = hash_equals($contentsHash, $existingHash);
+if ($ownershipPresent) {
+  if (!$manifestOwned && !$idempotentRecovery) exit(1);
+} elseif (!$legacyOwned && !$previousOwned && !$idempotentRecovery) exit(1);
 ` : `
 if (is_file($destination) && !str_contains(file_get_contents($destination), 'FINADOS MANAGED API')) exit(1);
 $contents = ${literal(prefix + `require ${literal(config.FINADOS_BACKEND_ROOT + '/public/index.php')};\n`)};
@@ -211,15 +344,20 @@ $contents = ${literal(prefix + `require ${literal(config.FINADOS_BACKEND_ROOT + 
 if (is_link($destination)) exit(1);
 $temporary = $directory . ${literal('/.finados-' + releaseId + '.php')};
 $temporaryCreated = false;
-register_shutdown_function(static function () use ($temporary, &$temporaryCreated): void {
-  if (!$temporaryCreated) return;
-  try { if (is_file($temporary) || is_link($temporary)) unlink($temporary); } catch (\\Throwable) {}
+$ownershipTemporary = ${main ? `$ownershipDirectory . ${literal('/.voceros-endpoint-ownership-' + releaseId + '.tmp')}` : "''"};
+$ownershipTemporaryCreated = false;
+register_shutdown_function(static function () use ($temporary, &$temporaryCreated, $ownershipTemporary, &$ownershipTemporaryCreated): void {
+  try { if ($temporaryCreated && (is_file($temporary) || is_link($temporary))) unlink($temporary); } catch (\\Throwable) {}
+  try { if ($ownershipTemporaryCreated && (is_file($ownershipTemporary) || is_link($ownershipTemporary))) unlink($ownershipTemporary); } catch (\\Throwable) {}
 });
 $stream = fopen($temporary, 'x'); if (!$stream) exit(1);
 $temporaryCreated = true;
 $written = fwrite($stream, $contents);
 $closed = fclose($stream);
 if ($written !== strlen($contents) || !$closed || !chmod($temporary, 0644)) exit(1);
+$temporaryStat = lstat($temporary);
+if (!is_array($temporaryStat) || ($temporaryStat['mode'] & 0170000) !== 0100000
+  || ($temporaryStat['nlink'] ?? 0) !== 1 || ($temporaryStat['size'] ?? -1) !== strlen($contents)) exit(1);
 $lint = proc_open([PHP_BINARY, '-l', $temporary], [0=>['file','/dev/null','r'],1=>['file','/dev/null','w'],2=>['file','/dev/null','w']], $pipes);
 if (!is_resource($lint) || proc_close($lint) !== 0) exit(1);
 ${main && source !== undefined ? `
@@ -230,9 +368,27 @@ if (($health['status'] ?? null) !== 200 || ($health['json']['open'] ?? null) !==
   || ($health['json']['authenticationRequired'] ?? null) !== true
   || ($health['json']['accessUrl'] ?? null) !== '/finados/voceros/acceso/'
   || ($health['json']['timezone'] ?? null) !== 'America/Guayaquil') exit(1);
+$ownershipContents = json_encode([
+  'schema' => 'finados-voceros-endpoint-ownership-v1',
+  'sha256' => $contentsHash,
+], JSON_UNESCAPED_SLASHES);
+if (!is_string($ownershipContents)) exit(1);
+$ownershipStream = fopen($ownershipTemporary, 'x'); if (!$ownershipStream) exit(1);
+$ownershipTemporaryCreated = true;
+$ownershipWritten = fwrite($ownershipStream, $ownershipContents . "\\n");
+$ownershipClosed = fclose($ownershipStream);
+if ($ownershipWritten !== strlen($ownershipContents) + 1 || !$ownershipClosed || !chmod($ownershipTemporary, 0600)) exit(1);
+$ownershipTemporaryStat = lstat($ownershipTemporary);
+if (!is_array($ownershipTemporaryStat) || ($ownershipTemporaryStat['mode'] & 0170000) !== 0100000
+  || ($ownershipTemporaryStat['nlink'] ?? 0) !== 1
+  || ($ownershipTemporaryStat['size'] ?? -1) !== strlen($ownershipContents) + 1) exit(1);
 ` : ''}
 if (!rename($temporary, $destination)) exit(1);
 $temporaryCreated = false;
+${main ? `
+if (!rename($ownershipTemporary, $ownership)) exit(1);
+$ownershipTemporaryCreated = false;
+` : ''}
 ${main ? '' : `
 $htaccess = $directory . '/.htaccess';
 if (is_link($htaccess)) exit(1);
@@ -305,11 +461,9 @@ catch (Throwable) {
   if ($moved && !file_exists($current) && !is_link($current)) rename($previous, $current);
   exit(1);
 }
-`));
+  `));
   await run('install-api', php, installSource(config, { releaseId: id }));
-  let health;
-  try { health = await transport.health(healthUrl); } catch { fail('No se pudo verificar HTTPS; conserva el respaldo y revisa la versión activa.'); }
-  if (health.status !== 200 || health.ok !== true) fail('La API no confirmó salud después del despliegue.');
+  await checkDeployedBackend(config, transport);
   return { ...checked, release: id };
 }
 
@@ -372,7 +526,7 @@ export function createTransport(config) {
     async health(url) {
       const response = await fetch(url, { redirect: 'error', signal: AbortSignal.timeout(15000) });
       const body = await response.json();
-      return { status: response.status, ok: body.ok };
+      return normalizeHealthResponse(response.status, body);
     },
   };
 }

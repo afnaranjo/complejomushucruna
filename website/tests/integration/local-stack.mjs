@@ -87,7 +87,10 @@ export async function startLocalStack({ onStage = async () => {} } = {}) {
   const startPhp = async (port, router) => {
     check();
     const child = spawn('php', ['-d', 'display_errors=0', '-d', 'session.save_path=' + sessions,
-      '-d', 'error_log=' + join(privateDirectory, 'php.log'), '-S', '127.0.0.1:' + port, '-t', dist, join(here, router)],
+      '-d', 'error_log=' + join(privateDirectory, 'php.log'), '-d', 'file_uploads=1',
+      '-d', 'upload_max_filesize=5M', '-d', 'post_max_size=6M',
+      '-d', 'memory_limit=256M',
+      '-S', '127.0.0.1:' + port, '-t', dist, join(here, router)],
     { cwd: website, env: { ...cleanEnv(), VOCEROS_TEST_CONFIG: configPath, VOCEROS_TEST_INSTANCE: instance }, stdio: ['ignore', 'ignore', 'pipe'] });
     children.push(child);
     // No HTTP request until this exact child confirms its successful bind.

@@ -76,14 +76,44 @@ same('003_vocero_accounts', $pdo->query("SELECT version FROM schema_migrations W
 same(['email_idx', 'ip_hash', 'attempted_at'], array_column($pdo->query("PRAGMA index_info('idx_vocero_login_window')")->fetchAll(), 'name'));
 same(['email_idx', 'attempted_at'], array_column($pdo->query("PRAGMA index_info('idx_vocero_login_email_window')")->fetchAll(), 'name'));
 same(['ip_hash', 'attempted_at'], array_column($pdo->query("PRAGMA index_info('idx_vocero_login_ip_window')")->fetchAll(), 'name'));
-$passwordInfo = password_get_info(Auth::hashPassword('contraseña válida'));
+$generatedPasswordHash = Auth::hashPassword('contraseña válida');
+$passwordInfo = password_get_info(defined('PASSWORD_ARGON2ID')
+    ? $generatedPasswordHash
+    : substr($generatedPasswordHash, strlen('bcrypt-sha384$v1$')));
 same(defined('PASSWORD_ARGON2ID') ? 'argon2id' : 'bcrypt', $passwordInfo['algoName']);
 same(defined('PASSWORD_ARGON2ID') ? 65536 : 12, defined('PASSWORD_ARGON2ID') ? $passwordInfo['options']['memory_cost'] : $passwordInfo['options']['cost']);
 if (defined('PASSWORD_ARGON2ID')) {
     same(4, $passwordInfo['options']['time_cost']);
     same(1, $passwordInfo['options']['threads']);
+} else {
+    same(true, str_starts_with($generatedPasswordHash, 'bcrypt-sha384$v1$'));
 }
+same(true, Auth::verifyPassword('contraseña válida', $generatedPasswordHash));
+same(false, Auth::verifyPassword('contraseña distinta', $generatedPasswordHash));
 same(false, Auth::needsPasswordRehash(Auth::dummyPasswordHash()));
+
+// The versioned bcrypt fallback must bind every password byte, not bcrypt's first 72 bytes.
+$bcryptSharedPrefix = str_repeat('p', 72);
+$bcryptLongPassword = $bcryptSharedPrefix . '-sufijo-a';
+$bcryptDifferentSuffix = $bcryptSharedPrefix . '-sufijo-b';
+$bcryptPrehash = base64_encode(hash('sha384', $bcryptLongPassword, true));
+$versionedBcryptHash = 'bcrypt-sha384$v1$' . password_hash($bcryptPrehash, PASSWORD_BCRYPT, ['cost' => 4]);
+same(true, Auth::verifyPassword($bcryptLongPassword, $versionedBcryptHash));
+same(false, Auth::verifyPassword($bcryptDifferentSuffix, $versionedBcryptHash));
+
+// Existing unversioned bcrypt credentials remain usable and are marked for migration.
+$legacyPassword = 'credencial heredada segura';
+$legacyBcryptHash = password_hash($legacyPassword, PASSWORD_BCRYPT, ['cost' => 4]);
+same(true, Auth::verifyPassword($legacyPassword, $legacyBcryptHash));
+same(false, Auth::verifyPassword($legacyPassword . '-otra', $legacyBcryptHash));
+same(true, Auth::needsPasswordRehash($legacyBcryptHash));
+if (defined('PASSWORD_ARGON2ID')) {
+    $argonPassword = str_repeat('á', 65);
+    $argonHash = password_hash($argonPassword, PASSWORD_ARGON2ID, ['memory_cost' => 65536, 'time_cost' => 4, 'threads' => 1]);
+    same(true, Auth::verifyPassword($argonPassword, $argonHash));
+    same(false, Auth::verifyPassword($argonPassword . 'x', $argonHash));
+    same(false, Auth::needsPasswordRehash($argonHash));
+}
 $mysqlDuplicateKeyMatcher = new ReflectionMethod(VoceroAuth::class, 'isMySqlEmailDuplicateMessage');
 foreach ([
     "Duplicate entry 'x' for key 'email_idx'",
@@ -128,6 +158,11 @@ $pdo->exec('DROP TRIGGER fail_vocero_registration_audit');
 same(2, (int) $pdo->query('SELECT COUNT(*) FROM vocero_accounts')->fetchColumn());
 same(1, (int) $pdo->query("SELECT COUNT(*) FROM audit_log WHERE event_type = 'vocero_account.registered'")->fetchColumn());
 
+// A successful login upgrades a legacy unversioned bcrypt hash without changing the account.
+$legacyVoceroHash = password_hash('contraseña válida', PASSWORD_BCRYPT, ['cost' => 4]);
+$registeredAccountId = (int) $pdo->query("SELECT id FROM vocero_accounts WHERE email_idx <> 'idx-a' ORDER BY id DESC LIMIT 1")->fetchColumn();
+$pdo->prepare('UPDATE vocero_accounts SET password_hash = ? WHERE id = ?')->execute([$legacyVoceroHash, $registeredAccountId]);
+
 // Login rotates the session and CSRF while retaining only a server-issued role.
 $pdo->exec('DELETE FROM vocero_login_attempts');
 foreach (['vocero@example.invalid', 'missing@example.invalid'] as $email) {
@@ -140,6 +175,10 @@ $existingId = session_id();
 $login = $auth->login('VOCERO@example.invalid', 'contraseña válida', '192.0.2.40');
 same(false, $existingId === session_id());
 same('vocero', $login['user']['role']);
+$migratedVoceroHash = $pdo->query('SELECT password_hash FROM vocero_accounts WHERE id = ' . $registeredAccountId)->fetchColumn();
+same(false, hash_equals($legacyVoceroHash, $migratedVoceroHash));
+same(true, Auth::verifyPassword('contraseña válida', $migratedVoceroHash));
+same(false, Auth::needsPasswordRehash($migratedVoceroHash));
 same(true, strlen($login['csrf']) >= 64);
 $auth->verifyCsrf($login['csrf']);
 throws(fn () => $auth->verifyCsrf(''), Forbidden::class);
@@ -254,4 +293,46 @@ same('vocero', $routeLogin['user']['role']);
 $logoutServer = ['HTTP_ORIGIN' => 'https://example.invalid', 'REMOTE_ADDR' => '192.0.2.42', 'CONTENT_TYPE' => 'application/json', 'HTTP_X_CSRF_TOKEN' => $routeLogin['csrf']];
 same(403, $router->handle('POST', '/api/vocero/auth/logout', ['REMOTE_ADDR' => '192.0.2.42', 'CONTENT_TYPE' => 'application/json', 'HTTP_X_CSRF_TOKEN' => $routeLogin['csrf']], '{}')->status);
 same(['ok' => true], vocero_response_body($router->handle('POST', '/api/vocero/auth/logout', $logoutServer, '{}')));
+close_vocero_session();
+
+// Password policy counts Unicode characters while the HTTP login accepts their full UTF-8 bytes.
+$unicodeConfig = vocero_config();
+$unicodePdo = Database::connect($unicodeConfig);
+foreach (['001_initial', '002_sheets_outbox', '003_vocero_accounts'] as $migration) {
+    $unicodePdo->exec(file_get_contents(__DIR__ . '/../migrations/' . $migration . '_sqlite.sql'));
+}
+$unicodeCrypto = new Finados\Crypto($unicodeConfig);
+$legacyShortPassword = str_repeat('á', 5); // Five characters, ten UTF-8 bytes.
+$legacyShortHash = password_hash($legacyShortPassword, PASSWORD_BCRYPT, ['cost' => 4]);
+$unicodePdo->prepare('INSERT INTO vocero_accounts (public_id,email_enc,email_idx,password_hash,privacy_version,privacy_hash,privacy_acknowledged_at,active,created_at,updated_at) VALUES (?,?,?,?,?,?,CURRENT_TIMESTAMP,1,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)')->execute([
+    str_repeat('e', 32), $unicodeCrypto->encrypt('legacy-short@example.invalid'),
+    $unicodeCrypto->lookup('legacy-short@example.invalid'), $legacyShortHash,
+    'legacy', hash('sha256', 'legacy'),
+]);
+$unicodeAuth = new VoceroAuth($unicodePdo, $unicodeConfig);
+same('vocero', $unicodeAuth->login('legacy-short@example.invalid', $legacyShortPassword, '192.0.2.76')['user']['role']);
+$migratedLegacyShortHash = $unicodePdo->query("SELECT password_hash FROM vocero_accounts WHERE public_id = '" . str_repeat('e', 32) . "'")->fetchColumn();
+same(false, hash_equals($legacyShortHash, $migratedLegacyShortHash));
+same(true, Auth::verifyPassword($legacyShortPassword, $migratedLegacyShortHash));
+close_vocero_session();
+foreach (['', "\xff", str_repeat('x', 129), str_repeat('😀', 129)] as $invalidLoginPassword) {
+    throws(fn () => $unicodeAuth->login('legacy-short@example.invalid', $invalidLoginPassword, '192.0.2.76'), InvalidArgumentException::class);
+}
+
+$unicodeRouter = new Router($unicodeConfig, $unicodePdo);
+$unicodeServer = ['HTTP_ORIGIN' => 'https://example.invalid', 'REMOTE_ADDR' => '192.0.2.77'];
+$unicodeSession = vocero_response_body($unicodeRouter->handle('GET', '/api/vocero/auth/session', $unicodeServer));
+$unicodeServer += ['CONTENT_TYPE' => 'application/json', 'HTTP_X_CSRF_TOKEN' => $unicodeSession['csrf']];
+same(422, $unicodeRouter->handle('POST', '/api/vocero/auth/register', $unicodeServer, json_encode([
+    'email' => 'short-unicode@example.invalid', 'password' => str_repeat('á', 5), 'privacyAcknowledged' => true,
+], JSON_THROW_ON_ERROR))->status);
+$unicodePassword = str_repeat('á', 65);
+same(202, $unicodeRouter->handle('POST', '/api/vocero/auth/register', $unicodeServer, json_encode([
+    'email' => 'unicode@example.invalid', 'password' => $unicodePassword, 'privacyAcknowledged' => true,
+], JSON_THROW_ON_ERROR))->status);
+$unicodeLogin = $unicodeRouter->handle('POST', '/api/vocero/auth/login', $unicodeServer, json_encode([
+    'email' => 'unicode@example.invalid', 'password' => $unicodePassword,
+], JSON_THROW_ON_ERROR));
+same(200, $unicodeLogin->status);
+same('vocero', vocero_response_body($unicodeLogin)['user']['role']);
 close_vocero_session();

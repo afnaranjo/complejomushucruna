@@ -159,14 +159,17 @@ $initialSecret = bin2hex(random_bytes(24));
 same([0, "Usuario admin creado\n", 1], run_admin_command($args, [$initialSecret, $initialSecret]));
 $cliAdmin = $cliPdo->query('SELECT * FROM admin_users')->fetch();
 same('admin', $cliAdmin['username']);
-same(true, password_verify($initialSecret, $cliAdmin['password_hash']));
-same(defined('PASSWORD_ARGON2ID') ? 'argon2id' : 'bcrypt', password_get_info($cliAdmin['password_hash'])['algoName']);
+same(true, Auth::verifyPassword($initialSecret, $cliAdmin['password_hash']));
+$cliPasswordInfoHash = defined('PASSWORD_ARGON2ID')
+    ? $cliAdmin['password_hash']
+    : substr($cliAdmin['password_hash'], strlen('bcrypt-sha384$v1$'));
+same(defined('PASSWORD_ARGON2ID') ? 'argon2id' : 'bcrypt', password_get_info($cliPasswordInfoHash)['algoName']);
 $rotationSecret = bin2hex(random_bytes(24));
 same([0, "Contraseña de admin actualizada\n", 1], run_admin_command($args, [$rotationSecret, $rotationSecret]));
 $rotated = $cliPdo->query('SELECT * FROM admin_users')->fetch();
 same($cliAdmin['public_id'], $rotated['public_id']);
-same(false, password_verify($initialSecret, $rotated['password_hash']));
-same(true, password_verify($rotationSecret, $rotated['password_hash']));
+same(false, Auth::verifyPassword($initialSecret, $rotated['password_hash']));
+same(true, Auth::verifyPassword($rotationSecret, $rotated['password_hash']));
 same(1, (int) $cliPdo->query('SELECT COUNT(*) FROM admin_users')->fetchColumn());
 foreach ([['short', 'short'], [$initialSecret, $rotationSecret], [str_repeat('é', 13), str_repeat('é', 13)], [str_repeat('x', 73), str_repeat('x', 73)], ["\xFF", "\xFF"]] as $invalidSecrets) {
     [$code, $output, $reads] = run_admin_command($args, $invalidSecrets);
@@ -258,7 +261,7 @@ try {
     same(true, hash_equals($originalTerminal, tty_state($ttyPipes[0], '-g')));
     same(false, str_contains($ttyOutput, $ttySecret));
     $ttyHash = $cliPdo->query('SELECT password_hash FROM admin_users')->fetchColumn();
-    same(true, password_verify($ttySecret, $ttyHash));
+    same(true, Auth::verifyPassword($ttySecret, $ttyHash));
     same(false, str_contains($ttyOutput, $ttyHash));
 } finally {
     proc_terminate($process, 9);

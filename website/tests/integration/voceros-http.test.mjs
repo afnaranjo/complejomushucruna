@@ -60,7 +60,29 @@ test('real HTTP isolates Voceros and admin, stores multipart photos, resets acce
   assert.equal(head.status, 200); assert.equal(await head.text(), '');
   assert.equal((await fetch(stack.publicOrigin + '/api/voceros/', { method: 'POST', body: new URLSearchParams(publicFixture()) })).status, 401);
   assert.equal((await fetch(stack.publicOrigin + '/api/voceros/', { method: 'DELETE' })).status, 405);
-  assert.deepEqual(await json(await request('/health'), 200), { ok: true });
+  const health = await json(await request('/health'), 200);
+  assert.deepEqual({ ok: health.ok, service: health.service, contract: health.contract, migration: health.migration }, {
+    ok: true, service: 'finados-voceros-api', contract: 'vocero-accounts-v1',
+    migration: { version: '003_vocero_accounts', ready: true },
+  });
+  assert.deepEqual(health.capabilities, {
+    voceroAccounts: true, voceroProfile: true, privatePhoto: true, adminPasswordReset: true, photoUpload: true,
+  });
+  assert.deepEqual(health.runtime, {
+    fileinfo: true, gd: true, jpeg: true, png: true, webp: true, exif: true, openssl: true, functions: true,
+  });
+  assert.deepEqual({
+    privateRoot: health.storage.privateRoot,
+    canonical: health.storage.canonical,
+    writable: health.storage.writable,
+    permissions: health.storage.permissions,
+  }, { privateRoot: true, canonical: true, writable: true, permissions: true });
+  assert.ok(Number.isSafeInteger(health.storage.freeBytes));
+  assert.ok(health.storage.freeBytes >= 100 * 1024 * 1024);
+  assert.equal(health.limits.fileUploads, true);
+  assert.ok(health.limits.uploadMaxBytes >= 5 * 1024 * 1024);
+  assert.ok(health.limits.postMaxBytes >= 5 * 1024 * 1024 + 256 * 1024);
+  assert.equal(health.limits.memoryBytes, 256 * 1024 * 1024);
   for (const path of ['/voceros', '/dashboard', '/voceros/' + 'a'.repeat(32)]) assert.equal((await request(path)).status, 401);
   assert.equal((await request('/voceros', { origin: 'https://untrusted.example' })).status, 403);
   const preflight = await request('/auth/login', { method: 'OPTIONS', headers: {
@@ -262,7 +284,7 @@ test('backend release tar produced from deploy selection excludes every local ad
   await deployBackend(config, {
     async repository() { return { branch: 'main', dirty: false, head: 'a'.repeat(40), remoteHead: 'a'.repeat(40) }; },
     async run(operation) {
-      return operation.id === 'probe' ? JSON.stringify({ phpVersion: '8.2.12', phpModules: ['PDO', 'pdo_mysql', 'openssl', 'session', 'fileinfo', 'gd', 'exif'], paths: true, databaseProbe: '1', media: { jpeg: true, png: true, webp: true, memoryBytes: 268435456, freeBytes: 104857600, privateRoot: true } }) : '';
+      return operation.id === 'probe' ? JSON.stringify({ phpVersion: '8.2.12', phpModules: ['PDO', 'pdo_mysql', 'openssl', 'session', 'fileinfo', 'gd', 'exif'], paths: true, databaseProbe: '1', media: { jpeg: true, png: true, webp: true, memoryBytes: 268435456, freeBytes: 104857600, privateRoot: true, fileUploads: true, uploadMaxBytes: 5242880, postMaxBytes: 5505024 } }) : '';
     },
     async upload({ id, source, files }) {
       assert.equal(id, 'upload-release');
@@ -272,7 +294,14 @@ test('backend release tar produced from deploy selection excludes every local ad
       assert.equal(inventory.status, 0);
       manifest = inventory.stdout;
     },
-    async health() { return { status: 200, ok: true }; },
+    async health() { return {
+      status: 200, ok: true, service: 'finados-voceros-api', contract: 'vocero-accounts-v1',
+      migration: { version: '003_vocero_accounts', ready: true },
+      capabilities: { voceroAccounts: true, voceroProfile: true, privatePhoto: true, adminPasswordReset: true, photoUpload: true },
+      runtime: { fileinfo: true, gd: true, jpeg: true, png: true, webp: true, exif: true, openssl: true, functions: true },
+      storage: { privateRoot: true, canonical: true, writable: true, permissions: true, freeBytes: 104857600 },
+      limits: { fileUploads: true, uploadMaxBytes: 5242880, postMaxBytes: 5505024, memoryBytes: 268435456 },
+    }; },
   }, { release: 'local-integration-test' });
   assert.match(manifest, /src\/Router\.php/);
   assert.match(manifest, /resources\/vocero-consents\.json/);

@@ -73,16 +73,28 @@ final class VoceroAuth
 
     public function login(string $email, #[\SensitiveParameter] string $password, string $ip): array
     {
-        Http::startSession($this->config, 'vocero');
         $email = self::email($email);
+        self::loginPasswordCandidate($password);
+        Http::startSession($this->config, 'vocero');
         $ipHash = $this->ipHash($ip);
         $emailIndex = $this->crypto->lookup($email);
         $now = ($this->clock)();
+        $mysql = $this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql';
+        $ipLockName = $mysql ? 'finados.vocero.ip.' . substr($ipHash, 0, 46) : null;
+        $ipLockAttempted = false;
         $transactionStarted = false;
         try {
+            if ($ipLockName !== null) {
+                // A per-IP named lock serializes the read/count/write quota window even when
+                // concurrent attempts target different account rows. The name reveals no IP.
+                $ipLockAttempted = true;
+                $lock = $this->pdo->prepare('SELECT GET_LOCK(?, 10)');
+                $lock->execute([$ipLockName]);
+                if ((int) $lock->fetchColumn() !== 1) throw new RuntimeException();
+            }
             $this->begin();
             $transactionStarted = true;
-            $sqlite = $this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite';
+            $sqlite = !$mysql;
             $statement = $this->pdo->prepare('SELECT * FROM vocero_accounts WHERE email_idx = ?' . ($sqlite ? '' : ' FOR UPDATE'));
             $statement->execute([$emailIndex]);
             $account = $statement->fetch();
@@ -94,7 +106,7 @@ final class VoceroAuth
             $valid = false;
             if (!$blocked) {
                 $hash = $account ? $account['password_hash'] : Auth::dummyPasswordHash();
-                $verified = password_verify($password, $hash);
+                $verified = Auth::verifyPassword($password, $hash);
                 $valid = $verified && $account && (int) $account['active'] === 1;
                 $record = $this->pdo->prepare('INSERT INTO vocero_login_attempts (email_idx, ip_hash, succeeded, attempted_at) VALUES (?, ?, ?, ?)');
                 $record->execute([$emailIndex, $ipHash, (int) $valid, gmdate('Y-m-d H:i:s', $now)]);
@@ -108,8 +120,24 @@ final class VoceroAuth
             $this->commit();
             $transactionStarted = false;
         } catch (Throwable) {
-            if ($transactionStarted) $this->rollBack();
+            if ($transactionStarted) {
+                try { $this->rollBack(); }
+                catch (Throwable) { $this->logLoginCleanupFailure('rollback'); }
+            }
             throw new RuntimeException('No se pudo comprobar el acceso.');
+        } finally {
+            if ($ipLockAttempted) {
+                try {
+                    $release = $this->pdo->prepare('SELECT RELEASE_LOCK(?)');
+                    $release->execute([$ipLockName]);
+                    // NULL/0 is acceptable after an unacknowledged or denied acquisition.
+                    $release->fetchColumn();
+                } catch (Throwable) {
+                    // A confirmed COMMIT remains authoritative; request-scoped connections
+                    // release any retained named lock when they close.
+                    $this->logLoginCleanupFailure('lock');
+                }
+            }
         }
         if (!$valid) throw new Unauthorized('Credenciales incorrectas');
         return $this->start($account, $email, $now);
@@ -196,7 +224,22 @@ final class VoceroAuth
 
     public static function password(#[\SensitiveParameter] string $password): void
     {
-        if (strlen($password) < 10 || strlen($password) > 128 || preg_match('//u', $password) !== 1) {
+        // At most 128 Unicode scalar values can occupy 512 UTF-8 bytes. Bound bytes first
+        // so malformed or adversarial inputs never reach an unbounded Unicode scan.
+        $characters = strlen($password) <= 512 ? preg_match_all('/./us', $password) : false;
+        if ($characters === false || $characters < 10 || $characters > 128) {
+            throw new InvalidArgumentException('Contraseña no válida.');
+        }
+    }
+
+    private static function loginPasswordCandidate(#[\SensitiveParameter] string $password): void
+    {
+        // Login must preserve access to legacy accounts created under the earlier byte-based
+        // minimum while still bounding valid UTF-8 work and rejecting empty candidates.
+        $characters = $password !== '' && strlen($password) <= 512
+            ? preg_match_all('/./us', $password)
+            : false;
+        if ($characters === false || $characters > 128) {
             throw new InvalidArgumentException('Contraseña no válida.');
         }
     }
@@ -267,5 +310,11 @@ final class VoceroAuth
     private static function isMySqlEmailDuplicateMessage(string $message): bool
     {
         return preg_match("/for key ['`](?:email_idx|vocero_accounts\\.email_idx)['`]$/D", $message) === 1;
+    }
+
+    private function logLoginCleanupFailure(string $operation): void
+    {
+        try { error_log('Finados vocero login ' . $operation . ' cleanup failed.'); }
+        catch (Throwable) { /* Cleanup diagnostics must not replace the login outcome. */ }
     }
 }

@@ -333,16 +333,27 @@ function normalizeRemotePermissions(config) {
 
 export async function publishFrontendFiles(config, {
   endpointSource = readFileSync(join(websiteRoot, 'dist/api/voceros/index.php'), 'utf8'),
-  install, upload = uploadDist, normalize = normalizeRemotePermissions, verify = verifyPublicSite,
+  backendHealth, install, upload = uploadDist, normalize = normalizeRemotePermissions, verify = verifyPublicSite,
 } = {}) {
   const backendDeploy = await import('./deploy-finados-backend.mjs');
+  // This is the last read-only gate before any frontend endpoint or file changes.
+  await (backendHealth ?? (settings => backendDeploy.checkDeployedBackend(settings)))(config);
   const prepared = backendDeploy.preparePublicEndpoint(config, endpointSource);
-  // The complete endpoint is linted and its actual GET must report open before rename.
+  // The complete endpoint is linted and its actual GET must confirm the closed account flow before rename.
   // Install it before copying any shared helpers; the prepared endpoint embeds its own.
   await (install ?? ((settings, source) => backendDeploy.installPublicBootstrap(settings, undefined, { source })))(config, prepared);
   await upload(config, { archiveArgs: distArchiveArgs() });
   await normalize(config);
   await verify(config);
+}
+
+export async function checkFrontendBackend(config, { backendDeploy: suppliedBackendDeploy, transport: suppliedTransport } = {}) {
+  const backendDeploy = suppliedBackendDeploy ?? await import('./deploy-finados-backend.mjs');
+  const transport = suppliedTransport ?? backendDeploy.createTransport(config);
+  await backendDeploy.checkBackend(config, transport);
+  await transport.run({ id: 'installed-backend', write: false,
+    command: `test -d '${config.FINADOS_BACKEND_ROOT}/src' && test -f '${config.FINADOS_BACKEND_ROOT}/public/index.php'` });
+  await backendDeploy.checkDeployedBackend(config, transport);
 }
 
 async function fetchWithTimeout(url) {
@@ -481,10 +492,8 @@ async function main() {
   await runProjectChecks();
   console.log('Verificando acceso SSH y destino remoto…');
   checkRemote(config);
-  await backendDeploy.checkBackend(config);
-  // The public endpoint cannot switch to MySQL until a validated backend release exists.
-  await backendDeploy.createTransport(config).run({ id: 'installed-backend', write: false,
-    command: `test -d '${config.FINADOS_BACKEND_ROOT}/src' && test -f '${config.FINADOS_BACKEND_ROOT}/public/index.php'` });
+  // The public endpoint cannot switch until the installed web SAPI confirms the current backend contract.
+  await checkFrontendBackend(config, { backendDeploy });
   lintPhpEndpoints(config);
 
   if (mode === '--check') {
