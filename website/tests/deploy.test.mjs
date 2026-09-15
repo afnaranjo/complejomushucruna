@@ -130,7 +130,9 @@ test('serializa las pruebas que compilan Tailwind durante el preflight', async (
   const packageConfig = JSON.parse(await readFile(join(websiteRoot, 'package.json'), 'utf8'));
 
   assert.match(source, /\['--test', '--test-concurrency=1', \.\.\.testFiles\]/);
-  assert.equal(packageConfig.scripts.test, 'node --test --test-concurrency=1 tests/*.test.mjs');
+  assert.equal(packageConfig.scripts['test:node'], 'node --test --test-concurrency=1 tests/*.test.mjs');
+  assert.equal(packageConfig.scripts['test:php'], 'php backend/finados-api/tests/run.php');
+  assert.equal(packageConfig.scripts.test, 'npm run test:node && npm run test:php');
 });
 
 test('el despliegue verifica las páginas, habilita Voceros y conserva su configuración fuera del sitio público', async () => {

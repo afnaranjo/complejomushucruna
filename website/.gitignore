@@ -1,1 +1,8 @@
 dist/
+.env.backend
+backend/finados-api/var/
+*finados-backend.json
+*.sqlite
+*.sqlite3
+*.sql.gz
+*.backup.enc
