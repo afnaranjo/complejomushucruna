@@ -18,14 +18,15 @@ final class Http
 {
     public static function startSession(Config $config, string $scope = 'admin'): void
     {
-        if (session_status() === PHP_SESSION_ACTIVE) {
-            return;
-        }
         [$name, $sameSite] = match ($scope) {
             'admin' => ['finados_admin', 'Strict'],
             'vocero' => ['finados_vocero', 'Lax'],
             default => throw new RuntimeException('Ámbito de sesión no válido.'),
         };
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            if (session_name() !== $name) throw new RuntimeException('Ámbito de sesión incompatible.');
+            return;
+        }
         ini_set('session.use_strict_mode', '1');
         ini_set('session.use_only_cookies', '1');
         ini_set('session.use_trans_sid', '0');

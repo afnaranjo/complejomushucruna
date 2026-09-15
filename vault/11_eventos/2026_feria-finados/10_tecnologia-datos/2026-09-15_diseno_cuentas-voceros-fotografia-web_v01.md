@@ -100,7 +100,7 @@ El correo será obligatorio, único y no se guardará en texto claro. Cada cuent
 
 1. El usuario pulsa `Crear cuenta` desde la landing.
 2. Ingresa correo, contraseña y confirmación; acepta el aviso necesario para crear la cuenta.
-3. El sistema inicia su sesión y abre `Mi registro`.
+3. El sistema confirma “Cuenta creada; inicia sesión” sin revelar si el correo ya existía; el usuario inicia sesión por separado antes de abrir `Mi registro`.
 4. Completa los datos actuales del programa y añade una fotografía.
 5. La interfaz valida campos y muestra una vista previa local; la validación definitiva ocurre en el servidor.
 6. El servidor crea el registro, conserva las versiones exactas de los consentimientos y liga el registro con la cuenta.

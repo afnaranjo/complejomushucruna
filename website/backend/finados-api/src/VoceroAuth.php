@@ -18,6 +18,8 @@ final class VoceroAuth
     private readonly Closure $clock;
     private readonly Crypto $crypto;
     private readonly array $accountConsent;
+    private const DUMMY_ARGON2ID_HASH = '$argon2id$v=19$m=65536,t=4,p=1$cXdlcnR5dWlvcGFzZGZoZw$3OsG3gSTK7Hy28lbd1VbgtMAxaDPPlWTYy25ioTGJwA';
+    private const DUMMY_BCRYPT_HASH = '$2y$12$N7H6WSb3fDyozFDIRLI3QuSiJ6Y9KohPpm2HnWgEkiIIwNpWhJaNG';
 
     public function __construct(private readonly PDO $pdo, private readonly Config $config, ?callable $clock = null)
     {
@@ -28,11 +30,10 @@ final class VoceroAuth
 
     public function register(string $email, #[\SensitiveParameter] string $password, bool $privacyAcknowledged, string $ip): array
     {
-        Http::startSession($this->config, 'vocero');
         $email = self::email($email);
         self::password($password);
         if (!$privacyAcknowledged) throw new InvalidArgumentException('Debes confirmar la lectura de la Política de Privacidad.');
-        $ipHash = $this->ipHash($ip);
+        $this->ipHash($ip);
         $now = ($this->clock)();
         $nowText = gmdate('Y-m-d H:i:s', $now);
         $emailIndex = $this->crypto->lookup($email);
@@ -60,12 +61,12 @@ final class VoceroAuth
             $account['id'] = (int) $this->pdo->lastInsertId();
             $this->commit();
             $transactionStarted = false;
-        } catch (Throwable) {
+        } catch (\PDOException $error) {
             if ($transactionStarted) $this->rollBack();
-            // A duplicate and an unavailable database must not reveal whether an address is registered.
-            throw new Unauthorized('No se pudo crear la cuenta');
+            if (!$this->isUniqueViolation($error)) throw $error;
         }
-        return $this->start($account, $email, $now);
+        // The caller receives the same opaque result for a fresh or duplicate account, without a session.
+        return [];
     }
 
     public function login(string $email, #[\SensitiveParameter] string $password, string $ip): array
@@ -83,12 +84,14 @@ final class VoceroAuth
             $statement = $this->pdo->prepare('SELECT * FROM vocero_accounts WHERE email_idx = ?' . ($sqlite ? '' : ' FOR UPDATE'));
             $statement->execute([$emailIndex]);
             $account = $statement->fetch();
-            $attempts = $this->pdo->prepare('SELECT succeeded, attempted_at FROM vocero_login_attempts WHERE email_idx = ? AND ip_hash = ? AND attempted_at >= ? ORDER BY attempted_at, id');
-            $attempts->execute([$emailIndex, $ipHash, gmdate('Y-m-d H:i:s', $now - 1800)]);
-            $blocked = $this->isBlocked($attempts->fetchAll(), $now);
+            $emailAttempts = $this->pdo->prepare('SELECT succeeded, attempted_at FROM vocero_login_attempts WHERE email_idx = ? AND attempted_at >= ? ORDER BY attempted_at, id');
+            $emailAttempts->execute([$emailIndex, gmdate('Y-m-d H:i:s', $now - 1800)]);
+            $ipAttempts = $this->pdo->prepare('SELECT succeeded, attempted_at FROM vocero_login_attempts WHERE ip_hash = ? AND attempted_at >= ? ORDER BY attempted_at, id');
+            $ipAttempts->execute([$ipHash, gmdate('Y-m-d H:i:s', $now - 1800)]);
+            $blocked = $this->isBlocked($emailAttempts->fetchAll(), $now) || $this->isBlocked($ipAttempts->fetchAll(), $now);
             $valid = false;
             if (!$blocked) {
-                $hash = $account ? $account['password_hash'] : Auth::hashPassword(bin2hex(random_bytes(24)));
+                $hash = $account ? $account['password_hash'] : self::dummyHash();
                 $verified = password_verify($password, $hash);
                 $valid = $verified && $account && (int) $account['active'] === 1;
                 $record = $this->pdo->prepare('INSERT INTO vocero_login_attempts (email_idx, ip_hash, succeeded, attempted_at) VALUES (?, ?, ?, ?)');
@@ -238,7 +241,7 @@ final class VoceroAuth
         foreach ($attempts as $attempt) {
             $at = strtotime($attempt['attempted_at'] . ' UTC');
             if ($at < $blockedUntil) continue;
-            if ((int) $attempt['succeeded'] === 1) { $failures = []; continue; }
+            if ((int) $attempt['succeeded'] === 1) continue;
             $failures = array_values(array_filter($failures, static fn (int $failure): bool => $failure > $at - 900));
             $failures[] = $at;
             if (count($failures) >= 5) { $blockedUntil = $at + 900; $failures = []; }
@@ -249,5 +252,15 @@ final class VoceroAuth
     private static function passwordAlgorithm(): string
     {
         return defined('PASSWORD_ARGON2ID') ? PASSWORD_ARGON2ID : PASSWORD_BCRYPT;
+    }
+
+    private static function dummyHash(): string
+    {
+        return defined('PASSWORD_ARGON2ID') ? self::DUMMY_ARGON2ID_HASH : self::DUMMY_BCRYPT_HASH;
+    }
+
+    private function isUniqueViolation(\PDOException $error): bool
+    {
+        return in_array((string) $error->getCode(), ['19', '23000'], true);
     }
 }

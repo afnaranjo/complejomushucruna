@@ -19,7 +19,9 @@ CREATE TABLE IF NOT EXISTS vocero_login_attempts (
   ip_hash CHAR(64) NOT NULL,
   succeeded TINYINT(1) NOT NULL,
   attempted_at DATETIME NOT NULL,
-  INDEX idx_vocero_login_window (email_idx, ip_hash, attempted_at)
+  INDEX idx_vocero_login_window (email_idx, ip_hash, attempted_at),
+  INDEX idx_vocero_login_email_window (email_idx, attempted_at),
+  INDEX idx_vocero_login_ip_window (ip_hash, attempted_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS vocero_account_links (

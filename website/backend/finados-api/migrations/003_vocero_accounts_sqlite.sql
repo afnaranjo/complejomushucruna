@@ -56,5 +56,7 @@ CREATE TABLE IF NOT EXISTS vocero_password_resets (
 );
 
 CREATE INDEX IF NOT EXISTS idx_vocero_login_window ON vocero_login_attempts (email_idx, ip_hash, attempted_at);
+CREATE INDEX IF NOT EXISTS idx_vocero_login_email_window ON vocero_login_attempts (email_idx, attempted_at);
+CREATE INDEX IF NOT EXISTS idx_vocero_login_ip_window ON vocero_login_attempts (ip_hash, attempted_at);
 CREATE INDEX IF NOT EXISTS idx_vocero_password_reset_account ON vocero_password_resets (account_id, expires_at);
 INSERT OR IGNORE INTO schema_migrations (version, applied_at) VALUES ('003_vocero_accounts', CURRENT_TIMESTAMP);

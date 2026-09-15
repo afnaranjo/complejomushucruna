@@ -73,6 +73,9 @@ throws(fn () => $pdo->prepare('INSERT INTO vocero_account_links (account_id, voc
 $pdo->prepare('INSERT INTO vocero_photos (vocero_id, storage_key, content_type, bytes, sha256, created_at) VALUES (?, ?, ?, ?, ?, ?)')->execute([$voceroId, 'private/test.jpg', 'image/jpeg', 10, hash('sha256', 'photo'), $nowText]);
 throws(fn () => $pdo->prepare('INSERT INTO vocero_photos (vocero_id, storage_key, content_type, bytes, sha256, created_at) VALUES (?, ?, ?, ?, ?, ?)')->execute([$voceroId, 'private/second.jpg', 'image/jpeg', 11, hash('sha256', 'photo-2'), $nowText]), PDOException::class);
 same('003_vocero_accounts', $pdo->query("SELECT version FROM schema_migrations WHERE version = '003_vocero_accounts'")->fetchColumn());
+same(['email_idx', 'ip_hash', 'attempted_at'], array_column($pdo->query("PRAGMA index_info('idx_vocero_login_window')")->fetchAll(), 'name'));
+same(['email_idx', 'attempted_at'], array_column($pdo->query("PRAGMA index_info('idx_vocero_login_email_window')")->fetchAll(), 'name'));
+same(['ip_hash', 'attempted_at'], array_column($pdo->query("PRAGMA index_info('idx_vocero_login_ip_window')")->fetchAll(), 'name'));
 
 // Registration must fail without a locally derived privacy acknowledgement.
 $clock = 1800000000;
@@ -81,42 +84,60 @@ throws(fn () => $auth->register('vocero@example.invalid', 'contraseña válida',
 throws(fn () => $auth->register('vocero@example.invalid', str_repeat('x', 9), true, '192.0.2.40'), \InvalidArgumentException::class);
 throws(fn () => $auth->register('vocero@example.invalid', str_repeat('x', 129), true, '192.0.2.40'), \InvalidArgumentException::class);
 $beforeId = session_id();
-$registered = $auth->register('  Vocero@Example.Invalid  ', 'contraseña válida', true, '192.0.2.40');
-same(false, $beforeId === session_id());
-same('vocero@example.invalid', $registered['user']['email']);
-same('vocero', $registered['user']['role']);
-same(false, array_key_exists('password_hash', $registered['user']));
-same('finados_vocero', session_name());
-same('Lax', session_get_cookie_params()['samesite']);
-same(true, session_get_cookie_params()['httponly']);
+same([], $auth->register('  Vocero@Example.Invalid  ', 'contraseña válida', true, '192.0.2.40'));
+same($beforeId, session_id());
+same(PHP_SESSION_NONE, session_status());
+same(2, (int) $pdo->query('SELECT COUNT(*) FROM vocero_accounts')->fetchColumn());
 same(false, str_contains((string) $pdo->query("SELECT email_enc FROM vocero_accounts WHERE email_idx <> 'idx-a' ORDER BY id DESC LIMIT 1")->fetchColumn(), 'vocero@example.invalid'));
-$duplicateMessages = [];
 foreach (['VOCERO@example.invalid', '  vocero@example.invalid '] as $email) {
-    try { $auth->register($email, 'contraseña válida', true, '192.0.2.40'); } catch (Unauthorized $error) { $duplicateMessages[] = $error->getMessage(); }
+    same([], $auth->register($email, 'contraseña válida', true, '192.0.2.40'));
 }
-same(['No se pudo crear la cuenta', 'No se pudo crear la cuenta'], $duplicateMessages);
+same(2, (int) $pdo->query('SELECT COUNT(*) FROM vocero_accounts')->fetchColumn());
 
 // Login rotates the session and CSRF while retaining only a server-issued role.
-$registeredCsrf = $registered['csrf'];
+$pdo->exec('DELETE FROM vocero_login_attempts');
+foreach (['vocero@example.invalid', 'missing@example.invalid'] as $email) {
+    throws(fn () => $auth->login($email, 'incorrecta', '192.0.2.40'), Unauthorized::class);
+}
+same([0, 0], array_map('intval', $pdo->query('SELECT succeeded FROM vocero_login_attempts ORDER BY id')->fetchAll(PDO::FETCH_COLUMN)));
+same(2, (int) $pdo->query('SELECT COUNT(DISTINCT email_idx) FROM vocero_login_attempts')->fetchColumn());
+$pdo->exec('DELETE FROM vocero_login_attempts');
 $existingId = session_id();
 $login = $auth->login('VOCERO@example.invalid', 'contraseña válida', '192.0.2.40');
 same(false, $existingId === session_id());
-same(false, $registeredCsrf === $login['csrf']);
 same('vocero', $login['user']['role']);
 same(true, strlen($login['csrf']) >= 64);
 $auth->verifyCsrf($login['csrf']);
 throws(fn () => $auth->verifyCsrf(''), Forbidden::class);
 
-// Five failed attempts lock the same canonical email and IP for fifteen minutes.
+// Five failed attempts lock independently by canonical email or by IP for fifteen minutes.
 $auth->logout();
+$pdo->exec('DELETE FROM vocero_login_attempts');
+for ($i = 0; $i < 4; $i++) {
+    throws(fn () => $auth->login('vocero@example.invalid', 'incorrecta', '192.0.2.' . (31 + $i)), Unauthorized::class);
+}
+same('vocero', $auth->login('vocero@example.invalid', 'contraseña válida', '192.0.2.35')['user']['role']);
+$auth->logout();
+throws(fn () => $auth->login('vocero@example.invalid', 'incorrecta', '192.0.2.36'), Unauthorized::class);
+throws(fn () => $auth->login('vocero@example.invalid', 'contraseña válida', '192.0.2.37'), Unauthorized::class);
+$pdo->exec('DELETE FROM vocero_login_attempts');
 for ($i = 0; $i < 5; $i++) {
-    throws(fn () => $auth->login('vocero@example.invalid', 'incorrecta', '192.0.2.41'), Unauthorized::class);
+    throws(fn () => $auth->login('vocero@example.invalid', 'incorrecta', '192.0.2.' . (41 + $i)), Unauthorized::class);
     if ($i < 4) $clock += 100;
 }
 $clock += 899;
-throws(fn () => $auth->login('vocero@example.invalid', 'contraseña válida', '192.0.2.41'), Unauthorized::class);
+throws(fn () => $auth->login('vocero@example.invalid', 'contraseña válida', '192.0.2.99'), Unauthorized::class);
 $clock++;
-same('vocero', $auth->login('vocero@example.invalid', 'contraseña válida', '192.0.2.41')['user']['role']);
+same('vocero', $auth->login('vocero@example.invalid', 'contraseña válida', '192.0.2.99')['user']['role']);
+$auth->logout();
+$pdo->exec('DELETE FROM vocero_login_attempts');
+for ($i = 0; $i < 5; $i++) {
+    throws(fn () => $auth->login('other' . $i . '@example.invalid', 'incorrecta', '192.0.2.100'), Unauthorized::class);
+    if ($i < 4) $clock += 100;
+}
+throws(fn () => $auth->login('vocero@example.invalid', 'contraseña válida', '192.0.2.100'), Unauthorized::class);
+$clock += 900;
+same('vocero', $auth->login('vocero@example.invalid', 'contraseña válida', '192.0.2.100')['user']['role']);
 
 // Activity can extend idle expiry but never the twelve-hour absolute boundary.
 $clock += 1799;
@@ -139,11 +160,13 @@ close_vocero_session();
 \Finados\Http::startSession($config, 'admin');
 same('finados_admin', session_name());
 same('Strict', session_get_cookie_params()['samesite']);
+throws(fn () => \Finados\Http::startSession($config, 'vocero'), \RuntimeException::class);
 \Finados\Http::destroySession();
 close_vocero_session();
 \Finados\Http::startSession($config, 'vocero');
 same('finados_vocero', session_name());
 same('Lax', session_get_cookie_params()['samesite']);
+throws(fn () => \Finados\Http::startSession($config, 'admin'), \RuntimeException::class);
 \Finados\Http::destroySession();
 close_vocero_session();
 
@@ -166,11 +189,26 @@ same(422, $router->handle('POST', '/api/vocero/auth/register', $server, json_enc
     'email' => 'role-again@example.invalid', 'password' => 'contraseña válida', 'privacyAcknowledged' => true, 'role' => 'administrador',
 ], JSON_THROW_ON_ERROR))->status);
 same('validation_error', $rejectedRole['code']);
-$created = vocero_response_body($router->handle('POST', '/api/vocero/auth/register', $server, json_encode([
+$createdResponse = $router->handle('POST', '/api/vocero/auth/register', $server, json_encode([
     'email' => 'route@example.invalid', 'password' => 'contraseña válida', 'privacyAcknowledged' => true,
+], JSON_THROW_ON_ERROR));
+$duplicateResponse = $router->handle('POST', '/api/vocero/auth/register', $server, json_encode([
+    'email' => 'ROUTE@example.invalid', 'password' => 'contraseña válida', 'privacyAcknowledged' => true,
+], JSON_THROW_ON_ERROR));
+same(202, $createdResponse->status);
+same($createdResponse->status, $duplicateResponse->status);
+same($createdResponse->body, $duplicateResponse->body);
+same(['ok' => true, 'message' => 'Cuenta creada; inicia sesión.'], vocero_response_body($createdResponse));
+same(1, (int) $routePdo->query('SELECT COUNT(*) FROM vocero_accounts')->fetchColumn());
+$afterRegistration = vocero_response_body($router->handle('GET', '/api/vocero/auth/session', $server));
+same(false, $afterRegistration['authenticated']);
+same(null, $afterRegistration['user']);
+$loginServer = ['HTTP_ORIGIN' => 'https://example.invalid', 'REMOTE_ADDR' => '192.0.2.42', 'CONTENT_TYPE' => 'application/json', 'HTTP_X_CSRF_TOKEN' => $afterRegistration['csrf']];
+$routeLogin = vocero_response_body($router->handle('POST', '/api/vocero/auth/login', $loginServer, json_encode([
+    'email' => 'route@example.invalid', 'password' => 'contraseña válida',
 ], JSON_THROW_ON_ERROR)));
-same(true, $created['authenticated']);
-same('vocero', $created['user']['role']);
-$logoutServer = ['HTTP_ORIGIN' => 'https://example.invalid', 'REMOTE_ADDR' => '192.0.2.42', 'CONTENT_TYPE' => 'application/json', 'HTTP_X_CSRF_TOKEN' => $created['csrf']];
+same(true, $routeLogin['authenticated']);
+same('vocero', $routeLogin['user']['role']);
+$logoutServer = ['HTTP_ORIGIN' => 'https://example.invalid', 'REMOTE_ADDR' => '192.0.2.42', 'CONTENT_TYPE' => 'application/json', 'HTTP_X_CSRF_TOKEN' => $routeLogin['csrf']];
 same(['ok' => true], vocero_response_body($router->handle('POST', '/api/vocero/auth/logout', $logoutServer, '{}')));
 close_vocero_session();

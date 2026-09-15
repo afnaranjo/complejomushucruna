@@ -133,7 +133,7 @@ Http::startSession($config, 'admin');
 Http::startSession($config, 'vocero');
 ```
 
-El scope debe elegir nombre de cookie (`finados_admin` o `finados_vocero`) y `SameSite` (`Strict` o `Lax`) antes de `session_start()`. `VoceroAuth` cifra el correo, usa `Crypto::lookup()` para unicidad y limitación, exige la confirmación de lectura y deriva `privacy_version`/`privacy_hash` del catálogo local —nunca del cliente—, responde con `['id','public_id','email','role'=>'vocero']`, regenera sesión y nunca retorna hashes. `Auth` añadirá `role=>'administrador'` a su usuario sin aceptar el rol del request.
+El scope debe elegir nombre de cookie (`finados_admin` o `finados_vocero`) y `SameSite` (`Strict` o `Lax`) antes de `session_start()` y rechazar un ámbito distinto si ya existe una sesión activa. `VoceroAuth` cifra el correo, usa `Crypto::lookup()` para unicidad y limitación, exige la confirmación de lectura y deriva `privacy_version`/`privacy_hash` del catálogo local —nunca del cliente—. El registro devuelve la misma respuesta opaca “Cuenta creada; inicia sesión” para cuenta nueva o existente, no inicia sesión y no retorna hashes; solo el acceso válido responde con `['id','public_id','email','role'=>'vocero']` y regenera sesión. `Auth` añadirá `role=>'administrador'` a su usuario sin aceptar el rol del request.
 
 - [ ] **Paso 5: añadir rutas de autenticación antes del guard administrativo**
 

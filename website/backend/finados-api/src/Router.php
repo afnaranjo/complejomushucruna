@@ -108,14 +108,8 @@ final class Router
                 if ($path === '/api/vocero/auth/register') {
                     $body = $this->body($server, $rawBody, ['email', 'password', 'privacyAcknowledged']);
                     if (!is_string($body['email'] ?? null) || !is_string($body['password'] ?? null) || !is_bool($body['privacyAcknowledged'] ?? null)) throw new InvalidArgumentException();
-                    $result = $this->voceroAuth->register($body['email'], $body['password'], $body['privacyAcknowledged'], $ip);
-                    try {
-                        $this->audit->log('vocero_account.registered', null, 'vocero_account', $result['user']['public_id'], [], $ip);
-                    } catch (Throwable $error) {
-                        $this->voceroAuth->logout();
-                        throw $error;
-                    }
-                    return $this->json(201, ['authenticated' => true, ...$result], $headers);
+                    $this->voceroAuth->register($body['email'], $body['password'], $body['privacyAcknowledged'], $ip);
+                    return $this->json(202, ['ok' => true, 'message' => 'Cuenta creada; inicia sesión.'], $headers);
                 }
                 if ($path === '/api/vocero/auth/login') {
                     $body = $this->body($server, $rawBody, ['email', 'password']);
