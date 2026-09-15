@@ -62,7 +62,7 @@ El generador estático actual seguirá produciendo todas las páginas de `comple
 - `/admin/voceros/`: tablero protegido;
 - activos propios para login, sesión, tabla, filtros, detalle y estados.
 
-La cabecera institucional incluirá un acceso discreto llamado `Iniciar sesión` que dirige a `/admin/`. La ruta administrativa llevará `noindex, nofollow, noarchive`, pero la seguridad dependerá exclusivamente del backend y no de ocultar la URL.
+`/admin/` será la página principal del módulo y mostrará el título y la acción `Iniciar sesión`. No se alterarán la portada, la navegación ni el contenido de las demás páginas. La ruta administrativa llevará `noindex, nofollow, noarchive`, pero la seguridad dependerá exclusivamente del backend y no de ocultar la URL.
 
 ### Backend privado
 
@@ -202,4 +202,4 @@ No se borrarán archivos remotos, no se usarán sincronizaciones con `--delete` 
 - Confirmar el docroot real de `finados.complejomushucruna.com`.
 - Revisar con el responsable interno que la retención de tres años y los textos de privacidad continúan vigentes.
 - La contraseña inicial debe ser elegida por Alex en un prompt seguro; no puede entregarse por chat.
-- La publicación del acceso `Iniciar sesión` en la cabecera principal cambia la navegación visible y debe quedar incluida en la aprobación final de esta especificación.
+- El acceso se realizará directamente por `/admin/`; no se añadirá a la cabecera pública para respetar el alcance limitado solicitado.
