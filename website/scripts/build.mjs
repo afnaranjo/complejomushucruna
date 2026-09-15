@@ -38,8 +38,12 @@ async function listFiles(directory, root = directory) {
   return files;
 }
 
-export async function buildSite(outputDirectory = join(websiteRoot, 'dist'), { adminEnvironment = 'production' } = {}) {
+export async function buildSite(outputDirectory = join(websiteRoot, 'dist'), { adminEnvironment = 'production', adminApiBase } = {}) {
   if (!['production', 'development'].includes(adminEnvironment)) throw new Error('Entorno administrativo no permitido.');
+  if (adminApiBase !== undefined && (adminEnvironment !== 'development'
+    || !/^http:\/\/127\.0\.0\.1:[1-9][0-9]{0,4}\/api$/.test(adminApiBase)
+    || Number(new URL(adminApiBase).port) > 65535)) throw new Error('API local no permitida.');
+  const developmentApi = adminApiBase ?? 'http://127.0.0.1:4174/api';
   const output = resolve(outputDirectory);
   await rm(output, { recursive: true, force: true });
   await mkdir(output, { recursive: true });
@@ -48,7 +52,7 @@ export async function buildSite(outputDirectory = join(websiteRoot, 'dist'), { a
     const relativePath = page.route === '/' ? 'index.html' : `${page.route.slice(1)}index.html`;
     const target = join(output, relativePath);
     await mkdir(dirname(target), { recursive: true });
-    const html = page.render ? page.render(page.route.startsWith('/admin/') ? { ...page, adminEnvironment } : page) : renderLayout(page);
+    const html = page.render ? page.render(page.route.startsWith('/admin/') ? { ...page, adminEnvironment, adminApiBase: developmentApi } : page) : renderLayout(page);
     await writeFile(target, `${html}\n`, 'utf8');
   }
 
@@ -98,7 +102,7 @@ export async function buildSite(outputDirectory = join(websiteRoot, 'dist'), { a
   const adminScript = await readFile(join(websiteRoot, 'src', 'admin', 'admin.js'), 'utf8');
   await writeFile(join(adminAssets, 'admin.js'), adminEnvironment === 'production'
     ? adminScript.replace("const LOCAL_API = 'http://127.0.0.1:4174/api';", 'const LOCAL_API = null;')
-    : adminScript, 'utf8');
+    : adminScript.replace("const LOCAL_API = 'http://127.0.0.1:4174/api';", `const LOCAL_API = '${developmentApi}';`), 'utf8');
 
   const htmlFiles = (await listFiles(output)).filter((file) => file.endsWith('.html'));
   for (const htmlFile of htmlFiles) {

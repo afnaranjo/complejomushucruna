@@ -76,7 +76,8 @@ function valid_https_url(string $value): bool
     return strtolower((string) parse_url($value, PHP_URL_SCHEME)) === 'https';
 }
 
-function voceros_handle_request(array $server, array $post, ?callable $bootstrap = null, ?callable $sheets = null): array
+function voceros_handle_request(array $server, array $post, ?callable $bootstrap = null, ?callable $sheets = null,
+    array $allowedOrigins = ['https://complejomushucruna.com', 'https://www.complejomushucruna.com']): array
 {
     $timezone = new DateTimeZone('America/Guayaquil');
     $now = new DateTimeImmutable('now', $timezone);
@@ -113,7 +114,6 @@ function voceros_handle_request(array $server, array $post, ?callable $bootstrap
     $contentLength = isset($server['CONTENT_LENGTH']) ? (int) $server['CONTENT_LENGTH'] : 0;
     if ($contentLength > 65536) return voceros_response(413, ['ok' => false, 'message' => 'El envío supera el tamaño permitido.']);
 
-    $allowedOrigins = ['https://complejomushucruna.com', 'https://www.complejomushucruna.com'];
     $origin = isset($server['HTTP_ORIGIN']) ? rtrim((string) $server['HTTP_ORIGIN'], '/') : '';
     if ($origin !== '' && !in_array($origin, $allowedOrigins, true)) {
         return voceros_response(403, ['ok' => false, 'message' => 'Origen no permitido.']);

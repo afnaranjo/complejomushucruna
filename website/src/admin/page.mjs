@@ -4,7 +4,7 @@ import { STATUSES, PREVIOUS_PARTICIPATION } from './admin.js';
 const options = values => values.map(value => `<option value="${esc(value)}">${esc(value)}</option>`).join('');
 const select = (name, label, values) => `<label>${label}<select name="${name}"><option value="">Todos</option>${options(values)}</select></label>`;
 function layout(page, content) {
-  const api = page.adminEnvironment === 'development' ? 'http://127.0.0.1:4174/api' : 'https://finados.complejomushucruna.com/api';
+  const api = page.adminEnvironment === 'development' ? (page.adminApiBase ?? 'http://127.0.0.1:4174/api') : 'https://finados.complejomushucruna.com/api';
   return `<!doctype html>
 <html lang="es"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
