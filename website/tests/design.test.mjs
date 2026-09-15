@@ -151,6 +151,18 @@ test('el registro de Voceros valida el formato de cédula y la edad mínima', ()
   assert.equal(formatVocerosBirthDate('2000-01-31'), '31/01/2000');
 });
 
+test('el portal conserva la identidad Finados con foto vertical, foco y movimiento reducido', async () => {
+  const css = await readFile(new URL('../src/finados/vocero-portal.css', import.meta.url), 'utf8');
+  for (const color of ['#241146', '#f4eada', '#6e2ce0']) assert.ok(css.includes(color));
+  assert.match(css, /font-family:Anton/);
+  assert.match(css, /aspect-ratio:3\/4/);
+  assert.match(css, /min-height:48px/);
+  assert.match(css, /:focus-visible/);
+  assert.match(css, /prefers-reduced-motion:reduce/);
+  assert.match(css, /@media\(max-width:760px\)/);
+  assert.match(css, /@media\(max-width:480px\)/);
+});
+
 test('la acreditación mantiene la línea gráfica y se adapta a pantallas pequeñas', async () => {
   const output = await buildFixture('mushuc-media-design-');
   const css = await readFile(join(output, 'assets/media-accreditation.css'), 'utf8');

@@ -15,7 +15,7 @@ test('agrega un aviso de cookies compacto en páginas públicas y excluye admin'
   assert.ok(htmlFiles.length >= 14);
   for (const htmlFile of htmlFiles) {
     const html = await readFile(join(output, htmlFile), 'utf8');
-    if (htmlFile.startsWith('admin/')) {
+    if (htmlFile.startsWith('admin/') || /^finados\/voceros\/(acceso|mi-registro|restablecer)\//.test(htmlFile)) {
       assert.doesNotMatch(html, /cookie-consent/);
       continue;
     }
@@ -363,7 +363,7 @@ test('genera las páginas de Finados y ordena sus subpáginas en un menú desple
   assert.equal((stands.match(/<h1\b/g) ?? []).length, 1);
 });
 
-test('construye la landing de Voceros y prepara su registro con base canónica', async () => {
+test('construye la landing de Voceros y dirige al registro privado', async () => {
   const output = await mkdtemp(join(tmpdir(), 'mushuc-voceros-'));
   const files = await buildSite(output);
   const page = await readFile(join(output, 'finados/voceros/index.html'), 'utf8');
@@ -391,27 +391,11 @@ test('construye la landing de Voceros y prepara su registro con base canónica',
   assert.match(page, /<li>Video vertical en TikTok\.<\/li>/);
   assert.doesNotMatch(page, /reels de Instagram|reels o video de Facebook|En Instagram y Facebook usa|Lo publicado del 1 al 13 de septiembre/i);
   assert.match(css, /\.voceros-support \.voceros-heading h2\s*\{[^}]*max-width:\s*100%[^}]*overflow-wrap:\s*anywhere/s);
-  assert.match(page, /action="\/api\/voceros\/" method="post"/);
-  assert.match(page, /data-voceros-fields disabled/);
-  for (const field of [
-    'nombre_completo', 'cedula', 'fecha_nacimiento', 'whatsapp', 'correo', 'ciudad',
-    'tiktok', 'instagram', 'facebook', 'red_principal', 'vocero_previo', 'fuente_comunidad',
-    'retiro_kit', 'consentimiento_politicas', 'autorizacion_imagen', 'consentimiento_datos',
-  ]) assert.match(page, new RegExp(`name="${field}"`));
-  assert.match(page, /Llena al menos uno/);
+  assert.match(page, /href="\/finados\/voceros\/acceso\/">Crear cuenta/);
+  assert.match(page, /Iniciar sesión/);
+  assert.doesNotMatch(page, /data-voceros-form|name="cedula"|data-voceros-thanks/);
   assert.match(page, /Entre 16 y 17 necesitas autorización escrita/);
   assert.match(page, /Política de Privacidad/);
-  assert.match(page, /name="cedula"[^>]*placeholder="Ej\.: 1808743587"/);
-  assert.match(page, /name="whatsapp"[^>]*placeholder="Ej\.: 0995874566"/);
-  assert.match(page, /data-voceros-download>Descargar imagen/);
-  assert.match(page, /data-voceros-share/);
-  assert.match(page, /<span>Compartir<\/span><svg/);
-  assert.match(page, /name="submission_id"/);
-  assert.match(page, /data-voceros-receipt-name/);
-  assert.match(page, /data-voceros-receipt-whatsapp/);
-  assert.match(page, /data-voceros-receipt-birth/);
-  assert.match(page, /data-voceros-receipt-city/);
-  assert.match(page, /data-voceros-receipt-previous/);
   assert.match(vocerosScript, /registro-vocero-finados-mushuc-runa-2026\.png/);
   assert.match(vocerosScript, /canvas\.width = 1080/);
   assert.match(vocerosScript, /canvas\.height = 1920/);

@@ -52,7 +52,8 @@ export async function buildSite(outputDirectory = join(websiteRoot, 'dist'), { a
     const relativePath = page.route === '/' ? 'index.html' : `${page.route.slice(1)}index.html`;
     const target = join(output, relativePath);
     await mkdir(dirname(target), { recursive: true });
-    const html = page.render ? page.render(page.route.startsWith('/admin/') ? { ...page, adminEnvironment, adminApiBase: developmentApi } : page) : renderLayout(page);
+    const accountPage = page.route.startsWith('/admin/') || /^\/finados\/voceros\/(acceso|mi-registro|restablecer)\/$/.test(page.route);
+    const html = page.render ? page.render(accountPage ? { ...page, adminEnvironment, adminApiBase: developmentApi } : page) : renderLayout(page);
     await writeFile(target, `${html}\n`, 'utf8');
   }
 
@@ -91,6 +92,11 @@ export async function buildSite(outputDirectory = join(websiteRoot, 'dist'), { a
   await cp(join(websiteRoot, 'src', 'finados', 'finados.js'), join(finadosAssets, 'finados.js'));
   await cp(join(websiteRoot, 'src', 'finados', 'voceros.css'), join(finadosAssets, 'voceros.css'));
   await cp(join(websiteRoot, 'src', 'finados', 'voceros.js'), join(finadosAssets, 'voceros.js'));
+  await cp(join(websiteRoot, 'src', 'finados', 'vocero-portal.css'), join(finadosAssets, 'vocero-portal.css'));
+  const portalScript = await readFile(join(websiteRoot, 'src', 'finados', 'vocero-portal.js'), 'utf8');
+  await writeFile(join(finadosAssets, 'vocero-portal.js'), portalScript.replace(
+    "const LOCAL_API = 'http://127.0.0.1:4174/api';",
+    adminEnvironment === 'production' ? 'const LOCAL_API = null;' : `const LOCAL_API = '${developmentApi}';`), 'utf8');
 
   const adminAssets = join(output, 'assets', 'admin');
   await mkdir(adminAssets, { recursive: true });
@@ -106,7 +112,7 @@ export async function buildSite(outputDirectory = join(websiteRoot, 'dist'), { a
 
   const htmlFiles = (await listFiles(output)).filter((file) => file.endsWith('.html'));
   for (const htmlFile of htmlFiles) {
-    if (htmlFile.startsWith('admin/')) continue;
+    if (htmlFile.startsWith('admin/') || /^finados\/voceros\/(acceso|mi-registro|restablecer)\//.test(htmlFile)) continue;
     const path = join(output, htmlFile);
     const html = await readFile(path, 'utf8');
     await writeFile(path, injectCookieConsent(html), 'utf8');

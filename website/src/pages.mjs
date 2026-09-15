@@ -25,6 +25,7 @@ import { renderFinadosDignitiesPage } from './finados/dignities-page.mjs';
 import { renderStandsAccessPage } from './finados/stands-page.mjs';
 import { renderVocerosLegalPage } from './finados/voceros-legal-page.mjs';
 import { renderVocerosPage } from './finados/voceros-page.mjs';
+import { renderVoceroPortalPage } from './finados/vocero-portal-page.mjs';
 import { renderMediaAccreditationBody } from './media-accreditation/page.mjs';
 import { renderAdminLoginPage, renderAdminVocerosPage } from './admin/page.mjs';
 
@@ -286,6 +287,7 @@ export const pages = Object.freeze([
   ...archivePages,
   finadosPreview,
   finadosVocerosPage,
+  ...['acceso', 'mi-registro', 'restablecer'].map(slug => ({ route: `/finados/voceros/${slug}/`, title: 'Cuenta de Vocero', indexable: false, render: renderVoceroPortalPage })),
   ...vocerosLegalPages,
   finadosDignitiesPage,
   standsAccessPage,

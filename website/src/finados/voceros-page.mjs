@@ -65,31 +65,6 @@ function faqMarkup() {
   </details>`).join('');
 }
 
-function select(name, label, values) {
-  return `<label class="voceros-field" for="${name}">
-    <span>${label} <b aria-hidden="true">*</b></span>
-    <select id="${name}" name="${name}" required>
-      <option value="" selected disabled>Selecciona una opción</option>
-      ${values.map((value) => `<option value="${value}">${value}</option>`).join('')}
-    </select>
-  </label>`;
-}
-
-function textField({ name, label, type = 'text', autocomplete = '', inputmode = '', minlength = '', maxlength = '180', placeholder = '', optional = false }) {
-  const attrs = [
-    autocomplete ? ` autocomplete="${autocomplete}"` : '',
-    inputmode ? ` inputmode="${inputmode}"` : '',
-    minlength ? ` minlength="${minlength}"` : '',
-    maxlength ? ` maxlength="${maxlength}"` : '',
-    placeholder ? ` placeholder="${placeholder}"` : '',
-    optional ? '' : ' required',
-  ].join('');
-  return `<label class="voceros-field" for="${name}">
-    <span>${label}${optional ? ' <small>Opcional</small>' : ' <b aria-hidden="true">*</b>'}</span>
-    <input id="${name}" name="${name}" type="${type}"${attrs}>
-  </label>`;
-}
-
 export function renderVocerosPage(page) {
   const canonical = `${site.baseUrl}${page.route}`;
 
@@ -109,7 +84,6 @@ export function renderVocerosPage(page) {
   <link rel="stylesheet" href="/assets/finados/finados.css?v=${campaignRuntimeVersion}">
   <link rel="stylesheet" href="/assets/finados/voceros.css?v=${campaignRuntimeVersion}">
   <script type="module" src="/assets/finados/finados.js?v=${campaignRuntimeVersion}"></script>
-  <script type="module" src="/assets/finados/voceros.js?v=${campaignRuntimeVersion}"></script>
 </head>
 <body class="voceros-page">
   <a class="skip-link" href="#contenido">Ir al contenido</a>
@@ -133,7 +107,8 @@ export function renderVocerosPage(page) {
           <p class="voceros-pill">Comunidad de voceros</p>
           <h1 id="voceros-title">Volví a la feria <em>y esta vez</em> la conté yo</h1>
           <p>Cuenta la feria con tu voz, en tus redes. Mientras más te vean, más subes.</p>
-          <a class="voceros-button" href="#registro">Quiero ser vocero <span aria-hidden="true">↓</span></a>
+          <a class="voceros-button" href="/finados/voceros/acceso/">Crear cuenta <span aria-hidden="true">↗</span></a>
+          <a class="voceros-button" href="/finados/voceros/acceso/?modo=login">Iniciar sesión</a>
         </div>
         <div class="voceros-hero__poster" aria-label="Campaña Comunidad de Voceros Finados 2026">
           <span>Finados</span>
@@ -249,62 +224,14 @@ export function renderVocerosPage(page) {
       <div class="voceros-shell voceros-registration__grid">
         <header class="voceros-heading" data-reveal>
           <p>07 · Registro</p>
-          <h2 id="registro-title">Regístrate</h2>
-          <span>Toma dos minutos. Sin registro no hay pase.</span>
-          <aside class="voceros-activation" data-voceros-activation role="status">
-            <strong>Registro en preparación</strong>
-            <p>El formulario se habilitará cuando estén publicados los documentos legales y la configuración privada de recepción.</p>
-          </aside>
+          <h2 id="registro-title">Tu registro, en tu cuenta</h2>
+          <span>Crea una cuenta para completar tus datos y fotografía. Podrás consultar tu estado y actualizar tu registro mientras esté habilitado.</span>
         </header>
-
-        <form class="voceros-form" action="/api/voceros/" method="post" data-voceros-form novalidate>
-          <div class="voceros-form__trap" aria-hidden="true"><label for="website">No completar</label><input id="website" name="website" type="text" tabindex="-1" autocomplete="off"></div>
-          <input type="hidden" name="submission_id">
-          <input type="hidden" name="url_origen" data-voceros-origin>
-          <input type="hidden" name="utm_source"><input type="hidden" name="utm_medium"><input type="hidden" name="utm_campaign"><input type="hidden" name="utm_content"><input type="hidden" name="utm_term">
-
-          <fieldset data-voceros-fields disabled>
-            <legend class="sr-only">Datos para registrarte como vocero</legend>
-            <div class="voceros-form__fields">
-              ${textField({ name: 'nombre_completo', label: 'Nombre y apellido completos', autocomplete: 'name', minlength: '5', maxlength: '160' })}
-              ${textField({ name: 'cedula', label: 'Cédula', inputmode: 'numeric', minlength: '10', maxlength: '10', placeholder: 'Ej.: 1808743587' })}
-              ${textField({ name: 'fecha_nacimiento', label: 'Fecha de nacimiento', type: 'date', maxlength: '' })}
-              ${textField({ name: 'whatsapp', label: 'Número de WhatsApp', type: 'tel', autocomplete: 'tel', inputmode: 'numeric', minlength: '10', maxlength: '10', placeholder: 'Ej.: 0995874566' })}
-              ${textField({ name: 'correo', label: 'Correo electrónico', type: 'email', autocomplete: 'email' })}
-              ${textField({ name: 'ciudad', label: 'Ciudad', autocomplete: 'address-level2', maxlength: '100' })}
-              ${textField({ name: 'tiktok', label: 'Enlace de tu perfil de TikTok', type: 'url', autocomplete: 'url', optional: true, maxlength: '300' })}
-              ${textField({ name: 'instagram', label: 'Enlace de tu perfil de Instagram', type: 'url', autocomplete: 'url', optional: true, maxlength: '300' })}
-              ${textField({ name: 'facebook', label: 'Enlace de tu perfil de Facebook', type: 'url', autocomplete: 'url', optional: true, maxlength: '300' })}
-              <p class="voceros-form__social-note">Llena al menos uno. Sin el enlace de tu perfil no podemos verificar tus vistas en el termómetro.</p>
-              ${select('red_principal', '¿En cuál red publicas más?', ['TikTok', 'Instagram', 'Facebook'])}
-              ${select('vocero_previo', '¿Ya has sido vocero de la feria antes?', ['No, es mi primera vez', 'Sí, en Finados 2025', 'Sí, en Carnaval 2026', 'Sí, en otra edición'])}
-              ${select('fuente_comunidad', '¿Cómo te enteraste de la comunidad?', ['Facebook', 'Instagram', 'TikTok', 'Un amigo o familiar me invitó', 'Un vocero me contó', 'WhatsApp', 'Otro'])}
-              ${select('retiro_kit', '¿Cómo prefieres retirar tu kit si subes de nivel?', ['En la oficina', 'En la feria, en la Zona de Creadores'])}
-            </div>
-
-            <div class="voceros-minor" data-voceros-minor hidden>
-              <h3>Datos de tu representante legal</h3>
-              <p>Si tienes 16 o 17 años, tu registro queda pendiente hasta recibir la autorización escrita firmada.</p>
-              <div class="voceros-form__fields">
-                ${textField({ name: 'representante_nombre', label: 'Nombre completo del representante', autocomplete: 'name', optional: true, maxlength: '160' })}
-                ${textField({ name: 'representante_cedula', label: 'Cédula del representante', inputmode: 'numeric', optional: true, maxlength: '10' })}
-                ${textField({ name: 'representante_telefono', label: 'Teléfono del representante', type: 'tel', inputmode: 'numeric', optional: true, maxlength: '10' })}
-                ${textField({ name: 'representante_correo', label: 'Correo del representante', type: 'email', optional: true })}
-              </div>
-            </div>
-
-            <p class="voceros-age-message" data-voceros-age-message aria-live="polite"></p>
-
-            <div class="voceros-consents">
-              <label><input type="checkbox" name="consentimiento_politicas" value="Sí" required><span>He leído y acepto las <a href="/finados/voceros/politicas-del-vocero/" target="_blank" rel="noopener noreferrer">Políticas del Vocero</a> y las <a href="/finados/voceros/bases-del-termometro/" target="_blank" rel="noopener noreferrer">Bases del Termómetro</a>.</span></label>
-              <label><input type="checkbox" name="autorizacion_imagen" value="Sí" required><span>Autorizo al responsable del programa a usar mi imagen, mi voz y el contenido que publique como vocero en sus canales oficiales y materiales de la feria, con mi crédito y sin pago adicional. He leído la <a href="/finados/voceros/autorizacion-de-imagen/" target="_blank" rel="noopener noreferrer">Autorización de uso de imagen y contenido</a>.</span></label>
-              <label><input type="checkbox" name="consentimiento_datos" value="Sí" required><span>Autorizo el tratamiento de mis datos personales para gestionar el programa de voceros conforme a la Ley Orgánica de Protección de Datos Personales del Ecuador. He leído la <a href="/finados/voceros/politica-de-privacidad/" target="_blank" rel="noopener noreferrer">Política de Privacidad</a>.</span></label>
-            </div>
-
-            <p class="voceros-form__status" data-voceros-status aria-live="polite"></p>
-            <button class="voceros-submit" type="submit" disabled>Enviar registro <span aria-hidden="true">↗</span></button>
-          </fieldset>
-        </form>
+        <div class="voceros-form">
+          <p>Si ya tienes una cuenta, inicia sesión para continuar con tu registro.</p>
+          <a class="voceros-button" href="/finados/voceros/acceso/">Crear cuenta <span aria-hidden="true">↗</span></a>
+          <a class="voceros-button" href="/finados/voceros/acceso/?modo=login">Iniciar sesión</a>
+        </div>
       </div>
     </section>
 
@@ -331,27 +258,6 @@ export function renderVocerosPage(page) {
     </section>
   </main>
 
-  <dialog class="voceros-thanks" data-voceros-thanks aria-labelledby="voceros-thanks-title">
-    <div class="voceros-thanks__art">
-      <img src="/assets/finados/logo-finados.svg?v=${campaignAssetVersion}" width="766" height="449" alt="Finados 2026">
-      <p>Registro recibido</p>
-      <h2 id="voceros-thanks-title">Ya eres parte de la comunidad</h2>
-      <dl class="voceros-thanks__data">
-        <div><dt>Vocero</dt><dd data-voceros-receipt-name></dd></div>
-        <div><dt>WhatsApp</dt><dd data-voceros-receipt-whatsapp></dd></div>
-        <div><dt>Fecha de nacimiento</dt><dd data-voceros-receipt-birth></dd></div>
-        <div><dt>Ciudad</dt><dd data-voceros-receipt-city></dd></div>
-        <div><dt>Participación anterior</dt><dd data-voceros-receipt-previous></dd></div>
-      </dl>
-      <p>Revisa tu correo para conocer los siguientes pasos y la confirmación de tu registro.</p>
-      <div class="voceros-thanks__actions">
-        <button type="button" data-voceros-download>Descargar imagen</button>
-        <button type="button" data-voceros-share><span>Compartir</span><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="2.5"></circle><circle cx="6" cy="12" r="2.5"></circle><circle cx="18" cy="19" r="2.5"></circle><path d="m8.2 10.8 7.6-4.4M8.2 13.2l7.6 4.4"></path></svg></button>
-        <button class="voceros-thanks__close" type="button" data-voceros-thanks-close>Cerrar</button>
-      </div>
-      <p class="voceros-thanks__share-status" data-voceros-share-status aria-live="polite"></p>
-    </div>
-  </dialog>
 
   ${renderFinadosFooter()}
 </body>
