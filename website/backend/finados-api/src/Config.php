@@ -100,8 +100,8 @@ final class Config
 
     public static function fromProductionEnvironment(?array $environment = null): self
     {
-        $environment ??= getenv();
-        $path = $environment['FINADOS_CONFIG_PATH'] ?? null;
+        // Some CGI/LSAPI handlers expose putenv() values only to named getenv() calls.
+        $path = $environment === null ? getenv('FINADOS_CONFIG_PATH') : ($environment['FINADOS_CONFIG_PATH'] ?? null);
         if (!is_string($path) || !str_starts_with($path, DIRECTORY_SEPARATOR)) {
             throw new RuntimeException('Finados backend production configuration is invalid.');
         }
