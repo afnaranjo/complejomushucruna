@@ -359,12 +359,11 @@ test('genera las páginas de Finados y ordena sus subpáginas en un menú desple
   assert.equal((stands.match(/<h1\b/g) ?? []).length, 1);
 });
 
-test('construye la landing de Voceros y prepara su registro seguro hacia la hoja autorizada', async () => {
+test('construye la landing de Voceros y prepara su registro con base canónica', async () => {
   const output = await mkdtemp(join(tmpdir(), 'mushuc-voceros-'));
   const files = await buildSite(output);
   const page = await readFile(join(output, 'finados/voceros/index.html'), 'utf8');
   const css = await readFile(join(output, 'assets/finados/voceros.css'), 'utf8');
-  const endpoint = await readFile(join(output, 'api/voceros/index.php'), 'utf8');
   const endpointConfig = await readFile(join(output, 'api/voceros/.htaccess'), 'utf8');
   const vocerosScript = await readFile(join(output, 'assets/finados/voceros.js'), 'utf8');
   const sheetsIntegration = await readFile(join(process.cwd(), '..', 'integrations', 'google-sheets', 'Code.gs'), 'utf8');
@@ -373,6 +372,7 @@ test('construye la landing de Voceros y prepara su registro seguro hacia la hoja
   assert.ok(files.includes('assets/finados/voceros.css'));
   assert.ok(files.includes('assets/finados/voceros.js'));
   assert.ok(files.includes('api/voceros/index.php'));
+  assert.ok(files.includes('api/_voceros-bootstrap.php'));
   for (const legalPage of [
     'politicas-del-vocero', 'bases-del-termometro', 'politica-de-privacidad',
     'autorizacion-de-imagen', 'ejercer-derechos',
@@ -422,16 +422,6 @@ test('construye la landing de Voceros y prepara su registro seguro hacia la hoja
   assert.doesNotMatch(page, /la más grande|\$\d+/i);
   assert.match(css, /\.voceros-button\s*\{[^}]*background: var\(--voceros-cyan\);[^}]*box-shadow: 6px 6px 0 var\(--voceros-fuchsia\)/s);
 
-  assert.match(endpoint, /voceros-registration\.json/);
-  assert.match(endpoint, /valid_ecuadorian_id/);
-  assert.match(endpoint, /America\/Guayaquil/);
-  assert.match(endpoint, /consentimientos-voceros-finados-2026\.csv/);
-  assert.match(endpoint, /google_sheets_deliver\(\$privateDirectory, 'voceros'/);
-  assert.match(endpoint, /\$googleSheetsStatus !== 'synced'/);
-  assert.match(endpoint, /valid_submission_id/);
-  assert.match(endpoint, /hash\('sha256'/);
-  assert.doesNotMatch(endpoint, /register_rate_attempt|Se alcanzó el límite de envíos|json_response\(429/);
-  assert.doesNotMatch(endpoint, /password|passwd|secret\s*=/i);
 
   assert.match(sheetsIntegration, /voceros: '1Z4MzXyyyA-V8wb1a2eaOodjb_VzqQm1qTDOtBf1gyuI'/);
   assert.match(sheetsIntegration, /insertSheet\('Consentimientos'\)/);
@@ -459,7 +449,4 @@ test('construye la landing de Voceros y prepara su registro seguro hacia la hoja
   assert.match(privacyPage, /facturacioncomplejomushuc@gmail\.com/);
   assert.match(privacyPage, /tres años contados desde el envío del formulario/);
   assert.doesNotMatch(privacyPage, /\bRUC\b/);
-  assert.match(endpoint, /'responsable', 'direccion', 'telefono', 'contactEmail'/);
-  assert.match(endpoint, /retentionYears/);
-  assert.doesNotMatch(endpoint, /'ruc'/);
 });

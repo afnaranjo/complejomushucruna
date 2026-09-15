@@ -1,27 +1,18 @@
 <?php
 declare(strict_types=1);
 
-define('MUSHUC_API_ENTRY', true);
+if (!defined('MUSHUC_API_ENTRY')) define('MUSHUC_API_ENTRY', true);
 require_once dirname(__DIR__) . DIRECTORY_SEPARATOR . '_google-sheets.php';
 
-header('Content-Type: application/json; charset=utf-8');
-header('Cache-Control: no-store, max-age=0');
-header('X-Content-Type-Options: nosniff');
-header('Referrer-Policy: same-origin');
-
-$timezone = new DateTimeZone('America/Guayaquil');
-$now = new DateTimeImmutable('now', $timezone);
-$privateDirectory = dirname(__DIR__, 4) . DIRECTORY_SEPARATOR . 'private-data';
+require_once dirname(__DIR__) . DIRECTORY_SEPARATOR . '_voceros-bootstrap.php';
 
 const POLICY_TEXT = 'He leído y acepto las Políticas del Vocero y las Bases del Termómetro.';
 const IMAGE_TEXT = 'Autorizo al responsable del programa a usar mi imagen, mi voz y el contenido que publique como vocero en sus canales oficiales y materiales de la feria, con mi crédito y sin pago adicional. He leído la Autorización de uso de imagen y contenido.';
 const DATA_TEXT = 'Autorizo el tratamiento de mis datos personales para gestionar el programa de voceros, conforme a la Ley Orgánica de Protección de Datos Personales del Ecuador. He leído la Política de Privacidad y conozco mis derechos de acceso, rectificación, eliminación, oposición y portabilidad.';
 
-function json_response(int $status, array $payload): void
+function voceros_response(int $status, array $payload, array $headers = []): array
 {
-    http_response_code($status);
-    echo json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-    exit;
+    return ['status' => $status, 'json' => $payload, 'headers' => $headers];
 }
 
 function registration_config(string $directory): ?array
@@ -42,9 +33,9 @@ function registration_config(string $directory): ?array
     return $config;
 }
 
-function clean_required(string $name, int $maxLength, int $minLength = 1): string
+function clean_required(array $post, string $name, int $maxLength, int $minLength = 1): string
 {
-    $value = isset($_POST[$name]) && is_string($_POST[$name]) ? trim($_POST[$name]) : '';
+    $value = isset($post[$name]) && is_string($post[$name]) ? trim($post[$name]) : '';
     $value = preg_replace('/\s+/u', ' ', $value);
     if (!is_string($value) || strlen($value) < $minLength || strlen($value) > $maxLength) {
         throw new InvalidArgumentException('Revisa los campos obligatorios e inténtalo nuevamente.');
@@ -52,9 +43,9 @@ function clean_required(string $name, int $maxLength, int $minLength = 1): strin
     return $value;
 }
 
-function clean_optional(string $name, int $maxLength): string
+function clean_optional(array $post, string $name, int $maxLength): string
 {
-    $value = isset($_POST[$name]) && is_string($_POST[$name]) ? trim($_POST[$name]) : '';
+    $value = isset($post[$name]) && is_string($post[$name]) ? trim($post[$name]) : '';
     $value = preg_replace('/\s+/u', ' ', $value);
     if (!is_string($value) || strlen($value) > $maxLength) {
         throw new InvalidArgumentException('Uno de los campos supera el tamaño permitido.');
@@ -85,215 +76,219 @@ function valid_https_url(string $value): bool
     return strtolower((string) parse_url($value, PHP_URL_SCHEME)) === 'https';
 }
 
-function csv_safe(string $value): string
+function voceros_handle_request(array $server, array $post, ?callable $bootstrap = null, ?callable $sheets = null): array
 {
-    return preg_match('/^[=+\-@]/', $value) === 1 ? "'" . $value : $value;
-}
-
-function append_csv(string $path, array $header, array $rows): void
-{
-    $handle = fopen($path, 'c+');
-    if ($handle === false || !flock($handle, LOCK_EX)) {
-        if (is_resource($handle)) fclose($handle);
-        throw new RuntimeException('No se pudo guardar el registro.');
-    }
-    $stats = fstat($handle);
-    if (is_array($stats) && $stats['size'] === 0) {
-        fwrite($handle, "\xEF\xBB\xBF");
-        fputcsv($handle, $header);
-    }
-    fseek($handle, 0, SEEK_END);
-    foreach ($rows as $row) fputcsv($handle, array_map('csv_safe', array_map('strval', $row)));
-    fflush($handle);
-    flock($handle, LOCK_UN);
-    fclose($handle);
-    @chmod($path, 0600);
-}
-
-$config = registration_config($privateDirectory);
-
-if ($_SERVER['REQUEST_METHOD'] === 'GET' || $_SERVER['REQUEST_METHOD'] === 'HEAD') {
-    if ($_SERVER['REQUEST_METHOD'] === 'HEAD') {
-        http_response_code(200);
-        exit;
-    }
-    json_response(200, [
-        'open' => $config !== null,
-        'message' => $config !== null
-            ? 'El registro está habilitado.'
-            : 'El formulario se habilitará cuando estén publicados los documentos legales y la configuración privada de recepción.',
-        'timezone' => 'America/Guayaquil',
-    ]);
-}
-
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Allow: GET, HEAD, POST');
-    json_response(405, ['ok' => false, 'message' => 'Método no permitido.']);
-}
-
-if ($config === null) {
-    json_response(503, ['ok' => false, 'message' => 'El registro todavía no está habilitado.']);
-}
-
-$contentLength = isset($_SERVER['CONTENT_LENGTH']) ? (int) $_SERVER['CONTENT_LENGTH'] : 0;
-if ($contentLength > 65536) json_response(413, ['ok' => false, 'message' => 'El envío supera el tamaño permitido.']);
-
-$allowedOrigins = ['https://complejomushucruna.com', 'https://www.complejomushucruna.com'];
-$origin = isset($_SERVER['HTTP_ORIGIN']) ? rtrim((string) $_SERVER['HTTP_ORIGIN'], '/') : '';
-if ($origin !== '' && !in_array($origin, $allowedOrigins, true)) {
-    json_response(403, ['ok' => false, 'message' => 'Origen no permitido.']);
-}
-
-$honeypot = isset($_POST['website']) && is_string($_POST['website']) ? trim($_POST['website']) : '';
-if ($honeypot !== '') json_response(200, ['ok' => true, 'message' => 'Registro recibido.']);
-
-try {
-    if (!is_dir($privateDirectory) && !mkdir($privateDirectory, 0700, true) && !is_dir($privateDirectory)) {
-        throw new RuntimeException('No se pudo preparar el almacenamiento.');
-    }
-    @chmod($privateDirectory, 0700);
-
-    $birthValue = clean_required('fecha_nacimiento', 10, 10);
-    $birth = DateTimeImmutable::createFromFormat('!Y-m-d', $birthValue, $timezone);
-    $birthErrors = DateTimeImmutable::getLastErrors();
-    if ($birth === false || (is_array($birthErrors) && ($birthErrors['warning_count'] > 0 || $birthErrors['error_count'] > 0))) {
-        throw new InvalidArgumentException('Ingresa una fecha de nacimiento válida.');
-    }
-    $age = $birth->diff($now)->y;
-    if ($birth > $now || $age < 16) throw new InvalidArgumentException('El programa recibe participantes desde los 16 años.');
-
-    $data = [
-        'nombre_completo' => clean_required('nombre_completo', 160, 5),
-        'cedula' => clean_required('cedula', 10, 10),
-        'fecha_nacimiento' => $birthValue,
-        'edad' => (string) $age,
-        'whatsapp' => clean_required('whatsapp', 10, 10),
-        'correo' => clean_required('correo', 180),
-        'ciudad' => clean_required('ciudad', 100),
-        'tiktok' => clean_optional('tiktok', 300),
-        'instagram' => clean_optional('instagram', 300),
-        'facebook' => clean_optional('facebook', 300),
-        'red_principal' => require_choice(clean_required('red_principal', 20), ['TikTok', 'Instagram', 'Facebook']),
-        'vocero_previo' => require_choice(clean_required('vocero_previo', 60), ['No, es mi primera vez', 'Sí, en Finados 2025', 'Sí, en Carnaval 2026', 'Sí, en otra edición']),
-        'fuente_comunidad' => require_choice(clean_required('fuente_comunidad', 80), ['Facebook', 'Instagram', 'TikTok', 'Un amigo o familiar me invitó', 'Un vocero me contó', 'WhatsApp', 'Otro']),
-        'retiro_kit' => require_choice(clean_required('retiro_kit', 80), ['En la oficina', 'En la feria, en la Zona de Creadores']),
-        'consentimiento_politicas' => require_choice(clean_required('consentimiento_politicas', 4), ['Sí']),
-        'autorizacion_imagen' => require_choice(clean_required('autorizacion_imagen', 4), ['Sí']),
-        'consentimiento_datos' => require_choice(clean_required('consentimiento_datos', 4), ['Sí']),
-    ];
-
-    if (!valid_ecuadorian_id($data['cedula'])) throw new InvalidArgumentException('Ingresa una cédula de 10 dígitos.');
-    if (preg_match('/^09\d{8}$/', $data['whatsapp']) !== 1) throw new InvalidArgumentException('Ingresa un WhatsApp con formato 09XXXXXXXX.');
-    if (!filter_var($data['correo'], FILTER_VALIDATE_EMAIL)) throw new InvalidArgumentException('Ingresa un correo electrónico válido.');
-    if ($data['tiktok'] === '' && $data['instagram'] === '' && $data['facebook'] === '') {
-        throw new InvalidArgumentException('Ingresa al menos un perfil social.');
-    }
-    foreach (['tiktok', 'instagram', 'facebook'] as $profile) {
-        if (!valid_https_url($data[$profile])) throw new InvalidArgumentException('Los perfiles sociales deben comenzar con https://.');
+    $timezone = new DateTimeZone('America/Guayaquil');
+    $now = new DateTimeImmutable('now', $timezone);
+    try {
+        $dependencies = ($bootstrap ?? 'voceros_bootstrap')();
+        $repository = $dependencies['repository'];
+        $privateDirectory = $dependencies['privateDirectory'];
+        $config = $dependencies['config'];
+    } catch (Throwable $error) {
+        $config = null;
     }
 
-    $representative = [
-        'representante_nombre' => clean_optional('representante_nombre', 160),
-        'representante_cedula' => clean_optional('representante_cedula', 10),
-        'representante_telefono' => clean_optional('representante_telefono', 10),
-        'representante_correo' => clean_optional('representante_correo', 180),
-    ];
-    if ($age < 18) {
-        foreach ($representative as $value) {
-            if ($value === '') throw new InvalidArgumentException('Completa los datos de tu representante legal.');
+    if ($server['REQUEST_METHOD'] === 'GET' || $server['REQUEST_METHOD'] === 'HEAD') {
+        if ($server['REQUEST_METHOD'] === 'HEAD') {
+            return voceros_response(200, []);
         }
-        if (!valid_ecuadorian_id($representative['representante_cedula'])) throw new InvalidArgumentException('La cédula del representante debe tener 10 dígitos.');
-        if (preg_match('/^09\d{8}$/', $representative['representante_telefono']) !== 1) throw new InvalidArgumentException('Revisa el teléfono del representante legal.');
-        if (!filter_var($representative['representante_correo'], FILTER_VALIDATE_EMAIL)) throw new InvalidArgumentException('Revisa el correo del representante legal.');
-    }
-
-    $tracking = [];
-    foreach (['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'] as $field) {
-        $tracking[$field] = clean_optional($field, 180);
-    }
-    $urlOrigin = clean_optional('url_origen', 500);
-    if ($urlOrigin === '' || !str_starts_with($urlOrigin, 'https://complejomushucruna.com/')) {
-        $urlOrigin = 'https://complejomushucruna.com/finados/voceros/';
-    }
-
-    $registrationId = strtolower(clean_required('submission_id', 32, 32));
-    if (!valid_submission_id($registrationId)) {
-        throw new InvalidArgumentException('No fue posible identificar este envío. Recarga la página e inténtalo nuevamente.');
-    }
-    $submittedAt = $now->format(DateTimeInterface::ATOM);
-    $status = $age < 18 ? 'Pendiente de autorización del representante' : 'Registrado';
-    $ip = isset($_SERVER['REMOTE_ADDR']) ? substr((string) $_SERVER['REMOTE_ADDR'], 0, 64) : '';
-    $userAgent = isset($_SERVER['HTTP_USER_AGENT']) ? substr((string) $_SERVER['HTTP_USER_AGENT'], 0, 500) : '';
-
-    $mainHeader = [
-        'Fecha de envío', 'ID', 'Estado', 'Nombre completo', 'Cédula', 'Fecha de nacimiento', 'Edad',
-        'WhatsApp', 'Correo', 'Ciudad', 'TikTok', 'Instagram', 'Facebook', 'Red principal',
-        'Vocero anterior', 'Cómo se enteró', 'Retiro del kit', 'Representante', 'Cédula representante',
-        'Teléfono representante', 'Correo representante', 'UTM source', 'UTM medium', 'UTM campaign',
-        'UTM content', 'UTM term',
-    ];
-    $mainRow = [
-        $submittedAt, $registrationId, $status, $data['nombre_completo'], $data['cedula'], $data['fecha_nacimiento'],
-        $data['edad'], $data['whatsapp'], $data['correo'], $data['ciudad'], $data['tiktok'], $data['instagram'],
-        $data['facebook'], $data['red_principal'], $data['vocero_previo'], $data['fuente_comunidad'], $data['retiro_kit'],
-        $representative['representante_nombre'], $representative['representante_cedula'], $representative['representante_telefono'],
-        $representative['representante_correo'], $tracking['utm_source'], $tracking['utm_medium'], $tracking['utm_campaign'],
-        $tracking['utm_content'], $tracking['utm_term'],
-    ];
-    $consentDefinitions = [
-        ['politicas', $config['policiesVersion'] . ' + ' . $config['thermometerVersion'], POLICY_TEXT],
-        ['imagen', $config['imageVersion'], IMAGE_TEXT],
-        ['datos', $config['privacyVersion'], DATA_TEXT],
-    ];
-    $consents = [];
-    foreach ($consentDefinitions as [$type, $version, $text]) {
-        $consents[] = [
-            'consentimiento_tipo' => $type,
-            'aceptado' => 'true',
-            'texto_version' => $version,
-            'texto_hash' => hash('sha256', $text),
-            'fecha_hora' => $submittedAt,
-            'ip_origen' => $ip,
-            'user_agent' => $userAgent,
-            'url_origen' => $urlOrigin,
-            'metodo' => 'formulario_web',
-            'id_registro' => $registrationId,
-        ];
-    }
-    $googleSheetsStatus = google_sheets_deliver($privateDirectory, 'voceros', [
-        'submittedAt' => $submittedAt,
-        'id' => $registrationId,
-        'status' => $status,
-        ...$data,
-        ...$representative,
-        ...$tracking,
-        'consents' => $consents,
-    ]);
-    if ($googleSheetsStatus !== 'synced') {
-        json_response(503, [
-            'ok' => false,
-            'message' => 'No pudimos confirmar el registro en Google Sheets. Tus datos quedaron protegidos para reintento; vuelve a presionar Enviar en unos minutos.',
+        return voceros_response(200, [
+            'open' => $config !== null,
+            'message' => $config !== null
+                ? 'El registro está habilitado.'
+                : 'El formulario se habilitará cuando estén publicados los documentos legales y la configuración privada de recepción.',
+            'timezone' => 'America/Guayaquil',
         ]);
     }
 
-    try {
-        append_csv($privateDirectory . DIRECTORY_SEPARATOR . 'voceros-finados-2026.csv', $mainHeader, [$mainRow]);
-        $consentHeader = ['Tipo', 'Aceptado', 'Versión', 'SHA-256', 'Fecha y hora', 'IP', 'Navegador', 'URL', 'Método', 'ID de registro'];
-        $consentRows = array_map(static fn(array $consent): array => array_values($consent), $consents);
-        append_csv($privateDirectory . DIRECTORY_SEPARATOR . 'consentimientos-voceros-finados-2026.csv', $consentHeader, $consentRows);
-    } catch (Throwable $backupError) {
-        error_log('El registro llegó a Google Sheets, pero falló el respaldo CSV: ' . $backupError->getMessage());
+    if ($server['REQUEST_METHOD'] !== 'POST') {
+        return voceros_response(405, ['ok' => false, 'message' => 'Método no permitido.'], ['Allow' => 'GET, HEAD, POST']);
     }
 
-    json_response(200, [
-        'ok' => true,
-        'registrationId' => $registrationId,
-        'googleSheets' => $googleSheetsStatus,
-        'message' => 'Registro recibido correctamente.',
-    ]);
-} catch (InvalidArgumentException $error) {
-    json_response(422, ['ok' => false, 'message' => $error->getMessage()]);
-} catch (Throwable $error) {
-    error_log('Error interno en registro de voceros: ' . $error->getMessage());
-    json_response(500, ['ok' => false, 'message' => 'No fue posible completar el registro. Inténtalo nuevamente.']);
+    if ($config === null) {
+        return voceros_response(503, ['ok' => false, 'message' => 'El registro todavía no está habilitado.']);
+    }
+
+    $contentLength = isset($server['CONTENT_LENGTH']) ? (int) $server['CONTENT_LENGTH'] : 0;
+    if ($contentLength > 65536) return voceros_response(413, ['ok' => false, 'message' => 'El envío supera el tamaño permitido.']);
+
+    $allowedOrigins = ['https://complejomushucruna.com', 'https://www.complejomushucruna.com'];
+    $origin = isset($server['HTTP_ORIGIN']) ? rtrim((string) $server['HTTP_ORIGIN'], '/') : '';
+    if ($origin !== '' && !in_array($origin, $allowedOrigins, true)) {
+        return voceros_response(403, ['ok' => false, 'message' => 'Origen no permitido.']);
+    }
+
+    $honeypot = isset($post['website']) && is_string($post['website']) ? trim($post['website']) : '';
+    if ($honeypot !== '') return voceros_response(200, ['ok' => true, 'message' => 'Registro recibido.']);
+
+    try {
+        $birthValue = clean_required($post, 'fecha_nacimiento', 10, 10);
+        $birth = DateTimeImmutable::createFromFormat('!Y-m-d', $birthValue, $timezone);
+        $birthErrors = DateTimeImmutable::getLastErrors();
+        if ($birth === false || (is_array($birthErrors) && ($birthErrors['warning_count'] > 0 || $birthErrors['error_count'] > 0))) {
+            throw new InvalidArgumentException('Ingresa una fecha de nacimiento válida.');
+        }
+        $age = $birth->diff($now)->y;
+        if ($birth > $now || $age < 16) throw new InvalidArgumentException('El programa recibe participantes desde los 16 años.');
+
+        $data = [
+            'nombre_completo' => clean_required($post, 'nombre_completo', 160, 5),
+            'cedula' => clean_required($post, 'cedula', 10, 10),
+            'fecha_nacimiento' => $birthValue,
+            'edad' => (string) $age,
+            'whatsapp' => clean_required($post, 'whatsapp', 10, 10),
+            'correo' => clean_required($post, 'correo', 180),
+            'ciudad' => clean_required($post, 'ciudad', 100),
+            'tiktok' => clean_optional($post, 'tiktok', 300),
+            'instagram' => clean_optional($post, 'instagram', 300),
+            'facebook' => clean_optional($post, 'facebook', 300),
+            'red_principal' => require_choice(clean_required($post, 'red_principal', 20), ['TikTok', 'Instagram', 'Facebook']),
+            'vocero_previo' => require_choice(clean_required($post, 'vocero_previo', 60), ['No, es mi primera vez', 'Sí, en Finados 2025', 'Sí, en Carnaval 2026', 'Sí, en otra edición']),
+            'fuente_comunidad' => require_choice(clean_required($post, 'fuente_comunidad', 80), ['Facebook', 'Instagram', 'TikTok', 'Un amigo o familiar me invitó', 'Un vocero me contó', 'WhatsApp', 'Otro']),
+            'retiro_kit' => require_choice(clean_required($post, 'retiro_kit', 80), ['En la oficina', 'En la feria, en la Zona de Creadores']),
+            'consentimiento_politicas' => require_choice(clean_required($post, 'consentimiento_politicas', 4), ['Sí']),
+            'autorizacion_imagen' => require_choice(clean_required($post, 'autorizacion_imagen', 4), ['Sí']),
+            'consentimiento_datos' => require_choice(clean_required($post, 'consentimiento_datos', 4), ['Sí']),
+        ];
+
+        if (!valid_ecuadorian_id($data['cedula'])) throw new InvalidArgumentException('Ingresa una cédula de 10 dígitos.');
+        if (preg_match('/^09\d{8}$/', $data['whatsapp']) !== 1) throw new InvalidArgumentException('Ingresa un WhatsApp con formato 09XXXXXXXX.');
+        if (!filter_var($data['correo'], FILTER_VALIDATE_EMAIL)) throw new InvalidArgumentException('Ingresa un correo electrónico válido.');
+        if ($data['tiktok'] === '' && $data['instagram'] === '' && $data['facebook'] === '') {
+            throw new InvalidArgumentException('Ingresa al menos un perfil social.');
+        }
+        foreach (['tiktok', 'instagram', 'facebook'] as $profile) {
+            if (!valid_https_url($data[$profile])) throw new InvalidArgumentException('Los perfiles sociales deben comenzar con https://.');
+        }
+
+        $representative = [
+            'representante_nombre' => clean_optional($post, 'representante_nombre', 160),
+            'representante_cedula' => clean_optional($post, 'representante_cedula', 10),
+            'representante_telefono' => clean_optional($post, 'representante_telefono', 10),
+            'representante_correo' => clean_optional($post, 'representante_correo', 180),
+        ];
+        if ($age < 18) {
+            foreach ($representative as $value) {
+                if ($value === '') throw new InvalidArgumentException('Completa los datos de tu representante legal.');
+            }
+            if (!valid_ecuadorian_id($representative['representante_cedula'])) throw new InvalidArgumentException('La cédula del representante debe tener 10 dígitos.');
+            if (preg_match('/^09\d{8}$/', $representative['representante_telefono']) !== 1) throw new InvalidArgumentException('Revisa el teléfono del representante legal.');
+            if (!filter_var($representative['representante_correo'], FILTER_VALIDATE_EMAIL)) throw new InvalidArgumentException('Revisa el correo del representante legal.');
+        }
+
+        $tracking = [];
+        foreach (['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'] as $field) {
+            $tracking[$field] = clean_optional($post, $field, 180);
+        }
+        $urlOrigin = clean_optional($post, 'url_origen', 500);
+        if ($urlOrigin === '' || !str_starts_with($urlOrigin, 'https://complejomushucruna.com/')) {
+            $urlOrigin = 'https://complejomushucruna.com/finados/voceros/';
+        }
+
+        $registrationId = strtolower(clean_required($post, 'submission_id', 32, 32));
+        if (!valid_submission_id($registrationId)) {
+            throw new InvalidArgumentException('No fue posible identificar este envío. Recarga la página e inténtalo nuevamente.');
+        }
+        $submittedAt = $now->format(DateTimeInterface::ATOM);
+        $status = $age < 18 ? 'Pendiente de autorización' : 'Nuevo';
+        $ip = isset($server['REMOTE_ADDR']) ? substr((string) $server['REMOTE_ADDR'], 0, 64) : '';
+        $userAgent = isset($server['HTTP_USER_AGENT']) ? substr((string) $server['HTTP_USER_AGENT'], 0, 500) : '';
+
+        $consentDefinitions = [
+            ['politicas', $config['policiesVersion'] . ' + ' . $config['thermometerVersion'], POLICY_TEXT],
+            ['imagen', $config['imageVersion'], IMAGE_TEXT],
+            ['datos', $config['privacyVersion'], DATA_TEXT],
+        ];
+        $consents = [];
+        foreach ($consentDefinitions as [$type, $version, $text]) {
+            $consents[] = [
+                'consentimiento_tipo' => $type,
+                'aceptado' => 'true',
+                'texto_version' => $version,
+                'texto_hash' => hash('sha256', $text),
+                'fecha_hora' => $submittedAt,
+                'ip_origen' => $ip,
+                'user_agent' => $userAgent,
+                'url_origen' => $urlOrigin,
+                'metodo' => 'formulario_web',
+                'id_registro' => $registrationId,
+            ];
+        }
+        $record = [
+            'submission_id' => $registrationId, 'status' => $status,
+            'full_name' => $data['nombre_completo'], 'cedula' => $data['cedula'],
+            'birth_date' => $birthValue, 'age_at_submission' => $age,
+            'whatsapp' => $data['whatsapp'], 'email' => $data['correo'], 'city' => $data['ciudad'],
+            'main_network' => $data['red_principal'], 'previous_participation' => $data['vocero_previo'],
+            'community_source' => $data['fuente_comunidad'], 'kit_pickup' => $data['retiro_kit'],
+            'tiktok' => $data['tiktok'], 'instagram' => $data['instagram'], 'facebook' => $data['facebook'],
+            'representative_name' => $representative['representante_nombre'],
+            'representative_cedula' => $representative['representante_cedula'],
+            'representative_phone' => $representative['representante_telefono'],
+            'representative_email' => $representative['representante_correo'],
+            'submitted_at' => $now->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i:s'),
+            ...$tracking,
+        ];
+        $databaseConsents = array_map(static fn (array $consent): array => [
+            'consent_type' => $consent['consentimiento_tipo'], 'accepted' => 1,
+            'text_version' => $consent['texto_version'], 'text_hash' => $consent['texto_hash'],
+            'accepted_at' => $record['submitted_at'], 'ip' => $ip, 'user_agent' => $userAgent,
+            'source_url' => $urlOrigin, 'method' => 'formulario_web',
+        ], $consents);
+        $receipt = $repository->createPublic($record, $databaseConsents, $ip);
+        $googleSheetsStatus = $receipt['sheets'];
+        if ($receipt['created']) {
+            $sheetsPayload = [
+                'submittedAt' => $submittedAt, 'id' => $registrationId, 'status' => $status,
+                ...$data, ...$representative, ...$tracking, 'consents' => $consents,
+            ];
+            try {
+                $googleSheetsStatus = ($sheets ?? 'google_sheets_deliver')($privateDirectory, 'voceros', $sheetsPayload);
+                $googleSheetsStatus = $googleSheetsStatus === 'synced' ? 'synced' : 'queued';
+            } catch (Throwable $error) {
+                // The canonical transaction already committed. Its success must survive a secondary failure.
+                $googleSheetsStatus = 'queued';
+                try {
+                    google_sheets_enqueue($privateDirectory, 'voceros', $sheetsPayload);
+                } catch (Throwable $queueError) {
+                    error_log('Voceros: secondary queue is unavailable; canonical registration is stored.');
+                }
+            }
+            try {
+                $repository->recordSheetsResult($receipt['public_id'], $googleSheetsStatus);
+            } catch (Throwable $error) {
+                error_log('Voceros: secondary synchronization status could not be recorded.');
+            }
+        }
+
+        return voceros_response(200, [
+            'ok' => true,
+            'registrationId' => $registrationId,
+            'database' => 'stored',
+            'googleSheets' => $googleSheetsStatus,
+            'message' => 'Registro recibido correctamente.',
+        ]);
+    } catch (Finados\DuplicateRegistration $error) {
+        return voceros_response(409, ['ok' => false, 'message' => 'Ya existe un registro con los datos proporcionados.']);
+    } catch (Finados\RegistrationRateLimit $error) {
+        return voceros_response(429, ['ok' => false, 'message' => 'Se alcanzó el límite de envíos. Inténtalo en 15 minutos.'], ['Retry-After' => '900']);
+    } catch (InvalidArgumentException $error) {
+        return voceros_response(422, ['ok' => false, 'message' => $error->getMessage()]);
+    } catch (Throwable $error) {
+        error_log('Voceros: registration could not be persisted.');
+        return voceros_response(500, ['ok' => false, 'message' => 'No fue posible completar el registro. Inténtalo nuevamente.']);
+    }
+
+}
+
+if (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__) {
+    $response = voceros_handle_request($_SERVER, $_POST);
+    header('Content-Type: application/json; charset=utf-8');
+    header('Cache-Control: no-store, max-age=0');
+    header('X-Content-Type-Options: nosniff');
+    header('Referrer-Policy: same-origin');
+    foreach ($response['headers'] as $name => $value) header($name . ': ' . $value);
+    http_response_code($response['status']);
+    if ($_SERVER['REQUEST_METHOD'] !== 'HEAD') echo json_encode($response['json'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 }
