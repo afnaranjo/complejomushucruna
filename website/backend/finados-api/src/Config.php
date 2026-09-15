@@ -26,6 +26,7 @@ final class Config
         private readonly string $allowedOrigin,
         private readonly string $encryptionKey,
         private readonly string $hmacKey,
+        private readonly string $privateDirectory,
     ) {
     }
 
@@ -95,6 +96,7 @@ final class Config
             $allowedOrigin,
             self::decodeKey($values['encryptionKey']),
             self::decodeKey($values['hmacKey']),
+            dirname($resolvedPath),
         );
     }
 
@@ -147,6 +149,11 @@ final class Config
     public function hmacKey(): string
     {
         return $this->hmacKey;
+    }
+
+    public function privateDirectory(): string
+    {
+        return $this->privateDirectory;
     }
 
     public function isProduction(): bool
