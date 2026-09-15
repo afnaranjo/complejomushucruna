@@ -32,7 +32,7 @@ final class PublicRegistration
         $record = [
             'submission_id' => $id, 'full_name' => self::text($fields, 'nombre_completo', 160, 5),
             'cedula' => self::text($fields, 'cedula', 10, 10), 'birth_date' => $birthValue, 'age_at_submission' => $age,
-            'whatsapp' => self::text($fields, 'whatsapp', 10, 10), 'email' => self::text(['email' => $accountEmail], 'email', 180, 1),
+            'whatsapp' => self::text($fields, 'whatsapp', 10, 10), 'email' => self::text(['email' => $accountEmail], 'email', 254, 1),
             'city' => self::text($fields, 'ciudad', 100, 1),
             'main_network' => self::choice($fields, 'red_principal', 20, ['TikTok', 'Instagram', 'Facebook']),
             'previous_participation' => self::choice($fields, 'vocero_previo', 60, ['No, es mi primera vez', 'Sí, en Finados 2025', 'Sí, en Carnaval 2026', 'Sí, en otra edición']),

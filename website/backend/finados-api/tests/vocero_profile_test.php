@@ -48,6 +48,8 @@ $profileConfig = Finados\Config::fromFile($profileConfigPath);
 final class ProfileTransactionProbe extends PDO
 {
     public ?Closure $beforeCommit = null;
+    public ?Closure $afterCommit = null;
+    public bool $rollbackFails = false;
     public ?Closure $beforeBegin = null;
     public ?Closure $beforePhotoMetadata = null;
     public ?Closure $beforeSubmissionLookup = null;
@@ -59,7 +61,14 @@ final class ProfileTransactionProbe extends PDO
     public function commit(): bool
     {
         if ($this->beforeCommit !== null) ($this->beforeCommit)();
-        return parent::commit();
+        $committed = parent::commit();
+        if ($this->afterCommit !== null) ($this->afterCommit)();
+        return $committed;
+    }
+    public function rollBack(): bool
+    {
+        if ($this->rollbackFails) throw new ProfileCommitFailure('Synthetic rollback acknowledgement failure');
+        return parent::rollBack();
     }
 }
 final class ProfileCommitFailure extends RuntimeException {}
@@ -349,3 +358,106 @@ foreach (['voceros', 'vocero_account_links', 'vocero_photos'] as $table) same(1,
 same(3, (int) $concurrentPdo->query('SELECT COUNT(*) FROM vocero_consents')->fetchColumn());
 same(1, count(glob($concurrentRoot . '/voceros-photos/files/*')));
 same([], glob($concurrentRoot . '/voceros-photos/staging/*'));
+
+// A lost commit acknowledgement must retain the file already referenced by committed metadata.
+$profileDb->afterCommit = static function (): never { throw new ProfileCommitFailure('Synthetic lost commit acknowledgement'); };
+throws(fn () => $profile->save($racingAccount, $racingFields, $profileFiles, '192.0.2.30', 'Prueba'), ProfileCommitFailure::class);
+$profileDb->afterCommit = null;
+same(false, $profileDb->inTransaction());
+$unknownCommitted = $profile->get($racingAccount);
+same(true, $unknownCommitted !== null);
+same('image/jpeg', getimagesizefromstring($profile->photo($racingAccount))['mime']);
+same($unknownCommitted, $profile->save($racingAccount, $racingFields, $profileFiles, '192.0.2.30', 'Prueba'));
+same([], glob($profileRoot . '/voceros-photos/staging/*'));
+
+// A rollback with no acknowledgement also cannot authorize deletion of a promoted file.
+$unknownOldPhoto = $profile->photo($profileAccountId);
+$unknownOldRow = $profileDb->query('SELECT * FROM vocero_photos WHERE vocero_id = 1')->fetch();
+$profileDb->beforeCommit = static function (): never { throw new ProfileCommitFailure('Synthetic commit failure'); };
+$profileDb->rollbackFails = true;
+throws(fn () => $profile->save($profileAccountId, profile_fields(), $profileFiles, '192.0.2.1', 'Prueba'), ProfileCommitFailure::class);
+$profileDb->beforeCommit = null; $profileDb->rollbackFails = false;
+$unknownNewRow = $profileDb->query('SELECT * FROM vocero_photos WHERE vocero_id = 1')->fetch();
+same(true, is_file($profileRoot . '/voceros-photos/files/' . $unknownNewRow['storage_key']));
+same(true, is_file($profileRoot . '/voceros-photos/files/' . $unknownOldRow['storage_key']));
+$profileDb->rollBack();
+same($unknownOldPhoto, $profile->photo($profileAccountId));
+// Only this test now proves rollback; remove its deliberate orphan from its isolated fixture.
+(new Finados\PhotoStorage($profileConfig, $profileCrypto))->delete($unknownNewRow['storage_key']);
+
+// Pause a real reader after fetching metadata while a separate process replaces the same photo.
+$readerWorker = <<<'PHP'
+require $argv[1];
+class PausedPhotoStatement extends PDOStatement {
+    public function fetch(int $mode = PDO::FETCH_DEFAULT, int $cursorOrientation = PDO::FETCH_ORI_NEXT, int $cursorOffset = 0): mixed {
+        $row = parent::fetch($mode, $cursorOrientation, $cursorOffset);
+        if ($this->queryString === 'SELECT * FROM vocero_photos WHERE vocero_id = ?') {
+            $this->closeCursor();
+            fwrite(STDOUT, "metadata\n"); fflush(STDOUT);
+            if (fgets(STDIN) === false) throw new RuntimeException('Reader was not resumed.');
+        }
+        return $row;
+    }
+}
+$config = Finados\Config::fromFile($argv[2]); $pdo = Finados\Database::connect($config);
+$pdo->setAttribute(PDO::ATTR_STATEMENT_CLASS, [PausedPhotoStatement::class]);
+try {
+    $jpeg = (new Finados\VoceroProfile($pdo, $config))->photo(1);
+    $size = getimagesizefromstring($jpeg);
+    echo json_encode(['width' => $size[0], 'height' => $size[1], 'mime' => $size['mime']]);
+} catch (Throwable) { echo json_encode(['failed' => true]); }
+PHP;
+$readerProcess = proc_open([PHP_BINARY, '-r', $readerWorker, realpath(__DIR__ . '/../src/Router.php'), $concurrentConfigPath], [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $readerPipes);
+same("metadata\n", fgets($readerPipes[1]));
+$readerLockProbe = fopen($concurrentRoot . '/finados.voceros.media.lock', 'c');
+$readerHoldsLock = !flock($readerLockProbe, LOCK_EX | LOCK_NB);
+if (!$readerHoldsLock) flock($readerLockProbe, LOCK_UN);
+fclose($readerLockProbe);
+$replacementUpload = profile_upload($concurrentRoot, 70, 90);
+$writerProcess = proc_open([PHP_BINARY, '-r', $profileWorker, $concurrentConfigPath, json_encode(profile_fields()), json_encode($replacementUpload)], [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $writerPipes);
+if ($readerHoldsLock) {
+    $deadline = microtime(true) + 5;
+    while (glob($concurrentRoot . '/voceros-photos/staging/*') === [] && microtime(true) < $deadline) usleep(10000);
+    same(1, count(glob($concurrentRoot . '/voceros-photos/staging/*')));
+    same(true, proc_get_status($writerProcess)['running']);
+} else {
+    // Without the read lock, force replacement to finish before allowing the stale read to continue.
+    $writerOutput = stream_get_contents($writerPipes[1]); $writerError = stream_get_contents($writerPipes[2]);
+}
+fwrite($readerPipes[0], "continue\n"); fclose($readerPipes[0]);
+$readerOutput = stream_get_contents($readerPipes[1]); $readerError = stream_get_contents($readerPipes[2]);
+fclose($readerPipes[1]); fclose($readerPipes[2]); same(0, proc_close($readerProcess)); same('', $readerError);
+if ($readerHoldsLock) {
+    $writerOutput = stream_get_contents($writerPipes[1]); $writerError = stream_get_contents($writerPipes[2]);
+}
+fclose($writerPipes[1]); fclose($writerPipes[2]); same(0, proc_close($writerProcess)); same('', $writerError);
+same(['width' => 80, 'height' => 100, 'mime' => 'image/jpeg'], json_decode($readerOutput, true));
+same(70, json_decode($writerOutput, true)['photo']['width']);
+$afterReplacement = (new Finados\VoceroProfile($concurrentPdo, $concurrentConfig))->photo(1);
+same(70, getimagesizefromstring($afterReplacement)[0]);
+same(0600, fileperms($concurrentRoot . '/finados.voceros.media.lock') & 0777);
+
+// A valid account email at the 254-byte boundary must remain usable for a complete profile.
+$longProfileEmail = str_repeat('a', 64) . '@' . str_repeat('b', 63) . '.' . str_repeat('c', 63) . '.' . str_repeat('d', 53) . '.invalid';
+same(254, strlen($longProfileEmail));
+$profileAuth->register($longProfileEmail, $profilePassword, true, '192.0.2.70');
+$longEmailAccount = (int) $profileDb->query('SELECT MAX(id) FROM vocero_accounts')->fetchColumn();
+$longEmailFields = profile_fields(['submission_id' => str_repeat('a', 32), 'cedula' => '1800000070', 'whatsapp' => '0990000070']);
+same($longProfileEmail, $profile->save($longEmailAccount, $longEmailFields, $profileFiles, '192.0.2.70', 'Prueba')['email']);
+throws(fn () => Finados\PublicRegistration::validate($longEmailFields, $longProfileEmail . 'a'), InvalidArgumentException::class);
+
+// Lock failures expose no filesystem warning/path and never follow a link to change another file's mode.
+$lockPath = $concurrentRoot . '/finados.voceros.media.lock';
+rename($lockPath, $lockPath . '.saved');
+$lockTarget = $concurrentRoot . '/lock-target'; file_put_contents($lockTarget, 'untouched'); chmod($lockTarget, 0640);
+$concurrentProfile = new Finados\VoceroProfile($concurrentPdo, $concurrentConfig);
+foreach (['symlink', 'directory'] as $badLock) {
+    if ($badLock === 'symlink') symlink($lockTarget, $lockPath); else mkdir($lockPath, 0700);
+    $lockError = null;
+    try { $concurrentProfile->photo(1); } catch (RuntimeException $error) { $lockError = $error->getMessage(); }
+    same(true, is_string($lockError)); same(false, str_contains($lockError, $concurrentRoot)); same(false, str_contains($lockError, 'fopen'));
+    same('untouched', file_get_contents($lockTarget)); same(0640, fileperms($lockTarget) & 0777);
+    if ($badLock === 'symlink') unlink($lockPath); else rmdir($lockPath);
+}
+rename($lockPath . '.saved', $lockPath);
+same('image/jpeg', getimagesizefromstring($concurrentProfile->photo(1))['mime']);

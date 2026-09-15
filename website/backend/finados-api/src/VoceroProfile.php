@@ -9,7 +9,7 @@ use PDO;
 use RuntimeException;
 use Throwable;
 
-foreach (['VoceroAuth', 'PhotoStorage', 'PublicRegistration', 'VocerosRepository'] as $dependency) require_once __DIR__ . '/' . $dependency . '.php';
+foreach (['VoceroAuth', 'PhotoStorage', 'PublicRegistration', 'VocerosRepository', 'VoceroMediaLock'] as $dependency) require_once __DIR__ . '/' . $dependency . '.php';
 
 final class VoceroProfile
 {
@@ -52,23 +52,17 @@ final class VoceroProfile
         $record = PublicRegistration::validate($fields, $this->crypto->decrypt($account['email_enc']));
         $consents = $this->consents($ip, $userAgent, $record['submitted_at']);
         $upload = $this->upload($files);
-        $prepared = null; $promoted = false; $committed = false; $lock = null; $mysqlLocked = false;
+        $prepared = null; $promoted = false; $committed = false; $lock = null;
+        $transactionStarted = false; $commitAttempted = false; $rollbackConfirmed = false; $commitUnknown = false;
         try {
             // Decode, normalize and encrypt before taking any database transaction or media lock.
             if ($upload !== null) {
                 try { $prepared = $this->storage->stage($upload['tmp_name'], $upload['size']); }
                 catch (RuntimeException) { throw new InvalidArgumentException('Invalid photo upload.'); }
             }
-            if ($this->mysql()) {
-                $query = $this->pdo->prepare('SELECT GET_LOCK(?, 10)');
-                $query->execute(['finados.voceros.media']);
-                if ((int) $query->fetchColumn() !== 1) throw new RuntimeException('Media is busy.');
-                $mysqlLocked = true;
-            } else {
-                $lock = fopen($this->config->privateDirectory() . '/finados.voceros.media.lock', 'c');
-                if ($lock === false || !flock($lock, LOCK_EX)) throw new RuntimeException('Media is busy.');
-            }
+            $lock = VoceroMediaLock::acquire($this->pdo, $this->config, true);
             $this->pdo->beginTransaction();
+            $transactionStarted = true;
             if (!$this->mysql()) $this->pdo->exec('UPDATE schema_migrations SET applied_at = applied_at WHERE 1 = 0');
             $account = $this->account($accountId, true);
             // Re-read protected account data under lock, including deactivation during staging.
@@ -110,26 +104,38 @@ final class VoceroProfile
             }
             if ($changed || $photoChanged) $this->audit->log('vocero.profile_saved', null, 'vocero', $publicId, ['account_public_id' => $account['public_id']], $ip);
             if ($photoChanged) { $this->storage->promote($prepared); $promoted = true; }
-            $this->pdo->commit();
+            $commitAttempted = true;
+            $commitUnknown = true;
+            if (!$this->pdo->commit()) throw new RuntimeException('Commit outcome unavailable.');
             $committed = true;
+            $commitUnknown = false;
             // The old file remains available throughout rollback; only a committed replacement removes it.
             if ($photoChanged && $oldPhoto !== null) $this->storage->delete($oldPhoto['storage_key']);
             return $this->get($accountId);
         } finally {
             try {
-                if (!$committed && $this->pdo->inTransaction()) $this->pdo->rollBack();
+                if (!$committed && $transactionStarted) {
+                    try {
+                        if ($this->pdo->inTransaction()) {
+                            $rollbackConfirmed = $this->pdo->rollBack() && !$this->pdo->inTransaction();
+                        }
+                    } catch (Throwable) {
+                        // A lost connection or acknowledgement cannot prove that the transaction rolled back.
+                        $rollbackConfirmed = false;
+                    }
+                    $commitUnknown = $commitAttempted && !$rollbackConfirmed;
+                }
             } finally {
                 try {
                     if ($prepared !== null) {
                         try { $this->storage->discard($prepared); }
-                        finally { if (!$committed && $promoted) $this->storage->delete($prepared['storage_key']); }
+                        finally {
+                            // A safe encrypted orphan is preferable to deleting a possibly committed reference.
+                            if ($promoted && $rollbackConfirmed && !$commitUnknown && !$committed) $this->storage->delete($prepared['storage_key']);
+                        }
                     }
                 } finally {
-                    if ($mysqlLocked) {
-                        $query = $this->pdo->prepare('SELECT RELEASE_LOCK(?)');
-                        $query->execute(['finados.voceros.media']);
-                    }
-                    if (is_resource($lock)) { flock($lock, LOCK_UN); fclose($lock); }
+                    if ($lock !== null) $lock->release();
                 }
             }
         }
@@ -137,11 +143,14 @@ final class VoceroProfile
 
     public function photo(int $accountId): string
     {
-        $this->account($accountId);
-        $linked = $this->linked($accountId);
-        $photo = $linked === null ? null : $this->photoRow((int) $linked['id']);
-        if ($photo === null) throw new OutOfBoundsException('Photo unavailable.');
-        return $this->storage->read($photo['storage_key']);
+        $lock = VoceroMediaLock::acquire($this->pdo, $this->config);
+        try {
+            $this->account($accountId);
+            $linked = $this->linked($accountId);
+            $photo = $linked === null ? null : $this->photoRow((int) $linked['id']);
+            if ($photo === null) throw new OutOfBoundsException('Photo unavailable.');
+            return $this->storage->read($photo['storage_key']);
+        } finally { $lock->release(); }
     }
 
     private function account(int $accountId, bool $lock = false): array
