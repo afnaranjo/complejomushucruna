@@ -789,3 +789,12 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Commit: incluido en `Consolidar informe maestro Finados 2026`.
 - Publicación externa: ninguna campaña, cuenta, página, sitio, boletería, Bitrix o Notion fue modificada; únicamente se envió la documentación a `origin/main` conforme a la regla de cierre.
 - Riesgos y pendientes: el documento es una fotografía al 2026-09-07, con Meta al 2026-09-05; siguen abiertos G0, RACI, calendario público, oferta completa, tracking, capacidades, permisos, operación, derechos y gobierno cultural.
+
+### 2026-09-14 — Diseño aprobado del panel y backend de Voceros
+
+- Alex aprobó construir un panel sencillo y funcional para administrar los registros de Voceros, limitado al formulario existente, el acceso `/admin/`, el panel `/admin/voceros/` y el backend privado de `finados.complejomushucruna.com/api/`; las demás páginas no deben alterarse.
+- La arquitectura mantiene todo el frontend en `complejomushucruna.com`, usa MySQL/MariaDB como fuente canónica sujeta a prevuelo y conserva Google Sheets como sincronización secundaria. El primer usuario será `admin`, con contraseña establecida de forma oculta por SSH y nunca almacenada en Git o chat.
+- Se documentaron modelo de datos, API, autenticación, cifrado, auditoría, importación idempotente, pruebas, despliegue y recuperación en `docs/superpowers/specs/2026-09-14_panel-voceros-backend-finados-diseno.md`.
+- Commit: incluido en `Diseñar panel y backend de Voceros`.
+- Publicación externa: ninguna; durante esta fase no se creó base, usuario, contraseña, sesión, archivo remoto ni despliegue.
+- Riesgos y pendientes: confirmar PHP/PDO, MySQL/MariaDB, cron, backups y docroot real del subdominio; implementar con pruebas, crear el administrador mediante prompt seguro, importar los registros existentes y verificar recuperación antes de publicar.

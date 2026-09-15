@@ -2,7 +2,7 @@
 titulo: "Pendientes ejecutivos"
 responsable: "dirección integral de la feria"
 estado: en-revision
-ultima_actualizacion: 2026-09-07
+ultima_actualizacion: 2026-09-14
 fuente: interna
 confidencialidad: interno
 tags:
@@ -18,6 +18,7 @@ tags:
 
 ## Prioridad crítica
 
+- [ ] Implementar y validar el panel de Voceros aprobado en `docs/superpowers/specs/2026-09-14_panel-voceros-backend-finados-diseno.md`, limitado a `/admin/`, `/admin/voceros/`, el formulario de Voceros y `finados.complejomushucruna.com/api/`. Confirmar primero PHP/PDO, MySQL/MariaDB, cron, backups y docroot; crear `admin` con contraseña ingresada de forma oculta por SSH; migrar los CSV de forma idempotente y no guardar secretos ni borrar registros. Responsable: Alex/tecnología. Fecha: inmediata.
 - [ ] Cambiar inmediatamente la passphrase de la llave SSH de cPanel porque fue escrita accidentalmente como comando visible y enviada al chat. Hacerlo localmente con `ssh-keygen -p -f <ruta-de-la-llave>` sin comunicar la clave actual o nueva; la llave pública y su autorización remota no cambian. Después, mover la llave privada fuera de Descargas a `~/.ssh/`, mantener permisos `600` y actualizar únicamente la configuración local ignorada por Git. Responsable: Alex/tecnología. Fecha: inmediata, antes de compartir acceso o reutilizar la llave.
 - [ ] Confirmar en Meta la revocación o expiración de la credencial anterior que fue pegada accidentalmente en el prompt normal de Terminal y adjuntada al chat; no volver a usarla. La validación posterior utilizó únicamente la credencial de reemplazo guardada en el Llavero. Mantener esta última fuera del chat y del repositorio. Responsable: Alex/administración Meta. Fecha: inmediata, antes de cualquier activación externa.
 - [ ] Revocar en Meta el token que Alex entregó directamente en el chat el 2026-09-05 para la revisión y adecuación de F29; se considera expuesto aunque solo se usó como variable de entorno y no se guardó. Generar uno nuevo únicamente en el Llavero cuando haga falta. Responsable: Alex/administración Meta. Fecha: inmediata.
