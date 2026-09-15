@@ -71,6 +71,19 @@ try {
   await page.locator('[data-profile-fields]:not([disabled])').waitFor();
   assert.equal(await page.locator('#fotografia').getAttribute('required'), '');
   for (const [name, value] of Object.entries({ nombre_completo: record.full_name, cedula: record.cedula, fecha_nacimiento: record.birth_date, whatsapp: record.whatsapp, ciudad: record.city, tiktok: record.tiktok })) await page.locator(`[name="${name}"]`).fill(value);
+  const birthYear = Number(await page.evaluate(() => new Intl.DateTimeFormat('en', { timeZone: 'America/Guayaquil', year: 'numeric' }).format(new Date()))) - 16;
+  await page.locator('[name=fecha_nacimiento]').fill(`${birthYear}-01-01`);
+  const representative = page.locator('[data-vocero-minor]');
+  await representative.waitFor({ state: 'visible' });
+  assert.doesNotMatch(await representative.textContent(), /Opcional/);
+  assert.equal(await representative.locator('input').count(), 4);
+  for (const input of await representative.locator('input').all()) {
+    assert.equal(await input.evaluate(element => element.required && element.validity.valueMissing && !element.disabled), true);
+    assert.match(await input.evaluate(element => element.labels[0].textContent), /\*/);
+  }
+  await page.locator('[name=fecha_nacimiento]').fill(record.birth_date);
+  await representative.waitFor({ state: 'hidden' });
+  for (const input of await representative.locator('input').all()) assert.equal(await input.evaluate(element => !element.required && element.disabled), true);
   for (const [name, value] of Object.entries({ red_principal: record.main_network, vocero_previo: record.previous_participation, fuente_comunidad: record.community_source, retiro_kit: record.kit_pickup })) await page.locator(`[name="${name}"]`).selectOption(value);
   for (const name of ['consentimiento_politicas', 'autorizacion_imagen', 'consentimiento_datos']) await page.locator(`[name="${name}"]`).check();
   await page.locator('#fotografia').setInputFiles({ name: 'fixture.png', mimeType: 'image/png', buffer: png });

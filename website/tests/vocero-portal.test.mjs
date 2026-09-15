@@ -10,6 +10,19 @@ import { buildSite } from '../scripts/build.mjs';
 const clientModule = () => import('../src/finados/vocero-portal.js');
 const reply = (data, status = 200) => new Response(JSON.stringify(data), { status, headers: { 'Content-Type': 'application/json' } });
 
+test('representante: los cuatro campos se presentan como obligatorios, sin etiqueta Opcional', async () => {
+  const { renderVoceroForm } = await import('../src/finados/vocero-form.mjs');
+  const catalogue = JSON.parse(await readFile(new URL('../backend/finados-api/resources/vocero-consents.json', import.meta.url)));
+  const html = renderVoceroForm(catalogue);
+  for (const name of ['representante_nombre', 'representante_cedula', 'representante_telefono', 'representante_correo']) {
+    const label = html.match(new RegExp(`<label[^>]*for="${name}"[^>]*>[\\s\\S]*?<\\/label>`))?.[0];
+    assert.ok(label, name);
+    assert.doesNotMatch(label, /Opcional/);
+    assert.match(label, /<span aria-hidden="true">\*<\/span>/);
+    assert.match(label, /<input[^>]* required>/);
+  }
+});
+
 test('cliente invoca fetch sin ligar this al cliente (compatible con Window.fetch)', async () => {
   const { VoceroApiClient } = await clientModule();
   let receiver;

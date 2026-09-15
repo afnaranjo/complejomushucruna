@@ -36,10 +36,10 @@ ${select('fuente_comunidad', '¿Cómo te enteraste de la comunidad?', ['Facebook
 ${select('retiro_kit', '¿Cómo prefieres retirar tu kit si subes de nivel?', ['En la oficina', 'En la feria, en la Zona de Creadores'])}
 </div></section>
 <section data-vocero-minor hidden aria-labelledby="minor-title"><h2 id="minor-title">Datos de tu representante legal</h2><p>Si tienes 16 o 17 años, tu registro queda pendiente hasta recibir la autorización escrita firmada.</p><div class="vocero-fields">
-${field('representante_nombre', 'Nombre completo del representante', 'maxlength="160"', true)}
-${field('representante_cedula', 'Cédula del representante', 'inputmode="numeric" pattern="[0-9]{10}" maxlength="10"', true)}
-${field('representante_telefono', 'WhatsApp del representante', 'type="tel" inputmode="numeric" pattern="09[0-9]{8}" maxlength="10"', true)}
-${field('representante_correo', 'Correo del representante', 'type="email" maxlength="180"', true)}
+${field('representante_nombre', 'Nombre completo del representante', 'maxlength="160"')}
+${field('representante_cedula', 'Cédula del representante', 'inputmode="numeric" pattern="[0-9]{10}" maxlength="10"')}
+${field('representante_telefono', 'WhatsApp del representante', 'type="tel" inputmode="numeric" pattern="09[0-9]{8}" maxlength="10"')}
+${field('representante_correo', 'Correo del representante', 'type="email" maxlength="180"')}
 </div></section>
 <section class="vocero-consents" aria-labelledby="consents-title"><p class="vocero-eyebrow">04 · Consentimientos</p><h2 id="consents-title">Revisa y confirma</h2>
 ${[['policies', 'consentimiento_politicas'], ['image', 'autorizacion_imagen'], ['data', 'consentimiento_datos']].map(([key, name]) => `<label class="vocero-check"><input type="checkbox" name="${name}" value="Sí" required><span>${esc(consents[key].text)}</span></label>`).join('')}
