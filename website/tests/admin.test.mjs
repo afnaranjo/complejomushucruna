@@ -6,6 +6,64 @@ import { join } from 'node:path';
 import { buildSite } from '../scripts/build.mjs';
 
 const load = () => import('../src/admin/admin.js');
+test('admin detalle mantiene fotos y enlaces solo durante su apertura y descarta respuestas tardías', async () => {
+  const { AdminDetailAccess, createAdminClient } = await load();
+  const pending = []; const calls = []; const revoked = []; let sequence = 0;
+  const id = 'a'.repeat(32); const other = 'b'.repeat(32);
+  const resetUrl = 'https://complejomushucruna.com/finados/voceros/restablecer/?token=' + 'c'.repeat(64);
+  const client = createAdminClient(undefined, async (url, options) => {
+    calls.push({ url, ...options });
+    if (url.endsWith('/session')) return Response.json({ csrf: 'test-csrf' });
+    if (url.endsWith('/photo')) return new Promise(resolve => pending.push(resolve));
+    return Response.json({ resetUrl });
+  });
+  const access = new AdminDetailAccess(client, { createObjectURL: () => `blob:${++sequence}`, revokeObjectURL: url => revoked.push(url) });
+  await client.session();
+  access.open(id);
+  assert.equal(calls.length, 1, 'opening state does not fetch a photo eagerly');
+  const first = access.loadPhoto();
+  access.close();
+  pending.shift()(new Response('jpeg', { headers: { 'Content-Type': 'image/jpeg' } }));
+  assert.equal(await first, ''); assert.equal(sequence, 0);
+  access.open(id);
+  const loaded = access.loadPhoto(); pending.shift()(new Response('jpeg', { headers: { 'Content-Type': 'image/jpeg' } }));
+  assert.equal(await loaded, 'blob:1'); assert.equal(access.filename, `vocero-${id}.jpg`);
+  assert.equal(await access.generateReset(), resetUrl);
+  let copied = '';
+  assert.equal(await access.copyReset({ writeText: async value => { copied = value; } }), true);
+  assert.equal(copied, resetUrl);
+  await assert.rejects(access.copyReset({ writeText: async () => { throw new Error('denied'); } }));
+  access.open(other); assert.deepEqual(revoked, ['blob:1']); assert.equal(access.resetUrl, '');
+  await assert.rejects(access.copyReset({ writeText: async () => {} }));
+  const changed = access.loadPhoto(); access.open(id);
+  pending.shift()(new Response('jpeg', { headers: { 'Content-Type': 'image/jpeg' } }));
+  assert.equal(await changed, '');
+  const last = access.loadPhoto(); pending.shift()(new Response('jpeg', { headers: { 'Content-Type': 'image/jpeg' } }));
+  await last; access.close(); assert.deepEqual(revoked, ['blob:1', 'blob:2']);
+  assert.ok(calls.every(call => call.credentials === 'include' && call.cache === 'no-store' && call.redirect === 'error'));
+  assert.equal(calls.find(call => call.url.endsWith('/password-reset')).headers['X-CSRF-Token'], 'test-csrf');
+  assert.throws(() => access.open('../private'));
+  await assert.rejects(client.request('/voceros/../photo', { blob: true }));
+});
+
+test('admin descarta enlaces tardíos y rechaza destinos externos de recuperación', async () => {
+  const { AdminDetailAccess } = await load();
+  let resolve;
+  const access = new AdminDetailAccess({ request: async () => new Promise(done => { resolve = done; }) });
+  access.open('a'.repeat(32)); const promise = access.generateReset(); access.close();
+  resolve({ resetUrl: 'https://complejomushucruna.com/finados/voceros/restablecer/?token=' + 'c'.repeat(64) });
+  assert.equal(await promise, ''); assert.equal(access.resetUrl, '');
+  access.open('b'.repeat(32)); const evil = access.generateReset(); resolve({ resetUrl: 'https://evil.invalid/' });
+  await assert.rejects(evil);
+});
+
+test('admin renderiza foto privada y recuperación con campo de solo lectura', async () => {
+  const { renderAdminVocerosPage } = await import('../src/admin/page.mjs');
+  const html = renderAdminVocerosPage({ title: 'Voceros', route: '/admin/voceros/' });
+  assert.match(html, /data-admin-photo/); assert.match(html, /data-admin-reset/);
+  assert.match(html, /Sin fotografía histórica/); assert.match(html, /readonly[^>]*data-reset-url/);
+  assert.match(html, /img-src 'self' blob:/);
+});
 test('admin genera acceso aislado, recursos y configuración segura de producción', async () => {
   const out = await mkdtemp(join(tmpdir(), 'admin-build-'));
   const files = await buildSite(out);

@@ -62,7 +62,11 @@ export class VoceroApiClient {
   profile() { return this.request('/profile'); }
   saveProfile(body) { return this.request('/profile', { body }); }
   photo() { return this.request('/photo', { blob: true }); }
-  reset(token, password) { return this.request('/auth/reset', { body: { token, password } }); }
+  async reset(token, password) {
+    const result = await this.request('/auth/reset', { body: { token, password } });
+    if (result?.ok !== true) throw new VoceroError(502, 'reset');
+    return result;
+  }
 }
 
 export async function registerAndSwitchToLogin(api, email, password, setMode) {

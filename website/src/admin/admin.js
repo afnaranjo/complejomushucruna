@@ -42,10 +42,11 @@ export function createAdminClient(baseUrl = API, fetchImplementation = fetch) {
   if (![API, LOCAL_API].filter(Boolean).includes(baseUrl)) throw new Error('Origen de API no permitido.');
   let csrf = '';
   async function request(path, options = {}) {
-    if (!/^\/(?:auth\/(?:session|login|logout)|dashboard|voceros(?:\/[a-zA-Z0-9-]+(?:\/notes)?)?)(?:\?[^#]*)?$/.test(path)) throw new Error('Ruta de API no permitida.');
+    if (!/^\/(?:auth\/(?:session|login|logout)|dashboard|voceros(?:\/[a-zA-Z0-9-]+(?:\/notes)?)?)(?:\?[^#]*)?$/.test(path)
+      && !/^\/voceros\/[a-f0-9]{32}\/(?:photo|password-reset)$/.test(path)) throw new Error('Ruta de API no permitida.');
     const method = (options.method ?? 'GET').toUpperCase();
     if (!['GET', 'POST', 'PATCH'].includes(method)) throw new Error('Método no permitido.');
-    const headers = { Accept: 'application/json' };
+    const headers = { Accept: options.blob && path.endsWith('/photo') ? 'image/jpeg' : 'application/json' };
     if (method !== 'GET') {
       if (!csrf) throw new AdminError(403);
       headers['X-CSRF-Token'] = csrf;
@@ -54,12 +55,15 @@ export function createAdminClient(baseUrl = API, fetchImplementation = fetch) {
     let response;
     try {
       response = await fetchImplementation(`${baseUrl}${path}`, {
-        method, credentials: 'include', cache: 'no-store', redirect: 'error', headers,
+        method, credentials: 'include', cache: 'no-store', redirect: 'error', referrerPolicy: 'no-referrer', headers,
         ...(options.body === undefined ? {} : { body: JSON.stringify(options.body) }),
       });
     } catch { throw new AdminError(0); }
     if (!response.ok) throw new AdminError(response.status);
-    if (options.blob) return response.blob();
+    if (options.blob) {
+      if (path.endsWith('/photo') && response.headers.get('Content-Type')?.split(';')[0] !== 'image/jpeg') throw new AdminError(502);
+      return response.blob();
+    }
     let data;
     try { data = await response.json(); } catch { throw new AdminError(502); }
     if (typeof data.csrf === 'string') csrf = data.csrf;
@@ -75,6 +79,48 @@ export function createAdminClient(baseUrl = API, fetchImplementation = fetch) {
       return request('/voceros/export', { method: 'POST', body, blob: true });
     },
   };
+}
+
+/** Owns sensitive detail state; closing invalidates pending work before it reaches the DOM. */
+export class AdminDetailAccess {
+  #generation = 0;
+  constructor(client, urls = URL) { this.client = client; this.urls = urls; this.id = ''; this.photoUrl = ''; this.resetUrl = ''; }
+  open(id) {
+    this.close();
+    if (!/^[a-f0-9]{32}$/.test(id)) throw new Error('Identificador no válido.');
+    this.id = id;
+  }
+  close() {
+    this.#generation++;
+    if (this.photoUrl) this.urls.revokeObjectURL(this.photoUrl);
+    this.id = ''; this.photoUrl = ''; this.resetUrl = '';
+  }
+  get filename() { return this.id ? `vocero-${this.id}.jpg` : ''; }
+  async loadPhoto() {
+    if (!this.id) throw new AdminError(404);
+    const generation = this.#generation;
+    const blob = await this.client.request(`/voceros/${this.id}/photo`, { blob: true });
+    if (generation !== this.#generation) return '';
+    if (this.photoUrl) this.urls.revokeObjectURL(this.photoUrl);
+    this.photoUrl = this.urls.createObjectURL(blob);
+    return this.photoUrl;
+  }
+  async generateReset() {
+    if (!this.id) throw new AdminError(404);
+    const generation = this.#generation;
+    this.resetUrl = '';
+    const data = await this.client.request(`/voceros/${this.id}/password-reset`, { method: 'POST', body: {} });
+    if (generation !== this.#generation) return '';
+    if (typeof data.resetUrl !== 'string' || !/^https:\/\/complejomushucruna\.com\/finados\/voceros\/restablecer\/\?token=[a-f0-9]{64}$/.test(data.resetUrl)) throw new AdminError(502);
+    this.resetUrl = data.resetUrl;
+    return this.resetUrl;
+  }
+  async copyReset(clipboard = globalThis.navigator?.clipboard) {
+    if (!this.resetUrl || !clipboard?.writeText) throw new Error('No se pudo copiar. Selecciona y copia el enlace de la caja.');
+    const generation = this.#generation;
+    await clipboard.writeText(this.resetUrl);
+    return generation === this.#generation;
+  }
 }
 
 function node(tag, text, className) {
@@ -117,9 +163,10 @@ export async function initializeAdmin() {
     feedback(status, 'La configuración de acceso no es válida.', 'error'); return;
   }
   const client = createAdminClient(base);
+  let clearPrivateDetail = () => {};
   const redirect = path => location.replace(path);
   const fail = (error, target = status) => {
-    if (error.status === 401 && panel) { redirect('/admin/'); return; }
+    if (error.status === 401 && panel) { clearPrivateDetail(); redirect('/admin/'); return; }
     feedback(target, error.message, 'error');
   };
   let startPanel;
@@ -184,6 +231,41 @@ export async function initializeAdmin() {
   let detailGeneration = 0;
   let currentId = null;
   let opener = null;
+  const detailAccess = new AdminDetailAccess(client);
+  const photoImage = query('[data-admin-photo-image]');
+  const photoDownload = query('[data-admin-photo-download]');
+  const photoMessage = query('[data-admin-photo-message]');
+  const resetButton = query('[data-admin-reset]');
+  const resetOutput = query('[data-reset-output]');
+  const resetInput = query('[data-reset-url]');
+  const resetFeedback = query('[data-reset-feedback]');
+  function clearMedia() {
+    detailAccess.close();
+    photoImage.removeAttribute('src'); photoImage.hidden = true;
+    photoDownload.removeAttribute('href'); photoDownload.removeAttribute('download'); photoDownload.hidden = true;
+    photoMessage.textContent = ''; resetInput.value = ''; resetOutput.hidden = true; resetButton.disabled = true;
+    feedback(resetFeedback, '');
+  }
+  clearPrivateDetail = () => { currentId = null; detailGeneration++; clearMedia(); };
+  globalThis.addEventListener?.('pagehide', clearPrivateDetail);
+  globalThis.addEventListener?.('pageshow', event => { if (event.persisted) location.reload(); });
+  resetButton.addEventListener('click', async () => {
+    const generation = detailGeneration;
+    resetButton.disabled = true; resetOutput.hidden = true; resetInput.value = '';
+    feedback(resetFeedback, 'Generando enlace…');
+    try {
+      const url = await detailAccess.generateReset();
+      if (!url || generation !== detailGeneration) return;
+      resetInput.value = url; resetOutput.hidden = false;
+      feedback(resetFeedback, 'Enlace válido por 30 minutos y un solo uso. Entrégalo por el canal acordado.');
+    } catch (error) { if (generation === detailGeneration) fail(error, resetFeedback); }
+    finally { if (generation === detailGeneration) resetButton.disabled = false; }
+  });
+  query('[data-reset-copy]').addEventListener('click', async () => {
+    const generation = detailGeneration;
+    try { if (await detailAccess.copyReset()) feedback(resetFeedback, 'Enlace copiado.', 'success'); }
+    catch { if (generation === detailGeneration) feedback(resetFeedback, 'No se pudo copiar. Selecciona y copia el enlace de la caja.', 'error'); }
+  });
 
   function renderCounts(target, counts, format = value => value) {
     target.replaceChildren();
@@ -273,12 +355,28 @@ export async function initializeAdmin() {
     }
     if (!data.notes?.length) query('[data-notes]').append(node('li', 'Todavía no hay notas.'));
   }
-  async function loadDetail(id, generation) {
+  async function loadDetail(id, generation, media = false) {
     const data = await client.request('/voceros/' + encodeURIComponent(id));
     if (generation !== detailGeneration || currentId !== id || !dialog.open) return false;
-    renderDetail(data); return true;
+    renderDetail(data);
+    if (media) {
+      resetButton.disabled = !data.account?.active;
+      if (!data.account?.active) feedback(resetFeedback, 'Este registro no tiene una cuenta activa vinculada.');
+      photoMessage.textContent = data.photo?.available ? 'Cargando fotografía…' : 'Sin fotografía histórica';
+      if (data.photo?.available) {
+        try {
+          const url = await detailAccess.loadPhoto();
+          if (!url || generation !== detailGeneration || !dialog.open) return false;
+          photoImage.src = url; photoImage.hidden = false;
+          photoDownload.href = url; photoDownload.download = detailAccess.filename; photoDownload.hidden = false;
+          photoMessage.textContent = 'Fotografía privada para identificación y gafete.';
+        } catch (error) { if (generation === detailGeneration) fail(error, photoMessage); }
+      }
+    }
+    return true;
   }
   async function openDetail(id, trigger) {
+    clearMedia(); detailAccess.open(id);
     currentId = id; opener = trigger;
     const generation = ++detailGeneration;
     query('[data-detail-content]').replaceChildren(); query('[data-notes]').replaceChildren(); noteForm.reset();
@@ -286,7 +384,7 @@ export async function initializeAdmin() {
     dialog.showModal(); query('#detail-title').focus();
     feedback(detailFeedback, 'Cargando detalle…');
     try {
-      if (await loadDetail(id, generation)) {
+      if (await loadDetail(id, generation, true)) {
         statusForm.querySelector('fieldset').disabled = noteForm.querySelector('fieldset').disabled = false;
         feedback(detailFeedback, '');
       }
@@ -294,7 +392,7 @@ export async function initializeAdmin() {
   }
   query('[data-detail-close]').addEventListener('click', () => dialog.close());
   dialog.addEventListener('close', () => {
-    currentId = null; detailGeneration++;
+    clearPrivateDetail();
     query('[data-detail-content]').replaceChildren(); query('[data-notes]').replaceChildren(); noteForm.reset();
     (opener?.isConnected ? opener : query('#records-title')).focus();
   });
@@ -350,6 +448,7 @@ export async function initializeAdmin() {
     } catch (error) { fail(error); } finally { exportButton.disabled = false; }
   });
   logout.addEventListener('click', async () => {
+    clearPrivateDetail(); if (dialog.open) dialog.close();
     logout.disabled = true;
     try { await client.logout(); redirect('/admin/'); } catch (error) { fail(error); logout.disabled = false; }
   });

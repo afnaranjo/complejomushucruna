@@ -290,6 +290,15 @@ final class VocerosRepository
         return $detail;
     }
 
+    /** Only the authenticated admin detail consumes this minimal metadata. */
+    public function accessMetadata(string $publicId): array
+    {
+        $query = $this->pdo->prepare('SELECT p.width, p.height, p.created_at, a.active FROM voceros v LEFT JOIN vocero_photos p ON p.vocero_id = v.id LEFT JOIN vocero_account_links l ON l.vocero_id = v.id LEFT JOIN vocero_accounts a ON a.id = l.account_id WHERE v.public_id = ?');
+        $query->execute([$publicId]); $row = $query->fetch();
+        if (!$row) throw new OutOfBoundsException();
+        return ['photo' => ['available' => $row['width'] !== null, 'width' => $row['width'] === null ? null : (int) $row['width'], 'height' => $row['height'] === null ? null : (int) $row['height'], 'created_at' => $row['created_at']], 'account' => ['active' => (int) ($row['active'] ?? 0) === 1]];
+    }
+
     public function changeStatus(string $publicId, string $status, int $actorId, string $ip = ''): void
     {
         if (!in_array($status, self::STATUSES, true)) {

@@ -144,6 +144,16 @@ test('errores diferenciados y reset inexistente nunca simula éxito', async () =
   await assert.rejects(unavailable.reset('a'.repeat(64), 'long password'), error => /enlace.*no está disponible/i.test(error.message));
 });
 
+test('reset exige confirmación explícita del servidor antes de mostrar éxito', async () => {
+  const { VoceroApiClient } = await clientModule();
+  for (const body of [{}, { ok: false }, { authenticated: true }]) {
+    const api = new VoceroApiClient(undefined, async url => url.endsWith('/session') ? reply({ csrf: 'test-csrf' }) : reply(body));
+    await assert.rejects(api.reset('a'.repeat(64), 'long password'), error => error.status === 502);
+  }
+  const api = new VoceroApiClient(undefined, async url => url.endsWith('/session') ? reply({ csrf: 'test-csrf' }) : reply({ ok: true }));
+  assert.equal((await api.reset('a'.repeat(64), 'long password')).ok, true);
+});
+
 test('endpoint anónimo devuelve 401 sin inicializar backend ni Sheets', () => {
   const endpoint = fileURLToPath(new URL('../public/api/voceros/index.php', import.meta.url));
   const result = spawnSync('php', ['-r', `require $argv[1]; $hit=false; $trap=function()use(&$hit){$hit=true; throw new Exception();}; $r=voceros_handle_request(['REQUEST_METHOD'=>'POST'], [], $trap, $trap); echo json_encode([$r,$hit]);`, endpoint], { encoding: 'utf8' });

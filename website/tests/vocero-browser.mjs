@@ -23,6 +23,7 @@ const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
 page.setDefaultTimeout(7000);
 const errors = []; page.on('pageerror', error => errors.push(error.message));
 let authenticated = false; let saved = false; let rejectSave = true;
+let resetAccepted = false;
 const calls = [];
 const record = { registered: true, submission_id: 'b'.repeat(32), full_name: 'Persona Prueba', cedula: '0102030400', birth_date: '2000-01-01', whatsapp: '0999999999', email: 'person@example.invalid', city: 'Ambato', main_network: 'TikTok', tiktok: 'https://www.tiktok.com/@prueba', instagram: '', facebook: '', previous_participation: 'No, es mi primera vez', community_source: 'Otro', kit_pickup: 'En la oficina', status: 'Nuevo', photo: { available: true } };
 const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Y9Zl1sAAAAASUVORK5CYII=', 'base64');
@@ -41,7 +42,7 @@ await page.route('https://finados.complejomushucruna.com/api/**', async route =>
   if (path.endsWith('/register')) return respond({ ok: true }, 202);
   if (path.endsWith('/login')) { authenticated = true; return respond({ authenticated, user: { role: 'vocero', email: record.email }, csrf: 'rotated-csrf' }); }
   if (path.endsWith('/logout')) { authenticated = false; return respond({ ok: true }); }
-  if (path.endsWith('/reset')) return respond({}, 404);
+  if (path.endsWith('/reset')) return resetAccepted ? respond({ ok: true, csrf: 'reset-csrf' }) : respond({}, 404);
   if (path.endsWith('/photo')) return route.fulfill({ headers, contentType: 'image/png', body: png });
   if (path.endsWith('/profile') && method === 'POST') {
     if (rejectSave) return respond({}, 422);
@@ -137,6 +138,14 @@ try {
   await page.locator('[data-vocero-feedback][data-error=true]').waitFor();
   assert.match(await page.locator('[data-vocero-feedback]').textContent(), /no está disponible/);
   await page.screenshot({ path: 'output/playwright/vocero-reset-mobile.png', fullPage: true, animations: 'disabled' });
+  resetAccepted = true;
+  await page.getByRole('button', { name: 'Guardar contraseña' }).click();
+  await page.getByText('Contraseña actualizada. Inicia sesión con tu nueva contraseña.').waitFor();
+  assert.equal(await page.locator('[data-vocero-reset]').isHidden(), true);
+  assert.equal(await page.locator('#reset-password').inputValue(), '');
+  assert.equal(new URL(page.url()).search, '');
+  assert.equal(JSON.parse(calls.findLast(call => call.path.endsWith('/reset')).body).token, 'd'.repeat(64));
+  assert.equal(await page.evaluate(() => localStorage.length + sessionStorage.length), 0);
   assert.deepEqual(errors, []);
   console.log('PASS navegador: registro 202 → login, perfil nuevo, reintento 422, edición, solo lectura, reset 404, foco, preview y móvil.');
 } catch (error) {

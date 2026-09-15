@@ -9,7 +9,7 @@ use OutOfBoundsException;
 use PDO;
 use Throwable;
 
-foreach (['Config', 'Database', 'Crypto', 'Audit', 'VocerosRepository', 'Auth', 'VoceroAuth', 'VoceroProfile'] as $dependency) {
+foreach (['Config', 'Database', 'Crypto', 'Audit', 'VocerosRepository', 'Auth', 'VoceroAuth', 'VoceroProfile', 'VoceroPasswordReset'] as $dependency) {
     require_once __DIR__ . '/' . $dependency . '.php';
 }
 
@@ -98,6 +98,16 @@ final class Router
                 return $this->json(200, ['authenticated' => true, ...$result], $headers);
             }
             // Vocero authentication is deliberately isolated from the administrative guard and session.
+            if ($path === '/api/vocero/auth/reset' && $method === 'POST') {
+                if ($origin !== $this->config->allowedOrigin() || !is_string($ip) || inet_pton($ip) === false) throw new Forbidden();
+                $this->voceroAuth->verifyCsrf($token);
+                if ($query !== []) throw new InvalidArgumentException();
+                $body = $this->body($server, $rawBody, ['token', 'password']);
+                if (!is_string($body['token'] ?? null) || !is_string($body['password'] ?? null)) throw new InvalidArgumentException();
+                (new VoceroPasswordReset($this->pdo, $this->config))->consume($body['token'], $body['password'], $ip);
+                $this->voceroAuth->logout();
+                return $this->json(200, ['ok' => true, 'csrf' => $this->voceroAuth->csrfToken()], $headers);
+            }
             if ($path === '/api/vocero/auth/session' && $method === 'GET') {
                 try { $user = $this->voceroAuth->requireUser(); } catch (Unauthorized) { $user = null; }
                 return $this->json(200, ['authenticated' => $user !== null, 'user' => $user, 'csrf' => $this->voceroAuth->csrfToken()], $headers);
@@ -200,6 +210,30 @@ final class Router
                 return $this->export($filters, $user['id'], $ip, $headers);
             }
             if ($path === '/api/voceros/export') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+            if (preg_match('~^/api/voceros/([^/]+)/(photo|password-reset)$~D', $path, $parts)) {
+                $id = $parts[1]; $action = $parts[2];
+                if (preg_match('/^[a-f0-9]{32}$/D', $id) !== 1 || $query !== []) throw new InvalidArgumentException();
+                if (!is_string($ip) || inet_pton($ip) === false) throw new Forbidden();
+                if ($action === 'password-reset' && $method === 'POST') {
+                    if ($origin !== $this->config->allowedOrigin()) throw new Forbidden();
+                    $this->body($server, $rawBody, []);
+                    $raw = (new VoceroPasswordReset($this->pdo, $this->config))->create($id, $user['id'], $ip);
+                    return $this->json(201, ['resetUrl' => 'https://complejomushucruna.com/finados/voceros/restablecer/?token=' . $raw], $headers);
+                }
+                if ($action === 'photo' && $method === 'GET') {
+                    $lock = VoceroMediaLock::acquire($this->pdo, $this->config);
+                    try {
+                        $row = $this->pdo->prepare('SELECT p.storage_key FROM vocero_photos p JOIN voceros v ON v.id = p.vocero_id WHERE v.public_id = ?');
+                        $row->execute([$id]); $key = $row->fetchColumn();
+                        if ($key === false) throw new OutOfBoundsException();
+                        $jpeg = (new PhotoStorage($this->config, $this->crypto))->read($key);
+                        $this->audit->log('vocero.photo_viewed', $user['id'], 'vocero', $id, [], $ip);
+                    } finally { $lock->release(); }
+                    $headers['Content-Type'] = 'image/jpeg'; $headers['Cache-Control'] = 'private, no-store';
+                    return new Response(200, $headers, $jpeg);
+                }
+                return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+            }
             if (preg_match('~^/api/voceros/([^/]+)(/notes)?$~D', $path, $parts)) {
                 $id = $parts[1]; $notes = isset($parts[2]);
                 if (!$notes && $method === 'PATCH') {
@@ -218,6 +252,7 @@ final class Router
                     if (!is_string($ip) || inet_pton($ip) === false) throw new Forbidden();
                     $detail = $this->repository->find($id);
                     if ($detail === null) throw new OutOfBoundsException();
+                    $detail = [...$detail, ...$this->repository->accessMetadata($id)];
                     $this->audit->log('vocero.viewed', $user['id'], 'vocero', $id, [], $ip);
                     return $this->json(200, $detail, $headers);
                 }
@@ -233,6 +268,8 @@ final class Router
             return $this->error(403, 'forbidden', 'Solicitud no permitida.', $headers);
         } catch (RequestBodyError $error) {
             return $this->error($error->status, $error->errorCode, 'Formato de solicitud no válido.', $headers);
+        } catch (PasswordResetRateLimit) {
+            return $this->error(429, 'rate_limited', 'Espera antes de volver a intentar.', $headers);
         } catch (DuplicateRegistration) {
             return $this->error(409, 'duplicate_registration', 'Ya existe un registro con los datos proporcionados.', $headers);
         } catch (InvalidArgumentException | \JsonException) {

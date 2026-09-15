@@ -194,7 +194,7 @@ final class VoceroAuth
         return $email;
     }
 
-    private static function password(string $password): void
+    public static function password(#[\SensitiveParameter] string $password): void
     {
         if (strlen($password) < 10 || strlen($password) > 128 || preg_match('//u', $password) !== 1) {
             throw new InvalidArgumentException('Contraseña no válida.');

@@ -30,8 +30,17 @@ let failure = 0;
 let pendingPatch = null;
 let failDetailAfterPatch = false;
 let detailFailure = false;
+let photoAvailable = false;
+let pendingPhoto = null;
+const resetUrl = 'https://complejomushucruna.com/finados/voceros/restablecer/?token=' + 'a'.repeat(64);
 const calls = [];
-const record = { public_id: '00000000-0000-4000-8000-000000000001', submission_id: 'fixture-1', full_name: '<img src=x onerror=alert(1)> Prueba', status, city: 'Quito', main_network: 'TikTok', previous_participation: 'No, es mi primera vez', cedula: '******1234', whatsapp: '******5678', submitted_at: '2026-09-14 16:00:00' };
+const record = { public_id: '00000000000040008000000000000001', submission_id: 'fixture-1', full_name: '<img src=x onerror=alert(1)> Prueba', status, city: 'Quito', main_network: 'TikTok', previous_participation: 'No, es mi primera vez', cedula: '******1234', whatsapp: '******5678', submitted_at: '2026-09-14 16:00:00' };
+await page.addInitScript(() => {
+  globalThis.__revoked = []; globalThis.__copied = ''; globalThis.__clipboardDenied = false;
+  const revoke = URL.revokeObjectURL;
+  URL.revokeObjectURL = value => { globalThis.__revoked.push(value); revoke.call(URL, value); };
+  Object.defineProperty(navigator, 'clipboard', { value: { writeText: async text => { if (globalThis.__clipboardDenied) throw new Error('denied'); globalThis.__copied = text; } } });
+});
 await page.route('https://finados.complejomushucruna.com/api/**', async route => {
   const request = route.request(); const url = new URL(request.url()); const method = request.method();
   const body = request.postDataJSON(); calls.push({ path: url.pathname, query: url.searchParams, method, body, headers: request.headers() });
@@ -46,6 +55,11 @@ await page.route('https://finados.complejomushucruna.com/api/**', async route =>
   if (failure === -1) { failure = 0; return route.abort('failed'); }
   if (failure) { const code = failure; failure = 0; return respond({ message: 'fallo controlado' }, code); }
   if (url.pathname.endsWith('/logout')) { authenticated = false; return respond({ ok: true }); }
+  if (url.pathname.endsWith('/password-reset')) return respond({ resetUrl }, 201);
+  if (url.pathname.endsWith('/photo')) {
+    if (pendingPhoto) await pendingPhoto;
+    return route.fulfill({ headers, contentType: 'image/jpeg', body: Buffer.from([255, 216, 255, 217]) });
+  }
   if (url.pathname.endsWith('/dashboard')) return respond({ total: 26, byStatus: { Nuevo: status === 'Aprobado' ? 24 : 25, Aprobado: status === 'Aprobado' ? 2 : 1 }, byDate: { '2026-09-14': 26 }, lastSevenDays: 26 });
   if (url.pathname.endsWith('/export')) return route.fulfill({ headers, contentType: 'text/csv', body: 'nombre\nPrueba' });
   if (url.pathname.endsWith('/notes')) { notes.push({ body: body.body, created_at: '2026-09-14 16:30:00', author_id: 1 }); return respond({ ok: true }, 201); }
@@ -60,7 +74,7 @@ await page.route('https://finados.complejomushucruna.com/api/**', async route =>
     return respond({ items: empty ? [] : [{ ...record, status }], pagination: { page: Number(url.searchParams.get('page') ?? 1), pageSize: 25, total: empty ? 0 : 26, pages: empty ? 0 : 2 } });
   }
   if (detailFailure) { detailFailure = false; return respond({ message: 'Fallo de detalle posterior al guardado' }, 500); }
-  return respond({ ...record, status, cedula: '0000001234', whatsapp: '0000005678', email: 'fixture@example.test', notes, consents: [{ consent_type: 'privacy', accepted: 1, text_version: 'v1', accepted_at: '2026-09-14 16:00:00' }] });
+  return respond({ ...record, status, photo: { available: photoAvailable }, account: { active: photoAvailable }, cedula: '0000001234', whatsapp: '0000005678', email: 'fixture@example.test', notes, consents: [{ consent_type: 'privacy', accepted: 1, text_version: 'v1', accepted_at: '2026-09-14 16:00:00' }] });
 });
 await mkdir('output/playwright', { recursive: true });
 async function mobileViewportRegression() {
@@ -138,8 +152,52 @@ async function mutationRegressions() {
   }
   assert.deepEqual(failures, []);
 }
+async function privateAccessRegressions() {
+  authenticated = true;
+  await page.goto(origin + '/admin/voceros/');
+  await page.getByRole('button', { name: /Ver detalle de/ }).waitFor();
+  assert.equal(calls.filter(call => call.path.endsWith('/photo')).length, 0);
+  await page.getByRole('button', { name: /Ver detalle de/ }).click();
+  await page.getByText('Sin fotografía histórica', { exact: true }).waitFor();
+  assert.equal(await page.locator('[data-admin-reset]').isDisabled(), true);
+  await page.keyboard.press('Escape');
+  photoAvailable = true;
+  let release;
+  pendingPhoto = new Promise(resolve => { release = resolve; });
+  const requested = page.waitForRequest(request => request.url().endsWith('/photo'));
+  await page.getByRole('button', { name: /Ver detalle de/ }).click(); await requested;
+  await page.getByRole('button', { name: 'Cerrar detalle' }).click();
+  const finished = page.waitForResponse(response => response.url().endsWith('/photo'));
+  release(); pendingPhoto = null; await finished;
+  assert.equal(await page.locator('[data-admin-photo-image]').getAttribute('src'), null);
+  await page.getByRole('button', { name: /Ver detalle de/ }).click();
+  await page.locator('[data-admin-photo-image]:not([hidden])').waitFor();
+  assert.match(await page.locator('[data-admin-photo-image]').getAttribute('src'), /^blob:/);
+  const downloadEvent = page.waitForEvent('download');
+  await page.locator('[data-admin-photo-download]').click();
+  assert.equal((await downloadEvent).suggestedFilename(), `vocero-${record.public_id}.jpg`);
+  await page.locator('[data-admin-reset]').click();
+  await page.locator('[data-reset-output]:not([hidden])').waitFor();
+  assert.equal(await page.locator('[data-reset-url]').inputValue(), resetUrl);
+  assert.equal(await page.locator('[data-reset-url]').evaluate(element => element.readOnly), true);
+  await page.locator('[data-reset-copy]').click(); await page.getByText('Enlace copiado.', { exact: true }).waitFor();
+  assert.equal(await page.evaluate(() => globalThis.__copied), resetUrl);
+  await page.evaluate(() => { globalThis.__clipboardDenied = true; });
+  await page.locator('[data-reset-copy]').click(); await page.getByText('No se pudo copiar. Selecciona y copia el enlace de la caja.').waitFor();
+  await page.keyboard.press('Escape');
+  await page.locator('[data-reset-output][hidden]').waitFor({ state: 'attached' });
+  assert.equal(await page.locator('[data-reset-url]').inputValue(), '');
+  assert.equal(await page.evaluate(() => globalThis.__revoked.length), 1);
+  await page.getByRole('button', { name: /Ver detalle de/ }).click();
+  await page.locator('[data-admin-photo-image]:not([hidden])').waitFor();
+  await page.evaluate(() => document.querySelector('[data-admin-logout]').click());
+  await page.waitForURL('**/admin/');
+  assert.deepEqual(errors, []);
+  console.log('Admin private access: lazy photo, historical state, late response, blob download/revocation, temporary link, clipboard and logout: PASS');
+}
 try {
-  if (process.argv.includes('--mobile-viewport-regression')) await mobileViewportRegression();
+  if (process.argv.includes('--private-access-regressions')) await privateAccessRegressions();
+  else if (process.argv.includes('--mobile-viewport-regression')) await mobileViewportRegression();
   else if (process.argv.includes('--mutation-regressions')) await mutationRegressions();
   else {
   await page.goto(origin + '/admin/voceros/');
