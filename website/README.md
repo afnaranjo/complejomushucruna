@@ -83,7 +83,7 @@ npm run deploy
 
 El comando vuelve a ejecutar todas las validaciones, crea una copia recuperable del sitio actual en `/home/<usuario>/backups/`, sube `website/dist/` mediante un flujo `tar → SSH` sin borrar archivos exclusivos del servidor y verifica por HTTPS la portada, `/finados/`, las hojas de estilo y la respuesta 404.
 
-Para Voceros, despliega primero el backend como se indica abajo. El despliegue del frontend valida también ese backend e instala en el endpoint `/api/voceros/index.php` las rutas de bootstrap, sin contraseña ni claves. Conserva los otros endpoints, la configuración privada de Sheets y el funcionamiento del dominio principal. Las rutas administrativas no se añaden a la navegación pública.
+Para Voceros, despliega primero el backend como se indica abajo. El despliegue del frontend valida también ese backend y prepara `/api/voceros/index.php` con sus rutas de bootstrap y los helpers públicos incorporados, sin contraseña ni claves. Tras el respaldo, valida el PHP y exige que el GET real de la versión preparada confirme `open:true`; después reemplaza el endpoint mediante un único rename. La transferencia general excluye ese archivo: una interrupción no le retira las variables ni sustituye sus dependencias. Conserva los otros endpoints, la configuración privada de Sheets y el funcionamiento del dominio principal. Las rutas administrativas no se añaden a la navegación pública.
 
 La restauración de una copia remota no está automatizada porque sobrescribe el sitio. Si se necesita rollback, identifica primero la copia exacta y obtén autorización antes de reemplazar archivos.
 
@@ -133,6 +133,8 @@ La configuración privada acepta **exactamente** estas siete claves; reemplaza l
 ```
 
 Genera las dos claves de forma independiente en el servidor o gestor de secretos y conserva una copia de recuperación bajo acceso controlado. No guardes el JSON ni sus valores en Git. El despliegue lee la configuración ya instalada; no la sustituye. `FINADOS_CONFIG_PATH`, `FINADOS_BACKEND_ROOT` y `FINADOS_PUBLIC_ROOTS` contienen solamente rutas y se instalan como variables de proceso mediante front controllers PHP gestionados. Este método funciona sin depender de `SetEnv` de Apache bajo PHP-FPM y deja intactos `.user.ini` y `php.ini`.
+
+La carpeta de `FINADOS_CONFIG_PATH` es la única ubicación de la configuración del registro público: allí se instala `voceros-registration.json` y allí se busca el `google-sheets-config.json` ya existente. Si eliges otra carpeta privada aceptada, instala previamente la configuración de Sheets en esa misma carpeta por el medio seguro autorizado; el despliegue la conserva y no copia credenciales entre ubicaciones. El valor de ejemplo `private-data` no es una segunda ruta fija.
 
 Registra previamente la huella SSH del servidor tras verificarla por un canal confiable. El backend exige una entrada conocida (`StrictHostKeyChecking=yes`) y una llave cargada en el agente; no solicita ni guarda passphrases.
 
