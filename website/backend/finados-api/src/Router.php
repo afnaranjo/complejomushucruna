@@ -86,6 +86,13 @@ final class Router
                 if (!is_string($body['username'] ?? null) || strlen($body['username']) > 100
                     || !is_string($body['password'] ?? null) || strlen($body['password']) > 1024) throw new InvalidArgumentException();
                 $result = $this->auth->login($body['username'], $body['password'], $ip);
+                try {
+                    $this->audit->log('admin.login', $result['user']['id'], 'admin', $result['user']['public_id'], [], $ip);
+                } catch (Throwable $error) {
+                    // Do not leave a usable session behind when its access audit cannot be saved.
+                    $this->auth->logout();
+                    throw $error;
+                }
                 return $this->json(200, ['authenticated' => true, ...$result], $headers);
             }
             $user = $this->auth->requireUser();
@@ -135,8 +142,10 @@ final class Router
                     return $this->json(201, ['ok' => true], $headers);
                 }
                 if (!$notes && $method === 'GET') {
+                    if (!is_string($ip) || inet_pton($ip) === false) throw new Forbidden();
                     $detail = $this->repository->find($id);
                     if ($detail === null) throw new OutOfBoundsException();
+                    $this->audit->log('vocero.viewed', $user['id'], 'vocero', $id, [], $ip);
                     return $this->json(200, $detail, $headers);
                 }
                 return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);

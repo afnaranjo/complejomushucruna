@@ -148,6 +148,14 @@ same(200, $login['status']); same(true, $login['json']['authenticated']);
 same('admin', $login['json']['user']['username']);
 same(false, $cookie === api_cookie($login)); same(false, $csrf === $login['json']['csrf']);
 same(false, str_contains($login['body'], $apiHash));
+// Administrative login must leave a minimal audit, never a password or credential hash.
+$loginAudits = $apiPdo->query("SELECT * FROM audit_log WHERE event_type = 'admin.login'")->fetchAll();
+same(1, count($loginAudits));
+same(1, (int) $loginAudits[0]['actor_id']);
+same('admin', $loginAudits[0]['subject_type']);
+same(str_repeat('a', 32), $loginAudits[0]['subject_public_id']);
+same('{}', $loginAudits[0]['metadata_json']);
+same(hash_hmac('sha256', '192.0.2.99', str_repeat('h', 32)), $loginAudits[0]['ip_hash']);
 $oldCookie = $cookie; $cookie = api_cookie($login); $csrf = $login['json']['csrf'];
 same(401, api_request('GET', '/api/voceros', cookie: $oldCookie)['status']);
 same(true, api_request('GET', '/api/auth/session', cookie: $cookie)['json']['authenticated']);
@@ -175,7 +183,18 @@ foreach (['page=0', 'pageSize=101', 'status=Inventado', 'search[]=x', 'date_from
 }
 $detail = api_request('GET', '/api/voceros/' . $apiId, cookie: $cookie);
 same($apiRecord['email'], $detail['json']['email']); same(3, count($detail['json']['consents']));
+$viewAudits = $apiPdo->query("SELECT * FROM audit_log WHERE event_type = 'vocero.viewed'")->fetchAll();
+same(1, count($viewAudits));
+same(1, (int) $viewAudits[0]['actor_id']);
+same('vocero', $viewAudits[0]['subject_type']);
+same($apiId, $viewAudits[0]['subject_public_id']);
+same('{}', $viewAudits[0]['metadata_json']);
+same(hash_hmac('sha256', '192.0.2.99', str_repeat('h', 32)), $viewAudits[0]['ip_hash']);
+foreach (['', 'not-an-ip'] as $invalidIp) {
+    same(403, api_request('GET', '/api/voceros/' . $apiId, cookie: $cookie, server: ['REMOTE_ADDR' => $invalidIp])['status']);
+}
 same(404, api_request('GET', '/api/voceros/' . str_repeat('f', 32), cookie: $cookie)['status']);
+same(1, (int) $apiPdo->query("SELECT COUNT(*) FROM audit_log WHERE event_type = 'vocero.viewed'")->fetchColumn());
 $dashboard = api_request('GET', '/api/dashboard', cookie: $cookie);
 same(2, $dashboard['json']['total']); same(2, $dashboard['json']['byStatus']['Nuevo']); same(1, $dashboard['json']['lastSevenDays']);
 same(1, $dashboard['json']['byDate']['2020-01-01']);
@@ -263,6 +282,27 @@ same(500, $failed['status']); same(['ok', 'code', 'message'], array_keys($failed
 same(false, str_contains($failed['body'], 'secret sql path'));
 same(true, str_contains(file_get_contents($apiErrorLog), 'Finados API request failed.'));
 same(false, str_contains(file_get_contents($apiErrorLog), 'secret sql path'));
+// A failed detail audit must withhold protected fields and consent evidence.
+$failedDetail = api_request('GET', '/api/voceros/' . $apiId, cookie: $cookie);
+same(500, $failedDetail['status']);
+same(['ok', 'code', 'message'], array_keys($failedDetail['json']));
+foreach (['cedula', 'email', 'whatsapp'] as $protectedField) {
+    same(false, str_contains($failedDetail['body'], $apiRecord[$protectedField]));
+}
+same(false, str_contains($failedDetail['body'], '192.0.2.55'));
+same(1, (int) $apiPdo->query("SELECT COUNT(*) FROM audit_log WHERE event_type = 'vocero.viewed'")->fetchColumn());
+// A login whose audit fails must invalidate its freshly rotated session and cookie.
+$unauditedSession = api_request('GET', '/api/auth/session');
+$unauditedCookie = api_cookie($unauditedSession);
+$failedLogin = api_request('POST', '/api/auth/login', $credentials, $unauditedCookie, $unauditedSession['json']['csrf']);
+same(500, $failedLogin['status']);
+same(['ok', 'code', 'message'], array_keys($failedLogin['json']));
+same(true, str_contains($failedLogin['headers']['set-cookie'], 'Max-Age=0'));
+same(401, api_request('GET', '/api/voceros', cookie: api_cookie($failedLogin))['status']);
+same(401, api_request('GET', '/api/voceros', cookie: $unauditedCookie)['status']);
+same(false, str_contains($failedLogin['body'], $apiSecret));
+same(false, str_contains($failedLogin['body'], $apiHash));
+same(1, (int) $apiPdo->query("SELECT COUNT(*) FROM audit_log WHERE event_type = 'admin.login'")->fetchColumn());
 $apiPdo->exec('DROP TRIGGER fail_api_audit');
 $logout = api_request('POST', '/api/auth/logout', [], $cookie, $csrf);
 same(200, $logout['status']); same(true, str_contains($logout['headers']['set-cookie'], 'Max-Age=0'));
