@@ -55,3 +55,28 @@ throws(fn () => Config::fromFile(temp_public_file(json_encode([
     'encryptionKey' => base64_encode(str_repeat('e', 32)),
     'hmacKey' => base64_encode(str_repeat('h', 32)),
 ], JSON_THROW_ON_ERROR))), RuntimeException::class);
+
+throws(fn () => Config::fromProductionEnvironment([]), RuntimeException::class);
+throws(fn () => Config::fromProductionEnvironment(['FINADOS_CONFIG_PATH' => 'finados-backend.json']), RuntimeException::class);
+throws(fn () => Config::fromProductionEnvironment([
+    'FINADOS_CONFIG_PATH' => valid_config(),
+]), RuntimeException::class);
+throws(fn () => Config::fromProductionEnvironment([
+    'FINADOS_CONFIG_PATH' => temp_public_file(json_encode([
+        'environment' => 'production',
+        'databaseDsn' => 'sqlite::memory:',
+        'databaseUser' => '',
+        'databasePassword' => '',
+        'allowedOrigin' => 'https://finados.complejomushucruna.com',
+        'encryptionKey' => base64_encode(str_repeat('e', 32)),
+        'hmacKey' => base64_encode(str_repeat('h', 32)),
+    ], JSON_THROW_ON_ERROR)),
+]), RuntimeException::class);
+
+$productionFromEnvironment = Config::fromProductionEnvironment([
+    'FINADOS_CONFIG_PATH' => valid_config([
+        'environment' => 'production',
+        'allowedOrigin' => 'https://finados.complejomushucruna.com',
+    ]),
+]);
+same(true, $productionFromEnvironment->isProduction());

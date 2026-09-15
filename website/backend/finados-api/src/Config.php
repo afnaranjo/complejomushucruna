@@ -98,6 +98,27 @@ final class Config
         );
     }
 
+    public static function fromProductionEnvironment(?array $environment = null): self
+    {
+        $environment ??= getenv();
+        $path = $environment['FINADOS_CONFIG_PATH'] ?? null;
+        if (!is_string($path) || !str_starts_with($path, DIRECTORY_SEPARATOR)) {
+            throw new RuntimeException('Finados backend production configuration is invalid.');
+        }
+
+        $resolvedPath = realpath($path);
+        if ($resolvedPath === false || !is_file($resolvedPath) || self::isInsidePublicHtml($resolvedPath)) {
+            throw new RuntimeException('Finados backend production configuration is invalid.');
+        }
+
+        $config = self::fromFile($resolvedPath);
+        if (!$config->isProduction()) {
+            throw new RuntimeException('Finados backend production configuration is invalid.');
+        }
+
+        return $config;
+    }
+
     public function databaseDsn(): string
     {
         return $this->databaseDsn;
