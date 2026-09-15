@@ -107,15 +107,34 @@ final class VoceroPasswordReset
             return $result;
         } catch (Throwable $error) {
             if ($started) {
-                if ($mysql) { if ($this->pdo->inTransaction()) $this->pdo->rollBack(); }
-                else $this->pdo->exec('ROLLBACK');
+                try {
+                    if ($mysql) { if ($this->pdo->inTransaction()) $this->pdo->rollBack(); }
+                    else $this->pdo->exec('ROLLBACK');
+                } catch (Throwable) {
+                    // Preserve the original operation/commit failure, not its cleanup failure.
+                    $this->logCleanupFailure('rollback');
+                }
             }
             throw $error;
         } finally {
             if ($locked) {
-                $query = $this->pdo->prepare('SELECT RELEASE_LOCK(?)');
-                $query->execute(['finados.voceros.password-reset']);
+                try {
+                    $query = $this->pdo->prepare('SELECT RELEASE_LOCK(?)');
+                    $query->execute(['finados.voceros.password-reset']);
+                } catch (Throwable) {
+                    // COMMIT remains authoritative. Never discard a committed token/password or
+                    // mask the primary failure. Database uses nonpersistent connections: any retained
+                    // named lock is released when this request's connection closes.
+                    $this->logCleanupFailure('lock');
+                }
             }
         }
+    }
+
+    private function logCleanupFailure(string $operation): void
+    {
+        // Diagnostics are best effort and contain neither exception details nor sensitive values.
+        try { error_log('Finados password reset ' . $operation . ' cleanup failed.'); }
+        catch (Throwable) { /* Logging must not replace the transaction's confirmed outcome. */ }
     }
 }
