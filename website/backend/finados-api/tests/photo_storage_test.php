@@ -293,6 +293,8 @@ photo_error(fn () => $storage->read($truncated['storage_key']));
 
 $physicalOversize = invalid_photo_path(str_repeat('x', (5 * 1024 * 1024) + 1));
 photo_error(fn () => $storage->stage($physicalOversize, filesize($physicalOversize)), $physicalOversize);
+$boundedPhysicalOversize = invalid_photo_path(str_repeat('x', (5 * 1024 * 1024) + 1));
+photo_error(fn () => $storage->stage($boundedPhysicalOversize, 5 * 1024 * 1024), $boundedPhysicalOversize);
 $mismatchPath = jpeg_photo(40, 20);
 photo_error(fn () => $storage->stage($mismatchPath, filesize($mismatchPath) - 1), $mismatchPath);
 
