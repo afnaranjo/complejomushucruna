@@ -56,7 +56,7 @@ confidencialidad: interno
 - `website/scripts/{build.mjs,deploy-finados-backend.mjs,deploy-cpanel.mjs}`: empaquetado y prevuelo sin publicar.
 - `website/tests/` y `website/backend/finados-api/tests/`: contratos unitarios, build e integración real.
 
-### Tarea 1: Persistencia y autenticación del perfil Vocero
+### Task 1: Persistencia y autenticación del perfil Vocero
 
 **Archivos:**
 - Crear: `website/backend/finados-api/migrations/003_vocero_accounts_mysql.sql`
@@ -167,7 +167,7 @@ git add website/backend/finados-api/migrations/003_vocero_accounts_mysql.sql web
 git commit -m "Añadir cuentas y sesión del perfil Vocero"
 ```
 
-### Tarea 2: Procesamiento y almacenamiento privado de fotografías
+### Task 2: Procesamiento y almacenamiento privado de fotografías
 
 **Archivos:**
 - Crear: `website/backend/finados-api/src/PhotoStorage.php`
@@ -244,7 +244,7 @@ git add website/backend/finados-api/src/PhotoStorage.php website/backend/finados
 git commit -m "Guardar fotografías privadas de Voceros"
 ```
 
-### Tarea 3: Formulario autenticado, consentimientos y fotografía propia
+### Task 3: Formulario autenticado, consentimientos y fotografía propia
 
 **Archivos:**
 - Modificar: `website/backend/finados-api/resources/vocero-consents.json` únicamente si la prueba descubre una diferencia con el texto aprobado.
@@ -315,7 +315,7 @@ git add website/backend/finados-api/src/VoceroProfile.php website/backend/finado
 git commit -m "Ligar registro y fotografía a cada Vocero"
 ```
 
-### Tarea 4: Portal visual del Vocero y retiro del alta anónima
+### Task 4: Portal visual del Vocero y retiro del alta anónima
 
 **Archivos:**
 - Crear: `website/src/finados/vocero-form.mjs`
@@ -399,7 +399,7 @@ git add website/src/finados/vocero-form.mjs website/src/finados/vocero-portal-pa
 git commit -m "Crear portal privado para el perfil Vocero"
 ```
 
-### Tarea 5: Fotografía y recuperación desde el panel Administrador
+### Task 5: Fotografía y recuperación desde el panel Administrador
 
 **Archivos:**
 - Crear: `website/backend/finados-api/src/VoceroPasswordReset.php`
@@ -464,7 +464,7 @@ git add website/backend/finados-api/src/VoceroPasswordReset.php website/backend/
 git commit -m "Gestionar foto y acceso de Voceros desde administración"
 ```
 
-### Tarea 6: Privacidad, respaldo, prevuelo e integración completa
+### Task 6: Privacidad, respaldo, prevuelo e integración completa
 
 **Archivos:**
 - Modificar: `website/src/finados/voceros-legal-page.mjs`
