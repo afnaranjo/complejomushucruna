@@ -28,6 +28,11 @@ function repository_config(array $overrides = []): Config
     ], $overrides), JSON_THROW_ON_ERROR)));
 }
 
+// Equal encryption and lookup keys must fail before any cryptographic operation.
+throws(fn () => new Crypto(repository_config([
+    'hmacKey' => base64_encode(str_repeat('e', 32)),
+])), RuntimeException::class);
+
 // Removing randomized authenticated encryption exposes data or accepts tampering.
 $config = repository_config();
 $crypto = new Crypto($config);

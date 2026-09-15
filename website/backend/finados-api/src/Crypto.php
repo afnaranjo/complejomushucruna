@@ -10,6 +10,9 @@ final class Crypto
 {
     public function __construct(private readonly Config $config)
     {
+        if (hash_equals($config->encryptionKey(), $config->hmacKey())) {
+            throw new RuntimeException('Encryption and lookup keys must be distinct.');
+        }
     }
 
     public function encrypt(string $value): string
