@@ -25,6 +25,7 @@ final class Audit
             $valid = match ($key) {
                 'from_status', 'to_status' => in_array($value, VocerosRepository::STATUSES, true),
                 'note_id', 'count' => is_int($value) && $value >= 0,
+                'filters' => $eventType === 'vocero.exported' && $this->safeFilters($value),
                 default => false,
             };
             if (!$valid) {
@@ -36,5 +37,21 @@ final class Audit
             $actorId, $eventType, $subjectType, $publicId,
             json_encode((object) $metadata, JSON_THROW_ON_ERROR), $this->crypto->lookup($ip), gmdate('Y-m-d H:i:s'),
         ]);
+    }
+
+    private function safeFilters(mixed $filters): bool
+    {
+        if (!is_array($filters)) return false;
+        foreach ($filters as $key => $value) {
+            if (!is_string($value)) return false;
+            if ($key === 'status' && in_array($value, VocerosRepository::STATUSES, true)) continue;
+            if (in_array($key, ['date_from', 'date_to'], true)
+                && preg_match('/^(\d{4})-(\d{2})-(\d{2})$/D', $value, $parts)
+                && checkdate((int) $parts[2], (int) $parts[3], (int) $parts[1])) continue;
+            if (in_array($key, ['search_hash', 'city_hash', 'main_network_hash', 'previous_participation_hash'], true)
+                && preg_match('/^[a-f0-9]{64}$/D', $value)) continue;
+            return false;
+        }
+        return true;
     }
 }

@@ -250,35 +250,35 @@ final class VocerosRepository
         return $detail;
     }
 
-    public function changeStatus(string $publicId, string $status, int $actorId): void
+    public function changeStatus(string $publicId, string $status, int $actorId, string $ip = ''): void
     {
         if (!in_array($status, self::STATUSES, true)) {
             throw new InvalidArgumentException('Invalid registration status.');
         }
-        $this->mutate($publicId, $actorId, function (array $row) use ($publicId, $status, $actorId): void {
+        $this->mutate($publicId, $actorId, function (array $row) use ($publicId, $status, $actorId, $ip): void {
             if ($row['status'] === $status) {
                 return;
             }
             $query = $this->pdo->prepare('UPDATE voceros SET status = ?, updated_at = ? WHERE id = ?');
             $query->execute([$status, gmdate('Y-m-d H:i:s'), $row['id']]);
-            $this->audit->log('vocero.status_changed', $actorId, 'vocero', $publicId, ['from_status' => $row['status'], 'to_status' => $status]);
+            $this->audit->log('vocero.status_changed', $actorId, 'vocero', $publicId, ['from_status' => $row['status'], 'to_status' => $status], $ip);
         });
     }
 
-    public function addNote(string $publicId, string $text, int $actorId): void
+    public function addNote(string $publicId, string $text, int $actorId, string $ip = ''): void
     {
         $text = trim($text);
         $length = preg_match_all('/./us', $text);
         if ($length === false || $length < 1 || $length > 2000) {
             throw new InvalidArgumentException('Notes require 1 to 2000 characters.');
         }
-        $this->mutate($publicId, $actorId, function (array $row) use ($publicId, $text, $actorId): void {
+        $this->mutate($publicId, $actorId, function (array $row) use ($publicId, $text, $actorId, $ip): void {
             $now = gmdate('Y-m-d H:i:s');
             $this->insert('vocero_notes', ['vocero_id' => $row['id'], 'author_id' => $actorId, 'body' => $text, 'created_at' => $now]);
             $noteId = (int) $this->pdo->lastInsertId();
             $query = $this->pdo->prepare('UPDATE voceros SET updated_at = ? WHERE id = ?');
             $query->execute([$now, $row['id']]);
-            $this->audit->log('vocero.note_added', $actorId, 'vocero', $publicId, ['note_id' => $noteId]);
+            $this->audit->log('vocero.note_added', $actorId, 'vocero', $publicId, ['note_id' => $noteId], $ip);
         });
     }
 
