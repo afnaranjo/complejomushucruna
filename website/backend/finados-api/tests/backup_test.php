@@ -53,8 +53,9 @@ same(false, str_contains($missing['out'] . $missing['err'], 'synthetic-only'));
 $fake = <<<'PHP'
 <?php
 $args = array_slice($argv, 1);
-if (count($args) !== 6 || !str_starts_with($args[0], '--defaults-file=') || $args[1] !== '--single-transaction'
-    || $args[2] !== '--quick' || $args[3] !== '--skip-lock-tables' || $args[4] !== '--databases' || $args[5] !== 'synthetic') exit(21);
+if (count($args) !== 7 || !str_starts_with($args[0], '--defaults-file=') || $args[1] !== '--single-transaction'
+    || $args[2] !== '--quick' || $args[3] !== '--skip-lock-tables' || $args[4] !== '--no-tablespaces'
+    || $args[5] !== '--databases' || $args[6] !== 'synthetic') exit(21);
 $path = substr($args[0], strlen('--defaults-file='));
 if ((fileperms($path) & 0777) !== 0600) exit(22);
 $contents = file_get_contents($path);

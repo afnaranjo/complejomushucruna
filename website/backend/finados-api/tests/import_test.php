@@ -117,3 +117,24 @@ write_historical_files($blockedRoot, $voceros, $consents);
 file_put_contents($blockedRoot . '/imports', 'synthetic existing file');
 same(1, operations_cli('import-voceros', import_arguments($blockedRoot))['code']);
 same(0, (int) $blockedPdo->query('SELECT COUNT(*) FROM voceros')->fetchColumn());
+
+// Historical fputcsv can emit an ambiguous even backslash run before a quote.
+// The old validator accepted it while fgetcsv silently moved the quote in the stored value.
+foreach ([['prefix' . str_repeat('\\', 2) . '"suffix', false],
+    ['prefix' . str_repeat('\\', 4) . '"suffix', false],
+    ['prefix' . '\\' . '"suffix', true], ['prefix"suffix', true],
+    ['prefix' . str_repeat('\\', 2), true], ['prefix' . '\\', false],
+    ["prefix\nwith,comma and \"quote\"", true]] as [$historicalValue, $reversible]) {
+    [$escapeRoot, $escapePdo] = operations_fixture();
+    [$escapeV, $escapeC] = historical_rows();
+    $escapeV[1][3] = $historicalValue;
+    write_historical_files($escapeRoot, $escapeV, $escapeC);
+    $result = operations_cli('import-voceros', import_arguments($escapeRoot));
+    same($reversible ? 0 : 1, $result['code']);
+    if ($reversible) same($historicalValue, $escapePdo->query('SELECT full_name FROM voceros ORDER BY id')->fetchColumn());
+    else {
+        same(0, (int) $escapePdo->query('SELECT COUNT(*) FROM voceros')->fetchColumn());
+        same([], glob($escapeRoot . '/imports/*'));
+        same(false, str_contains($result['err'], 'prefix'));
+    }
+}

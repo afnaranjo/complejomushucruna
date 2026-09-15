@@ -27,12 +27,36 @@ final class Operations
         return $options;
     }
 
-    public static function config(array $options): Config
+    /** Load the configuration and verify both public roots before permitting any filesystem write. */
+    public static function configuration(array $options): array
     {
-        if (!isset($options['--config'])) return Config::fromProductionEnvironment();
-        $config = Config::fromFile($options['--config']);
-        if ($config->isProduction()) throw new RuntimeException('Production requires the environment configuration.');
-        return $config;
+        $config = isset($options['--config']) ? Config::fromFile($options['--config']) : Config::fromProductionEnvironment();
+        if (isset($options['--config']) && $config->isProduction()) throw new RuntimeException('Production requires the environment configuration.');
+        $roots = self::publicRoots($config);
+        self::privatePath($options['--config'] ?? (getenv('FINADOS_CONFIG_PATH') ?: ''), $roots);
+        return [$config, $roots];
+    }
+
+    private static function publicRoots(Config $config): array
+    {
+        $input = getenv('FINADOS_PUBLIC_ROOTS');
+        if ($input === false || $input === '') {
+            if ($config->isProduction()) throw new RuntimeException('Verified public roots are required.');
+            return [];
+        }
+        $roots = json_decode($input, true, 512, JSON_THROW_ON_ERROR);
+        if (!is_array($roots) || !array_is_list($roots) || count($roots) < 2) throw new RuntimeException('Invalid public roots.');
+        $verified = [];
+        foreach ($roots as $root) {
+            if (!is_string($root) || !str_starts_with($root, '/') || str_contains($root, "\0")) throw new RuntimeException('Invalid public root.');
+            $root = rtrim($root, '/');
+            $resolved = realpath($root);
+            // Require real, existing, distinct directories. Operators must resolve symlinks explicitly.
+            if ($resolved === false || $resolved === '/' || !is_dir($resolved) || $resolved !== $root
+                || in_array($resolved, $verified, true)) throw new RuntimeException('Invalid public root.');
+            $verified[] = $resolved;
+        }
+        return $verified;
     }
 
     public static function configDirectory(array $options): string
@@ -42,10 +66,10 @@ final class Operations
         return dirname($path);
     }
 
-    public static function privateDirectory(string $path): string
+    private static function privatePath(string $path, array $publicRoots): string
     {
         if (!str_starts_with($path, '/') || str_contains($path, "\0")
-            || in_array('..', explode('/', $path), true)) throw new RuntimeException('Invalid private directory.');
+            || array_intersect(['.', '..'], explode('/', $path)) !== []) throw new RuntimeException('Invalid private path.');
         // Resolve existing ancestors first, so aliases into a public directory also fail.
         $ancestor = $path; $suffix = [];
         while (!file_exists($ancestor) && !is_link($ancestor)) {
@@ -53,24 +77,33 @@ final class Operations
             $ancestor = dirname($ancestor);
         }
         $resolved = realpath($ancestor);
-        if ($resolved === false || !is_dir($resolved)) throw new RuntimeException('Invalid private directory.');
+        if ($resolved === false || ($suffix !== [] && !is_dir($resolved))) throw new RuntimeException('Invalid private path.');
         $resolved = rtrim($resolved, '/') . ($suffix === [] ? '' : '/' . implode('/', $suffix));
         foreach (['public_html', 'htdocs', 'www', 'public', 'dist'] as $publicPart) {
             if (in_array($publicPart, explode('/', $resolved), true)) throw new RuntimeException('Public backup directory rejected.');
         }
         $docroot = ($_SERVER['DOCUMENT_ROOT'] ?? '') ?: getenv('DOCUMENT_ROOT');
-        if (is_string($docroot) && $docroot !== '' && ($public = realpath($docroot)) !== false
-            && ($resolved === $public || str_starts_with($resolved, rtrim($public, '/') . '/'))) {
-            throw new RuntimeException('Public backup directory rejected.');
+        if (is_string($docroot) && $docroot !== '' && ($public = realpath($docroot)) !== false) $publicRoots[] = $public;
+        foreach ($publicRoots as $public) {
+            if ($resolved === $public || str_starts_with($resolved, rtrim($public, '/') . '/')) {
+                throw new RuntimeException('Public path rejected.');
+            }
         }
+        return $resolved;
+    }
+
+    public static function privateDirectory(string $path, array $publicRoots): string
+    {
+        $resolved = self::privatePath($path, $publicRoots);
+        if (file_exists($resolved) && !is_dir($resolved)) throw new RuntimeException('Invalid private directory.');
         if (!is_dir($resolved) && !mkdir($resolved, 0700, true)) throw new RuntimeException('Private directory unavailable.');
         if ((fileperms($resolved) & 0077) !== 0) throw new RuntimeException('Private directory requires mode 0700.');
         return $resolved;
     }
 
-    public static function datedDirectory(string $root): string
+    public static function datedDirectory(string $root, array $publicRoots): string
     {
-        $directory = self::privateDirectory($root) . '/' . gmdate('Ymd\THis\Z') . '-' . bin2hex(random_bytes(8));
+        $directory = self::privateDirectory($root, $publicRoots) . '/' . gmdate('Ymd\THis\Z') . '-' . bin2hex(random_bytes(8));
         if (!mkdir($directory, 0700)) throw new RuntimeException('Private directory unavailable.');
         return $directory;
     }

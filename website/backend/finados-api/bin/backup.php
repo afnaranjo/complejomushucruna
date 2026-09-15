@@ -18,12 +18,12 @@ final class BackupCommand
         $defaults = null;
         try {
             $options = Operations::options($arguments, ['--output']);
-            $config = Operations::config($options);
+            [$config, $publicRoots] = Operations::configuration($options);
             $mysql = str_starts_with($config->databaseDsn(), 'mysql:');
             if (!$mysql && $config->isProduction()) throw new RuntimeException('Production requires MySQL.');
             $binary = $mysql ? Operations::executable('mysqldump') : null;
             if ($mysql && $binary === null) throw new MissingDumpBinary();
-            $directory = Operations::datedDirectory($options['--output']);
+            $directory = Operations::datedDirectory($options['--output'], $publicRoots);
             $raw = $directory . ($mysql ? '/database.sql' : '/database.sqlite');
             if ($mysql) {
                 [$database, $client] = self::mysqlClient($config);
@@ -34,7 +34,7 @@ final class BackupCommand
                 try {
                     // stderr is discarded deliberately: mysqldump diagnostics can contain secrets.
                     $process = proc_open([$binary, '--defaults-file=' . $defaults, '--single-transaction', '--quick',
-                        '--skip-lock-tables', '--databases', $database],
+                        '--skip-lock-tables', '--no-tablespaces', '--databases', $database],
                         [0 => ['file', '/dev/null', 'r'], 1 => $stream, 2 => ['file', '/dev/null', 'w']], $pipes,
                         null, ['PATH' => getenv('PATH') ?: '', 'LANG' => 'C']);
                     if (!is_resource($process) || proc_close($process) !== 0) throw new RuntimeException('Dump failed.');

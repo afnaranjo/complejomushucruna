@@ -43,7 +43,8 @@ function historical_csv(array $rows, bool $bom = true): string
 {
     $stream = fopen('php://memory', 'w+');
     if ($bom) fwrite($stream, "\xEF\xBB\xBF");
-    foreach ($rows as $row) fputcsv($stream, $row, ',', '"', '');
+    // This is the historical writer's escape character (the old implicit PHP default).
+    foreach ($rows as $row) fputcsv($stream, $row, ',', '"', '\\');
     rewind($stream);
     $contents = stream_get_contents($stream);
     fclose($stream);

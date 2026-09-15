@@ -38,7 +38,7 @@ final class ImportVocerosCommand
         $counts = ['inserted' => 0, 'skipped' => 0, 'errors' => 0];
         try {
             $options = Operations::options($arguments, ['--voceros', '--consents'], ['--dry-run']);
-            $config = Operations::config($options);
+            [$config, $publicRoots] = Operations::configuration($options);
             $vocerosBytes = self::snapshot($options['--voceros']);
             $consentsBytes = self::snapshot($options['--consents']);
             $voceros = self::csv($vocerosBytes, self::HEADER, 'voceros');
@@ -95,7 +95,7 @@ final class ImportVocerosCommand
                 return 0;
             }
             // Back up the immutable, validated snapshots, not files that could change after validation.
-            $directory = Operations::datedDirectory(Operations::configDirectory($options) . '/imports');
+            $directory = Operations::datedDirectory(Operations::configDirectory($options) . '/imports', $publicRoots);
             Operations::writeExclusive($directory . '/voceros.csv', $vocerosBytes);
             Operations::writeExclusive($directory . '/consents.csv', $consentsBytes);
             $pdo = Database::connect($config);
@@ -151,22 +151,29 @@ final class ImportVocerosCommand
             if (preg_match('//u', $value) !== 1 || str_contains($value, "\0")) self::invalid($source, $line + 1, 'invalid_utf8');
         }
         if (str_starts_with($bytes, "\xEF\xBB\xBF")) $bytes = substr($bytes, 3);
-        self::validateCsvSyntax($bytes, $source);
         $stream = fopen('php://memory', 'w+');
         fwrite($stream, $bytes); rewind($stream);
         try {
-            if (fgetcsv($stream, null, ',', '"', '\\') !== $header) self::invalid($source, 1, 'invalid_header');
-            $rows = [];
+            $rows = []; $line = 1; $headerRead = false;
             while (!feof($stream)) {
                 $offset = ftell($stream);
                 $row = fgetcsv($stream, null, ',', '"', '\\');
                 if ($row === false) break;
-                $line = substr_count(substr($bytes, 0, $offset), "\n") + 1;
+                $original = substr($bytes, $offset, ftell($stream) - $offset);
+                self::verifyHistoricalEncoding($original, $row, $source, $line);
+                if (!$headerRead) {
+                    if ($row !== $header) self::invalid($source, 1, 'invalid_header');
+                    $headerRead = true;
+                    $line += substr_count($original, "\n");
+                    continue;
+                }
                 if (count($row) !== count($header) || in_array(null, $row, true)) self::invalid($source, $line, 'invalid_columns');
                 // Historical writer prefixes spreadsheet formula triggers with one apostrophe.
                 $row = array_map(static fn (string $value): string => preg_match('/^\x27[=+\-@\t\r\n]/', $value) ? substr($value, 1) : $value, $row);
                 $rows[] = [$line, $row];
+                $line += substr_count($original, "\n");
             }
+            if (!$headerRead) self::invalid($source, 1, 'invalid_header');
             return $rows;
         } finally { fclose($stream); }
     }
@@ -178,29 +185,22 @@ final class ImportVocerosCommand
         return $date->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i:s');
     }
 
-    /** fgetcsv is intentionally forgiving; migration must reject ambiguous quoted fields first. */
-    private static function validateCsvSyntax(string $bytes, string $source): void
+    /**
+     * Use one reader and the exact historical writer to prove the encoding is reversible.
+     * PHP's backslash CSV extension is not reversible for every string. A record that does
+     * not re-encode byte-for-byte is ambiguous/nonhistorical and must never be imported.
+     * Only the record terminator may differ (LF, CRLF, or EOF); field bytes remain exact.
+     */
+    private static function verifyHistoricalEncoding(string $original, array $row, string $source, int $line): void
     {
-        $state = 'start'; $line = 1; $quotedLine = 1;
-        $length = strlen($bytes);
-        for ($i = 0; $i < $length; $i++) {
-            $character = $bytes[$i];
-            if ($state === 'quoted') {
-                if ($character === '\\' && ($bytes[$i + 1] ?? '') === '"') { $i++; continue; }
-                if ($character === '"') {
-                    if (($bytes[$i + 1] ?? '') === '"') { $i++; continue; }
-                    $state = 'closed';
-                }
-            } elseif ($character === ',' || $character === "\n" || $character === "\r") {
-                $state = 'start';
-            } elseif ($character === '"' && $state === 'start') {
-                $state = 'quoted'; $quotedLine = $line;
-            } elseif ($state === 'closed' || $character === '"') {
-                self::invalid($source, $line, 'invalid_csv_quotes');
-            } else { $state = 'unquoted'; }
-            if ($character === "\n") $line++;
-        }
-        if ($state === 'quoted') self::invalid($source, $quotedLine, 'unclosed_csv_quote');
+        $writer = fopen('php://memory', 'w+');
+        try {
+            fputcsv($writer, $row, ',', '"', '\\');
+            rewind($writer);
+            $encoded = stream_get_contents($writer);
+            $record = preg_replace('/(?:\r\n|\n|\r)$/D', '', $original);
+            if ($record !== substr($encoded, 0, -1)) self::invalid($source, $line, 'ambiguous_csv_encoding');
+        } finally { fclose($writer); }
     }
 
     private static function validDate(string $value): bool
