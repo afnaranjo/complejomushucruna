@@ -62,9 +62,9 @@ function bundle(files) {
 }
 
 function phpSource(body, files = []) {
-  return `<?php\nnamespace Finados;\nini_set('display_errors', '0'); ini_set('log_errors', '0');\n`
+  return `<?php\nnamespace Finados;\nuse RuntimeException; use Throwable;\nini_set('display_errors', '0'); ini_set('log_errors', '0');\n`
     + bundle(files).replace(/^namespace Finados;\s*$/gm, '').replace(/^use (?:RuntimeException|Throwable);\s*$/gm, '')
-    + `\nuse RuntimeException; use Throwable;\nset_error_handler(static function () { throw new RuntimeException('Operation failed.'); });\ntry {\n${body}\n} catch (Throwable) { exit(1); }\n`;
+    + `\nset_error_handler(static function () { throw new RuntimeException('Operation failed.'); });\ntry {\n${body}\n} catch (Throwable) { exit(1); }\n`;
 }
 
 function probeSource(config) {

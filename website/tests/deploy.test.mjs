@@ -178,6 +178,22 @@ test('backend todos los programas PHP enviados por SSH compilan con el intérpre
   }
 });
 
+test('backend carga las excepciones globales antes de ejecutar el respaldo empaquetado', async () => {
+  const { deployBackend } = await import('../scripts/deploy-finados-backend.mjs');
+  const transport = recordingTransport();
+  await deployBackend(fixtureConfig(), transport, { release: '20260914-abcdef' });
+  const input = transport.operations.find(item => item.id === 'backup-database').input;
+  const result = spawnSync('php', [], {
+    input,
+    encoding: 'utf8',
+    env: { ...process.env, FINADOS_CONFIG_PATH: '' },
+  });
+
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /No se pudo completar el respaldo/);
+  assert.doesNotMatch(result.stderr, /Finados\\RuntimeException/);
+});
+
 test('backend primer despliegue migra atómicamente el endpoint histórico exacto aprobado', async () => {
   const historical = historicalVocerosEndpoint();
   const fixture = await publicEndpointInstallFixture(historical);
