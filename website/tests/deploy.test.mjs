@@ -1,13 +1,23 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
-import { mkdtemp, readFile, writeFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const websiteRoot = fileURLToPath(new URL('..', import.meta.url));
+const repositoryRoot = join(websiteRoot, '..');
 const deployScript = join(websiteRoot, 'scripts', 'deploy-cpanel.mjs');
+const approvedLegacyVocerosHash = 'e3cbffe53c6d6cce453a4aab06e99e19184fb36cba6fa0cc0757a6410959944c';
+const replacementEndpointSource = `<?php
+declare(strict_types=1);
+function voceros_bootstrap() {}
+function voceros_handle_request(array $server, array $post): array {
+  return ['status' => 200, 'json' => ['open' => true]];
+}
+`;
 
 function fixtureConfig(overrides = {}) {
   return {
@@ -41,6 +51,43 @@ function recordingTransport(overrides = {}) {
     async interactive(operation) { this.writes.push(operation); },
     async health() { return { status: 200, ok: true }; },
   };
+}
+
+function historicalVocerosEndpoint() {
+  const source = execFileSync('git', ['show', 'b85cb0f:website/public/api/voceros/index.php'], {
+    cwd: repositoryRoot,
+    encoding: 'utf8',
+  });
+  assert.equal(createHash('sha256').update(source).digest('hex'), approvedLegacyVocerosHash);
+  return source;
+}
+
+async function publicEndpointInstallFixture(existingSource, endpointSource = replacementEndpointSource) {
+  const { installPublicBootstrap } = await import('../scripts/deploy-finados-backend.mjs');
+  const { publishFrontendFiles } = await import('../scripts/deploy-cpanel.mjs');
+  const temp = await mkdtemp(join(tmpdir(), 'finados-first-publish-'));
+  await mkdir(join(temp, 'api/voceros'), { recursive: true });
+  const endpoint = join(temp, 'api/voceros/index.php');
+  await writeFile(endpoint, existingSource);
+  const transport = recordingTransport();
+  transport.run = async operation => {
+    const input = operation.input.replaceAll(
+      '/home/usuario_cpanel/public_html/complejomushucruna.com',
+      temp,
+    );
+    const result = spawnSync('php', [], { input, encoding: 'utf8' });
+    if (result.status !== 0) throw new Error('fixture install failed');
+    return result.stdout;
+  };
+  const stages = [];
+  const publish = () => publishFrontendFiles(fixtureConfig(), {
+    endpointSource,
+    install: (config, prepared) => installPublicBootstrap(config, transport, { source: prepared }),
+    upload: () => stages.push('upload'),
+    normalize: () => stages.push('permissions'),
+    verify: () => stages.push('HTTPS'),
+  });
+  return { endpoint, publish, stages };
 }
 
 test('backend prevuelo ejecuta lecturas sin migración ni escritura y devuelve salud del subdominio', async () => {
@@ -131,15 +178,68 @@ test('backend todos los programas PHP enviados por SSH compilan con el intérpre
   }
 });
 
+test('backend primer despliegue migra atómicamente el endpoint histórico exacto aprobado', async () => {
+  const historical = historicalVocerosEndpoint();
+  const fixture = await publicEndpointInstallFixture(historical);
+
+  await fixture.publish();
+
+  const installed = await readFile(fixture.endpoint, 'utf8');
+  assert.notEqual(installed, historical);
+  assert.match(installed, /FINADOS MANAGED BOOTSTRAP BEGIN/);
+  assert.deepEqual(fixture.stages, ['upload', 'permissions', 'HTTPS']);
+});
+
+test('backend primer despliegue conserva el endpoint histórico si el reemplazo no pasa salud', async () => {
+  const historical = historicalVocerosEndpoint();
+  const unhealthySource = replacementEndpointSource.replace("'status' => 200", "'status' => 503");
+  const fixture = await publicEndpointInstallFixture(historical, unhealthySource);
+
+  await assert.rejects(fixture.publish());
+
+  assert.equal(await readFile(fixture.endpoint, 'utf8'), historical);
+  assert.deepEqual(fixture.stages, []);
+});
+
+test('backend primer despliegue rechaza una variación de un byte del endpoint histórico', async () => {
+  const historical = historicalVocerosEndpoint();
+  const changed = historical.replace('MUSHUC_API_ENTRY', 'NUSHUC_API_ENTRY');
+  assert.equal(Buffer.byteLength(changed), Buffer.byteLength(historical));
+  assert.notEqual(createHash('sha256').update(changed).digest('hex'), approvedLegacyVocerosHash);
+  const fixture = await publicEndpointInstallFixture(changed);
+
+  await assert.rejects(fixture.publish());
+
+  assert.equal(await readFile(fixture.endpoint, 'utf8'), changed);
+  assert.deepEqual(fixture.stages, []);
+});
+
+test('backend primer despliegue no confía en una cadena genérica dentro de una aplicación ajena', async () => {
+  const foreign = "<?php\n// voceros_bootstrap\necho 'aplicación ajena';\n";
+  const fixture = await publicEndpointInstallFixture(foreign);
+
+  await assert.rejects(fixture.publish());
+
+  assert.equal(await readFile(fixture.endpoint, 'utf8'), foreign);
+  assert.deepEqual(fixture.stages, []);
+});
+
+test('backend prepara el mismo endpoint administrado sin alterar bytes en reintentos', async () => {
+  const { preparePublicEndpoint } = await import('../scripts/deploy-finados-backend.mjs');
+  const prepared = preparePublicEndpoint(fixtureConfig(), replacementEndpointSource);
+
+  assert.equal(preparePublicEndpoint(fixtureConfig(), prepared), prepared);
+});
+
 test('backend bootstrap real conserva PHP strict_types e instalación repetida', async () => {
   const { installPublicBootstrap } = await import('../scripts/deploy-finados-backend.mjs');
-  const { mkdir } = await import('node:fs/promises');
   const temp = await mkdtemp(join(tmpdir(), 'finados-bootstrap-'));
   await mkdir(join(temp, 'api/voceros'), { recursive: true });
   const endpoint = join(temp, 'api/voceros/index.php');
-  await writeFile(endpoint, "<?php\ndeclare(strict_types=1);\nfunction voceros_bootstrap() {}\necho getenv('FINADOS_BACKEND_ROOT');\n");
+  const source = replacementEndpointSource
+    + "if (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__) echo getenv('FINADOS_BACKEND_ROOT');\n";
   const transport = recordingTransport();
-  await installPublicBootstrap(fixtureConfig(), transport);
+  await installPublicBootstrap(fixtureConfig(), transport, { source });
   for (let i = 0; i < 2; i++) {
     const input = transport.operations[0].input.replaceAll('/home/usuario_cpanel/public_html/complejomushucruna.com', temp)
       .replaceAll('.finados-', `.finados-${i}-`);
@@ -470,14 +570,35 @@ test('sincroniza únicamente main sin descargar etiquetas ni ejecutar mantenimie
   assert.doesNotMatch(source, /run\('git', \['fetch', 'origin'\]/);
 });
 
-test('serializa las pruebas que compilan Tailwind durante el preflight', async () => {
-  const source = await readFile(deployScript, 'utf8');
+test('la verificación completa conserva serialización y todas las suites del proyecto', async () => {
   const packageConfig = JSON.parse(await readFile(join(websiteRoot, 'package.json'), 'utf8'));
 
-  assert.match(source, /\['--test', '--test-concurrency=1', \.\.\.testFiles\]/);
   assert.equal(packageConfig.scripts['test:node'], 'node --test --test-concurrency=1 tests/*.test.mjs');
   assert.equal(packageConfig.scripts['test:php'], 'php backend/finados-api/tests/run.php');
   assert.equal(packageConfig.scripts.test, 'npm run test:node && npm run test:php');
+  assert.equal(packageConfig.scripts['test:integration'], 'node --test --test-concurrency=1 tests/integration/*.test.mjs');
+  assert.equal(packageConfig.scripts.check, 'npm test && npm run test:integration && npm run build && node scripts/check-dist.mjs');
+});
+
+test('el preflight frontend ejecuta una sola vez la verificación completa del proyecto', async () => {
+  const deployModule = await import('../scripts/deploy-cpanel.mjs');
+  assert.equal(typeof deployModule.runProjectChecks, 'function');
+  const calls = [];
+  let checkedDist = '';
+
+  await deployModule.runProjectChecks({
+    execute(command, args, options) {
+      calls.push({ command, args, cwd: options.cwd });
+    },
+    ensureDist: async path => { checkedDist = path; },
+  });
+
+  assert.deepEqual(calls, [{
+    command: process.platform === 'win32' ? 'npm.cmd' : 'npm',
+    args: ['run', 'check'],
+    cwd: join(websiteRoot, '.'),
+  }]);
+  assert.equal(checkedDist, join(websiteRoot, 'dist/index.html'));
 });
 
 test('el despliegue verifica las páginas, habilita Voceros y conserva su configuración fuera del sitio público', async () => {

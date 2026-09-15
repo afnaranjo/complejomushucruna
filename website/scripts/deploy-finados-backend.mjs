@@ -9,6 +9,11 @@ const websiteRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const backend = join(websiteRoot, 'backend/finados-api');
 const healthUrl = 'https://finados.complejomushucruna.com/api/health';
 const php = 'php -d display_errors=0 -d log_errors=0';
+const approvedLegacyPublicEndpointHashes = Object.freeze([
+  // website/public/api/voceros/index.php at b85cb0f, verified byte-for-byte
+  // against the endpoint in production before the first backend deployment.
+  'e3cbffe53c6d6cce453a4aab06e99e19184fb36cba6fa0cc0757a6410959944c',
+]);
 const q = value => `'${String(value).replaceAll("'", "'\\''")}'`;
 const literal = value => `'${String(value).replaceAll('\\', '\\\\').replaceAll("'", "\\'")}'`;
 const within = (path, root) => path === root || path.startsWith(`${root}/`);
@@ -156,36 +161,30 @@ export function preparePublicEndpoint(config, source) {
   if (source.includes('// FINADOS MANAGED BOOTSTRAP BEGIN\n')) {
     const offset = source.indexOf(endMarker);
     if (offset < 0) fail('Bootstrap previo incompleto.');
-    source = '<?php\n' + source.slice(offset + endMarker.length);
+    source = '<?php' + source.slice(offset + endMarker.length);
   }
   source = source.replace(/^<\?php\s*declare\(strict_types=1\);/, '<?php');
   return `<?php\ndeclare(strict_types=1);\n// FINADOS MANAGED BOOTSTRAP BEGIN\n${envPhp(config)}\n${endMarker}${source.slice(5)}`;
 }
 
 function installSource(config, { main = false, releaseId, source }) {
+  if (main && typeof source !== 'string') fail('El endpoint público preparado es obligatorio.');
   const docroot = main ? config.DEPLOY_REMOTE_ROOT : config.FINADOS_API_DOCROOT;
   const directory = main ? `${config.DEPLOY_REMOTE_ROOT}/api/voceros` : `${config.FINADOS_API_DOCROOT}/api`;
   const prefix = `<?php\ndeclare(strict_types=1);\n// FINADOS MANAGED ${main ? 'BOOTSTRAP BEGIN' : 'API'}\n${envPhp(config)}\n`;
-  const endMarker = '// FINADOS MANAGED BOOTSTRAP END\n';
   return phpSource(`
 $directory = ${literal(directory)};
 if (realpath(dirname($directory)) !== realpath(${literal(docroot)}) . ${literal(main ? '/api' : '')}) exit(1);
 if (is_link($directory) || (file_exists($directory) && !is_dir($directory))) exit(1);
 if (!is_dir($directory) && !mkdir($directory, 0755)) exit(1);
 $destination = $directory . '/index.php';
-${main && source !== undefined ? `
-if (is_file($destination) && !str_contains(file_get_contents($destination), 'voceros_bootstrap')) exit(1);
+${main ? `
 $contents = ${literal(source)};
-` : main ? `
-$source = file_get_contents($destination);
-if (!str_contains($source, 'voceros_bootstrap')) exit(1);
-if (str_contains($source, '// FINADOS MANAGED BOOTSTRAP BEGIN\n')) {
-  $offset = strpos($source, ${literal(endMarker)}); if ($offset === false) exit(1);
-  $source = '<?php\n' . substr($source, $offset + strlen(${literal(endMarker)}));
+if (is_file($destination)) {
+  $existingHash = hash_file('sha256', $destination);
+  $approvedHashes = [${approvedLegacyPublicEndpointHashes.map(literal).join(',')}, hash('sha256', $contents)];
+  if (!is_string($existingHash) || !in_array($existingHash, $approvedHashes, true)) exit(1);
 }
-if (!str_starts_with($source, '<?php')) exit(1);
-$source = preg_replace('/^<\\?php\\s*declare\\(strict_types=1\\);/', '<?php', $source);
-$contents = ${literal(prefix + endMarker)} . substr($source, 5);
 ` : `
 if (is_file($destination) && !str_contains(file_get_contents($destination), 'FINADOS MANAGED API')) exit(1);
 $contents = ${literal(prefix + `require ${literal(config.FINADOS_BACKEND_ROOT + '/public/index.php')};\n`)};
@@ -216,9 +215,12 @@ if (file_put_contents($htaccess, $old . $block) === false) exit(1); chmod($htacc
 
 export async function installPublicBootstrap(config, transport = createTransport(config), { source } = {}) {
   validateBackendConfig(config);
+  const prepared = preparePublicEndpoint(
+    config,
+    source ?? readFileSync(join(websiteRoot, 'public/api/voceros/index.php'), 'utf8'),
+  );
   await safeRun(transport, { id: 'install-public-bootstrap', write: true, command: php,
-    input: installSource(config, { main: true, releaseId: randomBytes(8).toString('hex'),
-      source: source === undefined ? undefined : preparePublicEndpoint(config, source) }) });
+    input: installSource(config, { main: true, releaseId: randomBytes(8).toString('hex'), source: prepared }) });
 }
 
 export async function deployBackend(config, transport = createTransport(config), options = {}) {

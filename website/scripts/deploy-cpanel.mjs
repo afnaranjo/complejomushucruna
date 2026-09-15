@@ -1,6 +1,6 @@
 import { execFileSync, spawn, spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
-import { access, readFile, readdir, stat } from 'node:fs/promises';
+import { access, readFile, stat } from 'node:fs/promises';
 import { dirname, isAbsolute, join, resolve, posix } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
@@ -444,19 +444,13 @@ function lintPhpEndpoints(config) {
   }
 }
 
-async function runProjectChecks() {
+export async function runProjectChecks({ execute = run, ensureDist = access } = {}) {
   console.log('Construyendo y validando el sitio…');
-  const testDirectory = join(websiteRoot, 'tests');
-  const testFiles = (await readdir(testDirectory))
-    .filter((file) => file.endsWith('.test.mjs'))
-    .map((file) => join(testDirectory, file));
-  run(process.execPath, ['--test', '--test-concurrency=1', ...testFiles], {
+  execute(process.platform === 'win32' ? 'npm.cmd' : 'npm', ['run', 'check'], {
     cwd: websiteRoot,
-    label: 'Las pruebas locales',
+    label: 'La verificación completa del proyecto',
   });
-  run(process.execPath, [join(websiteRoot, 'scripts', 'build.mjs')], { cwd: websiteRoot, label: 'La construcción local' });
-  run(process.execPath, [join(websiteRoot, 'scripts', 'check-dist.mjs')], { cwd: websiteRoot, label: 'La validación de la salida' });
-  return access(join(websiteRoot, 'dist', 'index.html'));
+  return ensureDist(join(websiteRoot, 'dist', 'index.html'));
 }
 
 function parseArguments(argv) {

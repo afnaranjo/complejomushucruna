@@ -67,7 +67,7 @@ Primero valida únicamente el archivo local; este comando no se conecta al servi
 npm run deploy:validate
 ```
 
-Después ejecuta el prevuelo. Comprueba `main`, sincronización con GitHub, pruebas, construcción, llave y acceso de escritura al directorio remoto, sin modificar el sitio:
+Después ejecuta el prevuelo. Comprueba `main`, sincronización con GitHub, ejecuta el mismo `npm run check` completo —pruebas Node, PHP e integración, construcción y validación de `dist`— y valida la llave y el acceso de escritura al directorio remoto, sin modificar el sitio:
 
 ```bash
 npm run deploy:check
@@ -83,7 +83,7 @@ npm run deploy
 
 El comando vuelve a ejecutar todas las validaciones, crea una copia recuperable del sitio actual en `/home/<usuario>/backups/`, sube `website/dist/` mediante un flujo `tar → SSH` sin borrar archivos exclusivos del servidor y verifica por HTTPS la portada, `/finados/`, las hojas de estilo y la respuesta 404.
 
-Para Voceros, despliega primero el backend como se indica abajo. El despliegue del frontend valida también ese backend y prepara `/api/voceros/index.php` con sus rutas de bootstrap y los helpers públicos incorporados, sin contraseña ni claves. Tras el respaldo, valida el PHP y exige que el GET real de la versión preparada confirme `open:true`; después reemplaza el endpoint mediante un único rename. La transferencia general excluye ese archivo: una interrupción no le retira las variables ni sustituye sus dependencias. Conserva los otros endpoints, la configuración privada de Sheets y el funcionamiento del dominio principal. Las rutas administrativas no se añaden a la navegación pública.
+Para Voceros, despliega primero el backend como se indica abajo. El despliegue del frontend valida también ese backend y prepara `/api/voceros/index.php` con sus rutas de bootstrap y los helpers públicos incorporados, sin contraseña ni claves. En la primera transición acepta únicamente el hash exacto del endpoint histórico verificado; en reintentos acepta únicamente el archivo administrado idéntico al reemplazo. Cualquier variación o aplicación ajena bloquea el proceso antes de escribir. Tras el respaldo, valida el PHP y exige que el GET real de la versión preparada confirme `open:true`; después reemplaza el endpoint mediante un único rename. La transferencia general excluye ese archivo: una interrupción no le retira las variables ni sustituye sus dependencias. Conserva los otros endpoints, la configuración privada de Sheets y el funcionamiento del dominio principal. Las rutas administrativas no se añaden a la navegación pública.
 
 La restauración de una copia remota no está automatizada porque sobrescribe el sitio. Si se necesita rollback, identifica primero la copia exacta y obtén autorización antes de reemplazar archivos.
 
