@@ -27,6 +27,9 @@ let rejectLogin = true;
 let status = 'Nuevo';
 let notes = [];
 let failure = 0;
+let pendingPatch = null;
+let failDetailAfterPatch = false;
+let detailFailure = false;
 const calls = [];
 const record = { public_id: '00000000-0000-4000-8000-000000000001', submission_id: 'fixture-1', full_name: '<img src=x onerror=alert(1)> Prueba', status, city: 'Quito', main_network: 'TikTok', previous_participation: 'No, es mi primera vez', cedula: '******1234', whatsapp: '******5678', submitted_at: '2026-09-14 16:00:00' };
 await page.route('https://finados.complejomushucruna.com/api/**', async route => {
@@ -43,15 +46,64 @@ await page.route('https://finados.complejomushucruna.com/api/**', async route =>
   if (failure === -1) { failure = 0; return route.abort('failed'); }
   if (failure) { const code = failure; failure = 0; return respond({ message: 'fallo controlado' }, code); }
   if (url.pathname.endsWith('/logout')) { authenticated = false; return respond({ ok: true }); }
-  if (url.pathname.endsWith('/dashboard')) return respond({ total: 26, byStatus: { Nuevo: 25, Aprobado: 1 }, byDate: { '2026-09-14': 26 }, lastSevenDays: 26 });
+  if (url.pathname.endsWith('/dashboard')) return respond({ total: 26, byStatus: { Nuevo: status === 'Aprobado' ? 24 : 25, Aprobado: status === 'Aprobado' ? 2 : 1 }, byDate: { '2026-09-14': 26 }, lastSevenDays: 26 });
   if (url.pathname.endsWith('/export')) return route.fulfill({ headers, contentType: 'text/csv', body: 'nombre\nPrueba' });
   if (url.pathname.endsWith('/notes')) { notes.push({ body: body.body, created_at: '2026-09-14 16:30:00', author_id: 1 }); return respond({ ok: true }, 201); }
-  if (method === 'PATCH') { status = body.status; return respond({ ok: true }); }
-  if (url.pathname === '/api/voceros') return respond({ items: url.searchParams.get('search') === 'vacío' ? [] : [{ ...record, status }], pagination: { page: Number(url.searchParams.get('page') ?? 1), pageSize: 25, total: url.searchParams.get('search') === 'vacío' ? 0 : 26, pages: url.searchParams.get('search') === 'vacío' ? 0 : 2 } });
+  if (method === 'PATCH') {
+    if (pendingPatch) await pendingPatch;
+    status = body.status;
+    detailFailure = failDetailAfterPatch;
+    return respond({ ok: true });
+  }
+  if (url.pathname === '/api/voceros') {
+    const empty = url.searchParams.get('search') === 'vacío' || (url.searchParams.has('status') && url.searchParams.get('status') !== status);
+    return respond({ items: empty ? [] : [{ ...record, status }], pagination: { page: Number(url.searchParams.get('page') ?? 1), pageSize: 25, total: empty ? 0 : 26, pages: empty ? 0 : 2 } });
+  }
+  if (detailFailure) { detailFailure = false; return respond({ message: 'Fallo de detalle posterior al guardado' }, 500); }
   return respond({ ...record, status, cedula: '0000001234', whatsapp: '0000005678', email: 'fixture@example.test', notes, consents: [{ consent_type: 'privacy', accepted: 1, text_version: 'v1', accepted_at: '2026-09-14 16:00:00' }] });
 });
 await mkdir('output/playwright', { recursive: true });
+async function mutationRegressions() {
+  const failures = [];
+  for (const scenario of ['close-during-patch', 'detail-fails-after-patch']) {
+    authenticated = true; status = 'Nuevo'; pendingPatch = null; detailFailure = false; failDetailAfterPatch = false;
+    await page.goto(origin + '/admin/voceros/');
+    await page.getByRole('button', { name: /Ver detalle de/ }).waitFor();
+    await page.locator('[data-admin-filters] select[name="status"]').selectOption('Nuevo');
+    await page.getByRole('button', { name: 'Aplicar filtros' }).click();
+    await page.waitForFunction(() => document.querySelector('[data-records-region]').getAttribute('aria-busy') === 'false');
+    await page.getByRole('button', { name: /Ver detalle de/ }).click();
+    await page.getByText('0000001234', { exact: true }).waitFor();
+    await page.getByLabel('Estado del registro').selectOption('Aprobado');
+    let releasePatch;
+    if (scenario === 'close-during-patch') pendingPatch = new Promise(resolve => { releasePatch = resolve; });
+    else failDetailAfterPatch = true;
+    const patchRequest = page.waitForRequest(request => request.method() === 'PATCH');
+    await page.getByRole('button', { name: 'Guardar estado' }).click();
+    await patchRequest;
+    if (releasePatch) { await page.getByRole('button', { name: 'Cerrar detalle' }).click(); releasePatch(); }
+    try {
+      await page.waitForFunction(() => {
+        const metrics = [...document.querySelectorAll('[data-admin-dashboard] dl')].map(dl => [dl.querySelector('dt').textContent, dl.querySelector('dd').textContent]);
+        return document.querySelector('[data-record-count]').textContent === '0 resultados'
+          && document.querySelectorAll('[data-records] tr').length === 0
+          && metrics.some(([label, value]) => label === 'Nuevos' && value === '24')
+          && metrics.some(([label, value]) => label === 'Aprobados' && value === '2');
+      }, undefined, { timeout: 2500 });
+      if (scenario === 'close-during-patch') {
+        assert.equal(await page.locator('dialog').evaluate(dialog => dialog.open), false);
+        assert.equal(await page.locator('[data-detail-content]').textContent(), '');
+      } else {
+        await page.getByText('El cambio se guardó, pero no se pudo actualizar el detalle. Cierra y vuelve a abrir el registro.').waitFor();
+      }
+      console.log(`Mutation regression ${scenario}: PASS`);
+    } catch (error) { failures.push(`${scenario}: ${error.message}`); console.error(`Mutation regression ${scenario}: FAIL (list/summary not reconciled)`); }
+  }
+  assert.deepEqual(failures, []);
+}
 try {
+  if (process.argv.includes('--mutation-regressions')) await mutationRegressions();
+  else {
   await page.goto(origin + '/admin/voceros/');
   await page.waitForURL('**/admin/');
   await page.getByLabel('Usuario', { exact: true }).fill('operador-prueba');
@@ -124,5 +176,6 @@ try {
   await page.waitForURL('**/admin/');
   assert.deepEqual(errors, []);
   console.log('Admin browser: login/logout, 401/403/422/network, safe rendering, pagination, status, notes, export, focus, mobile: PASS');
+  }
 } catch (error) { console.error('Browser errors:', errors, 'URL:', page.url(), 'Feedback:', await page.locator('[data-admin-feedback]').textContent()); throw error; }
 finally { await browser.close(); await new Promise(resolve => server.close(resolve)); }

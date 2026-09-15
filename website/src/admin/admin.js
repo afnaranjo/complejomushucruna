@@ -297,12 +297,17 @@ export async function initializeAdmin() {
     try {
       await client.request('/voceros/' + encodeURIComponent(id) + (kind === 'note' ? '/notes' : ''), { method: kind === 'note' ? 'POST' : 'PATCH', body });
       saved = true;
+      // A confirmed status change affects the workspace even if its inspector closed.
+      // Start both refreshes before checking detail lifetime or reloading the detail.
+      if (kind === 'status') {
+        const results = await Promise.allSettled([list(), summary()]);
+        for (const result of results) if (result.status === 'rejected') fail(result.reason);
+      }
       if (generation !== detailGeneration) return;
       if (kind === 'note') noteForm.reset();
       await loadDetail(id, generation);
       if (generation !== detailGeneration) return;
       feedback(detailFeedback, kind === 'note' ? 'Nota guardada.' : 'Estado actualizado.', 'success');
-      if (kind === 'status') { await list(); try { await summary(); } catch (error) { fail(error); } }
     } catch (error) {
       if (generation === detailGeneration) {
         if (saved && error.status !== 401) feedback(detailFeedback, 'El cambio se guardó, pero no se pudo actualizar el detalle. Cierra y vuelve a abrir el registro.', 'error');
