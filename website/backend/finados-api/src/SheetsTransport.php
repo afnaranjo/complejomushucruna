@@ -6,12 +6,15 @@ namespace Finados;
 /** Voceros-only transport: never writes the legacy shared JSONL queue. */
 final class SheetsTransport
 {
+    private const RECEIPT_VERSION = 'voceros-receipt-v1';
+
     public static function deliver(string $privateDirectory, array $record, ?callable $http = null): string
     {
         $path = $privateDirectory . '/google-sheets-config.json';
         if (!is_file($path)) return 'queued';
         $config = json_decode(file_get_contents($path), true);
         if (!is_array($config) || !is_string($config['webAppUrl'] ?? null) || !is_string($config['token'] ?? null)
+            || ($config['receiptVersion'] ?? null) !== self::RECEIPT_VERSION
             || preg_match('#^https://script\.google\.com/macros/s/[A-Za-z0-9_-]+/exec$#D', $config['webAppUrl']) !== 1
             || strlen($config['token']) < 32) return 'queued';
         $encoded = json_encode(['token' => $config['token'], 'kind' => 'voceros', 'record' => $record], JSON_THROW_ON_ERROR);

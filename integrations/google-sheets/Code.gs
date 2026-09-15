@@ -27,6 +27,8 @@ const CONSENT_HEADERS = Object.freeze([
   'Tipo', 'Aceptado', 'Versión', 'SHA-256', 'Fecha y hora', 'IP', 'Navegador', 'URL', 'Método', 'ID de registro',
 ]);
 
+const VOCEROS_CONSENT_TYPES = Object.freeze(['politicas', 'imagen', 'datos']);
+
 function jsonResponse(payload) {
   return ContentService
     .createTextOutput(JSON.stringify(payload))
@@ -63,11 +65,11 @@ function rowFor(kind, record) {
   ].map(asCell);
 }
 
-function consentRow(consent) {
+function consentRow(consent, submissionId) {
   return [
     consent.consentimiento_tipo, consent.aceptado, consent.texto_version, consent.texto_hash,
     consent.fecha_hora, consent.ip_origen, consent.user_agent, consent.url_origen,
-    consent.metodo, consent.id_registro,
+    consent.metodo, submissionId,
   ].map(asCell);
 }
 
@@ -115,6 +117,77 @@ function ensureConsentSheet(spreadsheet) {
   return sheet;
 }
 
+function findSubmission(sheet, submissionId) {
+  return sheet.getRange(1, 2, Math.max(sheet.getLastRow(), 1), 1)
+    .createTextFinder(submissionId)
+    .matchEntireCell(true)
+    .findNext();
+}
+
+function vocerosPayload(record) {
+  const id = String(record.submission_id || record.id || '').toLowerCase();
+  if (!/^[a-f0-9]{32}$/.test(id) || (record.id && String(record.id).toLowerCase() !== id)
+    || (record.submission_id && String(record.submission_id).toLowerCase() !== id)
+    || !Array.isArray(record.consents) || record.consents.length !== VOCEROS_CONSENT_TYPES.length) return null;
+
+  const seen = new Set();
+  const consents = [];
+  for (const original of record.consents) {
+    if (!original || typeof original !== 'object') return null;
+    const type = String(original.consentimiento_tipo || '');
+    const hash = String(original.texto_hash || '').toLowerCase();
+    const accepted = original.aceptado === true || String(original.aceptado).toLowerCase() === 'true';
+    if (!VOCEROS_CONSENT_TYPES.includes(type) || seen.has(type) || !accepted || !/^[a-f0-9]{64}$/.test(hash)
+      || !String(original.texto_version || '') || !String(original.fecha_hora || '') || !String(original.metodo || '')) return null;
+    seen.add(type);
+    consents.push(Object.assign({}, original, {
+      consentimiento_tipo: type,
+      aceptado: 'true',
+      texto_hash: hash,
+      id_registro: id,
+    }));
+  }
+  if (!VOCEROS_CONSENT_TYPES.every(type => seen.has(type))) return null;
+  return { id, record: Object.assign({}, record, { id, submission_id: id, consents }), consents };
+}
+
+function consentKey(submissionId, consent) {
+  return [submissionId, consent.consentimiento_tipo, String(consent.texto_hash).toLowerCase()].join('\u001f');
+}
+
+function storedConsentKeys(sheet, submissionId) {
+  const keys = new Set();
+  const rowCount = Math.max(0, sheet.getLastRow() - 1);
+  if (rowCount === 0) return keys;
+  const rows = sheet.getRange(2, 1, rowCount, CONSENT_HEADERS.length).getValues();
+  rows.forEach((row) => {
+    if (String(row[9]) !== submissionId) return;
+    keys.add([submissionId, String(row[0]), String(row[3]).toLowerCase()].join('\u001f'));
+  });
+  return keys;
+}
+
+function persistVoceros(spreadsheet, sheet, payload) {
+  if (!findSubmission(sheet, payload.id)) sheet.appendRow(rowFor('voceros', payload.record));
+  const consentSheet = ensureConsentSheet(spreadsheet);
+  const stored = storedConsentKeys(consentSheet, payload.id);
+  payload.consents.forEach((consent) => {
+    const key = consentKey(payload.id, consent);
+    if (stored.has(key)) return;
+    consentSheet.appendRow(consentRow(consent, payload.id));
+    stored.add(key);
+  });
+
+  // Apps Script batches spreadsheet writes. Flush, then verify both sheets while
+  // the script lock remains held before emitting the durable receipt.
+  SpreadsheetApp.flush();
+  const durableConsents = storedConsentKeys(consentSheet, payload.id);
+  if (!findSubmission(sheet, payload.id)
+    || !payload.consents.every(consent => durableConsents.has(consentKey(payload.id, consent)))) {
+    throw new Error('Voceros write was not durable.');
+  }
+}
+
 function doPost(event) {
   const lock = LockService.getScriptLock();
   try {
@@ -126,27 +199,25 @@ function doPost(event) {
       return jsonResponse({ ok: false, error: 'invalid_payload' });
     }
 
+    const voceros = kind === 'voceros' ? vocerosPayload(payload.record) : null;
+    if (kind === 'voceros' && voceros === null) return jsonResponse({ ok: false, error: 'invalid_payload' });
+
     lock.waitLock(15000);
     const spreadsheet = SpreadsheetApp.openById(SHEETS[kind]);
     const sheet = spreadsheet.getSheets()[0];
     ensureSheetSchema(kind, sheet);
 
-    const id = String(payload.record.id);
-    const duplicate = sheet.getRange(1, 2, Math.max(sheet.getLastRow(), 1), 1)
-      .createTextFinder(id)
-      .matchEntireCell(true)
-      .findNext();
-    if (!duplicate) {
-      sheet.appendRow(rowFor(kind, payload.record));
-      if (kind === 'voceros') {
-        const consentSheet = ensureConsentSheet(spreadsheet);
-        const consents = Array.isArray(payload.record.consents) ? payload.record.consents : [];
-        consents.forEach((consent) => consentSheet.appendRow(consentRow(consent)));
-      }
+    if (kind === 'voceros') {
+      persistVoceros(spreadsheet, sheet, voceros);
+      return jsonResponse({ ok: true, submission_id: voceros.id });
     }
+
+    const id = String(payload.record.id);
+    const duplicate = findSubmission(sheet, id);
+    if (!duplicate) sheet.appendRow(rowFor(kind, payload.record));
     return jsonResponse({ ok: true, duplicate: Boolean(duplicate) });
-  } catch (error) {
-    console.error(error);
+  } catch (_) {
+    console.error('Google Sheets receiver failed.');
     return jsonResponse({ ok: false, error: 'internal_error' });
   } finally {
     try { lock.releaseLock(); } catch (_) {}

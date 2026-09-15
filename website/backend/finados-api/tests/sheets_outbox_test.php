@@ -96,11 +96,25 @@ same('synced', $outbox->deliver($secondRecord['submission_id'], static function 
 }));
 same(1, (int) $outboxDb->query("SELECT attempts FROM sheets_outbox WHERE submission_id = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'")->fetchColumn());
 
-// A response without the matching submission receipt must remain pending, even with generic ok=true.
+// The real transport is opt-in: a legacy or mistyped config must not make an HTTP request.
 same(true, class_exists(Finados\SheetsTransport::class));
 $transportConfig = ['webAppUrl' => 'https://script.google.com/macros/s/synthetic/exec', 'token' => str_repeat('s', 32)];
 file_put_contents($outboxRoot . '/google-sheets-config.json', json_encode($transportConfig));
 $thirdRecord = array_replace($outboxRecord, ['submission_id' => str_repeat('c', 32), 'cedula' => '1800000024', 'whatsapp' => '0990000024', 'email' => 'third@example.invalid']);
+$gateCalls = 0;
+$gateHttp = static function () use (&$gateCalls): array {
+    $gateCalls++;
+    return [200, '{"ok":true,"submission_id":"cccccccccccccccccccccccccccccccc"}'];
+};
+same('queued', Finados\SheetsTransport::deliver($outboxRoot, $thirdRecord, $gateHttp));
+$transportConfig['receiptVersion'] = 'wrong-version';
+file_put_contents($outboxRoot . '/google-sheets-config.json', json_encode($transportConfig));
+same('queued', Finados\SheetsTransport::deliver($outboxRoot, $thirdRecord, $gateHttp));
+same(0, $gateCalls);
+
+// A response without the matching submission receipt must remain pending, even with generic ok=true.
+$transportConfig['receiptVersion'] = 'voceros-receipt-v1';
+file_put_contents($outboxRoot . '/google-sheets-config.json', json_encode($transportConfig));
 $outboxRepo->createPublic($thirdRecord, $outboxConsents, '192.0.2.4');
 foreach ([['ok' => true], ['ok' => true, 'submission_id' => str_repeat('f', 32)], ['ok' => false, 'submission_id' => str_repeat('c', 32)]] as $badReceipt) {
     $outboxDb->exec('UPDATE sheets_outbox SET next_attempt_at = 0');

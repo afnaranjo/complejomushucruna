@@ -18,9 +18,13 @@ En Voceros, `dirname(FINADOS_CONFIG_PATH)` significa la carpeta que contiene el 
 El archivo privado debe tener esta forma y permisos `0600`:
 
 ```json
-{"webAppUrl":"https://script.google.com/macros/s/IMPLEMENTACION/exec","token":"TOKEN_PRIVADO"}
+{"webAppUrl":"https://script.google.com/macros/s/IMPLEMENTACION/exec","token":"TOKEN_PRIVADO","receiptVersion":"voceros-receipt-v1"}
 ```
 
-Si Google no responde temporalmente, el sitio conserva el registro en su respaldo local y lo coloca en `google-sheets-pending.jsonl` para reintentar en el siguiente envío.
+`receiptVersion` es un gate operativo, no una credencial. El transporte de Voceros no realiza ninguna solicitud HTTP si este campo falta o tiene otro valor: la ficha permanece en MySQL y su trabajo cifrado queda pendiente en la outbox. Esto permite desplegar el backend sin confiar accidentalmente en una implementación anterior del receptor.
+
+Antes de añadir el gate al JSON privado, el propietario debe publicar este `Code.gs` y verificar con un registro sintético controlado que: la respuesta sea `{"ok":true,"submission_id":"ID_ESTABLE"}`, exista una sola ficha, existan sus tres consentimientos y repetir el mismo `submission_id` no añada filas. Solo después se añade `"receiptVersion":"voceros-receipt-v1"` al archivo existente, sin reemplazar su URL, token u otras configuraciones. No se activa ningún proceso programado como parte de este paso.
+
+Si Google no responde temporalmente, Voceros conserva el registro canónico en MySQL y reintenta desde su outbox cifrada. `media` y `brunch` conservan su cola privada anterior y su respuesta compatible `ok`/`duplicate`; el cambio de recibo se aplica únicamente a Voceros.
 
 El formulario de voceros permanece cerrado por defecto. Para habilitarlo, además de la conexión anterior, debe existir `dirname(FINADOS_CONFIG_PATH)/voceros-registration.json` con `enabled: true` y los datos legales aprobados: responsable, RUC, dirección, correo de derechos, plazo de conservación y las cuatro versiones documentales. El archivo es privado y nunca se versiona.
