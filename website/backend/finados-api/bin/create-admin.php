@@ -14,7 +14,7 @@ require_once __DIR__ . '/../src/Auth.php';
 final class AdminCommand
 {
     /** IO injection is an in-process seam. The executable exposes no password option or env input. */
-    public static function run(array $arguments, callable $readSecret, callable $write): int
+    public static function run(array $arguments, callable $readSecrets, callable $write): int
     {
         $password = $confirmation = '';
         $pdo = null;
@@ -27,8 +27,7 @@ final class AdminCommand
                 throw new RuntimeException('Invalid configuration mode.');
             }
             $pdo = Database::connect($config);
-            $password = $readSecret();
-            $confirmation = $readSecret();
+            [$password, $confirmation] = $readSecrets();
             $characters = preg_match_all('/./us', $password);
             // The shared 72-byte upper bound prevents bcrypt truncation on fallback runtimes.
             if ($characters === false || $characters < 14 || strlen($password) > 72
@@ -54,7 +53,7 @@ final class AdminCommand
             $write("No se pudo configurar admin\n");
             return 1;
         } finally {
-            if (function_exists('sodium_memzero')) {
+            if (function_exists('sodium_memzero') && is_string($password) && is_string($confirmation)) {
                 sodium_memzero($password);
                 sodium_memzero($confirmation);
             }
@@ -79,23 +78,24 @@ final class AdminCommand
 
 final class HiddenPasswordReader
 {
-    public static function read(): string
+    public static function readPair(): array
     {
-        if (PHP_SAPI !== 'cli' || !stream_isatty(STDIN)) {
+        if (PHP_SAPI !== 'cli' || !stream_isatty(STDIN) || !stream_isatty(STDERR)) {
             throw new RuntimeException('An interactive terminal is required.');
         }
         $previous = trim(self::terminal(['-g']));
+        $wasBlocking = stream_get_meta_data(STDIN)['blocked'];
         if ($previous === '' || preg_match('/^[a-zA-Z0-9:;= ]+$/D', $previous) !== 1) {
             throw new RuntimeException('Terminal state is unavailable.');
         }
         $restore = static function () use ($previous): void { self::terminal([$previous]); };
         $handlers = [];
         $async = null;
-        if (function_exists('pcntl_signal') && function_exists('pcntl_async_signals')) {
+        if (function_exists('pcntl_signal') && function_exists('pcntl_async_signals') && function_exists('pcntl_signal_get_handler')) {
             $async = pcntl_async_signals(true);
             foreach ([SIGINT, SIGTERM, SIGHUP] as $signal) {
                 $handlers[$signal] = pcntl_signal_get_handler($signal);
-                pcntl_signal($signal, static function (): never { throw new RuntimeException('Input interrupted.'); });
+                pcntl_signal($signal, static function (): never { throw new RuntimeException('Input interrupted.'); }, false);
             }
         }
         $restored = false;
@@ -104,16 +104,34 @@ final class HiddenPasswordReader
         });
         try {
             self::terminal(['-echo']);
-            $line = fgets(STDIN, 4098);
-            if ($line === false || !str_ends_with($line, "\n")) {
-                throw new RuntimeException('Input unavailable.');
-            }
-            return rtrim($line, "\r\n");
+            if (!stream_set_blocking(STDIN, false)) { throw new RuntimeException('Input control unavailable.'); }
+            // Readiness is announced only once echo is disabled. Keep it disabled across both reads.
+            fwrite(STDERR, 'Contraseña de admin (entrada oculta): ');
+            $password = self::readLine();
+            fwrite(STDERR, "\nConfirma la contraseña (entrada oculta): ");
+            $confirmation = self::readLine();
+            fwrite(STDERR, "\n");
+            return [$password, $confirmation];
         } finally {
+            stream_set_blocking(STDIN, $wasBlocking);
             $restore();
             $restored = true;
             foreach ($handlers as $signal => $handler) { pcntl_signal($signal, $handler); }
             if ($async !== null) { pcntl_async_signals($async); }
+        }
+    }
+
+    private static function readLine(): string
+    {
+        $line = '';
+        while (true) {
+            $part = fgets(STDIN, 4098 - strlen($line));
+            if ($part !== false) { $line .= $part; }
+            if (str_ends_with($line, "\n")) { return rtrim($line, "\r\n"); }
+            if (strlen($line) >= 4096 || feof(STDIN)) { throw new RuntimeException('Input unavailable.'); }
+            // PHP streams may restart a blocking read on EINTR; bounded polling lets signals
+            // reach the handler while the terminal remains hidden, including between both lines.
+            usleep(10000);
         }
     }
 
@@ -134,6 +152,6 @@ if (PHP_SAPI === 'cli' && realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE
     // Suppress detailed diagnostics at this sensitive boundary; all failures have one generic output.
     ini_set('display_errors', '0');
     ini_set('log_errors', '0');
-    exit(AdminCommand::run(array_slice($argv, 1), [HiddenPasswordReader::class, 'read'],
+    exit(AdminCommand::run(array_slice($argv, 1), [HiddenPasswordReader::class, 'readPair'],
         static fn (string $message) => fwrite(STDOUT, $message)));
 }

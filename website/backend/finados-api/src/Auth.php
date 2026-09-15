@@ -108,6 +108,7 @@ final class Auth
 
     public function logout(): void
     {
+        Http::startSession($this->config);
         Http::destroySession();
     }
 
