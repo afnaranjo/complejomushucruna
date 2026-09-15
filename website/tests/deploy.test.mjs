@@ -254,6 +254,109 @@ class MigrationStatement {
   assert.ok(!second.stdout.includes('"version"'));
 });
 
+test('backend frontend mantiene Voceros abierto si la transferencia o la etapa posterior se interrumpe', async () => {
+  const { publishFrontendFiles, uploadVocerosRegistrationConfig } = await import('../scripts/deploy-cpanel.mjs');
+  const { mkdir, copyFile } = await import('node:fs/promises');
+  const temp = await mkdtemp(join(tmpdir(), 'finados-publish-'));
+  await mkdir(join(temp, 'dist/api/voceros'), { recursive: true });
+  await mkdir(join(temp, 'live/api/voceros'), { recursive: true });
+  await mkdir(join(temp, 'private'), { mode: 0o700 });
+  await mkdir(join(temp, 'backend/src'), { recursive: true });
+  const endpoint = join(temp, 'live/api/voceros/index.php');
+  const source = await readFile(join(websiteRoot, 'public/api/voceros/index.php'), 'utf8');
+  await writeFile(join(temp, 'dist/api/voceros/index.php'), source);
+  await copyFile(join(websiteRoot, 'public/api/_voceros-bootstrap.php'), join(temp, 'dist/api/_voceros-bootstrap.php'));
+  for (const name of ['Config', 'Crypto']) await copyFile(join(websiteRoot, `backend/finados-api/src/${name}.php`), join(temp, `backend/src/${name}.php`));
+  // Keep the endpoint, bootstrap, Config, Crypto and legal reader real. Only the DB
+  // boundary and repository constructors are replaced: GET does not consume records.
+  await writeFile(join(temp, 'backend/src/Database.php'), '<?php namespace Finados; class Database { static function connect($config) { return new \\stdClass(); } }');
+  for (const name of ['Audit', 'VocerosRepository']) await writeFile(join(temp, `backend/src/${name}.php`), `<?php namespace Finados; class ${name} { function __construct(...$args) {} }`);
+  await writeFile(join(temp, 'private/backend.json'), JSON.stringify({
+    environment: 'production', databaseDsn: 'mysql:host=localhost;dbname=fixture', databaseUser: 'fixture', databasePassword: 'fixture',
+    allowedOrigin: 'https://complejomushucruna.com', encryptionKey: Buffer.alloc(32, 'e').toString('base64'), hmacKey: Buffer.alloc(32, 'h').toString('base64'),
+  }));
+  await writeFile(join(temp, 'dist/other.html'), 'other');
+  const mapPaths = input => input.replaceAll('/home/usuario_cpanel/public_html/complejomushucruna.com', join(temp, 'live'))
+    .replaceAll('/home/usuario_cpanel/private-data/finados-backend.json', join(temp, 'private/backend.json'))
+    .replaceAll('/home/usuario_cpanel/apps/finados-api/current', join(temp, 'backend'));
+  const readResponse = () => {
+    const response = spawnSync('php', ['-r', `$_SERVER['REQUEST_METHOD']='GET'; require '${endpoint}'; $response = voceros_handle_request($_SERVER, []); echo json_encode($response);`],
+      { encoding: 'utf8', env: { ...process.env, FINADOS_CONFIG_PATH: '', FINADOS_BACKEND_ROOT: '' } });
+    assert.equal(response.status, 0, response.stderr);
+    const parsed = JSON.parse(response.stdout);
+    return { status: parsed.status, open: parsed.json.open };
+  };
+  // The old endpoint is configured and working before either simulated failure.
+  const backendModule = await import('../scripts/deploy-finados-backend.mjs');
+  await uploadVocerosRegistrationConfig(fixtureConfig(), { async run({ command, input }) {
+    const result = spawnSync('sh', ['-c', command.replaceAll('/home/usuario_cpanel/private-data', join(temp, 'private'))], { input });
+    assert.equal(result.status, 0);
+  } });
+  await writeFile(endpoint, mapPaths(backendModule.preparePublicEndpoint(fixtureConfig(), source)));
+  assert.deepEqual(readResponse(), { status: 200, open: true });
+  const transport = recordingTransport();
+  transport.run = async operation => {
+    const input = mapPaths(operation.input);
+    const result = spawnSync('php', [], { input, encoding: 'utf8' });
+    if (result.status !== 0) throw new Error('install failed');
+    return result.stdout;
+  };
+  const stages = [];
+  const upload = async (_config, { archiveArgs }) => {
+    const args = archiveArgs.map(value => value.endsWith('/website/dist') ? join(temp, 'dist') : value);
+    const archive = spawnSync('tar', args);
+    assert.equal(archive.status, 0);
+    const extraction = spawnSync('tar', ['-xf', '-', '-C', join(temp, 'live')], { input: archive.stdout });
+    assert.equal(extraction.status, 0);
+    // A partial helper write cannot break an endpoint with embedded dependencies.
+    await writeFile(join(temp, 'live/api/_voceros-bootstrap.php'), '<?php invalid truncated transfer');
+    assert.deepEqual(readResponse(), { status: 200, open: true });
+    stages.push('uploaded');
+  };
+  for (const failure of ['upload', 'after-transfer']) {
+    await assert.rejects(publishFrontendFiles(fixtureConfig(), {
+      endpointSource: source,
+      install: async (config, prepared) => backendModule.installPublicBootstrap(config, transport, { source: prepared }),
+      upload: async (...args) => { await upload(...args); if (failure === 'upload') throw new Error('connection lost'); },
+      normalize: () => { throw new Error('after-transfer'); },
+      verify: () => assert.fail('verification must not run after interruption'),
+    }));
+    assert.deepEqual(readResponse(), { status: 200, open: true });
+  }
+  assert.equal(stages.length, 2);
+  const previous = await readFile(endpoint, 'utf8');
+  for (const badSource of [
+    source.replace('declare(strict_types=1);', 'declare(strict_types=1); invalid PHP'),
+    source.replace('function registration_config(string $directory): ?array\n{', 'function registration_config(string $directory): ?array\n{\n return null;'),
+  ]) {
+    await assert.rejects(publishFrontendFiles(fixtureConfig(), {
+      endpointSource: badSource,
+      install: async (config, prepared) => backendModule.installPublicBootstrap(config, transport, { source: prepared }),
+      upload: () => assert.fail('do not transfer after failed preparation'),
+    }));
+    assert.equal(await readFile(endpoint, 'utf8'), previous);
+    assert.deepEqual(readResponse(), { status: 200, open: true });
+  }
+});
+
+test('backend configuración legal usa la carpeta privada alternativa del JSON canónico', async () => {
+  const { uploadVocerosRegistrationConfig } = await import('../scripts/deploy-cpanel.mjs');
+  const { validateBackendConfig } = await import('../scripts/deploy-finados-backend.mjs');
+  const temp = await mkdtemp(join(tmpdir(), 'finados-config-directory-'));
+  const config = validateBackendConfig(fixtureConfig({ FINADOS_CONFIG_PATH: '/home/usuario_cpanel/secrets/backend.json' }));
+  const transport = { async run({ command, input }) {
+    const result = spawnSync('sh', ['-c', command.replaceAll('/home/usuario_cpanel/secrets', temp)], { input, encoding: 'utf8' });
+    assert.equal(result.status, 0, result.stderr);
+  } };
+  await uploadVocerosRegistrationConfig(config, transport);
+  const legal = JSON.parse(await readFile(join(temp, 'voceros-registration.json'), 'utf8'));
+  assert.equal(legal.enabled, true);
+  const code = `<?php require '${join(websiteRoot, 'public/api/voceros/index.php').replaceAll("'", "\\'")}'; echo json_encode(registration_config('${temp}'));`;
+  const result = spawnSync('php', [], { input: code, encoding: 'utf8' });
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(JSON.parse(result.stdout).enabled, true);
+});
+
 async function configFixture(overrides = {}) {
   const directory = await mkdtemp(join(tmpdir(), 'mushuc-deploy-'));
   const keyFile = join(directory, 'id_rsa_complejo');
@@ -338,17 +441,14 @@ test('git ignora nombres habituales de llaves privadas aunque no tengan extensi�
 });
 
 test('normaliza permisos de carpetas después de la transferencia y antes de verificar HTTPS', async () => {
-  const source = await readFile(deployScript, 'utf8');
-  const uploadIndex = source.indexOf('uploadDist(config);');
-  const permissionsIndex = source.indexOf('normalizeRemotePermissions(config);');
-  const verificationIndex = source.indexOf('await verifyPublicSite(config);');
-
-  assert.ok(uploadIndex >= 0);
-  assert.ok(permissionsIndex > uploadIndex);
-  assert.ok(verificationIndex > permissionsIndex);
-  assert.match(source, /-perm 0700/);
-  assert.match(source, /\.well-known/);
-  assert.match(source, /cgi-bin/);
+  const { publishFrontendFiles } = await import('../scripts/deploy-cpanel.mjs');
+  const stages = [];
+  await publishFrontendFiles(fixtureConfig(), {
+    endpointSource: '<?php function voceros_bootstrap() {}',
+    install: () => stages.push('install'), upload: () => stages.push('upload'),
+    normalize: () => stages.push('permissions'), verify: () => stages.push('HTTPS'),
+  });
+  assert.deepEqual(stages, ['install', 'upload', 'permissions', 'HTTPS']);
 });
 
 test('transfiere dist por el mismo cliente SSH sin depender de SCP en Windows', async () => {

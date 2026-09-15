@@ -1,7 +1,7 @@
 import { execFileSync, spawn, spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { access, readFile, readdir, stat } from 'node:fs/promises';
-import { dirname, isAbsolute, join, resolve } from 'node:path';
+import { dirname, isAbsolute, join, resolve, posix } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const websiteRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -223,9 +223,11 @@ function backupRemote(config) {
   });
 }
 
-function uploadVocerosRegistrationConfig(config) {
+export async function uploadVocerosRegistrationConfig(config, transport) {
+  const backendDeploy = await import('./deploy-finados-backend.mjs');
+  backendDeploy.validateBackendConfig(config);
   const target = `${config.DEPLOY_SSH_USER}@${config.DEPLOY_SSH_HOST}`;
-  const privateDirectory = `/home/${config.DEPLOY_SSH_USER}/private-data`;
+  const privateDirectory = posix.dirname(config.FINADOS_CONFIG_PATH);
   const destination = `${privateDirectory}/voceros-registration.json`;
   const temporary = `${destination}.tmp`;
   const command = [
@@ -238,6 +240,7 @@ function uploadVocerosRegistrationConfig(config) {
     `mv ${temporary} ${destination}`,
   ].join('; ');
 
+  if (transport) return transport.run({ id: 'registration-config', command, write: true, input: JSON.stringify(vocerosRegistrationConfig) });
   run('ssh', [...sshBaseArgs(config), target, command], {
     input: JSON.stringify(vocerosRegistrationConfig),
     silent: true,
@@ -248,7 +251,7 @@ function uploadVocerosRegistrationConfig(config) {
 function verifyGoogleSheetsBridge(config) {
   if (!config.GOOGLE_SHEETS_WEB_APP_URL) return;
   const target = `${config.DEPLOY_SSH_USER}@${config.DEPLOY_SSH_HOST}`;
-  const privatePath = `/home/${config.DEPLOY_SSH_USER}/private-data/google-sheets-config.json`;
+  const privatePath = `${posix.dirname(config.FINADOS_CONFIG_PATH)}/google-sheets-config.json`;
   const source = `<?php
 $config = json_decode((string) file_get_contents('${privatePath}'), true);
 $url = is_array($config) ? ($config['webAppUrl'] ?? '') : '';
@@ -277,9 +280,13 @@ function waitForProcess(child, label) {
   });
 }
 
-async function uploadDist(config) {
+function distArchiveArgs(directory = join(websiteRoot, 'dist')) {
+  return ['--exclude=./api/voceros/index.php', '-cf', '-', '-C', directory, '.'];
+}
+
+async function uploadDist(config, { archiveArgs = distArchiveArgs() } = {}) {
   const target = `${config.DEPLOY_SSH_USER}@${config.DEPLOY_SSH_HOST}`;
-  const localTar = spawn('tar', ['-cf', '-', '-C', join(websiteRoot, 'dist'), '.'], {
+  const localTar = spawn('tar', archiveArgs, {
     cwd: websiteRoot,
     stdio: ['ignore', 'pipe', 'pipe'],
   });
@@ -322,6 +329,20 @@ function normalizeRemotePermissions(config) {
     silent: true,
     label: 'La normalización de permisos remotos',
   });
+}
+
+export async function publishFrontendFiles(config, {
+  endpointSource = readFileSync(join(websiteRoot, 'dist/api/voceros/index.php'), 'utf8'),
+  install, upload = uploadDist, normalize = normalizeRemotePermissions, verify = verifyPublicSite,
+} = {}) {
+  const backendDeploy = await import('./deploy-finados-backend.mjs');
+  const prepared = backendDeploy.preparePublicEndpoint(config, endpointSource);
+  // The complete endpoint is linted and its actual GET must report open before rename.
+  // Install it before copying any shared helpers; the prepared endpoint embeds its own.
+  await (install ?? ((settings, source) => backendDeploy.installPublicBootstrap(settings, undefined, { source })))(config, prepared);
+  await upload(config, { archiveArgs: distArchiveArgs() });
+  await normalize(config);
+  await verify(config);
 }
 
 async function fetchWithTimeout(url) {
@@ -478,16 +499,11 @@ async function main() {
   backupRemote(config);
   console.log('Conservando la credencial remota existente de Google Sheets…');
   console.log('Habilitando el registro de Voceros con su configuración legal…');
-  uploadVocerosRegistrationConfig(config);
+  await uploadVocerosRegistrationConfig(config);
   console.log('Comprobando el puente privado de Google Sheets…');
   verifyGoogleSheetsBridge(config);
   console.log('Subiendo la salida estática sin eliminar archivos exclusivos del servidor…');
-  await uploadDist(config);
-  await backendDeploy.installPublicBootstrap(config);
-  console.log('Restaurando permisos públicos de las carpetas transferidas…');
-  normalizeRemotePermissions(config);
-  console.log('Verificando las rutas públicas por HTTPS…');
-  await verifyPublicSite(config);
+  await publishFrontendFiles(config);
   console.log(`Despliegue verificado en https://${publicHostname}.`);
 }
 

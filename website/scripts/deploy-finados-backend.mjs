@@ -139,7 +139,30 @@ function envPhp(config) {
   return ['FINADOS_CONFIG_PATH', 'FINADOS_BACKEND_ROOT', 'FINADOS_PUBLIC_ROOTS'].map(key => `putenv(${literal(`${key}=${config[key]}`)});`).join('\n');
 }
 
-function installSource(config, { main = false, releaseId }) {
+export function preparePublicEndpoint(config, source) {
+  validateBackendConfig(config);
+  if (typeof source !== 'string' || !source.startsWith('<?php') || !source.includes('voceros_bootstrap')) fail('Endpoint de Voceros inválido.');
+  // Package the two public helpers inside the endpoint so later partial transfers cannot
+  // replace a dependency of the active form. Private backend classes remain in current.
+  for (const helper of ['_google-sheets.php', '_voceros-bootstrap.php']) {
+    const include = `require_once dirname(__DIR__) . DIRECTORY_SEPARATOR . '${helper}';`;
+    if (source.includes(include)) {
+      const body = readFileSync(join(websiteRoot, 'public/api', helper), 'utf8')
+        .replace(/^<\?php\s*declare\(strict_types=1\);\s*/, '');
+      source = source.replace(include, body);
+    }
+  }
+  const endMarker = '// FINADOS MANAGED BOOTSTRAP END\n';
+  if (source.includes('// FINADOS MANAGED BOOTSTRAP BEGIN\n')) {
+    const offset = source.indexOf(endMarker);
+    if (offset < 0) fail('Bootstrap previo incompleto.');
+    source = '<?php\n' + source.slice(offset + endMarker.length);
+  }
+  source = source.replace(/^<\?php\s*declare\(strict_types=1\);/, '<?php');
+  return `<?php\ndeclare(strict_types=1);\n// FINADOS MANAGED BOOTSTRAP BEGIN\n${envPhp(config)}\n${endMarker}${source.slice(5)}`;
+}
+
+function installSource(config, { main = false, releaseId, source }) {
   const docroot = main ? config.DEPLOY_REMOTE_ROOT : config.FINADOS_API_DOCROOT;
   const directory = main ? `${config.DEPLOY_REMOTE_ROOT}/api/voceros` : `${config.FINADOS_API_DOCROOT}/api`;
   const prefix = `<?php\ndeclare(strict_types=1);\n// FINADOS MANAGED ${main ? 'BOOTSTRAP BEGIN' : 'API'}\n${envPhp(config)}\n`;
@@ -150,7 +173,10 @@ if (realpath(dirname($directory)) !== realpath(${literal(docroot)}) . ${literal(
 if (is_link($directory) || (file_exists($directory) && !is_dir($directory))) exit(1);
 if (!is_dir($directory) && !mkdir($directory, 0755)) exit(1);
 $destination = $directory . '/index.php';
-${main ? `
+${main && source !== undefined ? `
+if (is_file($destination) && !str_contains(file_get_contents($destination), 'voceros_bootstrap')) exit(1);
+$contents = ${literal(source)};
+` : main ? `
 $source = file_get_contents($destination);
 if (!str_contains($source, 'voceros_bootstrap')) exit(1);
 if (str_contains($source, '// FINADOS MANAGED BOOTSTRAP BEGIN\n')) {
@@ -170,6 +196,12 @@ $stream = fopen($temporary, 'x'); if (!$stream) exit(1);
 fwrite($stream, $contents); fclose($stream); chmod($temporary, 0644);
 $lint = proc_open([PHP_BINARY, '-l', $temporary], [0=>['file','/dev/null','r'],1=>['file','/dev/null','w'],2=>['file','/dev/null','w']], $pipes);
 if (!is_resource($lint) || proc_close($lint) !== 0) exit(1);
+${main && source !== undefined ? `
+require $temporary;
+if (!function_exists('voceros_handle_request')) exit(1);
+$health = voceros_handle_request(['REQUEST_METHOD'=>'GET'], []);
+if (($health['status'] ?? null) !== 200 || ($health['json']['open'] ?? false) !== true) exit(1);
+` : ''}
 if (!rename($temporary, $destination)) exit(1);
 ${main ? '' : `
 $htaccess = $directory . '/.htaccess';
@@ -182,10 +214,11 @@ if (file_put_contents($htaccess, $old . $block) === false) exit(1); chmod($htacc
 `);
 }
 
-export async function installPublicBootstrap(config, transport = createTransport(config)) {
+export async function installPublicBootstrap(config, transport = createTransport(config), { source } = {}) {
   validateBackendConfig(config);
   await safeRun(transport, { id: 'install-public-bootstrap', write: true, command: php,
-    input: installSource(config, { main: true, releaseId: randomBytes(8).toString('hex') }) });
+    input: installSource(config, { main: true, releaseId: randomBytes(8).toString('hex'),
+      source: source === undefined ? undefined : preparePublicEndpoint(config, source) }) });
 }
 
 export async function deployBackend(config, transport = createTransport(config), options = {}) {
