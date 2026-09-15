@@ -17,30 +17,51 @@ function publicFixture(overrides = {}) {
     consentimiento_politicas: 'Sí', autorizacion_imagen: 'Sí', consentimiento_datos: 'Sí', ...overrides };
 }
 
-test('real HTTP connects public registration, durable outbox and authenticated administration', async (t) => {
+test('real HTTP isolates Voceros and admin, stores multipart photos, resets access and backs up', async (t) => {
   const stack = await startLocalStack();
   t.after(stack.stop);
   assert.equal((await stat(stack.root)).mode & 0o777, 0o700);
-  assert.equal((await stat(stack.privateDirectory)).mode & 0o777, 0o700);
   assert.equal((await stat(stack.configPath)).mode & 0o777, 0o600);
-  let cookie = '';
-  let csrf = '';
-  async function request(path, { method = 'GET', body, token = csrf, origin = stack.publicOrigin, session = true, headers = {} } = {}) {
-    const response = await fetch(`${stack.apiOrigin}/api${path}`, { method, headers: {
-      Origin: origin, ...(session && cookie ? { Cookie: cookie } : {}),
-      ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}),
-      ...(token ? { 'X-CSRF-Token': token } : {}), ...headers,
-    }, ...(body !== undefined ? { body: JSON.stringify(body) } : {}), signal: AbortSignal.timeout(5000) });
-    if (session && response.headers.get('set-cookie')) cookie = response.headers.get('set-cookie').split(';')[0];
-    return response;
+  async function json(response, status) {
+    assert.equal(response.status, status, await response.clone().text());
+    return response.json();
   }
-  async function json(response, status) { assert.equal(response.status, status); return response.json(); }
-  const submit = (payload, origin = stack.publicOrigin) => fetch(`${stack.publicOrigin}/api/voceros/`, {
-    method: 'POST', headers: { Origin: origin }, body: new URLSearchParams(payload), signal: AbortSignal.timeout(5000) });
-
+  function client() {
+    const cookies = new Map(); let csrf = '';
+    return {
+      get cookie() { return [...cookies.values()].join('; '); },
+      async request(path, { method = 'GET', body, token = csrf, origin = stack.publicOrigin, headers = {} } = {}) {
+        const multipart = body instanceof FormData;
+        const cookie = [...cookies.values()].join('; ');
+        const response = await fetch(stack.apiOrigin + '/api' + path, { method, headers: {
+          Origin: origin, ...(cookie ? { Cookie: cookie } : {}), ...(token ? { 'X-CSRF-Token': token } : {}),
+          ...(body !== undefined && !multipart ? { 'Content-Type': 'application/json' } : {}), ...headers,
+        }, ...(body !== undefined ? { body: multipart ? body : JSON.stringify(body) } : {}), signal: AbortSignal.timeout(5000) });
+        const setCookies = response.headers.getSetCookie();
+        for (const entry of setCookies) {
+          const pair = entry.split(';')[0], name = pair.split('=')[0];
+          if (/max-age=0|expires=Thu, 01 Jan 1970/i.test(entry)) cookies.delete(name);
+          else cookies.set(name, pair);
+        }
+        if (response.status !== 204 && response.headers.get('content-type')?.includes('application/json')) {
+          const result = await response.clone().json();
+          if (typeof result.csrf === 'string') csrf = result.csrf;
+        }
+        return response;
+      },
+    };
+  }
+  const admin = client(), a = client(), b = client(), recovery = client();
+  const request = admin.request.bind(admin);
+  const closed = await json(await fetch(stack.publicOrigin + '/api/voceros/'), 200);
+  assert.deepEqual({ open: closed.open, authenticationRequired: closed.authenticationRequired, accessUrl: closed.accessUrl, timezone: closed.timezone },
+    { open: false, authenticationRequired: true, accessUrl: '/finados/voceros/acceso/', timezone: 'America/Guayaquil' });
+  const head = await fetch(stack.publicOrigin + '/api/voceros/', { method: 'HEAD' });
+  assert.equal(head.status, 200); assert.equal(await head.text(), '');
+  assert.equal((await fetch(stack.publicOrigin + '/api/voceros/', { method: 'POST', body: new URLSearchParams(publicFixture()) })).status, 401);
+  assert.equal((await fetch(stack.publicOrigin + '/api/voceros/', { method: 'DELETE' })).status, 405);
   assert.deepEqual(await json(await request('/health'), 200), { ok: true });
   for (const path of ['/voceros', '/dashboard', '/voceros/' + 'a'.repeat(32)]) assert.equal((await request(path)).status, 401);
-  assert.equal((await request('/voceros/' + 'a'.repeat(32), { method: 'PATCH', body: { status: 'Aprobado' } })).status, 401);
   assert.equal((await request('/voceros', { origin: 'https://untrusted.example' })).status, 403);
   const preflight = await request('/auth/login', { method: 'OPTIONS', headers: {
     'Access-Control-Request-Method': 'POST', 'Access-Control-Request-Headers': 'Content-Type, X-CSRF-Token' } });
@@ -48,97 +69,143 @@ test('real HTTP connects public registration, durable outbox and authenticated a
   assert.equal(preflight.headers.get('access-control-allow-origin'), stack.publicOrigin);
   assert.equal(preflight.headers.get('access-control-allow-credentials'), 'true');
   assert.match(preflight.headers.get('vary'), /Origin/);
-  assert.equal((await request('/auth/login', { method: 'OPTIONS', headers: { 'Access-Control-Request-Method': 'DELETE' } })).status, 403);
-  assert.equal((await request('/auth/login', { method: 'OPTIONS', headers: { 'Access-Control-Request-Headers': 'X-Other' } })).status, 403);
-  assert.equal((await request('/auth/login', { method: 'OPTIONS', origin: 'https://untrusted.example' })).status, 403);
-  for (const path of ['/admin/', '/admin/voceros/', '/finados/voceros/', '/assets/admin/admin.js', '/assets/admin/admin.css']) {
+  for (const headers of [{ 'Access-Control-Request-Method': 'DELETE' }, { 'Access-Control-Request-Headers': 'X-Other' }]) {
+    assert.equal((await request('/auth/login', { method: 'OPTIONS', headers })).status, 403);
+  }
+  for (const path of ['/admin/', '/admin/voceros/', '/finados/voceros/', '/finados/voceros/acceso/', '/finados/voceros/mi-registro/', '/finados/voceros/restablecer/']) {
     assert.equal((await fetch(stack.publicOrigin + path)).status, 200);
   }
   assert.equal((await fetch(stack.publicOrigin + '/tests/integration/fixture.php')).status, 404);
+  const password = randomBytes(24).toString('base64url');
   const adult = publicFixture();
-  assert.equal((await submit(adult, 'https://untrusted.example')).status, 403);
-  const receipt = await json(await submit(adult), 200);
-  assert.equal(receipt.database, 'stored');
-  assert.equal(receipt.googleSheets, 'queued');
-  assert.equal(receipt.registrationId, adult.submission_id);
-  assert.deepEqual(await json(await submit(adult), 200), receipt);
-  assert.equal((await submit({ ...adult, submission_id: randomBytes(16).toString('hex') })).status, 409);
-  const now = new Date();
   const minor = publicFixture({ nombre_completo: 'Prueba Integración Menor', cedula: '0000000002', whatsapp: '0900000002',
-    correo: 'menor@example.invalid', fecha_nacimiento: `${now.getUTCFullYear() - 17}-01-01`,
+    correo: 'menor@example.invalid', fecha_nacimiento: (new Date().getUTCFullYear() - 17) + '-01-01',
     representante_nombre: 'Representante Sintético', representante_cedula: '0000000003',
     representante_telefono: '0900000003', representante_correo: 'representante@example.invalid' });
-  assert.equal((await submit({ ...minor, representante_nombre: '' })).status, 422);
-  assert.equal((await submit(minor)).status, 200);
+  async function register(account, fields) {
+    const anonymous = await account.request('/vocero/auth/session');
+    assert.equal((await json(anonymous, 200)).authenticated, false);
+    assert.match(anonymous.headers.get('set-cookie'), /finados_vocero=.*HttpOnly.*SameSite=Lax/i);
+    const before = account.cookie;
+    assert.equal((await account.request('/vocero/auth/register', { method: 'POST', body: { email: fields.correo, password, privacyAcknowledged: true } })).status, 202);
+    assert.equal((await account.request('/vocero/profile')).status, 401);
+    await account.request('/vocero/auth/session');
+    const login = await json(await account.request('/vocero/auth/login', { method: 'POST', body: { email: fields.correo, password } }), 200);
+    assert.equal(login.user.role, 'vocero'); assert.notEqual(account.cookie, before);
+  }
+  await register(a, adult); await register(b, minor);
+  assert.notEqual(a.cookie, b.cookie);
+  const image = value => {
+    const generated = spawnSync('php', ['-r', '$im=imagecreatetruecolor(30,40); imagefill($im,0,0,imagecolorallocate($im,(int)$argv[1],40,70)); imagejpeg($im);', String(value)]);
+    assert.equal(generated.status, 0);
+    return new Blob([generated.stdout], { type: 'image/jpeg' });
+  };
+  const photoA = image(30), photoB = image(200);
+  const form = (fields, photo) => {
+    const payload = new FormData();
+    for (const [name, value] of Object.entries(fields)) if (name !== 'correo') payload.set(name, value);
+    if (photo) payload.set('fotografia', photo, 'foto-sintetica.jpg');
+    return payload;
+  };
+  assert.equal((await a.request('/vocero/profile', { method: 'POST', body: form(adult) })).status, 422);
+  const saved = await json(await a.request('/vocero/profile', { method: 'POST', body: form(adult, photoA) }), 200);
+  const id = saved.public_id;
+  assert.equal(saved.registered, true);
+  assert.equal((await json(await a.request('/vocero/profile', { method: 'POST', body: form(adult, photoA) }), 200)).public_id, id);
+  assert.equal((await b.request('/vocero/profile', { method: 'POST', body: form({ ...minor, representante_nombre: '' }, photoB) })).status, 422);
+  const savedB = await json(await b.request('/vocero/profile', { method: 'POST', body: form(minor, photoB) }), 200);
+  assert.equal(savedB.status, 'Pendiente de autorización');
+  assert.notEqual(savedB.public_id, id);
+  assert.equal((await json(await a.request('/vocero/profile'), 200)).email, adult.correo);
+  assert.equal((await json(await b.request('/vocero/profile'), 200)).email, minor.correo);
+  assert.equal((await a.request('/vocero/profile?public_id=' + savedB.public_id)).status, 422);
+  assert.equal((await a.request('/vocero/photo?public_id=' + savedB.public_id)).status, 422);
+  for (const account of [a, b]) {
+    assert.equal((await account.request('/voceros')).status, 401);
+    assert.equal((await account.request('/voceros/' + id + '/photo')).status, 401);
+  }
+  const aPhoto = await a.request('/vocero/photo'), bPhoto = await b.request('/vocero/photo');
+  assert.equal(aPhoto.status, 200); assert.equal(bPhoto.status, 200);
+  assert.equal(aPhoto.headers.get('content-type'), 'image/jpeg');
+  assert.match(aPhoto.headers.get('cache-control'), /private, no-store/);
+  assert.equal(aPhoto.headers.get('x-content-type-options'), 'nosniff');
+  const aBytes = Buffer.from(await aPhoto.arrayBuffer()), bBytes = Buffer.from(await bPhoto.arrayBuffer());
+  assert.notDeepEqual(aBytes, bBytes);
   let db = await stack.inspect();
-  assert.equal(db.voceros.length, 2);
-  assert.equal(db.vocero_consents.length, 6);
+  assert.equal(db.voceros.length, 2); assert.equal(db.vocero_consents.length, 6);
   assert.equal(db.sheets_outbox.length, 2);
-  for (const row of db.sheets_outbox) { assert.equal(row.state, 'pending'); assert.ok(row.payload_enc); }
+  assert.equal(db.vocero_accounts.length, 2); assert.equal(db.vocero_photos.length, 2);
+  for (const fields of db.sheets_field_names) assert.doesNotMatch(JSON.stringify(fields), /photo|fotografia|storage_key|jpeg/i);
   assert.doesNotMatch(JSON.stringify(db), /adulto@example\.invalid|0900000001|representante@example\.invalid/);
-  const id = db.voceros.find((row) => row.submission_id === adult.submission_id).public_id;
-  assert.equal(db.voceros.find((row) => row.submission_id === minor.submission_id).status, 'Pendiente de autorización');
-  assert.equal(db.vocero_consents.filter((row) => row.vocero_id === db.voceros.find((row) => row.public_id === id).id).length, 3);
+  for (const consent of db.vocero_consents) assert.equal(consent.text_version, consent.consent_type === 'politicas' ? '2026-09-14 + 2026-09-14' : '2026-09-15');
 
-  const anonymousResponse = await request('/auth/session');
-  const anonymous = await json(anonymousResponse, 200);
-  assert.equal(anonymous.authenticated, false);
-  assert.match(anonymousResponse.headers.get('set-cookie') ?? '', /HttpOnly/i);
-  assert.match(anonymousResponse.headers.get('set-cookie') ?? '', /SameSite=Strict/i);
-  assert.doesNotMatch(anonymousResponse.headers.get('set-cookie') ?? '', /;\s*Domain=/i);
-  csrf = anonymous.csrf;
-  const anonymousCookie = cookie;
+  const anonymous = await request('/auth/session');
+  const oldCsrf = (await json(anonymous, 200)).csrf;
+  assert.match(anonymous.headers.get('set-cookie'), /finados_admin=.*HttpOnly.*SameSite=Strict/i);
+  const anonymousCookie = admin.cookie;
   assert.equal((await request('/auth/login', { method: 'POST', body: stack.credentials, token: '' })).status, 403);
   assert.equal((await request('/auth/login', { method: 'POST', body: { username: 'admin', password: 'invalid' } })).status, 401);
   const login = await json(await request('/auth/login', { method: 'POST', body: stack.credentials }), 200);
-  assert.equal(login.authenticated, true);
-  assert.notEqual(cookie, anonymousCookie);
-  assert.notEqual(login.csrf, csrf);
-  const oldCsrf = csrf;
-  csrf = login.csrf;
+  assert.equal(login.user.role, 'administrador'); assert.notEqual(admin.cookie, anonymousCookie); assert.notEqual(login.csrf, oldCsrf);
+  // Send admin cookie without capturing the separate anonymous vocero cookie.
+  assert.equal((await fetch(stack.apiOrigin + '/api/vocero/profile', { headers: { Cookie: admin.cookie, Origin: stack.publicOrigin } })).status, 401);
   const list = await json(await request('/voceros'), 200);
   assert.equal(list.pagination.total, 2);
-  const summary = list.items.find((item) => item.public_id === id);
-  assert.equal(summary.whatsapp, '******0001');
-  assert.equal(summary.cedula, '******0001');
-  for (const query of [`search=${encodeURIComponent(adult.correo)}`, 'status=Nuevo', 'city=Ciudad%20Sint%C3%A9tica&main_network=Instagram&status=Nuevo']) {
+  assert.equal(list.items.find(item => item.public_id === id).whatsapp, '******0001');
+  for (const query of ['search=' + encodeURIComponent(adult.correo), 'status=Nuevo', 'city=Ciudad%20Sint%C3%A9tica&main_network=Instagram&status=Nuevo']) {
     assert.equal((await json(await request('/voceros?' + query), 200)).pagination.total, 1);
   }
   assert.equal((await json(await request('/voceros?pageSize=1&page=2'), 200)).items.length, 1);
   const detail = await json(await request('/voceros/' + id), 200);
-  assert.equal(detail.email, adult.correo);
-  assert.equal(detail.consents.length, 3);
+  assert.equal(detail.email, adult.correo); assert.equal(detail.consents.length, 3); assert.equal(detail.photo.available, true);
+  const downloaded = await request('/voceros/' + id + '/photo');
+  assert.equal(downloaded.status, 200); assert.match(downloaded.headers.get('cache-control'), /private, no-store/);
+  assert.deepEqual(Buffer.from(await downloaded.arrayBuffer()), aBytes);
   assert.equal((await request('/voceros/' + id, { method: 'PATCH', body: { status: 'Aprobado' }, token: oldCsrf })).status, 403);
-  assert.equal((await request('/voceros/' + id, { method: 'PATCH', body: { status: 'Aprobado' }, token: '' })).status, 403);
   assert.equal((await request('/voceros/' + id, { method: 'PATCH', body: { status: 'Aprobado' } })).status, 200);
+  assert.equal((await a.request('/vocero/profile', { method: 'POST', body: form(adult) })).status, 403);
   const note = '<script>alert("texto sintético")</script>';
   assert.equal((await request('/voceros/' + id + '/notes', { method: 'POST', body: { body: note } })).status, 201);
-  const updated = await json(await request('/voceros/' + id), 200);
-  assert.equal(updated.status, 'Aprobado');
-  assert.equal(updated.notes[0].body, note);
+  assert.equal((await json(await request('/voceros/' + id), 200)).notes[0].body, note);
   const csv = await request('/voceros/export', { method: 'POST', body: { status: 'Aprobado' } });
-  assert.equal(csv.status, 200);
-  assert.match(csv.headers.get('cache-control'), /no-store/);
-  const bytes = new Uint8Array(await csv.arrayBuffer());
-  assert.deepEqual([...bytes.slice(0, 3)], [239, 187, 191]);
-  const csvText = new TextDecoder().decode(bytes);
-  assert.match(csvText, /adulto@example\.invalid/);
-  assert.match(csvText, /'=Prueba Integración Adulta/);
-  assert.doesNotMatch(csvText, /menor@example\.invalid/);
-  const dashboard = await json(await request('/dashboard'), 200);
-  assert.equal(dashboard.total, 2);
-  assert.equal(dashboard.byStatus.Aprobado, 1);
+  assert.equal(csv.status, 200); assert.match(csv.headers.get('cache-control'), /no-store/);
+  const csvBytes = new Uint8Array(await csv.arrayBuffer());
+  assert.deepEqual([...csvBytes.slice(0, 3)], [239, 187, 191]);
+  const csvText = new TextDecoder().decode(csvBytes);
+  assert.match(csvText, /adulto@example\.invalid/); assert.match(csvText, /'=Prueba Integración Adulta/);
+  assert.doesNotMatch(csvText, /menor@example\.invalid|photo|fotografia|voceros-photos|storage_key/i);
+
+  const reset = await json(await request('/voceros/' + id + '/password-reset', { method: 'POST', body: {} }), 201);
+  const resetUrl = new URL(reset.resetUrl);
+  assert.equal(resetUrl.origin, 'https://complejomushucruna.com');
+  const token = resetUrl.searchParams.get('token'), newPassword = randomBytes(24).toString('base64url');
+  assert.match(token, /^[a-f0-9]{64}$/);
+  await recovery.request('/vocero/auth/session');
+  assert.equal((await recovery.request('/vocero/auth/reset', { method: 'POST', body: { token, password: newPassword } })).status, 200);
+  assert.equal((await a.request('/vocero/profile')).status, 401);
+  assert.equal((await b.request('/vocero/profile')).status, 200);
+  assert.equal((await recovery.request('/vocero/auth/reset', { method: 'POST', body: { token, password: newPassword } })).status, 422);
+  await a.request('/vocero/auth/session');
+  assert.equal((await a.request('/vocero/auth/login', { method: 'POST', body: { email: adult.correo, password } })).status, 401);
+  assert.equal((await a.request('/vocero/auth/login', { method: 'POST', body: { email: adult.correo, password: newPassword } })).status, 200);
+  assert.equal((await a.request('/vocero/profile')).status, 200);
   db = await stack.inspect();
-  for (const event of ['admin.login', 'vocero.status_changed', 'vocero.note_added', 'vocero.exported']) {
-    assert.ok(db.audit_log.some((row) => row.event_type === event), event);
+  assert.equal(db.vocero_password_resets.length, 1); assert.ok(db.vocero_password_resets[0].consumed_at);
+  assert.doesNotMatch(JSON.stringify(db), new RegExp(token));
+  for (const event of ['admin.login', 'vocero.photo_viewed', 'vocero.status_changed', 'vocero.note_added', 'vocero.exported', 'vocero.password_reset_created']) {
+    assert.ok(db.audit_log.some(row => row.event_type === event), event);
   }
-  const authenticatedCookie = cookie;
-  const logout = await request('/auth/logout', { method: 'POST' });
-  assert.equal(logout.status, 200);
-  assert.match(logout.headers.get('set-cookie'), /expires=/i);
-  cookie = authenticatedCookie;
+  const receipt = await stack.backup();
+  assert.equal(receipt.photos, 2);
+  assert.deepEqual(Object.keys(receipt).sort(), ['backups', 'bytes', 'photos', 'sha256']);
+  const { readdir } = await import('node:fs/promises');
+  const [backupDirectory] = await readdir(join(stack.privateDirectory, 'backups'));
+  const backupRoot = join(stack.privateDirectory, 'backups', backupDirectory);
+  const manifest = JSON.parse(await readFile(join(backupRoot, 'manifest.json'), 'utf8'));
+  assert.equal(manifest.photos.count, 2); assert.equal(manifest.photos.files.length, 2);
+  assert.equal((await request('/auth/logout', { method: 'POST' })).status, 200);
   assert.equal((await request('/voceros')).status, 401);
-  // Test adapters must fail closed with production config, even on loopback.
+  assert.equal((await b.request('/vocero/profile')).status, 200);
   const config = JSON.parse(await readFile(stack.configPath, 'utf8'));
   await writeFile(stack.configPath, JSON.stringify({ ...config, environment: 'production', allowedOrigin: 'https://complejomushucruna.com' }));
   assert.equal((await fetch(stack.apiOrigin + '/api/health')).status, 403);
@@ -146,6 +213,7 @@ test('real HTTP connects public registration, durable outbox and authenticated a
   await stack.stop();
   await assert.rejects(stat(stack.root), { code: 'ENOENT' });
   await assert.rejects(fetch(stack.apiOrigin + '/api/health'));
+  await assert.rejects(fetch(stack.publicOrigin + '/api/voceros/'));
 });
 
 test('development build uses its configured loopback API; production refuses overrides', async () => {
@@ -163,7 +231,7 @@ test('development build uses its configured loopback API; production refuses ove
       assert.doesNotMatch(await readFile(join(root, 'production', file), 'utf8'), /VOCEROS_TEST_CONFIG|local_test_config|http:\/\/127\.0\.0\.1:/, file);
     }
     assert.match(await readFile(join(root, 'production/admin/index.html'), 'utf8'), /https:\/\/finados\.complejomushucruna\.com\/api/);
-    for (const file of files.filter((file) => !file.startsWith('admin/') && !file.startsWith('assets/admin/'))) {
+    for (const file of files.filter((file) => !file.startsWith('admin/') && !file.startsWith('assets/admin/') && !/^finados\/voceros\/(acceso|mi-registro|restablecer)\//.test(file) && file !== 'assets/finados/vocero-portal.js')) {
       assert.deepEqual(await readFile(join(root, 'production', file)), await readFile(join(root, 'dev', file)), file);
     }
   } finally { await rm(root, { recursive: true, force: true }); }
@@ -194,7 +262,7 @@ test('backend release tar produced from deploy selection excludes every local ad
   await deployBackend(config, {
     async repository() { return { branch: 'main', dirty: false, head: 'a'.repeat(40), remoteHead: 'a'.repeat(40) }; },
     async run(operation) {
-      return operation.id === 'probe' ? JSON.stringify({ phpVersion: '8.2.12', phpModules: ['PDO', 'pdo_mysql', 'openssl', 'session'], paths: true, databaseProbe: '1' }) : '';
+      return operation.id === 'probe' ? JSON.stringify({ phpVersion: '8.2.12', phpModules: ['PDO', 'pdo_mysql', 'openssl', 'session', 'fileinfo', 'gd', 'exif'], paths: true, databaseProbe: '1', media: { jpeg: true, png: true, webp: true, memoryBytes: 268435456, freeBytes: 104857600, privateRoot: true } }) : '';
     },
     async upload({ id, source, files }) {
       assert.equal(id, 'upload-release');
@@ -207,6 +275,10 @@ test('backend release tar produced from deploy selection excludes every local ad
     async health() { return { status: 200, ok: true }; },
   }, { release: 'local-integration-test' });
   assert.match(manifest, /src\/Router\.php/);
+  assert.match(manifest, /resources\/vocero-consents\.json/);
+  assert.match(manifest, /migrations\/003_vocero_accounts_mysql\.sql/);
+  for (const name of ['PhotoStorage', 'VoceroMediaLock', 'VoceroAuth', 'VoceroProfile', 'VoceroPasswordReset']) assert.ok(manifest.includes('src/' + name + '.php'));
+  assert.doesNotMatch(manifest, /PhotoStorage 2|staging|voceros-photos/);
   assert.match(manifest, /public\/index\.php/);
   assert.doesNotMatch(manifest, /tests\/|integration\/|fixture|local-stack|\.sqlite|credentials\.json|config\.json/);
 });

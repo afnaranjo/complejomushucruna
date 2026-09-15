@@ -138,8 +138,8 @@ export async function startLocalStack({ onStage = async () => {} } = {}) {
     await stage('credentials');
     await writeFile(join(privateDirectory, 'voceros-registration.json'), JSON.stringify({ enabled: true,
       responsable: 'Organización sintética', direccion: 'Dirección de prueba', telefono: '0000000000',
-      contactEmail: 'legal@example.invalid', policiesVersion: 'test-policy', thermometerVersion: 'test-bases',
-      imageVersion: 'test-image', privacyVersion: 'test-data', retentionYears: 3 }), { mode: 0o600 });
+      contactEmail: 'legal@example.invalid', policiesVersion: '2026-09-14', thermometerVersion: '2026-09-14',
+      imageVersion: '2026-09-15', privacyVersion: '2026-09-15', retentionYears: 3 }), { mode: 0o600 });
     const config = { environment: 'test', databaseDsn: 'sqlite:' + join(privateDirectory, 'voceros.sqlite'),
       databaseUser: '', databasePassword: '', encryptionKey: randomBytes(32).toString('base64'), hmacKey: randomBytes(32).toString('base64') };
     let publicOrigin, apiOrigin;
@@ -187,6 +187,7 @@ export async function startLocalStack({ onStage = async () => {} } = {}) {
     check();
     finishStartup();
     return { root, dist, privateDirectory, configPath, publicOrigin, apiOrigin, credentials, manifest, stop,
+      backup: async () => JSON.parse(await fixture({ action: 'backup', config: configPath })),
       inspect: async () => JSON.parse(await fixture({ action: 'inspect', config: configPath })) };
   } catch (error) {
     finishStartup();

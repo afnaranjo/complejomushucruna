@@ -5,14 +5,7 @@ require __DIR__ . '/guard.php';
 $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 if ($path === '/api/voceros/') {
     require __DIR__ . '/../../public/api/voceros/index.php';
-    $bootstrap = static function () use ($testConfig): array {
-        $pdo = Finados\Database::connect($testConfig);
-        $crypto = new Finados\Crypto($testConfig);
-        $directory = dirname(getenv('VOCEROS_TEST_CONFIG'));
-        return ['repository' => new Finados\VocerosRepository($pdo, $crypto, new Finados\Audit($pdo, $crypto)),
-            'privateDirectory' => $directory, 'config' => registration_config($directory)];
-    };
-    $response = voceros_handle_request($_SERVER, $_POST, $bootstrap, null, [$testConfig->allowedOrigin()]);
+    $response = voceros_handle_request($_SERVER, $_POST);
     (new Finados\Response($response['status'], ['Content-Type' => 'application/json; charset=utf-8',
         'Cache-Control' => 'no-store', 'X-Content-Type-Options' => 'nosniff', ...$response['headers']],
         $_SERVER['REQUEST_METHOD'] === 'HEAD' ? '' : json_encode($response['json'], JSON_THROW_ON_ERROR)))->send();

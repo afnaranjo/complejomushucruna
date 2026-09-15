@@ -17,8 +17,8 @@ const vocerosRegistrationConfig = Object.freeze({
   retentionYears: 3,
   policiesVersion: '2026-09-14',
   thermometerVersion: '2026-09-14',
-  imageVersion: '2026-09-14',
-  privacyVersion: '2026-09-14',
+  imageVersion: '2026-09-15',
+  privacyVersion: '2026-09-15',
 });
 const allowedKeys = new Set([
   'DEPLOY_SSH_HOST',
@@ -362,6 +362,9 @@ async function verifyPublicSite(config) {
     ['/finados/', 200],
     ['/admin/', 200],
     ['/admin/voceros/', 200],
+    ['/finados/voceros/acceso/', 200],
+    ['/finados/voceros/mi-registro/', 200],
+    ['/finados/voceros/restablecer/', 200],
     ['/finados/voceros/', 200],
     ['/finados/voceros/politicas-del-vocero/', 200],
     ['/finados/voceros/bases-del-termometro/', 200],
@@ -408,8 +411,8 @@ async function verifyPublicSite(config) {
       } catch {
         fail('El endpoint de Voceros no respondió JSON ejecutable.');
       }
-      if (payload.open !== true || payload.timezone !== 'America/Guayaquil') {
-        fail('El endpoint de Voceros no confirmó que el registro esté habilitado.');
+      if (payload.open !== false || payload.authenticationRequired !== true || payload.accessUrl !== '/finados/voceros/acceso/' || payload.timezone !== 'America/Guayaquil') {
+        fail('El endpoint de Voceros no confirmó el acceso autenticado.');
       }
     }
     if (path === '/api/invitaciones-rsvp/') {

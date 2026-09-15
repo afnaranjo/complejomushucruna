@@ -103,6 +103,7 @@ same(1, (int) $profileDb->query('SELECT COUNT(*) FROM vocero_accounts')->fetchCo
 same(1, (int) $profileDb->query('SELECT COUNT(*) FROM voceros')->fetchColumn());
 same(1, (int) $profileDb->query('SELECT COUNT(*) FROM vocero_account_links')->fetchColumn());
 same(1, (int) $profileDb->query('SELECT COUNT(*) FROM vocero_photos')->fetchColumn());
+same(1, (int) $profileDb->query('SELECT COUNT(*) FROM sheets_outbox')->fetchColumn());
 same($profileStoredPhoto, $profileDb->query('SELECT * FROM vocero_photos')->fetch());
 same(1, count(glob($profileRoot . '/voceros-photos/files/*')));
 same([], glob($profileRoot . '/voceros-photos/staging/*'));
@@ -176,11 +177,12 @@ same(1, (int) $profileDb->query('SELECT COUNT(*) FROM vocero_account_links')->fe
 same([], glob($profileRoot . '/voceros-photos/staging/*'));
 
 // Failed consent, link, photo metadata and audit writes all roll back and clean this operation's staging.
-foreach (['vocero_consents', 'vocero_account_links', 'vocero_photos', 'audit_log'] as $failTable) {
+foreach (['vocero_consents', 'vocero_account_links', 'vocero_photos', 'audit_log', 'sheets_outbox'] as $failTable) {
     $profileDb->exec("CREATE TRIGGER fail_profile BEFORE INSERT ON $failTable BEGIN SELECT RAISE(ABORT, 'synthetic failure'); END");
     throws(fn () => $profile->save($profileSecondAccount, profile_fields(['submission_id' => str_repeat('2', 32), 'cedula' => '1800000002', 'whatsapp' => '0990000002']), $profileFiles, '192.0.2.2', 'Prueba'), RuntimeException::class);
     same(1, (int) $profileDb->query('SELECT COUNT(*) FROM voceros')->fetchColumn());
     same(1, (int) $profileDb->query('SELECT COUNT(*) FROM vocero_account_links')->fetchColumn());
+    same(1, (int) $profileDb->query('SELECT COUNT(*) FROM sheets_outbox')->fetchColumn());
     same(1, count(glob($profileRoot . '/voceros-photos/files/*')));
     same([], glob($profileRoot . '/voceros-photos/staging/*'));
     same(false, $profileDb->inTransaction());
@@ -252,11 +254,9 @@ foreach ([$profileSecondAccount, 999999] as $invalidAccount) {
     throws(fn () => $profile->save($invalidAccount, $minorFields, [], '192.0.2.2', 'Prueba'), Finados\Unauthorized::class);
 }
 
-// Queue construction uses its existing allowlist and never receives image data or storage references.
+// Profile creation already enqueues durable delivery; replay keeps one job per profile.
 $profileCrypto = new Finados\Crypto($profileConfig);
-$profileDb->beginTransaction();
-(new Finados\SheetsOutbox($profileDb, $profileCrypto))->ensure($profileFirst['public_id']);
-$profileDb->commit();
+same(2, (int) $profileDb->query('SELECT COUNT(*) FROM sheets_outbox')->fetchColumn());
 $profileSheetPayload = $profileCrypto->decrypt($profileDb->query('SELECT payload_enc FROM sheets_outbox')->fetchColumn());
 foreach (['fotografia', 'storage_key', 'sha256', 'voceros-photos', 'image/jpeg'] as $photoLeak) same(false, str_contains($profileSheetPayload, $photoLeak));
 foreach ($profileDb->query('SELECT metadata_json FROM audit_log') as $log) {
@@ -297,8 +297,7 @@ same(null, $profile->get($racingAccount));
 same(2, (int) $profileDb->query('SELECT COUNT(*) FROM vocero_account_links')->fetchColumn());
 same([], glob($profileRoot . '/voceros-photos/staging/*'));
 
-// Business-rule parity against the shipped anonymous endpoint at real acceptance boundaries.
-require_once __DIR__ . '/../../../public/api/voceros/index.php';
+// Business acceptance boundaries remain enforced after anonymous intake was closed.
 $age16 = (new DateTimeImmutable('now', new DateTimeZone('America/Guayaquil')))->modify('-16 years')->format('Y-m-d');
 $rep = ['representante_nombre' => 'Representante Sintético', 'representante_cedula' => '1800000080', 'representante_telefono' => '0990000080', 'representante_correo' => 'rep@example.invalid'];
 $parityCases = [
@@ -319,12 +318,6 @@ foreach ($parityCases as [$overrides, $accepted]) {
     $valid = true;
     try { Finados\PublicRegistration::validate($fields, 'parity@example.invalid'); } catch (InvalidArgumentException) { $valid = false; }
     same($accepted, $valid);
-    $parityDb = Finados\Database::connect($profileConfig);
-    foreach (['001_initial', '002_sheets_outbox'] as $migration) $parityDb->exec(file_get_contents(__DIR__ . '/../migrations/' . $migration . '_sqlite.sql'));
-    $parityRepo = new Finados\VocerosRepository($parityDb, $profileCrypto);
-    $parityResponse = voceros_handle_request(['REQUEST_METHOD' => 'POST', 'REMOTE_ADDR' => '192.0.2.15'], $fields + ['correo' => 'parity@example.invalid'],
-        fn (): array => ['repository' => $parityRepo, 'privateDirectory' => $profileRoot, 'config' => ['policiesVersion' => 'p1', 'thermometerVersion' => 't1', 'imageVersion' => 'i1', 'privacyVersion' => 'd1']], fn (): string => 'synced');
-    same($accepted ? 200 : 422, $parityResponse['status']);
 }
 
 // Independent PHP processes must serialize the same account and retain exactly one final photo.
@@ -350,7 +343,10 @@ for ($i = 0; $i < 4; $i++) {
 $concurrentIds = [];
 foreach ($profileWorkers as [$process, $pipes]) {
     $output = stream_get_contents($pipes[1]); $error = stream_get_contents($pipes[2]);
-    fclose($pipes[1]); fclose($pipes[2]); same(0, proc_close($process)); same('', $error);
+    fclose($pipes[1]); fclose($pipes[2]);
+    $workerCode = proc_close($process);
+    if ($workerCode !== 0) throw new RuntimeException('Synthetic profile worker failed: ' . preg_replace('#/[^\s:]+#', '[local-path]', $error));
+    same('', $error);
     $concurrentIds[] = json_decode($output, true)['public_id'];
 }
 same(1, count(array_unique($concurrentIds)));

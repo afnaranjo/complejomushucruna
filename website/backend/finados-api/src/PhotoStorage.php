@@ -9,7 +9,7 @@ use RuntimeException;
 final class PhotoStorage
 {
     private const MAX_BYTES = 5242880;
-    private const MAX_ENCRYPTED_BYTES = 8388608;
+    public const MAX_ENCRYPTED_BYTES = 8388608;
     private const MAX_PIXELS = 25000000;
     private const MAX_SIDE = 1600;
     private const KEY_PATTERN = '/^[a-f0-9]{64}$/D';
@@ -114,8 +114,16 @@ final class PhotoStorage
     public function read(string $storageKey): string
     {
         $key = $this->validKey($storageKey);
+        return $this->decode($key, $this->readRegularFile($this->filePath($key), self::MAX_ENCRYPTED_BYTES));
+    }
+
+    /** Verify the exact ciphertext captured by a locked backup, without reopening its source. */
+    public function decode(string $storageKey, string $ciphertext): string
+    {
+        $key = $this->validKey($storageKey);
         try {
-            $jpeg = $this->unpackEnvelope($key, $this->crypto->decrypt($this->readRegularFile($this->filePath($key), self::MAX_ENCRYPTED_BYTES)));
+            if (strlen($ciphertext) > self::MAX_ENCRYPTED_BYTES) throw new RuntimeException();
+            $jpeg = $this->unpackEnvelope($key, $this->crypto->decrypt($ciphertext));
         } catch (\Throwable) {
             throw new RuntimeException('Photo storage operation failed.');
         }
@@ -140,7 +148,14 @@ final class PhotoStorage
     private function ensureDirectories(): void
     {
         foreach ([$this->root, $this->stagingDirectory, $this->filesDirectory] as $path) {
-            if (is_link($path) || (!is_dir($path) && !$this->quiet(static fn (): bool => mkdir($path, 0700))) || !is_dir($path) || is_link($path) || !$this->quiet(static fn (): bool => chmod($path, 0700))) {
+            if (is_link($path)) throw new RuntimeException('Photo storage is unavailable.');
+            if (!is_dir($path)) {
+                // A simultaneous first request may have created it after our initial check.
+                $created = $this->quiet(static fn (): bool => mkdir($path, 0700));
+                clearstatcache(true, $path);
+                if (!$created && !is_dir($path)) throw new RuntimeException('Photo storage is unavailable.');
+            }
+            if (!is_dir($path) || is_link($path) || realpath($path) !== $path || !$this->quiet(static fn (): bool => chmod($path, 0700))) {
                 throw new RuntimeException('Photo storage is unavailable.');
             }
         }

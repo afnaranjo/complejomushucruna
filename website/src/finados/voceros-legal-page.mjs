@@ -1,7 +1,11 @@
+import { readFileSync } from 'node:fs';
 import { site } from '../data/site.mjs';
 import { escapeHtml } from '../render/html.mjs';
 import { renderFinadosFooter } from './footer.mjs';
 import { renderFinadosNavigation } from './navigation.mjs';
+
+const consents = JSON.parse(readFileSync(new URL('../../backend/finados-api/resources/vocero-consents.json', import.meta.url), 'utf8'));
+const legalVersions = { privacy: consents.data.version, image: consents.image.version, policies: consents.policies.version.split(' + ')[0], thermometer: consents.policies.version.split(' + ')[1], rights: '2026-09-14' };
 
 const campaignAssetVersion = '20260914-1';
 const campaignRuntimeVersion = '20260914-8';
@@ -66,13 +70,13 @@ const documents = Object.freeze({
     summary: 'Información previa sobre el tratamiento de datos personales del registro de Voceros, conforme a la legislación ecuatoriana.',
     body: `
       <section><h2>1. Responsable y contacto</h2><p>El responsable de este tratamiento es <strong>${controller.name}</strong>, con domicilio en ${controller.address}, teléfono <a href="tel:+593980346729">${controller.phone}</a> y correo electrónico <a href="mailto:${controller.email}">${controller.email}</a>.</p></section>
-      <section><h2>2. Datos tratados</h2><p>Se recopilan nombre, cédula, fecha de nacimiento, WhatsApp, correo, ciudad, perfiles sociales, red principal, participación anterior, fuente de conocimiento del programa y modalidad de retiro del kit. Para participantes de 16 o 17 años se recopilan además nombre, cédula, teléfono y correo de su representante. También se registran fecha, URL de origen, parámetros de campaña, dirección IP y navegador como evidencia de consentimiento y seguridad.</p></section>
+      <section><h2>2. Datos tratados</h2><p>La fotografía para identificación y gafete es obligatoria para los registros nuevos. Se recopilan nombre, cédula, fecha de nacimiento, WhatsApp, correo, ciudad, perfiles sociales, red principal, participación anterior, fuente de conocimiento del programa y modalidad de retiro del kit. Para participantes de 16 o 17 años se recopilan además nombre, cédula, teléfono y correo de su representante. También se registran fecha, URL de origen, parámetros de campaña, dirección IP y navegador como evidencia de consentimiento y seguridad.</p></section>
       <section><h2>3. Origen</h2><p>Los datos se obtienen directamente del participante o, cuando corresponda, de su representante legal. La organización no solicita contraseñas de redes sociales.</p></section>
-      <section><h2>4. Finalidades</h2><ul><li>Gestionar inscripción, elegibilidad, comunicaciones y participación.</li><li>Verificar contenidos, vistas, niveles, beneficios y entregas.</li><li>Atender consultas, reclamos y solicitudes de derechos.</li><li>Prevenir fraude, abuso y envíos automatizados.</li><li>Conservar evidencia de los consentimientos otorgados.</li></ul><p>Los datos no se usarán para publicidad ajena al programa ni se venderán.</p></section>
+      <section><h2>4. Finalidades</h2><ul><li>Verificar identidad con la fotografía y, si corresponde, elaborar y entregar la credencial o gafete.</li><li>Gestionar inscripción, elegibilidad, comunicaciones y participación.</li><li>Verificar contenidos, vistas, niveles, beneficios y entregas.</li><li>Atender consultas, reclamos y solicitudes de derechos.</li><li>Prevenir fraude, abuso y envíos automatizados.</li><li>Conservar evidencia de los consentimientos otorgados.</li></ul><p>Los datos no se usarán para publicidad ajena al programa ni se venderán.</p></section>
       <section><h2>5. Base legitimadora</h2><p>El tratamiento se fundamenta en el consentimiento libre, específico, informado e inequívoco del titular. La participación y el uso de imagen se aceptan por separado. El consentimiento puede revocarse sin efectos retroactivos.</p></section>
       <section><h2>6. Base de datos y operaciones</h2><p>Los datos se registran en bases digitales para recepción, validación, consulta, organización, comunicación, respaldo, actualización y eliminación. No se adoptan decisiones con efectos jurídicos basadas únicamente en procesos automatizados.</p></section>
-      <section><h2>7. Destinatarios y transferencias</h2><p>Accederán únicamente el equipo autorizado del programa y proveedores tecnológicos necesarios para alojar el sitio, enviar notificaciones y almacenar el registro. El registro se remite a Google Sheets; ello puede implicar tratamiento o almacenamiento internacional por Google conforme a sus medidas contractuales y de seguridad. No se comunicarán datos a terceros para finalidades propias sin una base legal.</p></section>
-      <section><h2>8. Conservación</h2><p>Los registros se conservarán durante <strong>${controller.retention}</strong>. Al cumplirse ese plazo, se eliminarán o anonimizarán de forma segura, salvo obligación legal o necesidad documentada para la formulación, ejercicio o defensa de reclamaciones.</p></section>
+      <section><h2>7. Destinatarios y transferencias</h2><p>Accederán únicamente el equipo autorizado del programa y proveedores tecnológicos necesarios para alojar el sitio, enviar notificaciones y almacenar el registro. La fotografía permanece cifrada con acceso restringido al vocero titular y al equipo administrativo autorizado; no se envía a Google Sheets ni a exportaciones CSV. El resto del registro se sincroniza con Google Sheets; ello puede implicar tratamiento o almacenamiento internacional por Google conforme a sus medidas contractuales y de seguridad. No se comunicarán datos a terceros para finalidades propias sin una base legal.</p></section>
+      <section><h2>8. Conservación</h2><p>Los registros y la fotografía se conservarán durante <strong>${controller.retention}</strong>. Actualmente no hay purga automática configurada. El responsable debe gestionar la eliminación o anonimización segura al cumplir el plazo, incluyendo base, fotografía, exportaciones y política de respaldos, salvo obligación legal o necesidad documentada para la formulación, ejercicio o defensa de reclamaciones.</p></section>
       <section><h2>9. Datos de adolescentes</h2><p>El programa admite personas de 16 y 17 años únicamente con autorización escrita de su representante legal. La información se presenta también al representante y se aplican medidas reforzadas de minimización, acceso restringido y seguridad.</p></section>
       <section><h2>10. Entrega o negativa</h2><p>Los campos obligatorios son necesarios para verificar identidad y administrar el programa. No entregarlos impide completar el registro. Los datos inexactos pueden impedir la validación o entrega de beneficios; el titular puede solicitar su rectificación.</p></section>
       <section><h2>11. Derechos</h2><p>El titular puede solicitar acceso, rectificación, actualización, eliminación, oposición, suspensión, limitación, portabilidad y revocación del consentimiento, además de no ser objeto de decisiones exclusivamente automatizadas. Estos derechos son gratuitos y no pueden renunciarse por anticipado.</p></section>
@@ -86,7 +90,7 @@ const documents = Object.freeze({
     summary: 'Alcance separado y revocable para el uso de imagen, voz y publicaciones creadas dentro del programa.',
     body: `
       <section><h2>1. Titular</h2><p>La autorización la concede la persona registrada. Si tiene 16 o 17 años, también debe firmarla su representante legal antes de cualquier reutilización por la organización.</p></section>
-      <section><h2>2. Material autorizado</h2><p>Comprende la imagen y voz del participante, su nombre público, fotografías o videos en los que aparezca y el contenido que identifique voluntariamente como parte del programa de Voceros.</p></section>
+      <section><h2>2. Material autorizado</h2><p>La carga de la fotografía para identidad y gafete tiene un uso operativo separado y no autoriza por sí sola su publicación. La difusión requiere esta autorización independiente y, para menores, la autorización escrita de su representante. Comprende la imagen y voz del participante, su nombre público, fotografías o videos en los que aparezca y el contenido que identifique voluntariamente como parte del programa de Voceros.</p></section>
       <section><h2>3. Finalidad</h2><p>${controller.name} podrá comunicar, reconocer y documentar la participación en Finados Mushuc Runa 2026; republicar contenidos elegibles; preparar memorias informativas del evento; y difundir el programa en sus canales oficiales.</p></section>
       <section><h2>4. Medios y territorio</h2><p>La autorización cubre sitio web, redes sociales oficiales, piezas digitales, prensa, pantallas y materiales impresos vinculados a la feria, con alcance nacional e internacional por la naturaleza de Internet.</p></section>
       <section><h2>5. Licencia</h2><p>La licencia es no exclusiva, gratuita y limitada a las finalidades descritas. El contenido sigue perteneciendo a su autor. La organización no puede venderlo de forma separada ni cederlo para campañas ajenas sin una nueva autorización.</p></section>
@@ -115,6 +119,8 @@ const documents = Object.freeze({
 export function renderVocerosLegalPage(page) {
   const document = documents[page.documentKey];
   if (!document) throw new Error(`Documento de Voceros no reconocido: ${page.documentKey}`);
+  const version = legalVersions[page.documentKey];
+  const consentKey = page.documentKey === 'privacy' ? 'data' : page.documentKey === 'image' ? 'image' : null;
   const canonical = `${site.baseUrl}${page.route}`;
 
   return `<!doctype html>
@@ -152,12 +158,13 @@ export function renderVocerosLegalPage(page) {
         <p>${escapeHtml(document.eyebrow)} · Comunidad de Voceros</p>
         <h1>${escapeHtml(document.title)}</h1>
         <span>${escapeHtml(document.summary)}</span>
-        <small>Versión vigente · 14 de septiembre de 2026</small>
+        <small>Versión vigente · <time datetime="${version}">${version.slice(-2)} de septiembre de 2026</time></small>
       </div>
     </header>
     <div class="voceros-legal__layout voceros-shell">
       <article class="voceros-legal__content">
         ${document.body}
+        ${consentKey ? `<section><h2>Texto de consentimiento del formulario</h2><p data-consent-text="${consentKey}">${escapeHtml(consents[consentKey].text)}</p></section>` : ''}
       </article>
       ${officialSources}
     </div>

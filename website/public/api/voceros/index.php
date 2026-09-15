@@ -26,7 +26,7 @@ function voceros_handle_request(array $server, array $post, ?callable $bootstrap
     $message = 'Crea una cuenta o inicia sesión para completar tu registro.';
     $method = $server['REQUEST_METHOD'] ?? '';
     if ($method === 'GET' || $method === 'HEAD') {
-        return ['status' => 200, 'json' => $method === 'HEAD' ? [] : [
+        return ['status' => 200, 'json' => [
             'open' => false, 'authenticationRequired' => true,
             'accessUrl' => '/finados/voceros/acceso/', 'message' => $message,
             'timezone' => 'America/Guayaquil',

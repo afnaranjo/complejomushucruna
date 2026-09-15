@@ -2,7 +2,7 @@
 titulo: "Diccionario de datos Feria de Finados 2026"
 responsable: "analítica"
 estado: borrador
-ultima_actualizacion: 2026-08-27
+ultima_actualizacion: 2026-09-15
 fuente: interna
 confidencialidad: restringido
 tags: [feria-finados-2026, medicion]
@@ -62,3 +62,21 @@ tags: [feria-finados-2026, medicion]
 Las definiciones son preliminares hasta que los responsables aprueben alcance y sistemas.
 
 El contrato ampliado está en [[../05_marketing-comunicacion/06_medicion/2026-08-24_plan-medicion-digital-finados-2026_v01|Plan de medición digital]]. Las métricas V09 no se implementan hasta aprobar producto, fuente, responsable, privacidad y evidencia.
+
+## Voceros: contrato implementado localmente al 2026-09-15
+
+Fuente: [[2026-09-15_diseno_cuentas-voceros-fotografia-web_v01|Diseño de cuentas y fotografía privada]]. Estas son definiciones de esquema, no registros personales ni confirmación de despliegue. MySQL/MariaDB y la operación del servidor siguen pendientes de prevuelo autorizado.
+
+| Concepto | Definición y control |
+|---|---|
+| Cuenta y rol | Roles Administrador y Vocero separados. Identificador de acceso cifrado e índice ciego para búsqueda; contraseña representada exclusivamente por hash seguro. No se exportan credenciales ni datos de sesión. |
+| Vínculo de perfil | Una cuenta Vocero se asocia con un único registro; la identidad procede de la sesión, nunca de un identificador enviado para elegir otro perfil. |
+| Fotografía operativa | JPEG normalizado y cifrado, obligatorio para identidad/gafete. El archivo privado y su metadato se confirman bajo un bloqueo común; solo el titular y Administrador pueden consultarlo autenticados. No equivale a autorización de publicación. |
+| Integridad fotográfica | El hash lógico corresponde al JPEG normalizado y se valida contra la base; el hash archivado corresponde al archivo cifrado. No son intercambiables. |
+| Consentimientos | Texto y versión provienen del catálogo canónico: privacidad/datos e imagen `2026-09-15`; políticas y termómetro `2026-09-14`. La actualización no reescribe consentimientos históricos. |
+| Recuperación de acceso | Enlace de un solo uso con vigencia de 30 minutos; su consumo cambia la contraseña e invalida sesiones anteriores del titular, sin afectar a otros Voceros. |
+| Sincronización secundaria | Cola durable e idempotente por registro, dentro de la misma transacción. Solo transporta campos permitidos del formulario/consentimientos; no fotografía, ubicación privada, hashes de foto, contraseña ni sesión. No sustituye a la base canónica. |
+| Respaldo verificable | Manifiesto ordenado con base de datos y fotografías: cantidad, bytes, SHA-256 agregado y por archivo cifrado, más hash lógico. Excluye staging y rechaza faltantes, huérfanos y enlaces. El recibo público solo incluye agregados. |
+| Tiempo y conservación | Persistencia en UTC y presentación en `America/Guayaquil`. Conservación informada de tres años; todavía no hay purga automática. La eliminación debe contemplar base, fotos, exportaciones y respaldos. |
+
+Para menores, la declaración digital no sustituye la autorización escrita del representante pendiente de verificación. El repositorio público conserva únicamente esquema y pruebas sintéticas, nunca evidencias personales ni archivos privados.

@@ -2,7 +2,7 @@
 titulo: "Pendientes ejecutivos"
 responsable: "dirección integral de la feria"
 estado: en-revision
-ultima_actualizacion: 2026-09-14
+ultima_actualizacion: 2026-09-15
 fuente: interna
 confidencialidad: interno
 tags:
@@ -14,11 +14,13 @@ tags:
 
 ## Cierre documental reciente
 
+- [x] Implementar y verificar localmente el [[11_eventos/2026_feria-finados/10_tecnologia-datos/2026-09-15_plan-implementacion-cuentas-voceros-fotografia-web_v01|portal autenticado de Voceros]]: perfiles aislados, foto privada, administración, recuperación, consentimiento canónico, cola durable y backup verificable; 92 pruebas Node, 17 archivos PHP y 10 pruebas de integración en verde. Sin push, despliegue ni escritura externa. Completado: 2026-09-15.
 - [x] Consolidar en un único [[11_eventos/2026_feria-finados/00_direccion-control/2026-09-07_informe-maestro-proyecto-finados-2026_v01|informe maestro sanitizado]] todo el contexto, evidencia, estrategias, sistemas, frentes, riesgos, estado y próximos pasos del proyecto, sin credenciales, identificadores internos, datos personales sensibles, contactos privados, contratos ni programación bajo embargo. Responsable: dirección integral/documentación. Completado: 2026-09-07.
 
 ## Prioridad crítica
 
-- [ ] Implementar y validar el panel de Voceros aprobado en `docs/superpowers/specs/2026-09-14_panel-voceros-backend-finados-diseno.md`, limitado a `/admin/`, `/admin/voceros/`, el formulario de Voceros y `finados.complejomushucruna.com/api/`. Confirmar primero PHP/PDO, MySQL/MariaDB, cron, backups y docroot; crear `admin` con contraseña ingresada de forma oculta por SSH; migrar los CSV de forma idempotente y no guardar secretos ni borrar registros. Responsable: Alex/tecnología. Fecha: inmediata.
+- [ ] Completar revisión integral y autorización expresa antes de publicar Voceros. Ejecutar el prevuelo real de PHP 8.1, PDO/MySQL, OpenSSL, Fileinfo, GD JPEG/PNG/WebP, EXIF, memoria y almacenamiento privado; verificar backup/restauración, migraciones e importación idempotente; crear y comprobar el Administrador mediante ingreso oculto y seguro, sin guardar secretos ni borrar registros. Desplegar backend antes del frontend únicamente con autorización. Responsable: Alex/tecnología. Fecha: antes de despliegue.
+- [ ] Obtener y verificar la autorización escrita del representante antes del tratamiento/publicación que corresponda a menores; el formulario no reemplaza esta evidencia. Definir responsable y procedimiento de eliminación al cumplir tres años, incluyendo fotografías, base, exportaciones y respaldos: todavía no hay purga automática. Responsable: dirección/legal/privacidad. Fecha: antes de operar con registros reales.
 - [ ] Cambiar inmediatamente la passphrase de la llave SSH de cPanel porque fue escrita accidentalmente como comando visible y enviada al chat. Hacerlo localmente con `ssh-keygen -p -f <ruta-de-la-llave>` sin comunicar la clave actual o nueva; la llave pública y su autorización remota no cambian. Después, mover la llave privada fuera de Descargas a `~/.ssh/`, mantener permisos `600` y actualizar únicamente la configuración local ignorada por Git. Responsable: Alex/tecnología. Fecha: inmediata, antes de compartir acceso o reutilizar la llave.
 - [ ] Confirmar en Meta la revocación o expiración de la credencial anterior que fue pegada accidentalmente en el prompt normal de Terminal y adjuntada al chat; no volver a usarla. La validación posterior utilizó únicamente la credencial de reemplazo guardada en el Llavero. Mantener esta última fuera del chat y del repositorio. Responsable: Alex/administración Meta. Fecha: inmediata, antes de cualquier activación externa.
 - [ ] Revocar en Meta el token que Alex entregó directamente en el chat el 2026-09-05 para la revisión y adecuación de F29; se considera expuesto aunque solo se usó como variable de entorno y no se guardó. Generar uno nuevo únicamente en el Llavero cuando haga falta. Responsable: Alex/administración Meta. Fecha: inmediata.

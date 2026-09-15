@@ -32,7 +32,9 @@ foreach (['not-json', '{}', '[]', json_encode([$publicRoots[0]]), json_encode([$
 }
 $rootsEnv['FINADOS_PUBLIC_ROOTS'] = json_encode($publicRoots);
 same(0, operations_cli('import-voceros', [...$rootsImportArgs, '--dry-run'], $rootsEnv)['code']);
-same(0, operations_cli('backup', ['--output', $rootsRoot . '/private-backup'], $rootsEnv)['code']);
+// A fake dump executable cannot replace the live PDO connection needed to hold the media lock.
+same(1, operations_cli('backup', ['--output', $rootsRoot . '/private-backup'], $rootsEnv)['code']);
+same(false, file_exists($rootsRoot . '/private-backup'));
 
 foreach ([...$publicRoots, $rootsRoot . '/domain-alias'] as $publicDestination) {
     same(1, operations_cli('backup', ['--output', $publicDestination . '/leaked-backup'], $rootsEnv)['code']);
@@ -60,5 +62,6 @@ same([], glob($publicRoots[1] . '/*/*.csv'));
 // Test configurations may inject the same roots, covering SQLite output without production access.
 [$injectedRoot] = operations_fixture();
 $injectedEnv = array_replace(getenv(), ['FINADOS_PUBLIC_ROOTS' => json_encode($publicRoots)]);
+same(0, operations_cli('backup', ['--config', $injectedRoot . '/config.json', '--output', $injectedRoot . '/private-backup'], $injectedEnv)['code']);
 same(1, operations_cli('backup', ['--config', $injectedRoot . '/config.json', '--output', $publicRoots[1] . '/test-backup'], $injectedEnv)['code']);
 same(false, file_exists($publicRoots[1] . '/test-backup'));

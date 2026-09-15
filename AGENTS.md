@@ -798,3 +798,13 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Commit: incluido en `Diseñar panel y backend de Voceros`.
 - Publicación externa: ninguna; durante esta fase no se creó base, usuario, contraseña, sesión, archivo remoto ni despliegue.
 - Riesgos y pendientes: confirmar PHP/PDO, MySQL/MariaDB, cron, backups y docroot real del subdominio; implementar con pruebas, crear el administrador mediante prompt seguro, importar los registros existentes y verificar recuperación antes de publicar.
+
+### 2026-09-15 — Portal de Voceros y cierre integral local
+
+- Se implementaron cuentas y sesiones de Vocero, perfil propio aislado, fotografía obligatoria cifrada para identidad/gafete, acceso administrativo restringido y recuperación de acceso con revocación de sesiones. El alta anónima permanece cerrada y no inicializa el backend ni la sincronización secundaria.
+- Se integraron avisos con el texto completo del catálogo canónico, versiones individuales, conservación de tres años y aclaración de que aún no existe purga automática. La cola durable conserva campos permitidos y excluye fotografías y credenciales.
+- El respaldo mantiene el bloqueo de medios desde antes del snapshot hasta el manifiesto, admite instalaciones previas a la migración fotográfica y verifica inventario, cifrado y hashes. El empaquetado incluye únicamente archivos productivos rastreados y el prevuelo es de solo lectura, con requisitos de imagen, memoria y almacenamiento privado.
+- Commits de alcance: `76dfc0f` (cuentas), `e42f7fd` (fotografía), `4cd1415` (perfil), `4e47092` (portal), `2a8314b` (administración), sus correcciones posteriores hasta `34cf02c`, y este cierre incluido en `Cerrar integración segura del portal de Voceros`.
+- QA fresco: 92 pruebas Node, 17 archivos PHP y 10 pruebas de integración; build de 113 archivos, 30 HTML y 816 referencias. La integración real local valida multipart, dos Voceros aislados, Administrador, recuperación, exportación sin fotos, restauración verificable y limpieza. Una carrera reproducible de creación de directorios se corrigió con RED/GREEN y diez repeticiones de perfil/bloqueos.
+- Publicación externa: ninguna. No hubo push, despliegue, sincronización secundaria externa ni creación de cuentas reales; las pruebas usaron datos sintéticos y temporales propios.
+- Riesgos y pendientes: completar revisión integral, autorización escrita de representantes de menores, definición operativa de eliminación, prevuelo real PHP/MySQL, respaldo/restauración del entorno y creación/verificación segura del Administrador antes de cualquier despliegue autorizado. Conservar el orden backend antes del frontend. No se modificó el archivo local no rastreado excluido del alcance.

@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { mkdir, mkdtemp, readFile, readdir, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, readdir, realpath, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -13,9 +13,8 @@ const deployScript = join(websiteRoot, 'scripts', 'deploy-cpanel.mjs');
 const approvedLegacyVocerosHash = 'e3cbffe53c6d6cce453a4aab06e99e19184fb36cba6fa0cc0757a6410959944c';
 const replacementEndpointSource = `<?php
 declare(strict_types=1);
-function voceros_bootstrap() {}
 function voceros_handle_request(array $server, array $post): array {
-  return ['status' => 200, 'json' => ['open' => true]];
+  return ['status' => 200, 'json' => ['open' => false, 'authenticationRequired' => true, 'accessUrl' => '/finados/voceros/acceso/', 'timezone' => 'America/Guayaquil']];
 }
 `;
 
@@ -44,7 +43,7 @@ function recordingTransport(overrides = {}) {
       this.operations.push(operation);
       if (operation.write) this.writes.push(operation);
       if (operation.id === overrides.failAt) throw new Error('fixture-password');
-      if (operation.id === 'probe') return JSON.stringify({ phpVersion: '8.2.12', phpModules: ['PDO', 'pdo_mysql', 'openssl', 'session'], paths: true, databaseProbe: '1', ...overrides.probe });
+      if (operation.id === 'probe') return JSON.stringify({ phpVersion: '8.2.12', phpModules: ['PDO', 'pdo_mysql', 'openssl', 'session', 'fileinfo', 'gd', 'exif'], paths: true, databaseProbe: '1', media: { jpeg: true, png: true, webp: true, memoryBytes: 268435456, freeBytes: 104857600, privateRoot: true }, ...overrides.probe });
       return '';
     },
     async upload(operation) { this.writes.push(operation); },
@@ -123,6 +122,42 @@ test('backend rechaza rutas públicas, amplias o ambiguas antes de conectar', as
   ]) await assert.rejects(checkBackend(fixtureConfig(overrides), recordingTransport()));
 });
 
+test('preflight rechaza cada capacidad de fotografía ausente y los límites de memoria/espacio', async () => {
+  const { checkBackend, photoPreflightSource } = await import('../scripts/deploy-finados-backend.mjs');
+  const modules = ['PDO', 'pdo_mysql', 'openssl', 'session', 'fileinfo', 'gd', 'exif'];
+  for (const missing of modules) {
+    const transport = recordingTransport({ probe: { phpModules: modules.filter(value => value !== missing) } });
+    await assert.rejects(checkBackend(fixtureConfig(), transport));
+    assert.equal(transport.writes.length, 0);
+  }
+  const valid = { jpeg: true, png: true, webp: true, memoryBytes: 268435456, freeBytes: 104857600, privateRoot: true };
+  for (const change of [{ jpeg: false }, { png: false }, { webp: false }, { memoryBytes: 268435455 }, { freeBytes: 104857599 }, { privateRoot: false }]) {
+    const transport = recordingTransport({ probe: { media: { ...valid, ...change } } });
+    await assert.rejects(checkBackend(fixtureConfig(), transport));
+    assert.equal(transport.writes.length, 0);
+  }
+  await checkBackend(fixtureConfig(), recordingTransport({ probe: { media: { ...valid, memoryBytes: -1 } } }));
+  const temp = await realpath(await mkdtemp(join(tmpdir(), 'finados-media-preflight-')));
+  const { chmod, symlink, rm } = await import('node:fs/promises');
+  try {
+    await chmod(temp, 0o700);
+    const run = (root, args = [], roots = []) => spawnSync('php', [...args, '-r', photoPreflightSource(root, roots) + 'echo json_encode($mediaProbe);'], { encoding: 'utf8' });
+    assert.equal(run(temp, ['-d', 'memory_limit=256M']).status, 0);
+    assert.equal(run(temp, ['-d', 'memory_limit=-1']).status, 0);
+    assert.notEqual(run(temp, ['-d', 'memory_limit=255M']).status, 0);
+    assert.notEqual(run(temp, ['-n']).status, 0);
+    await mkdir(join(temp, 'public_html'), { mode: 0o700 });
+    assert.notEqual(run(join(temp, 'public_html')).status, 0);
+    assert.notEqual(run(temp, [], [temp]).status, 0);
+    await symlink(temp, join(temp, 'alias'));
+    assert.notEqual(run(join(temp, 'alias')).status, 0);
+    await chmod(temp, 0o500);
+    assert.notEqual(run(temp).status, 0);
+    await chmod(temp, 0o700);
+    assert.deepEqual((await readdir(temp)).sort(), ['alias', 'public_html']);
+  } finally { await chmod(temp, 0o700); await rm(temp, { recursive: true, force: true }); }
+});
+
 test('backend acepta el docroot exacto de cPanel como carpeta hermana de public_html', async () => {
   const { checkBackend } = await import('../scripts/deploy-finados-backend.mjs');
   const config = fixtureConfig({
@@ -147,6 +182,21 @@ test('backend despliega solo después de respaldo y no activa current si falla m
   const backupFailed = recordingTransport({ failAt: 'backup-database' });
   await assert.rejects(deployBackend(fixtureConfig(), backupFailed, { release: '20260914-abcdef' }));
   assert.ok(!backupFailed.writes.some(item => item.id === 'upload-release'));
+});
+
+test('el inventario del artefacto excluye archivos adicionales no versionados dentro de src', async () => {
+  const { backendReleaseFiles } = await import('../scripts/deploy-finados-backend.mjs');
+  const { rm } = await import('node:fs/promises');
+  const name = 'synthetic-untracked-' + process.pid + '.php';
+  const extra = join(websiteRoot, 'backend/finados-api/src', name);
+  await writeFile(extra, '<?php // synthetic untracked fixture', { flag: 'wx' });
+  try {
+    const files = backendReleaseFiles();
+    assert.ok(files.includes('resources/vocero-consents.json'));
+    assert.ok(files.includes('src/PhotoStorage.php'));
+    assert.ok(!files.includes('src/' + name));
+    assert.ok(!files.some(file => /PhotoStorage 2|tests\/|fixtures\/|credentials|config\.json/.test(file)));
+  } finally { await rm(extra); }
 });
 
 test('backend admin exige TTY e importación real ejecuta primero dry-run', async () => {
@@ -384,7 +434,7 @@ class MigrationStatement {
   assert.ok(!second.stdout.includes('"version"'));
 });
 
-test('backend frontend mantiene Voceros abierto si la transferencia o la etapa posterior se interrumpe', async () => {
+test('backend frontend mantiene Voceros cerrado si la transferencia o la etapa posterior se interrumpe', async () => {
   const { publishFrontendFiles, uploadVocerosRegistrationConfig } = await import('../scripts/deploy-cpanel.mjs');
   const { mkdir, copyFile } = await import('node:fs/promises');
   const temp = await mkdtemp(join(tmpdir(), 'finados-publish-'));
@@ -423,7 +473,7 @@ test('backend frontend mantiene Voceros abierto si la transferencia o la etapa p
     assert.equal(result.status, 0);
   } });
   await writeFile(endpoint, mapPaths(backendModule.preparePublicEndpoint(fixtureConfig(), source)));
-  assert.deepEqual(readResponse(), { status: 200, open: true });
+  assert.deepEqual(readResponse(), { status: 200, open: false });
   const transport = recordingTransport();
   transport.run = async operation => {
     const input = mapPaths(operation.input);
@@ -440,7 +490,7 @@ test('backend frontend mantiene Voceros abierto si la transferencia o la etapa p
     assert.equal(extraction.status, 0);
     // A partial helper write cannot break an endpoint with embedded dependencies.
     await writeFile(join(temp, 'live/api/_voceros-bootstrap.php'), '<?php invalid truncated transfer');
-    assert.deepEqual(readResponse(), { status: 200, open: true });
+    assert.deepEqual(readResponse(), { status: 200, open: false });
     stages.push('uploaded');
   };
   for (const failure of ['upload', 'after-transfer']) {
@@ -451,13 +501,13 @@ test('backend frontend mantiene Voceros abierto si la transferencia o la etapa p
       normalize: () => { throw new Error('after-transfer'); },
       verify: () => assert.fail('verification must not run after interruption'),
     }));
-    assert.deepEqual(readResponse(), { status: 200, open: true });
+    assert.deepEqual(readResponse(), { status: 200, open: false });
   }
   assert.equal(stages.length, 2);
   const previous = await readFile(endpoint, 'utf8');
   for (const badSource of [
     source.replace('declare(strict_types=1);', 'declare(strict_types=1); invalid PHP'),
-    source.replace('function registration_config(string $directory): ?array\n{', 'function registration_config(string $directory): ?array\n{\n return null;'),
+    source.replace("'open' => false", "'open' => true"),
   ]) {
     await assert.rejects(publishFrontendFiles(fixtureConfig(), {
       endpointSource: badSource,
@@ -465,7 +515,7 @@ test('backend frontend mantiene Voceros abierto si la transferencia o la etapa p
       upload: () => assert.fail('do not transfer after failed preparation'),
     }));
     assert.equal(await readFile(endpoint, 'utf8'), previous);
-    assert.deepEqual(readResponse(), { status: 200, open: true });
+    assert.deepEqual(readResponse(), { status: 200, open: false });
   }
 });
 
@@ -481,6 +531,10 @@ test('backend configuración legal usa la carpeta privada alternativa del JSON c
   await uploadVocerosRegistrationConfig(config, transport);
   const legal = JSON.parse(await readFile(join(temp, 'voceros-registration.json'), 'utf8'));
   assert.equal(legal.enabled, true);
+  assert.equal(legal.imageVersion, '2026-09-15');
+  assert.equal(legal.privacyVersion, '2026-09-15');
+  assert.equal(legal.policiesVersion, '2026-09-14');
+  assert.equal(legal.thermometerVersion, '2026-09-14');
   const code = `<?php require '${join(websiteRoot, 'public/api/voceros/index.php').replaceAll("'", "\\'")}'; echo json_encode(registration_config('${temp}'));`;
   const result = spawnSync('php', [], { input: code, encoding: 'utf8' });
   assert.equal(result.status, 0, result.stderr);
@@ -574,7 +628,7 @@ test('normaliza permisos de carpetas después de la transferencia y antes de ver
   const { publishFrontendFiles } = await import('../scripts/deploy-cpanel.mjs');
   const stages = [];
   await publishFrontendFiles(fixtureConfig(), {
-    endpointSource: '<?php function voceros_bootstrap() {}',
+    endpointSource: replacementEndpointSource,
     install: () => stages.push('install'), upload: () => stages.push('upload'),
     normalize: () => stages.push('permissions'), verify: () => stages.push('HTTPS'),
   });
@@ -631,7 +685,7 @@ test('el preflight frontend ejecuta una sola vez la verificación completa del p
   assert.equal(checkedDist, join(websiteRoot, 'dist/index.html'));
 });
 
-test('el despliegue verifica las páginas, habilita Voceros y conserva su configuración fuera del sitio público', async () => {
+test('el despliegue verifica las páginas, cierra el alta anónima de Voceros y conserva su configuración fuera del sitio público', async () => {
   const source = await readFile(deployScript, 'utf8');
 
   assert.match(source, /\['\/acreditacion-de-medios\/', 200\]/);
@@ -642,7 +696,7 @@ test('el despliegue verifica las páginas, habilita Voceros y conserva su config
   assert.match(source, /\['\/finados\/voceros\/ejercer-derechos\/', 200\]/);
   assert.match(source, /\['\/api\/voceros\/', 200\]/);
   assert.match(source, /\['\/assets\/finados\/voceros\.css', 200\]/);
-  assert.match(source, /payload\.open !== true/);
+  assert.match(source, /payload\.open !== false/);
   assert.match(source, /uploadVocerosRegistrationConfig\(config\)/);
   assert.match(source, /voceros-registration\.json/);
   assert.match(source, /Eventos Finados 2026/);

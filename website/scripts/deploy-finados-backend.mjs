@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { lstatSync, readFileSync } from 'node:fs';
 import { dirname, join, resolve, posix } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { randomBytes } from 'node:crypto';
@@ -62,14 +62,40 @@ function bundle(files) {
 }
 
 function phpSource(body, files = []) {
-  return `<?php\nnamespace Finados;\nuse RuntimeException; use Throwable;\nini_set('display_errors', '0'); ini_set('log_errors', '0');\n`
-    + bundle(files).replace(/^namespace Finados;\s*$/gm, '').replace(/^use (?:RuntimeException|Throwable);\s*$/gm, '')
+  return `<?php\nnamespace Finados;\nuse RuntimeException; use Throwable; use PDO;\nini_set('display_errors', '0'); ini_set('log_errors', '0');\n`
+    + bundle(files).replace(/^namespace Finados;\s*$/gm, '').replace(/^use (?:RuntimeException|Throwable|PDO);\s*$/gm, '')
     + `\nset_error_handler(static function () { throw new RuntimeException('Operation failed.'); });\ntry {\n${body}\n} catch (Throwable) { exit(1); }\n`;
+}
+
+/** Read-only runtime and storage checks, also executed directly by local contract tests. */
+export function photoPreflightSource(privateRoot, publicRoots) {
+  return `
+if (PHP_VERSION_ID < 80100) exit(1);
+foreach (['pdo','pdo_mysql','openssl','session','fileinfo','gd','exif'] as $module) if (!extension_loaded($module)) exit(1);
+$gd = gd_info();
+foreach (['JPEG Support','PNG Support','WebP Support'] as $format) if (($gd[$format] ?? false) !== true) exit(1);
+foreach (['imagecreatefromjpeg','imagecreatefrompng','imagecreatefromwebp','imagejpeg','exif_read_data'] as $function) if (!function_exists($function)) exit(1);
+$memory = trim(ini_get('memory_limit'));
+if ($memory === '-1') $memoryBytes = -1;
+else {
+  if (!preg_match('/^([0-9]+)\\s*([KMG]?)$/iD', $memory, $match)) exit(1);
+  $memoryBytes = (int)$match[1] * (1024 ** ([''=>0,'K'=>1,'M'=>2,'G'=>3][strtoupper($match[2])]));
+  if ($memoryBytes < 256 * 1024 * 1024) exit(1);
+}
+$private = ${literal(privateRoot)};
+if (realpath($private) !== $private || !is_dir($private) || is_link($private) || !is_writable($private)
+  || (fileperms($private) & 0077) !== 0 || (fileperms($private) & 0200) === 0) exit(1);
+foreach (['public_html','htdocs','www','public','dist'] as $part) if (in_array($part, explode('/', $private), true)) exit(1);
+foreach (json_decode(${literal(JSON.stringify(publicRoots))}, true) as $root) if ($private === $root || str_starts_with($private, $root . '/')) exit(1);
+$free = disk_free_space($private); if ($free === false || $free < 100 * 1024 * 1024) exit(1);
+$mediaProbe = ['jpeg'=>true,'png'=>true,'webp'=>true,'memoryBytes'=>$memoryBytes,'freeBytes'=>(int)$free,'privateRoot'=>true];
+`;
 }
 
 function probeSource(config) {
   const roots = JSON.parse(config.FINADOS_PUBLIC_ROOTS);
   return phpSource(`
+${photoPreflightSource(posix.dirname(config.FINADOS_CONFIG_PATH), roots)}
 if (PHP_VERSION_ID < 80100) exit(1);
 foreach (['pdo','pdo_mysql','openssl','session'] as $module) if (!extension_loaded($module)) exit(1);
 $publicRoots = json_decode(${literal(JSON.stringify(roots))}, true);
@@ -93,7 +119,7 @@ $config = Config::fromProductionEnvironment();
 if ($config->allowedOrigin() !== 'https://complejomushucruna.com' || !str_starts_with($config->databaseDsn(), 'mysql:')) exit(1);
 $pdo = Database::connect($config);
 $probe = (string) $pdo->query('SELECT 1')->fetchColumn();
-echo json_encode(['phpVersion'=>PHP_VERSION, 'phpModules'=>get_loaded_extensions(), 'paths'=>true, 'databaseProbe'=>$probe]);
+echo json_encode(['phpVersion'=>PHP_VERSION, 'phpModules'=>get_loaded_extensions(), 'paths'=>true, 'databaseProbe'=>$probe, 'media'=>$mediaProbe]);
 `, ['src/Config.php', 'src/Database.php']);
 }
 
@@ -112,8 +138,11 @@ export async function checkBackend(config, transport = createTransport(config)) 
   const version = /^(\d+)\.(\d+)\./.exec(result.phpVersion ?? '');
   const modules = (Array.isArray(result.phpModules) ? result.phpModules : []).map(value => String(value).toLowerCase());
   if (!version || Number(version[1]) < 8 || (Number(version[1]) === 8 && Number(version[2]) < 1)
-    || !['pdo', 'pdo_mysql', 'openssl', 'session'].every(value => modules.includes(value))
-    || result.paths !== true || result.databaseProbe !== '1') fail('Prevuelo rechazado: revisa PHP, módulos, rutas privadas y base de datos.');
+    || !['pdo', 'pdo_mysql', 'openssl', 'session', 'fileinfo', 'gd', 'exif'].every(value => modules.includes(value))
+    || result.paths !== true || result.databaseProbe !== '1'
+    || !['jpeg', 'png', 'webp', 'privateRoot'].every(key => result.media?.[key] === true)
+    || !Number.isSafeInteger(result.media?.memoryBytes) || (result.media.memoryBytes !== -1 && result.media.memoryBytes < 268435456)
+    || !Number.isSafeInteger(result.media?.freeBytes) || result.media.freeBytes < 104857600) fail('Prevuelo rechazado: revisa PHP, módulos, memoria, espacio, rutas privadas y base de datos.');
   return { healthUrl, database: 'ready', commit: repo.head };
 }
 
@@ -146,17 +175,8 @@ function envPhp(config) {
 
 export function preparePublicEndpoint(config, source) {
   validateBackendConfig(config);
-  if (typeof source !== 'string' || !source.startsWith('<?php') || !source.includes('voceros_bootstrap')) fail('Endpoint de Voceros inválido.');
-  // Package the two public helpers inside the endpoint so later partial transfers cannot
-  // replace a dependency of the active form. Private backend classes remain in current.
-  for (const helper of ['_google-sheets.php', '_voceros-bootstrap.php']) {
-    const include = `require_once dirname(__DIR__) . DIRECTORY_SEPARATOR . '${helper}';`;
-    if (source.includes(include)) {
-      const body = readFileSync(join(websiteRoot, 'public/api', helper), 'utf8')
-        .replace(/^<\?php\s*declare\(strict_types=1\);\s*/, '');
-      source = source.replace(include, body);
-    }
-  }
+  if (typeof source !== 'string' || !source.startsWith('<?php') || !source.includes('function voceros_handle_request(')
+    || source.includes('voceros_bootstrap')) fail('Endpoint de Voceros inválido.');
   const endMarker = '// FINADOS MANAGED BOOTSTRAP END\n';
   if (source.includes('// FINADOS MANAGED BOOTSTRAP BEGIN\n')) {
     const offset = source.indexOf(endMarker);
@@ -206,7 +226,10 @@ ${main && source !== undefined ? `
 require $temporary;
 if (!function_exists('voceros_handle_request')) exit(1);
 $health = voceros_handle_request(['REQUEST_METHOD'=>'GET'], []);
-if (($health['status'] ?? null) !== 200 || ($health['json']['open'] ?? false) !== true) exit(1);
+if (($health['status'] ?? null) !== 200 || ($health['json']['open'] ?? null) !== false
+  || ($health['json']['authenticationRequired'] ?? null) !== true
+  || ($health['json']['accessUrl'] ?? null) !== '/finados/voceros/acceso/'
+  || ($health['json']['timezone'] ?? null) !== 'America/Guayaquil') exit(1);
 ` : ''}
 if (!rename($temporary, $destination)) exit(1);
 $temporaryCreated = false;
@@ -244,9 +267,9 @@ export async function deployBackend(config, transport = createTransport(config),
     `tar -cf ${q(backup + '/api-docroot.tar')} -C ${q(config.FINADOS_API_DOCROOT)} .`,
     `sha256sum ${q(backup + '/backend.tar')} ${q(backup + '/main-docroot.tar')} ${q(backup + '/api-docroot.tar')} > ${q(backup + '/files.sha256')}`].join('; '));
   await run('backup-database', `${environment(config)} ${php}`, phpSource(`exit(BackupCommand::run(['--output', ${literal(backup + '/database')}]));`,
-    ['src/Config.php', 'src/Database.php', 'bin/operations.php', 'bin/backup.php']));
+    ['src/Config.php', 'src/Database.php', 'src/Crypto.php', 'src/PhotoStorage.php', 'src/VoceroMediaLock.php', 'bin/operations.php', 'bin/backup.php']));
   await run('prepare-release', `set -eu; umask 077; test ! -L ${q(config.FINADOS_APP_ROOT + '/releases')}; mkdir -p ${q(config.FINADOS_APP_ROOT + '/releases')}; test ! -e ${q(release)}; test ! -L ${q(release)}; mkdir ${q(release)}`);
-  try { await transport.upload({ id: 'upload-release', write: true, destination: release, source: backend, files: ['src', 'bin', 'migrations', 'public'] }); }
+  try { await transport.upload({ id: 'upload-release', write: true, destination: release, source: backend, files: backendReleaseFiles() }); }
   catch { fail('Falló la transferencia de la versión. La versión activa no cambió.'); }
   // Check each exit status; find -exec alone does not propagate all lint failures.
   await run('verify-lint', php, phpSource(`
@@ -269,6 +292,8 @@ if (!$linked) {
   $process = proc_open(['cp', '-a', $release . '/.', $next . '/'], [0=>['file','/dev/null','r'],1=>['file','/dev/null','w'],2=>['file','/dev/null','w']], $pipes);
   if (!is_resource($process) || proc_close($process) !== 0) exit(1);
 }
+
+
 $previous = ${literal(config.FINADOS_APP_ROOT + '/previous-' + id)};
 $moved = false;
 if (is_dir($current) && !is_link($current)) {
@@ -286,6 +311,20 @@ catch (Throwable) {
   try { health = await transport.health(healthUrl); } catch { fail('No se pudo verificar HTTPS; conserva el respaldo y revisa la versión activa.'); }
   if (health.status !== 200 || health.ok !== true) fail('La API no confirmó salud después del despliegue.');
   return { ...checked, release: id };
+}
+
+export function backendReleaseFiles() {
+  const tracked = spawnSync('git', ['ls-files', '-z', '--', 'src', 'bin', 'migrations', 'public', 'resources'], { cwd: backend, encoding: 'utf8' });
+  if (tracked.status !== 0) fail('No se pudo verificar el inventario versionado.');
+  const files = tracked.stdout.split('\0').filter(Boolean).filter(file => /^(src\/[^/]+\.php|bin\/[^/]+\.php|migrations\/\d+_[a-z_]+\.sql|public\/(index\.php|\.htaccess)|resources\/vocero-consents\.json)$/.test(file)).sort();
+  for (const file of files) {
+    const info = lstatSync(join(backend, file));
+    if (!info.isFile() || info.isSymbolicLink() || info.nlink !== 1) fail('El artefacto requiere archivos regulares versionados.');
+  }
+  for (const required of ['src/PhotoStorage.php', 'src/VoceroMediaLock.php', 'src/VoceroAuth.php', 'src/VoceroProfile.php', 'src/VoceroPasswordReset.php', 'resources/vocero-consents.json', 'migrations/003_vocero_accounts_mysql.sql']) {
+    if (!files.includes(required)) fail('La versión no incluye una dependencia requerida.');
+  }
+  return files;
 }
 
 export async function administerBackend(config, transport = createTransport(config), { tty = Boolean(process.stdin.isTTY && process.stdout.isTTY && process.stderr.isTTY) } = {}) {

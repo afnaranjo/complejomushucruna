@@ -103,6 +103,9 @@ final class VoceroProfile
                 $this->pdo->prepare($sql)->execute($values);
             }
             if ($changed || $photoChanged) $this->audit->log('vocero.profile_saved', null, 'vocero', $publicId, ['account_public_id' => $account['public_id']], $ip);
+            // Preserve the durable intake delivery when registration moves behind authentication.
+            // ensure() is idempotent and its explicit payload allowlist excludes photo metadata.
+            (new SheetsOutbox($this->pdo, $this->crypto))->ensure($publicId);
             if ($photoChanged) { $this->storage->promote($prepared); $promoted = true; }
             $commitAttempted = true;
             $commitUnknown = true;
