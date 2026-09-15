@@ -19,3 +19,6 @@ function local_test_config(): Finados\Config
 try { $testConfig = local_test_config(); }
 catch (Throwable) { http_response_code(403); header('Content-Type: application/json'); echo '{"ok":false}'; exit; }
 umask(0077);
+// Per-run identity rejects unrelated listeners during readiness.
+$instance = getenv('VOCEROS_TEST_INSTANCE');
+if (is_string($instance) && preg_match('/^[a-f0-9]{48}$/D', $instance)) header('X-Voceros-Test-Instance: ' . $instance);
