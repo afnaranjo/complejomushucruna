@@ -237,3 +237,100 @@ $promoteFailurePath = jpeg_photo(20, 20);
 $promoteFailure = $storage->stage($promoteFailurePath, filesize($promoteFailurePath));
 unlink($root . '/voceros-photos/staging/' . $promoteFailure['storage_key']);
 photo_error(fn () => $storage->promote($promoteFailure));
+
+// Security regression: encrypted contents are bound to the storage key and typed envelope.
+$crypto = new Crypto($config);
+$firstPath = jpeg_photo(40, 20);
+$secondPath = jpeg_photo(40, 20);
+$first = $storage->stage($firstPath, filesize($firstPath));
+$second = $storage->stage($secondPath, filesize($secondPath));
+$storage->promote($first);
+$storage->promote($second);
+$firstStoredPath = $root . '/voceros-photos/files/' . $first['storage_key'];
+$secondStoredPath = $root . '/voceros-photos/files/' . $second['storage_key'];
+$firstCiphertext = file_get_contents($firstStoredPath);
+$secondCiphertext = file_get_contents($secondStoredPath);
+if ($firstCiphertext === false || $secondCiphertext === false || file_put_contents($firstStoredPath, $secondCiphertext) === false) {
+    throw new RuntimeException('Unable to prepare ciphertext swap fixture.');
+}
+photo_error(fn () => $storage->read($first['storage_key']));
+if (file_put_contents($firstStoredPath, $firstCiphertext) === false) {
+    throw new RuntimeException('Unable to restore ciphertext fixture.');
+}
+
+$untypedPath = jpeg_photo(40, 20);
+$untyped = $storage->stage($untypedPath, filesize($untypedPath));
+$storage->promote($untyped);
+$untypedStoredPath = $root . '/voceros-photos/files/' . $untyped['storage_key'];
+$validJpeg = $storage->read($untyped['storage_key']);
+if (file_put_contents($untypedStoredPath, $crypto->encrypt($validJpeg)) === false) {
+    throw new RuntimeException('Unable to prepare untyped ciphertext fixture.');
+}
+photo_error(fn () => $storage->read($untyped['storage_key']));
+
+foreach (["VPH\x02", "VPH\x01" . str_repeat('x', 64) . "\x02"] as $invalidEnvelope) {
+    if (file_put_contents($untypedStoredPath, $crypto->encrypt($invalidEnvelope)) === false) {
+        throw new RuntimeException('Unable to prepare invalid envelope fixture.');
+    }
+    photo_error(fn () => $storage->read($untyped['storage_key']));
+}
+if (file_put_contents($untypedStoredPath, str_repeat('x', (8 * 1024 * 1024) + 1)) === false) {
+    throw new RuntimeException('Unable to prepare oversized ciphertext fixture.');
+}
+photo_error(fn () => $storage->read($untyped['storage_key']));
+
+$truncatedPath = jpeg_photo(40, 20);
+$truncated = $storage->stage($truncatedPath, filesize($truncatedPath));
+$storage->promote($truncated);
+$truncatedJpeg = $storage->read($truncated['storage_key']);
+$truncatedStoredPath = $root . '/voceros-photos/files/' . $truncated['storage_key'];
+$truncatedPayload = substr($truncatedJpeg, 0, -2);
+$truncatedEnvelope = "VPH\x01" . $truncated['storage_key'] . "\x01" . pack('N', strlen($truncatedPayload)) . $truncatedPayload;
+if (file_put_contents($truncatedStoredPath, $crypto->encrypt($truncatedEnvelope)) === false) {
+    throw new RuntimeException('Unable to prepare truncated JPEG fixture.');
+}
+photo_error(fn () => $storage->read($truncated['storage_key']));
+
+$physicalOversize = invalid_photo_path(str_repeat('x', (5 * 1024 * 1024) + 1));
+photo_error(fn () => $storage->stage($physicalOversize, filesize($physicalOversize)), $physicalOversize);
+$mismatchPath = jpeg_photo(40, 20);
+photo_error(fn () => $storage->stage($mismatchPath, filesize($mismatchPath) - 1), $mismatchPath);
+
+$collisionPath = jpeg_photo(40, 20);
+$collision = $storage->stage($collisionPath, filesize($collisionPath));
+if (!symlink($symlinkTarget, $root . '/voceros-photos/files/' . $collision['storage_key'])) {
+    throw new RuntimeException('Unable to create promote collision fixture.');
+}
+photo_error(fn () => $storage->promote($collision));
+same(true, is_file($root . '/voceros-photos/staging/' . $collision['storage_key']));
+$storage->discard($collision);
+
+$permissiveRoot = photo_test_root();
+if (!mkdir($permissiveRoot . '/voceros-photos/staging', 0777, true) || !mkdir($permissiveRoot . '/voceros-photos/files', 0777, true)) {
+    throw new RuntimeException('Unable to create permissive photo directories.');
+}
+chmod($permissiveRoot . '/voceros-photos', 0777);
+chmod($permissiveRoot . '/voceros-photos/staging', 0777);
+chmod($permissiveRoot . '/voceros-photos/files', 0777);
+$permissiveConfig = photo_test_config($permissiveRoot);
+$permissiveStorage = new PhotoStorage($permissiveConfig, new Crypto($permissiveConfig));
+same(0700, fileperms($permissiveRoot . '/voceros-photos') & 0777);
+same(0700, fileperms($permissiveRoot . '/voceros-photos/staging') & 0777);
+same(0700, fileperms($permissiveRoot . '/voceros-photos/files') & 0777);
+$previousUmask = umask(0000);
+try {
+    $umaskPath = jpeg_photo(40, 20);
+    $umaskPhoto = $permissiveStorage->stage($umaskPath, filesize($umaskPath));
+} finally {
+    umask($previousUmask);
+}
+same(0600, fileperms($permissiveRoot . '/voceros-photos/staging/' . $umaskPhoto['storage_key']) & 0777);
+$permissiveStorage->discard($umaskPhoto);
+
+$symlinkConfigRoot = photo_test_root();
+if (!mkdir($symlinkConfigRoot . '/real', 0700) || !symlink($symlinkConfigRoot . '/real/finados-backend.json', $symlinkConfigRoot . '/config-link.json')) {
+    throw new RuntimeException('Unable to create resolved configuration fixture.');
+}
+$realConfig = photo_test_config($symlinkConfigRoot . '/real');
+same($symlinkConfigRoot . '/real', $realConfig->privateDirectory());
+same($symlinkConfigRoot . '/real', Config::fromFile($symlinkConfigRoot . '/config-link.json')->privateDirectory());
