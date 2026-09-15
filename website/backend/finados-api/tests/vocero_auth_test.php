@@ -70,8 +70,8 @@ $accountId = (int) $pdo->query("SELECT id FROM vocero_accounts WHERE email_idx =
 $pdo->prepare('INSERT INTO vocero_account_links (account_id, vocero_id, created_at) VALUES (?, ?, ?)')->execute([$accountId, $voceroId, $nowText]);
 throws(fn () => $pdo->prepare('INSERT INTO vocero_account_links (account_id, vocero_id, created_at) VALUES (?, ?, ?)')->execute([$accountId, $voceroId + 1, $nowText]), PDOException::class);
 throws(fn () => $pdo->prepare('INSERT INTO vocero_account_links (account_id, vocero_id, created_at) VALUES (?, ?, ?)')->execute([$accountId + 1, $voceroId, $nowText]), PDOException::class);
-$pdo->prepare('INSERT INTO vocero_photos (vocero_id, storage_key, content_type, bytes, sha256, created_at) VALUES (?, ?, ?, ?, ?, ?)')->execute([$voceroId, 'private/test.jpg', 'image/jpeg', 10, hash('sha256', 'photo'), $nowText]);
-throws(fn () => $pdo->prepare('INSERT INTO vocero_photos (vocero_id, storage_key, content_type, bytes, sha256, created_at) VALUES (?, ?, ?, ?, ?, ?)')->execute([$voceroId, 'private/second.jpg', 'image/jpeg', 11, hash('sha256', 'photo-2'), $nowText]), PDOException::class);
+$pdo->prepare('INSERT INTO vocero_photos (vocero_id, storage_key, content_type, bytes, sha256, width, height, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')->execute([$voceroId, 'private/test.jpg', 'image/jpeg', 10, hash('sha256', 'photo'), 80, 100, $nowText]);
+throws(fn () => $pdo->prepare('INSERT INTO vocero_photos (vocero_id, storage_key, content_type, bytes, sha256, width, height, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')->execute([$voceroId, 'private/second.jpg', 'image/jpeg', 11, hash('sha256', 'photo-2'), 80, 100, $nowText]), PDOException::class);
 same('003_vocero_accounts', $pdo->query("SELECT version FROM schema_migrations WHERE version = '003_vocero_accounts'")->fetchColumn());
 same(['email_idx', 'ip_hash', 'attempted_at'], array_column($pdo->query("PRAGMA index_info('idx_vocero_login_window')")->fetchAll(), 'name'));
 same(['email_idx', 'attempted_at'], array_column($pdo->query("PRAGMA index_info('idx_vocero_login_email_window')")->fetchAll(), 'name'));

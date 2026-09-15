@@ -40,6 +40,8 @@ CREATE TABLE IF NOT EXISTS vocero_photos (
   content_type VARCHAR(100) NOT NULL,
   bytes BIGINT UNSIGNED NOT NULL,
   sha256 CHAR(64) NOT NULL,
+  width INT UNSIGNED NOT NULL,
+  height INT UNSIGNED NOT NULL,
   created_at DATETIME NOT NULL,
   CONSTRAINT fk_vocero_photo_vocero FOREIGN KEY (vocero_id) REFERENCES voceros(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

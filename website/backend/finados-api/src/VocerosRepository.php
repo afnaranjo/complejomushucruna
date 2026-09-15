@@ -28,7 +28,7 @@ final class VocerosRepository
         $this->audit = $audit ?? new Audit($pdo, $crypto);
     }
 
-    public function create(array $record, array $consents): string
+    public function create(array $record, array $consents, bool $allowReplay = true): string
     {
         if (count($consents) !== 3 || count(array_unique(array_column($consents, 'consent_type'))) !== 3) {
             throw new InvalidArgumentException('Exactly three distinct consents are required.');
@@ -46,6 +46,7 @@ final class VocerosRepository
         try {
             $existing = $this->findSubmissionId($submissionId);
             if ($existing !== null) {
+                if (!$allowReplay) throw new InvalidArgumentException('Submission identifier unavailable.');
                 if ($ownsTransaction) $this->pdo->commit();
                 return $existing;
             }
@@ -100,7 +101,7 @@ final class VocerosRepository
             if ($ownsTransaction) $this->pdo->rollBack();
             if ($exception instanceof PDOException) {
                 // A concurrent submission may have committed while this insert waited on UNIQUE.
-                if ($ownsTransaction && str_starts_with((string) $exception->getCode(), '23')) {
+                if ($allowReplay && $ownsTransaction && str_starts_with((string) $exception->getCode(), '23')) {
                     $existing = $this->findSubmissionId($submissionId);
                     if ($existing !== null) {
                         return $existing;
@@ -160,6 +161,45 @@ final class VocerosRepository
     public function syncSheets(string $submissionId, callable $send): string
     {
         return (new SheetsOutbox($this->pdo, $this->crypto))->deliver($submissionId, $send);
+    }
+
+    /** Caller holds the account/vocero locks and owns the complete profile/photo transaction. */
+    public function updateProfile(int $voceroId, array $record, array $consents): bool
+    {
+        if (!$this->pdo->inTransaction()) throw new RuntimeException('Profile update requires a transaction.');
+        $query = $this->pdo->prepare('SELECT * FROM voceros WHERE id = ?');
+        $query->execute([$voceroId]);
+        $stored = $query->fetch();
+        if ($stored === false) throw new OutOfBoundsException('Registration not found.');
+        $current = $this->decryptRow($stored);
+        $changes = [];
+        foreach (['full_name', 'age_at_submission', 'city', 'main_network', 'previous_participation', 'community_source', 'kit_pickup',
+            'status', 'tiktok', 'instagram', 'facebook', 'utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'] as $field) {
+            if ((string) $current[$field] !== (string) $record[$field]) $changes[$field] = $record[$field];
+        }
+        foreach (self::ENCRYPTED as $field) {
+            if ($current[$field] === $record[$field]) continue;
+            $changes[$field . '_enc'] = $this->crypto->encrypt($record[$field]);
+            if (in_array($field, self::INDEXED, true)) $changes[$field . '_idx'] = $this->crypto->lookup($record[$field]);
+        }
+        if ($changes !== []) {
+            $changes['updated_at'] = gmdate('Y-m-d H:i:s');
+            $query = $this->pdo->prepare('UPDATE voceros SET ' . implode(', ', array_map(static fn (string $field): string => $field . ' = ?', array_keys($changes))) . ' WHERE id = ?');
+            $query->execute([...array_values($changes), $voceroId]);
+        }
+        $appended = false;
+        foreach ($consents as $consent) {
+            $query = $this->pdo->prepare('SELECT id FROM vocero_consents WHERE vocero_id = ? AND consent_type = ? AND text_hash = ?');
+            $query->execute([$voceroId, $consent['consent_type'], $consent['text_hash']]);
+            // Historical uniqueness is by exact text. Never rewrite an earlier acceptance.
+            if ($query->fetchColumn() !== false) continue;
+            $row = ['vocero_id' => $voceroId];
+            foreach (['consent_type', 'accepted', 'text_version', 'text_hash', 'accepted_at', 'user_agent', 'source_url', 'method'] as $field) $row[$field] = $consent[$field];
+            $row['ip_enc'] = $this->crypto->encrypt($consent['ip']);
+            $this->insert('vocero_consents', $row);
+            $appended = true;
+        }
+        return $changes !== [] || $appended;
     }
 
     public function list(array $filters): array

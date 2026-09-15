@@ -9,7 +9,7 @@ use OutOfBoundsException;
 use PDO;
 use Throwable;
 
-foreach (['Config', 'Database', 'Crypto', 'Audit', 'VocerosRepository', 'Auth', 'VoceroAuth'] as $dependency) {
+foreach (['Config', 'Database', 'Crypto', 'Audit', 'VocerosRepository', 'Auth', 'VoceroAuth', 'VoceroProfile'] as $dependency) {
     require_once __DIR__ . '/' . $dependency . '.php';
 }
 
@@ -129,6 +129,45 @@ final class Router
                 $this->voceroAuth->logout();
                 return $this->json(200, ['ok' => true], $headers);
             }
+            if (in_array($path, ['/api/vocero/profile', '/api/vocero/photo'], true)) {
+                $user = $this->voceroAuth->requireUser();
+                if (!in_array($method, $path === '/api/vocero/profile' ? ['GET', 'POST'] : ['GET'], true)) {
+                    return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+                }
+                if ($query !== []) throw new InvalidArgumentException();
+                if ($method === 'POST') {
+                    if ($origin !== $this->config->allowedOrigin() || !is_string($ip) || inet_pton($ip) === false) throw new Forbidden();
+                    $this->voceroAuth->verifyCsrf($token);
+                    $length = $server['CONTENT_LENGTH'] ?? null;
+                    if ($length !== null && ((!is_string($length) && !is_int($length)) || preg_match('/^\d+$/D', (string) $length) !== 1)) throw new InvalidArgumentException();
+                    if (($length !== null && (float) $length > 5 * 1024 * 1024 + 262144) || strlen($rawBody) > 5 * 1024 * 1024 + 262144) throw new RequestBodyError(413, 'payload_too_large');
+                    if (strtolower(trim(explode(';', $server['CONTENT_TYPE'] ?? '')[0])) !== 'multipart/form-data') throw new RequestBodyError(415, 'unsupported_media_type');
+                    $fieldBytes = 0;
+                    foreach ($post as $field => $value) {
+                        if (!is_string($value)) throw new InvalidArgumentException();
+                        $fieldBytes += strlen((string) $field) + strlen($value);
+                    }
+                    if ($fieldBytes > 262144) throw new RequestBodyError(413, 'payload_too_large');
+                    foreach ($files as $upload) {
+                        if (!is_array($upload)) throw new InvalidArgumentException();
+                        if (($upload['error'] ?? null) === UPLOAD_ERR_OK && (!is_string($upload['tmp_name'] ?? null) || !is_uploaded_file($upload['tmp_name']))) throw new InvalidArgumentException();
+                    }
+                    $profile = new VoceroProfile($this->pdo, $this->config);
+                    $saved = $profile->save($user['id'], $post, $files, $ip, $server['HTTP_USER_AGENT'] ?? '');
+                    return $this->json(200, ['registered' => true, ...$saved], $headers);
+                }
+                $profile = new VoceroProfile($this->pdo, $this->config);
+                if ($path === '/api/vocero/photo') {
+                    $jpeg = $profile->photo($user['id']);
+                    $headers['Content-Type'] = 'image/jpeg';
+                    $headers['Cache-Control'] = 'private, no-store';
+                    return new Response(200, $headers, $jpeg);
+                }
+                $own = $profile->get($user['id']);
+                return $this->json(200, $own === null
+                    ? ['registered' => false, 'email' => $user['email'], 'status' => null, 'photo' => ['available' => false, 'width' => null, 'height' => null, 'created_at' => null]]
+                    : ['registered' => true, ...$own], $headers);
+            }
             $user = $this->auth->requireUser();
             if (!in_array($method, self::METHODS, true)) return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
             if (in_array($method, ['POST', 'PATCH'], true)) {
@@ -194,6 +233,8 @@ final class Router
             return $this->error(403, 'forbidden', 'Solicitud no permitida.', $headers);
         } catch (RequestBodyError $error) {
             return $this->error($error->status, $error->errorCode, 'Formato de solicitud no válido.', $headers);
+        } catch (DuplicateRegistration) {
+            return $this->error(409, 'duplicate_registration', 'Ya existe un registro con los datos proporcionados.', $headers);
         } catch (InvalidArgumentException | \JsonException) {
             return $this->error(422, 'validation_error', 'Revisa los datos de la solicitud.', $headers);
         } catch (OutOfBoundsException) {

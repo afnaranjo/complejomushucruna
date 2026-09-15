@@ -26,6 +26,7 @@ final class Audit
                 'from_status', 'to_status' => in_array($value, VocerosRepository::STATUSES, true),
                 'note_id', 'count' => is_int($value) && $value >= 0,
                 'filters' => $eventType === 'vocero.exported' && $this->safeFilters($value),
+                'account_public_id' => $eventType === 'vocero.profile_saved' && is_string($value) && preg_match('/^[a-f0-9]{32}$/D', $value) === 1,
                 default => false,
             };
             if (!$valid) {

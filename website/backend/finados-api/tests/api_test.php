@@ -12,7 +12,15 @@ same(true, is_file(__DIR__ . '/../src/Router.php'));
 same(true, is_file(__DIR__ . '/../public/index.php'));
 $apiDb = temp_file('');
 $apiErrorLog = temp_file('');
-$apiConfigPath = temp_file(json_encode([
+$apiPrivateRoot = tempnam(sys_get_temp_dir(), 'finados-api-private-');
+unlink($apiPrivateRoot); mkdir($apiPrivateRoot, 0700);
+register_shutdown_function(static function () use ($apiPrivateRoot): void {
+    $entries = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($apiPrivateRoot, FilesystemIterator::SKIP_DOTS), RecursiveIteratorIterator::CHILD_FIRST);
+    foreach ($entries as $entry) $entry->isDir() && !$entry->isLink() ? rmdir($entry->getPathname()) : unlink($entry->getPathname());
+    rmdir($apiPrivateRoot);
+});
+$apiConfigPath = $apiPrivateRoot . '/config.json';
+file_put_contents($apiConfigPath, json_encode([
     'environment' => 'test', 'databaseDsn' => 'sqlite:' . $apiDb,
     'databaseUser' => '', 'databasePassword' => '', 'allowedOrigin' => 'https://complejomushucruna.com',
     'encryptionKey' => base64_encode(str_repeat('e', 32)), 'hmacKey' => base64_encode(str_repeat('h', 32)),
@@ -20,6 +28,8 @@ $apiConfigPath = temp_file(json_encode([
 $apiConfig = Finados\Config::fromFile($apiConfigPath);
 $apiPdo = Finados\Database::connect($apiConfig);
 $apiPdo->exec(file_get_contents(__DIR__ . '/../migrations/001_initial_sqlite.sql'));
+$apiPdo->exec(file_get_contents(__DIR__ . '/../migrations/002_sheets_outbox_sqlite.sql'));
+$apiPdo->exec(file_get_contents(__DIR__ . '/../migrations/003_vocero_accounts_sqlite.sql'));
 $apiPdo->exec('PRAGMA journal_mode = WAL');
 $apiSecret = bin2hex(random_bytes(24));
 $apiHash = Finados\Auth::hashPassword($apiSecret);
@@ -71,12 +81,16 @@ if (getenv('FINADOS_TEST_CONCURRENT') === '1') {
     $pdo->setAttribute(PDO::ATTR_STATEMENT_CLASS, [ConcurrentExportStatement::class, [Finados\Database::connect($config)]]);
 }
 $router = new Finados\Router($config, $pdo);
-$router->handle($_SERVER['REQUEST_METHOD'], $_SERVER['REQUEST_URI'], $_SERVER, file_get_contents('php://input'))->send();
+if (getenv('FINADOS_TEST_TAMPER_ACCOUNT') !== false) {
+    Finados\Http::startSession($config, 'vocero');
+    $_SESSION['vocero_account_id'] = (int) getenv('FINADOS_TEST_TAMPER_ACCOUNT');
+}
+$router->handle($_SERVER['REQUEST_METHOD'], $_SERVER['REQUEST_URI'], $_SERVER, file_get_contents('php://input'), $_POST, $_FILES)->send();
 PHP);
 
 function api_request(string $method, string $uri, mixed $body = null, string $cookie = '', ?string $csrf = null, ?string $origin = 'https://complejomushucruna.com', array $server = []): array
 {
-    global $apiWorker, $apiConfigPath, $apiErrorLog;
+    global $apiWorker, $apiConfigPath, $apiErrorLog, $apiPrivateRoot;
     $raw = $body === null ? '' : (is_string($body) ? $body : json_encode($body === [] ? (object) [] : $body, JSON_THROW_ON_ERROR));
     $env = array_replace([
         'REDIRECT_STATUS' => '200', 'SCRIPT_FILENAME' => $apiWorker, 'SCRIPT_NAME' => '/api/index.php',
@@ -88,7 +102,7 @@ function api_request(string $method, string $uri, mixed $body = null, string $co
     if ($origin !== null) $env['HTTP_ORIGIN'] = $origin;
     if ($csrf !== null) $env['HTTP_X_CSRF_TOKEN'] = $csrf;
     $pipes = [];
-    $process = proc_open([dirname(PHP_BINARY) . '/php-cgi', '-d', 'session.save_path=' . sys_get_temp_dir(), '-d', 'error_log=' . $apiErrorLog, '-f', $apiWorker], [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes, null, $env);
+    $process = proc_open([dirname(PHP_BINARY) . '/php-cgi', '-d', 'session.save_path=' . sys_get_temp_dir(), '-d', 'error_log=' . $apiErrorLog, '-d', 'upload_tmp_dir=' . $apiPrivateRoot, '-d', 'upload_max_filesize=5M', '-d', 'post_max_size=6M', '-f', $apiWorker], [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes, null, $env);
     fwrite($pipes[0], $raw); fclose($pipes[0]);
     $output = stream_get_contents($pipes[1]); $errors = stream_get_contents($pipes[2]);
     fclose($pipes[1]); fclose($pipes[2]);
@@ -274,6 +288,87 @@ foreach ([['search' => 'PII'], ['search_hash' => 'PII'], ['date_from' => '2026-0
     throws(fn () => $apiAudit->log('vocero.exported', 1, 'vocero', null, ['count' => 1, 'filters' => $badMetadata]), InvalidArgumentException::class);
 }
 same(405, api_request('GET', '/api/voceros/export', cookie: $cookie)['status']);
+
+// Real CGI upload parsing, isolated cookies and session-bound ownership (not client IDs).
+same(401, api_request('GET', '/api/vocero/profile', cookie: $cookie)['status']);
+same(401, api_request('GET', '/api/vocero/photo', cookie: $cookie)['status']);
+$voceroSession = api_request('GET', '/api/vocero/auth/session');
+$voceroCookie = api_cookie($voceroSession); $voceroCsrf = $voceroSession['json']['csrf'];
+$voceroCredentials = ['email' => 'portal@example.invalid', 'password' => bin2hex(random_bytes(16))];
+same(202, api_request('POST', '/api/vocero/auth/register', $voceroCredentials + ['privacyAcknowledged' => true], $voceroCookie, $voceroCsrf)['status']);
+$voceroLogin = api_request('POST', '/api/vocero/auth/login', $voceroCredentials, $voceroCookie, $voceroCsrf);
+same(200, $voceroLogin['status']);
+$voceroCookie = api_cookie($voceroLogin); $voceroCsrf = $voceroLogin['json']['csrf'];
+same(401, api_request('GET', '/api/voceros', cookie: $voceroCookie)['status']);
+$emptyProfile = api_request('GET', '/api/vocero/profile', cookie: $voceroCookie);
+same(200, $emptyProfile['status']); same(false, $emptyProfile['json']['registered']);
+same('portal@example.invalid', $emptyProfile['json']['email']);
+same(404, api_request('GET', '/api/vocero/photo', cookie: $voceroCookie)['status']);
+$voceroFields = [
+    'submission_id' => str_repeat('9', 32), 'nombre_completo' => 'Portal Sintético', 'cedula' => '1800000099',
+    'fecha_nacimiento' => '2000-01-02', 'whatsapp' => '0990000099', 'ciudad' => 'Ciudad Portal',
+    'tiktok' => 'https://example.invalid/portal', 'red_principal' => 'TikTok', 'vocero_previo' => 'No, es mi primera vez',
+    'fuente_comunidad' => 'Facebook', 'retiro_kit' => 'En la oficina', 'consentimiento_politicas' => 'Sí',
+    'autorizacion_imagen' => 'Sí', 'consentimiento_datos' => 'Sí',
+];
+$voceroImage = imagecreatetruecolor(32, 48); ob_start(); imagejpeg($voceroImage, null, 95); $voceroJpeg = ob_get_clean();
+if (PHP_VERSION_ID < 80500) imagedestroy($voceroImage);
+$voceroBoundary = 'finados-upload-boundary';
+$voceroMultipart = static function (array $fields, ?string $jpeg = null, string $fileField = 'fotografia') use ($voceroBoundary): string {
+    $body = '';
+    foreach ($fields as $field => $value) $body .= '--' . $voceroBoundary . "\r\nContent-Disposition: form-data; name=\"$field\"\r\n\r\n$value\r\n";
+    if ($jpeg !== null) $body .= '--' . $voceroBoundary . "\r\nContent-Disposition: form-data; name=\"$fileField\"; filename=\"private-original.png\"\r\nContent-Type: text/plain\r\n\r\n$jpeg\r\n";
+    return $body . '--' . $voceroBoundary . "--\r\n";
+};
+$voceroMultipartServer = ['CONTENT_TYPE' => 'multipart/form-data; boundary=' . $voceroBoundary];
+$voceroBody = $voceroMultipart($voceroFields, $voceroJpeg);
+same(403, api_request('POST', '/api/vocero/profile', $voceroBody, $voceroCookie, server: $voceroMultipartServer)['status']);
+same(403, api_request('POST', '/api/vocero/profile', $voceroBody, $voceroCookie, $voceroCsrf, origin: null, server: $voceroMultipartServer)['status']);
+same(403, api_request('POST', '/api/vocero/profile', $voceroBody, $voceroCookie, $voceroCsrf, server: $voceroMultipartServer + ['REMOTE_ADDR' => 'invalid'])['status']);
+same(415, api_request('POST', '/api/vocero/profile', $voceroFields, $voceroCookie, $voceroCsrf)['status']);
+same(422, api_request('POST', '/api/vocero/profile', $voceroMultipart($voceroFields), $voceroCookie, $voceroCsrf, server: $voceroMultipartServer)['status']);
+same(422, api_request('POST', '/api/vocero/profile', $voceroMultipart($voceroFields, 'not an image'), $voceroCookie, $voceroCsrf, server: $voceroMultipartServer)['status']);
+same(422, api_request('POST', '/api/vocero/profile', $voceroMultipart($voceroFields, $voceroJpeg, 'fotografia[]'), $voceroCookie, $voceroCsrf, server: $voceroMultipartServer)['status']);
+$voceroSaved = api_request('POST', '/api/vocero/profile', $voceroBody, $voceroCookie, $voceroCsrf, server: $voceroMultipartServer);
+same(200, $voceroSaved['status']); same(true, $voceroSaved['json']['registered']);
+$voceroPhotoRow = $apiPdo->query('SELECT * FROM vocero_photos')->fetch();
+same(200, api_request('POST', '/api/vocero/profile', $voceroBody, $voceroCookie, $voceroCsrf, server: $voceroMultipartServer)['status']);
+same($voceroPhotoRow, $apiPdo->query('SELECT * FROM vocero_photos')->fetch());
+$ownProfile = api_request('GET', '/api/vocero/profile', cookie: $voceroCookie);
+same('portal@example.invalid', $ownProfile['json']['email']);
+same('Nuevo', $ownProfile['json']['status']);
+same(32, $ownProfile['json']['photo']['width']); same(48, $ownProfile['json']['photo']['height']);
+same(422, api_request('GET', '/api/vocero/profile?accountId=1', cookie: $voceroCookie)['status']);
+same(422, api_request('GET', '/api/vocero/photo?accountId=1', cookie: $voceroCookie)['status']);
+foreach (['accountId', 'account_id', 'email', 'correo', 'role', 'estado', 'status'] as $forged) {
+    same(422, api_request('POST', '/api/vocero/profile', $voceroMultipart($voceroFields + [$forged => 'attacker']), $voceroCookie, $voceroCsrf, server: $voceroMultipartServer)['status']);
+}
+$ownPhoto = api_request('GET', '/api/vocero/photo', cookie: $voceroCookie);
+same(200, $ownPhoto['status']); same('image/jpeg', $ownPhoto['headers']['content-type']);
+same('private, no-store', $ownPhoto['headers']['cache-control']); same('nosniff', $ownPhoto['headers']['x-content-type-options']);
+same('image/jpeg', getimagesizefromstring($ownPhoto['body'])['mime']);
+$photoExport = api_request('POST', '/api/voceros/export', ['city' => 'Ciudad Portal'], $cookie, $csrf);
+same(200, $photoExport['status']);
+foreach ([$ownProfile['body'], $voceroSaved['body'], $photoExport['body']] as $serialized) {
+    foreach (['storage_key', $voceroPhotoRow['storage_key'], $voceroPhotoRow['sha256'], 'private-original.png', $apiPrivateRoot, base64_encode($ownPhoto['body'])] as $leak) same(false, str_contains($serialized, $leak));
+}
+$editedVocero = api_request('POST', '/api/vocero/profile', $voceroMultipart(array_replace($voceroFields, ['ciudad' => 'Ciudad Editada'])), $voceroCookie, $voceroCsrf, server: $voceroMultipartServer);
+same(200, $editedVocero['status']); same('Ciudad Editada', $editedVocero['json']['city']);
+same($voceroPhotoRow, $apiPdo->query('SELECT * FROM vocero_photos')->fetch());
+$apiPdo->prepare('UPDATE voceros SET status = ? WHERE public_id = ?')->execute(['Aprobado', $voceroSaved['json']['public_id']]);
+same(403, api_request('POST', '/api/vocero/profile', $voceroBody, $voceroCookie, $voceroCsrf, server: $voceroMultipartServer)['status']);
+same(413, api_request('POST', '/api/vocero/profile', str_repeat('x', 5 * 1024 * 1024 + 262145), $voceroCookie, $voceroCsrf, server: $voceroMultipartServer)['status']);
+
+// A valid second login cannot read the first registration; changing its in-memory account ID invalidates credentials.
+$secondSession = api_request('GET', '/api/vocero/auth/session');
+$secondCookie = api_cookie($secondSession); $secondCsrf = $secondSession['json']['csrf'];
+$secondCredentials = ['email' => 'other-portal@example.invalid', 'password' => bin2hex(random_bytes(16))];
+same(202, api_request('POST', '/api/vocero/auth/register', $secondCredentials + ['privacyAcknowledged' => true], $secondCookie, $secondCsrf)['status']);
+$secondLogin = api_request('POST', '/api/vocero/auth/login', $secondCredentials, $secondCookie, $secondCsrf);
+$secondCookie = api_cookie($secondLogin);
+same(false, api_request('GET', '/api/vocero/profile', cookie: $secondCookie)['json']['registered']);
+same(404, api_request('GET', '/api/vocero/photo', cookie: $secondCookie)['status']);
+same(401, api_request('GET', '/api/vocero/profile', cookie: $secondCookie, server: ['FINADOS_TEST_TAMPER_ACCOUNT' => (string) $voceroLogin['json']['user']['id']])['status']);
 
 // Internal SQL errors remain generic and an audit failure must prevent releasing a CSV.
 $apiPdo->exec("CREATE TRIGGER fail_api_audit BEFORE INSERT ON audit_log BEGIN SELECT RAISE(ABORT, 'secret sql path'); END");

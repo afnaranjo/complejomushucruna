@@ -39,6 +39,8 @@ CREATE TABLE IF NOT EXISTS vocero_photos (
   content_type TEXT NOT NULL,
   bytes INTEGER NOT NULL,
   sha256 TEXT NOT NULL,
+  width INTEGER NOT NULL,
+  height INTEGER NOT NULL,
   created_at TEXT NOT NULL,
   CONSTRAINT fk_vocero_photo_vocero FOREIGN KEY (vocero_id) REFERENCES voceros(id)
 );

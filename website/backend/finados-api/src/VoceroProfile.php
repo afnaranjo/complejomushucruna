@@ -1,0 +1,202 @@
+<?php
+declare(strict_types=1);
+
+namespace Finados;
+
+use InvalidArgumentException;
+use OutOfBoundsException;
+use PDO;
+use RuntimeException;
+use Throwable;
+
+foreach (['VoceroAuth', 'PhotoStorage', 'PublicRegistration', 'VocerosRepository'] as $dependency) require_once __DIR__ . '/' . $dependency . '.php';
+
+final class VoceroProfile
+{
+    private readonly Crypto $crypto;
+    private readonly VocerosRepository $repository;
+    private readonly PhotoStorage $storage;
+    private readonly Audit $audit;
+
+    public function __construct(private readonly PDO $pdo, private readonly Config $config)
+    {
+        $this->crypto = new Crypto($config);
+        $this->repository = new VocerosRepository($pdo, $this->crypto);
+        $this->storage = new PhotoStorage($config, $this->crypto);
+        $this->audit = new Audit($pdo, $this->crypto);
+    }
+
+    /** accountId is supplied only by the authenticated guard, never by request fields. */
+    public function get(int $accountId): ?array
+    {
+        $account = $this->account($accountId);
+        $linked = $this->linked($accountId);
+        if ($linked === null) return null;
+        $record = $this->repository->find($linked['public_id']);
+        $result = [];
+        foreach (['public_id', 'submission_id', 'status', 'full_name', 'cedula', 'birth_date', 'age_at_submission',
+            'whatsapp', 'city', 'main_network', 'tiktok', 'instagram', 'facebook', 'previous_participation',
+            'community_source', 'kit_pickup', 'representative_name', 'representative_cedula', 'representative_phone',
+            'representative_email', 'utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'] as $field) $result[$field] = $record[$field];
+        $result['email'] = $this->crypto->decrypt($account['email_enc']);
+        $photo = $this->photoRow((int) $linked['id']);
+        $result['photo'] = $photo === null ? ['available' => false, 'width' => null, 'height' => null, 'created_at' => null]
+            : ['available' => true, 'width' => (int) $photo['width'], 'height' => (int) $photo['height'], 'created_at' => $photo['created_at']];
+        return $result;
+    }
+
+    public function save(int $accountId, array $fields, array $files, string $ip, string $userAgent): array
+    {
+        if (inet_pton($ip) === false) throw new Forbidden('Invalid request.');
+        $account = $this->account($accountId);
+        $record = PublicRegistration::validate($fields, $this->crypto->decrypt($account['email_enc']));
+        $consents = $this->consents($ip, $userAgent, $record['submitted_at']);
+        $upload = $this->upload($files);
+        $prepared = null; $promoted = false; $committed = false; $lock = null; $mysqlLocked = false;
+        try {
+            // Decode, normalize and encrypt before taking any database transaction or media lock.
+            if ($upload !== null) {
+                try { $prepared = $this->storage->stage($upload['tmp_name'], $upload['size']); }
+                catch (RuntimeException) { throw new InvalidArgumentException('Invalid photo upload.'); }
+            }
+            if ($this->mysql()) {
+                $query = $this->pdo->prepare('SELECT GET_LOCK(?, 10)');
+                $query->execute(['finados.voceros.media']);
+                if ((int) $query->fetchColumn() !== 1) throw new RuntimeException('Media is busy.');
+                $mysqlLocked = true;
+            } else {
+                $lock = fopen($this->config->privateDirectory() . '/finados.voceros.media.lock', 'c');
+                if ($lock === false || !flock($lock, LOCK_EX)) throw new RuntimeException('Media is busy.');
+            }
+            $this->pdo->beginTransaction();
+            if (!$this->mysql()) $this->pdo->exec('UPDATE schema_migrations SET applied_at = applied_at WHERE 1 = 0');
+            $account = $this->account($accountId, true);
+            // Re-read protected account data under lock, including deactivation during staging.
+            $record['email'] = $this->crypto->decrypt($account['email_enc']);
+            $linked = $this->linked($accountId, true);
+            if ($linked !== null) {
+                if (!in_array($linked['status'], ['Nuevo', 'Pendiente de autorización'], true)) throw new Forbidden('Registration is read-only.');
+                if (!hash_equals($linked['submission_id'], $record['submission_id'])) throw new InvalidArgumentException('Use the existing submission identifier.');
+                if ($record['status'] === 'Nuevo') $record['status'] = $linked['status'];
+            } else {
+                if ($prepared === null) throw new InvalidArgumentException('A photo is required.');
+                $query = $this->pdo->prepare('SELECT id FROM voceros WHERE submission_id = ?');
+                $query->execute([$record['submission_id']]);
+                if ($query->fetchColumn() !== false) throw new InvalidArgumentException('Submission identifier unavailable.');
+            }
+            $query = $this->pdo->prepare('SELECT id FROM voceros WHERE (cedula_idx = ? OR email_idx = ? OR whatsapp_idx = ?) AND id <> ?');
+            $query->execute([$this->crypto->lookup($record['cedula']), $this->crypto->lookup($record['email']), $this->crypto->lookup($record['whatsapp']), $linked['id'] ?? 0]);
+            if ($query->fetchColumn() !== false) throw new DuplicateRegistration('Registration already exists.');
+            if ($linked === null) {
+                $record['registration_ip'] = $ip;
+                // A public intake racing this request must not turn repository replay into ownership.
+                $publicId = $this->repository->create($record, $consents, false);
+                $query = $this->pdo->prepare('SELECT id FROM voceros WHERE public_id = ?');
+                $query->execute([$publicId]);
+                $voceroId = (int) $query->fetchColumn();
+                $this->pdo->prepare('INSERT INTO vocero_account_links (account_id, vocero_id, created_at) VALUES (?, ?, ?)')->execute([$accountId, $voceroId, gmdate('Y-m-d H:i:s')]);
+                $changed = true;
+            } else {
+                $voceroId = (int) $linked['id']; $publicId = $linked['public_id'];
+                $changed = $this->repository->updateProfile($voceroId, $record, $consents);
+            }
+            $oldPhoto = $this->photoRow($voceroId);
+            $photoChanged = $prepared !== null && ($oldPhoto === null || !hash_equals($oldPhoto['sha256'], $prepared['sha256']));
+            if ($photoChanged) {
+                $values = [$prepared['storage_key'], $prepared['mime_type'], $prepared['bytes'], $prepared['sha256'], $prepared['width'], $prepared['height'], gmdate('Y-m-d H:i:s'), $voceroId];
+                if ($oldPhoto === null) $sql = 'INSERT INTO vocero_photos (storage_key, content_type, bytes, sha256, width, height, created_at, vocero_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
+                else $sql = 'UPDATE vocero_photos SET storage_key = ?, content_type = ?, bytes = ?, sha256 = ?, width = ?, height = ?, created_at = ? WHERE vocero_id = ?';
+                $this->pdo->prepare($sql)->execute($values);
+            }
+            if ($changed || $photoChanged) $this->audit->log('vocero.profile_saved', null, 'vocero', $publicId, ['account_public_id' => $account['public_id']], $ip);
+            if ($photoChanged) { $this->storage->promote($prepared); $promoted = true; }
+            $this->pdo->commit();
+            $committed = true;
+            // The old file remains available throughout rollback; only a committed replacement removes it.
+            if ($photoChanged && $oldPhoto !== null) $this->storage->delete($oldPhoto['storage_key']);
+            return $this->get($accountId);
+        } finally {
+            try {
+                if (!$committed && $this->pdo->inTransaction()) $this->pdo->rollBack();
+            } finally {
+                try {
+                    if ($prepared !== null) {
+                        try { $this->storage->discard($prepared); }
+                        finally { if (!$committed && $promoted) $this->storage->delete($prepared['storage_key']); }
+                    }
+                } finally {
+                    if ($mysqlLocked) {
+                        $query = $this->pdo->prepare('SELECT RELEASE_LOCK(?)');
+                        $query->execute(['finados.voceros.media']);
+                    }
+                    if (is_resource($lock)) { flock($lock, LOCK_UN); fclose($lock); }
+                }
+            }
+        }
+    }
+
+    public function photo(int $accountId): string
+    {
+        $this->account($accountId);
+        $linked = $this->linked($accountId);
+        $photo = $linked === null ? null : $this->photoRow((int) $linked['id']);
+        if ($photo === null) throw new OutOfBoundsException('Photo unavailable.');
+        return $this->storage->read($photo['storage_key']);
+    }
+
+    private function account(int $accountId, bool $lock = false): array
+    {
+        $query = $this->pdo->prepare('SELECT id, public_id, email_enc FROM vocero_accounts WHERE id = ? AND active = 1' . ($lock && $this->mysql() ? ' FOR UPDATE' : ''));
+        $query->execute([$accountId]);
+        $account = $query->fetch();
+        if ($account === false) throw new Unauthorized('Account unavailable.');
+        return $account;
+    }
+
+    private function linked(int $accountId, bool $lock = false): ?array
+    {
+        $query = $this->pdo->prepare('SELECT v.id, v.public_id, v.submission_id, v.status FROM vocero_account_links l JOIN voceros v ON v.id = l.vocero_id WHERE l.account_id = ?' . ($lock && $this->mysql() ? ' FOR UPDATE' : ''));
+        $query->execute([$accountId]);
+        $row = $query->fetch();
+        return $row === false ? null : $row;
+    }
+
+    private function photoRow(int $voceroId): ?array
+    {
+        $query = $this->pdo->prepare('SELECT * FROM vocero_photos WHERE vocero_id = ?');
+        $query->execute([$voceroId]);
+        $row = $query->fetch();
+        return $row === false ? null : $row;
+    }
+
+    private function upload(array $files): ?array
+    {
+        if (array_diff(array_keys($files), ['fotografia']) !== []) throw new InvalidArgumentException('Invalid photo upload.');
+        if ($files === []) return null;
+        $upload = $files['fotografia'];
+        if (!is_array($upload) || !is_int($upload['error'] ?? null) || !is_string($upload['tmp_name'] ?? null)
+            || !is_int($upload['size'] ?? null) || !is_string($upload['name'] ?? null) || !is_string($upload['type'] ?? null)) throw new InvalidArgumentException('Invalid photo upload.');
+        if ($upload['error'] === UPLOAD_ERR_NO_FILE && $upload['tmp_name'] === '' && $upload['size'] === 0) return null;
+        if ($upload['error'] !== UPLOAD_ERR_OK || $upload['tmp_name'] === '' || $upload['size'] <= 0 || $upload['size'] > 5242880) throw new InvalidArgumentException('Invalid photo upload.');
+        return $upload;
+    }
+
+    private function consents(string $ip, string $userAgent, string $acceptedAt): array
+    {
+        $catalogue = json_decode((string) file_get_contents(__DIR__ . '/../resources/vocero-consents.json'), true, 16, JSON_THROW_ON_ERROR);
+        $consents = [];
+        // Cut by characters only after UTF-8 validation; neither metadata nor versions come from the client.
+        if (preg_match('//u', $userAgent) !== 1) $userAgent = '';
+        preg_match('/^.{0,500}/us', $userAgent, $agent);
+        foreach (['policies' => 'politicas', 'image' => 'imagen', 'data' => 'datos'] as $key => $type) {
+            $definition = $catalogue[$key] ?? null;
+            if (!is_array($definition) || !is_string($definition['version'] ?? null) || !is_string($definition['text'] ?? null) || $definition['text'] === '') throw new RuntimeException('Consent catalogue unavailable.');
+            $consents[] = ['consent_type' => $type, 'accepted' => 1, 'text_version' => $definition['version'],
+                'text_hash' => hash('sha256', $definition['text']), 'accepted_at' => $acceptedAt, 'ip' => $ip,
+                'user_agent' => $agent[0] ?? '', 'source_url' => 'https://complejomushucruna.com/finados/voceros/mi-registro/', 'method' => 'formulario_web'];
+        }
+        return $consents;
+    }
+
+    private function mysql(): bool { return $this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql'; }
+}
