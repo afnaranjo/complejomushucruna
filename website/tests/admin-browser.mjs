@@ -63,6 +63,43 @@ await page.route('https://finados.complejomushucruna.com/api/**', async route =>
   return respond({ ...record, status, cedula: '0000001234', whatsapp: '0000005678', email: 'fixture@example.test', notes, consents: [{ consent_type: 'privacy', accepted: 1, text_version: 'v1', accepted_at: '2026-09-14 16:00:00' }] });
 });
 await mkdir('output/playwright', { recursive: true });
+async function mobileViewportRegression() {
+  const context = await browser.newContext({
+    viewport: { width: 390, height: 844 },
+    isMobile: true,
+    deviceScaleFactor: 1,
+    javaScriptEnabled: false,
+  });
+  try {
+    const mobilePage = await context.newPage();
+    for (const [path, screenshot] of [
+      ['/admin/', 'admin-login-mobile.png'],
+      ['/admin/voceros/', 'admin-mobile.png'],
+    ]) {
+      await mobilePage.goto(origin + path);
+      const metrics = await mobilePage.evaluate(() => ({
+        innerWidth,
+        clientWidth: document.documentElement.clientWidth,
+        scrollWidth: document.documentElement.scrollWidth,
+        visualViewportWidth: window.visualViewport?.width,
+        mobileStylesActive: matchMedia('(max-width: 700px)').matches,
+        headerContextDisplay: getComputedStyle(document.querySelector('.header-context')).display,
+      }));
+      assert.deepEqual(metrics, {
+        innerWidth: 390,
+        clientWidth: 390,
+        scrollWidth: 390,
+        visualViewportWidth: 390,
+        mobileStylesActive: true,
+        headerContextDisplay: 'none',
+      });
+      await mobilePage.screenshot({ path: `output/playwright/${screenshot}`, fullPage: true, animations: 'disabled' });
+    }
+  } finally {
+    await context.close();
+  }
+  console.log('Admin mobile viewport: login and panel render at 390 CSS px without overflow: PASS');
+}
 async function mutationRegressions() {
   const failures = [];
   for (const scenario of ['close-during-patch', 'detail-fails-after-patch']) {
@@ -102,7 +139,8 @@ async function mutationRegressions() {
   assert.deepEqual(failures, []);
 }
 try {
-  if (process.argv.includes('--mutation-regressions')) await mutationRegressions();
+  if (process.argv.includes('--mobile-viewport-regression')) await mobileViewportRegression();
+  else if (process.argv.includes('--mutation-regressions')) await mutationRegressions();
   else {
   await page.goto(origin + '/admin/voceros/');
   await page.waitForURL('**/admin/');
@@ -150,9 +188,7 @@ try {
   assert.deepEqual(exported.body, { city: 'Quito' });
   assert.equal(exported.method, 'POST');
   assert.equal(exported.headers['x-csrf-token'], 'test-csrf');
-  await page.setViewportSize({ width: 390, height: 844 });
-  await page.screenshot({ path: 'output/playwright/admin-mobile.png', fullPage: true });
-  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+  await mobileViewportRegression();
   failure = 422;
   await page.getByRole('button', { name: 'Aplicar filtros' }).click();
   await page.getByText('Revisa los datos ingresados e intenta de nuevo.').waitFor();
@@ -177,5 +213,11 @@ try {
   assert.deepEqual(errors, []);
   console.log('Admin browser: login/logout, 401/403/422/network, safe rendering, pagination, status, notes, export, focus, mobile: PASS');
   }
-} catch (error) { console.error('Browser errors:', errors, 'URL:', page.url(), 'Feedback:', await page.locator('[data-admin-feedback]').textContent()); throw error; }
+} catch (error) {
+  const feedback = await page.locator('[data-admin-feedback]').count()
+    ? await page.locator('[data-admin-feedback]').textContent()
+    : '';
+  console.error('Browser errors:', errors, 'URL:', page.url(), 'Feedback:', feedback);
+  throw error;
+}
 finally { await browser.close(); await new Promise(resolve => server.close(resolve)); }
