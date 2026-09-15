@@ -343,9 +343,8 @@ git commit -m "Persistir Voceros con cifrado y auditoría"
 - [ ] **Step 1: Cambiar las pruebas para exigir DB primero y Sheets secundario**
 
 ```js
-assert.match(endpoint, /VocerosRepository/);
-assert.match(endpoint, /'database'\s*=>\s*'stored'/);
-assert.doesNotMatch(endpoint, /\$googleSheetsStatus !== 'synced'[\s\S]*json_response\(503/);
+assert.ok(await distFileExists('api/voceros/index.php'));
+assert.ok(await distFileExists('api/_voceros-bootstrap.php'));
 ```
 
 ```php
@@ -355,6 +354,8 @@ same('stored', $response->json['database']);
 same('queued', $response->json['googleSheets']);
 same(1, database_count('voceros'));
 ```
+
+La prueba Node valida el artefacto construido; la prueba PHP ejecuta el endpoint real con base de datos de prueba y un transporte de Sheets que falla. No se inspecciona el texto fuente para inferir comportamiento.
 
 - [ ] **Step 2: Ejecutar pruebas y confirmar el rojo**
 
