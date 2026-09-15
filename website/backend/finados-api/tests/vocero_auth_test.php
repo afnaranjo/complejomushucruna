@@ -84,6 +84,17 @@ if (defined('PASSWORD_ARGON2ID')) {
     same(1, $passwordInfo['options']['threads']);
 }
 same(false, Auth::needsPasswordRehash(Auth::dummyPasswordHash()));
+$mysqlDuplicateKeyMatcher = new ReflectionMethod(VoceroAuth::class, 'isMySqlEmailDuplicateMessage');
+foreach ([
+    "Duplicate entry 'x' for key 'email_idx'",
+    'Duplicate entry \'x\' for key `email_idx`',
+    "Duplicate entry 'x' for key 'vocero_accounts.email_idx'",
+    'Duplicate entry \'x\' for key `vocero_accounts.email_idx`',
+] as $message) {
+    same(true, $mysqlDuplicateKeyMatcher->invoke(null, $message));
+}
+same(false, $mysqlDuplicateKeyMatcher->invoke(null, "Duplicate entry 'x' for key 'public_id'"));
+same(false, $mysqlDuplicateKeyMatcher->invoke(null, "Duplicate entry 'x' for key 'other.email_idx'"));
 
 // Registration must fail without a locally derived privacy acknowledgement.
 $clock = 1800000000;

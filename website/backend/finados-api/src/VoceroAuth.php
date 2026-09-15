@@ -261,6 +261,11 @@ final class VoceroAuth
         $info = $error->errorInfo;
         return $driver === 'mysql'
             && (int) ($info[1] ?? 0) === 1062
-            && preg_match("/for key ['`]vocero_accounts\\.email_idx['`]$/D", (string) ($info[2] ?? '')) === 1;
+            && self::isMySqlEmailDuplicateMessage((string) ($info[2] ?? ''));
+    }
+
+    private static function isMySqlEmailDuplicateMessage(string $message): bool
+    {
+        return preg_match("/for key ['`](?:email_idx|vocero_accounts\\.email_idx)['`]$/D", $message) === 1;
     }
 }
