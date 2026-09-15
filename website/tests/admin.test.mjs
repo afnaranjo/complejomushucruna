@@ -30,12 +30,65 @@ test('admin genera acceso aislado, recursos y configuración segura de producci�
   assert.doesNotMatch(await readFile(join(out, 'sitemap.xml'), 'utf8'), /\/admin\//);
 });
 
+test('admin orienta cada formulario desde una navegación lateral accesible', async () => {
+  const out = await mkdtemp(join(tmpdir(), 'admin-navigation-'));
+  await buildSite(out);
+  const html = await readFile(join(out, 'admin/voceros/index.html'), 'utf8');
+
+  assert.match(html, /<aside[^>]+class="admin-sidebar"[^>]+aria-label="Navegación administrativa"/);
+  assert.match(html, /<details class="admin-sidebar__navigation" data-admin-navigation open>/);
+  assert.match(html, /<summary[^>]*>\s*<span>Menú administrativo<\/span>/);
+  assert.match(html, /<nav[^>]+aria-labelledby="admin-forms-title"/);
+  assert.match(html, /id="admin-forms-title"[^>]*>Formularios<\/p>/);
+  assert.match(html, /<a[^>]+href="\/admin\/voceros\/"[^>]+aria-current="page"[^>]*>[\s\S]*?<strong>Voceros<\/strong>[\s\S]*?<small>Registros y seguimiento<\/small>/);
+  assert.match(html, /Los próximos formularios aparecerán aquí cuando estén habilitados\./);
+  assert.match(html, /class="admin-sidebar__account"[\s\S]*?data-admin-logout/);
+  assert.equal([...html.matchAll(/aria-current="page"/g)].length, 1);
+});
+
 test('admin limita el build de desarrollo a configuración local explícita', async () => {
   const out = await mkdtemp(join(tmpdir(), 'admin-dev-'));
   await buildSite(out, { adminEnvironment: 'development' });
   const html = await readFile(join(out, 'admin/index.html'), 'utf8');
   assert.match(html, /name="admin-api-base" content="http:\/\/127.0.0.1:4174\/api"/);
   await assert.rejects(() => buildSite(out, { adminEnvironment: 'https://evil.example' }));
+});
+
+test('admin inicia la navegación compacta plegada sin alterar el escritorio', async () => {
+  const { initializeAdminNavigation } = await load();
+  const compact = { open: true };
+  const desktop = { open: false };
+
+  initializeAdminNavigation({ querySelector: () => compact }, true);
+  initializeAdminNavigation({ querySelector: () => desktop }, false);
+
+  assert.equal(compact.open, false);
+  assert.equal(desktop.open, true);
+});
+
+test('admin devuelve el foco al resumen antes de plegar la navegación compacta', async () => {
+  const { initializeAdminNavigation } = await load();
+  const focusedLink = {};
+  const events = [];
+  let open = true;
+  const summary = { focus: () => events.push('focus') };
+  const navigation = {
+    contains: element => element === focusedLink,
+    querySelector: selector => selector === 'summary' ? summary : null,
+  };
+  Object.defineProperty(navigation, 'open', {
+    get: () => open,
+    set: value => { if (!value) events.push('close'); open = value; },
+  });
+  const root = {
+    activeElement: focusedLink,
+    querySelector: selector => selector === '[data-admin-navigation]' ? navigation : null,
+  };
+
+  initializeAdminNavigation(root, true);
+
+  assert.equal(navigation.open, false);
+  assert.deepEqual(events, ['focus', 'close']);
 });
 
 test('admin enmascara identificadores sin revelar valores cortos y normaliza filtros permitidos', async () => {

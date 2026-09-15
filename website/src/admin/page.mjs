@@ -3,6 +3,30 @@ import { STATUSES, PREVIOUS_PARTICIPATION } from './admin.js';
 
 const options = values => values.map(value => `<option value="${esc(value)}">${esc(value)}</option>`).join('');
 const select = (name, label, values) => `<label>${label}<select name="${name}"><option value="">Todos</option>${options(values)}</select></label>`;
+const ADMIN_FORMS = Object.freeze([
+  { route: '/admin/voceros/', label: 'Voceros', description: 'Registros y seguimiento', marker: 'V' },
+]);
+
+function adminSidebar(page) {
+  const currentForm = ADMIN_FORMS.find(item => item.route === page.route);
+  const links = ADMIN_FORMS.map((item) => {
+    const current = item.route === page.route ? ' aria-current="page"' : '';
+    return `<a class="admin-nav-link" href="${esc(item.route)}"${current}><span class="admin-nav-marker" aria-hidden="true">${esc(item.marker)}</span><span><strong>${esc(item.label)}</strong><small>${esc(item.description)}</small></span></a>`;
+  }).join('');
+
+  return `<aside class="admin-sidebar" aria-label="Navegación administrativa">
+<details class="admin-sidebar__navigation" data-admin-navigation open>
+<summary><span>Menú administrativo</span><span class="admin-sidebar__current">${esc(currentForm?.label ?? 'Formularios')}</span><span class="admin-sidebar__chevron" aria-hidden="true">⌄</span></summary>
+<div class="admin-sidebar__content">
+<div class="admin-sidebar__intro"><p class="eyebrow">Panel de gestión</p><p>Administración</p></div>
+<nav aria-labelledby="admin-forms-title"><p id="admin-forms-title" class="admin-nav-title">Formularios</p>${links}</nav>
+<p class="admin-sidebar__future">Los próximos formularios aparecerán aquí cuando estén habilitados.</p>
+<div class="admin-sidebar__account"><p><span>Sesión activa</span><strong data-admin-sidebar-user>Comprobando…</strong></p><button type="button" class="button-quiet" data-admin-logout disabled>Cerrar sesión</button></div>
+</div>
+</details>
+</aside>`;
+}
+
 function layout(page, content) {
   const api = page.adminEnvironment === 'development' ? (page.adminApiBase ?? 'http://127.0.0.1:4174/api') : 'https://finados.complejomushucruna.com/api';
   return `<!doctype html>
@@ -16,11 +40,11 @@ function layout(page, content) {
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src ${api}/; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="admin-api-base" content="${api}">
 <link rel="icon" href="/assets/finados/favicon-finados.png">
-<link rel="stylesheet" href="/assets/admin/admin.css?v=20260914-1">
-<script type="module" src="/assets/admin/admin.js?v=20260914-1"></script>
+<link rel="stylesheet" href="/assets/admin/admin.css?v=20260915-1">
+<script type="module" src="/assets/admin/admin.js?v=20260915-1"></script>
 </head><body class="admin-page">
 <a class="skip-link" href="#contenido">Ir al contenido</a>
-<header class="admin-header"><a href="/finados/voceros/" aria-label="Volver a Voceros"><img src="/assets/finados/logo-finados.svg" width="132" height="60" alt="Finados Mushuc Runa"></a><span class="header-context">Administración <span aria-hidden="true">/</span> Voceros</span>${page.route === '/admin/voceros/' ? '<button type="button" class="button-quiet" data-admin-logout disabled>Cerrar sesión</button>' : ''}</header>
+<header class="admin-header"><a href="/finados/voceros/" aria-label="Volver a Voceros"><img src="/assets/finados/logo-finados.svg" width="132" height="60" alt="Finados Mushuc Runa"></a><span class="header-context">Administración${page.route === '/admin/voceros/' ? ' <span aria-hidden="true">/</span> Formularios' : ''}</span></header>
 ${content}
 <noscript><p class="notice">Activa JavaScript para iniciar sesión y administrar los registros.</p></noscript>
 </body></html>`;
@@ -44,7 +68,7 @@ export function renderAdminLoginPage(page) {
 }
 
 export function renderAdminVocerosPage(page) {
-  return layout(page, `<main id="contenido" class="admin-workspace" data-admin-voceros>
+  return layout(page, `<div class="admin-shell">${adminSidebar(page)}<main id="contenido" class="admin-workspace" data-admin-voceros>
 <div class="workspace-heading"><div><p class="eyebrow">Finados 2026</p><h1>Registros de Voceros</h1><p data-admin-user>Comprobando acceso…</p></div><button type="button" class="button-primary" data-admin-export disabled>Exportar CSV</button></div>
 <p class="feedback" data-admin-feedback role="status" aria-live="polite" aria-atomic="true"></p>
 <button type="button" class="button-quiet" data-session-retry hidden>Reintentar conexión</button>
@@ -67,5 +91,5 @@ ${select('previous_participation', 'Participación anterior', PREVIOUS_PARTICIPA
 <p class="feedback" data-detail-feedback role="status" aria-live="polite" aria-atomic="true"></p><div data-detail-content></div>
 <form data-status-form><fieldset disabled><label>Estado del registro<select name="status" required>${options(STATUSES)}</select></label><button class="button-primary" type="submit">Guardar estado</button></fieldset></form>
 <section class="notes-section"><h3>Notas internas</h3><ol data-notes></ol><form data-note-form><fieldset disabled><label>Añadir nota<textarea name="body" rows="3" maxlength="2000" required></textarea></label><button class="button-primary" type="submit">Guardar nota</button></fieldset></form></section>
-</dialog></main>`);
+</dialog></main></div>`);
 }

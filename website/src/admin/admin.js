@@ -94,10 +94,22 @@ function dateTime(value) {
   return Number.isNaN(parsed.getTime()) ? '—' : new Intl.DateTimeFormat('es-EC', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'America/Guayaquil' }).format(parsed);
 }
 
+export function initializeAdminNavigation(root = document, compact = globalThis.matchMedia?.('(max-width: 1120px)').matches ?? false) {
+  const navigation = root.querySelector('[data-admin-navigation]');
+  if (!navigation) return;
+  if (compact && navigation.contains?.(root.activeElement)) navigation.querySelector('summary')?.focus();
+  navigation.open = !compact;
+}
+
 export async function initializeAdmin() {
   const login = document.querySelector('[data-admin-login]');
   const panel = document.querySelector('[data-admin-voceros]');
   if (!login && !panel) return;
+  if (panel) {
+    const compactNavigation = globalThis.matchMedia?.('(max-width: 1120px)');
+    initializeAdminNavigation(document, compactNavigation?.matches ?? false);
+    compactNavigation?.addEventListener('change', event => initializeAdminNavigation(document, event.matches));
+  }
   const status = document.querySelector('[data-admin-feedback]');
   const retry = document.querySelector('[data-session-retry]');
   const base = document.querySelector('meta[name="admin-api-base"]')?.content;
@@ -161,6 +173,7 @@ export async function initializeAdmin() {
   const next = query('[data-next]');
   const exportButton = query('[data-admin-export]');
   const logout = document.querySelector('[data-admin-logout]');
+  const sidebarUser = document.querySelector('[data-admin-sidebar-user]');
   const dialog = query('[data-detail]');
   const detailFeedback = query('[data-detail-feedback]');
   const statusForm = query('[data-status-form]');
@@ -341,7 +354,9 @@ export async function initializeAdmin() {
     try { await client.logout(); redirect('/admin/'); } catch (error) { fail(error); logout.disabled = false; }
   });
   startPanel = async user => {
-    query('[data-admin-user]').textContent = `Sesión: ${user?.username ?? 'equipo'} · Registros del formulario de Voceros`;
+    const username = user?.username ?? 'equipo';
+    query('[data-admin-user]').textContent = `Sesión: ${username} · Registros del formulario de Voceros`;
+    if (sidebarUser) sidebarUser.textContent = username;
     form.querySelector('fieldset').disabled = false; exportButton.disabled = false; logout.disabled = false;
     const results = await Promise.allSettled([summary(), list()]);
     for (const result of results) if (result.status === 'rejected') { fail(result.reason); retry.hidden = false; }
