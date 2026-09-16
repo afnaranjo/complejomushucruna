@@ -8,7 +8,7 @@ const consents = JSON.parse(readFileSync(new URL('../../backend/finados-api/reso
 const legalVersions = { privacy: consents.data.version, image: consents.image.version, policies: consents.policies.version.split(' + ')[0], thermometer: consents.policies.version.split(' + ')[1], rights: '2026-09-14' };
 
 const campaignAssetVersion = '20260914-1';
-const campaignRuntimeVersion = '20260914-8';
+const campaignRuntimeVersion = '20260915-1';
 
 const controller = Object.freeze({
   name: 'Eventos Finados 2026',
@@ -136,6 +136,7 @@ export function renderVocerosLegalPage(page) {
   <link rel="icon" href="/assets/finados/favicon-finados.png" type="image/png" sizes="256x256">
   <link rel="apple-touch-icon" href="/assets/finados/favicon-finados.png">
   <link rel="preload" as="image" href="/assets/finados/logo-finados.svg?v=${campaignAssetVersion}" fetchpriority="high">
+  <link rel="stylesheet" href="/assets/styles.css?v=20260915-1">
   <link rel="stylesheet" href="/assets/finados/finados.css?v=${campaignRuntimeVersion}">
   <link rel="stylesheet" href="/assets/finados/voceros.css?v=${campaignRuntimeVersion}">
   <script type="module" src="/assets/finados/finados.js?v=${campaignRuntimeVersion}"></script>
@@ -143,13 +144,12 @@ export function renderVocerosLegalPage(page) {
 <body class="voceros-page voceros-legal-page">
   <a class="skip-link" href="#contenido">Ir al contenido</a>
   <div class="chumbi-line voceros-chumbi" aria-hidden="true"></div>
-  <header class="campaign-header voceros-header" data-header>
-    <div class="voceros-shell voceros-header__inner">
-      <a class="voceros-header__brand" href="/finados/" aria-label="Finados 2026, página principal">
-        <img src="/assets/finados/logo-finados.svg?v=${campaignAssetVersion}" width="766" height="449" alt="Finados 2026, legado que nos une">
-      </a>
-      ${renderFinadosNavigation({ currentRoute: page.route })}
-    </div>
+  <header class="site-header site-header--finados campaign-header voceros-header" data-header>
+    <a class="brand finados-brand voceros-header__brand" href="/finados/" aria-label="Finados 2026, página principal">
+      <img src="/assets/finados/logo-finados.svg?v=${campaignAssetVersion}" width="766" height="449" alt="Finados 2026, legado que nos une">
+    </a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="navegacion-principal"><span></span><span></span><span></span><span class="sr-only">Abrir menú</span></button>
+    ${renderFinadosNavigation({ currentRoute: page.route })}
   </header>
   <main id="contenido">
     <header class="voceros-legal__hero">

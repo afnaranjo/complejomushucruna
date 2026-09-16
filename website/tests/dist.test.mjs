@@ -77,8 +77,8 @@ test('empaqueta la experiencia Finados con recursos locales y optimizados', asyn
   const coladaWinner = await stat(join(output, 'assets/finados/dignidades-2025/tierra-canela-colada-morada.webp'));
   const dignitiesSponsors = await stat(join(output, 'assets/finados/dignidades-2025/auspiciantes-finados-2025.webp'));
 
-  assert.match(landing, /\/assets\/finados\/finados\.css\?v=20260914-2/);
-  assert.match(landing, /\/assets\/finados\/finados\.js\?v=20260914-2/);
+  assert.match(landing, /\/assets\/finados\/finados\.css\?v=20260915-1/);
+  assert.match(landing, /\/assets\/finados\/finados\.js\?v=20260915-1/);
   assert.match(landing, /rel="icon" href="\/assets\/finados\/favicon-finados\.png"/);
   assert.match(landing, /rel="preload" as="image" href="\/assets\/finados\/expositor-artesanias\.webp"/);
   assert.match(landing, /Venta de stands/);
@@ -102,8 +102,8 @@ test('empaqueta la experiencia Finados con recursos locales y optimizados', asyn
   assert.match(landing, /https:\/\/www\.tiktok\.com\/@finadosmushucruna/);
   assert.match(landing, /https:\/\/www\.instagram\.com\/finadosmushucruna\//);
   assert.match(standsPage, /Más de 500 stands/);
-  assert.match(standsPage, /\/assets\/finados\/finados\.css\?v=20260914-2/);
-  assert.match(standsPage, /\/assets\/finados\/finados\.js\?v=20260914-2/);
+  assert.match(standsPage, /\/assets\/finados\/finados\.css\?v=20260915-1/);
+  assert.match(standsPage, /\/assets\/finados\/finados\.js\?v=20260915-1/);
   assert.match(dignitiesPage, /Dignidades Finados 2025/);
   assert.match(dignitiesPage, /Auspiciantes Finados 2025/);
   assert.match(standsPage, /Venta 100% online/);

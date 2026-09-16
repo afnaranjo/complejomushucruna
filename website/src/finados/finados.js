@@ -13,44 +13,56 @@ function updateHeader() {
 updateHeader();
 window.addEventListener('scroll', updateHeader, { passive: true });
 
-function setupCampaignSubmenus() {
-  const submenus = [...document.querySelectorAll('[data-campaign-submenu]')];
-  for (const submenu of submenus) {
-    const toggle = submenu.querySelector('[data-campaign-submenu-toggle]');
+function setupPrimaryNavigation() {
+  const button = document.querySelector('.nav-toggle');
+  const navigation = document.querySelector('#navegacion-principal');
+  if (!button || !navigation) return;
+  const submenus = [...navigation.querySelectorAll('[data-submenu]')];
+
+  const closeSubmenus = () => {
+    for (const item of submenus) {
+      item.dataset.open = 'false';
+      item.querySelector('[data-submenu-toggle]')?.setAttribute('aria-expanded', 'false');
+    }
+  };
+  const setMenuState = (open) => {
+    button.setAttribute('aria-expanded', String(open));
+    navigation.dataset.open = String(open);
+    if (!open) closeSubmenus();
+  };
+
+  button.addEventListener('click', () => {
+    setMenuState(button.getAttribute('aria-expanded') !== 'true');
+  });
+
+  for (const item of submenus) {
+    const toggle = item.querySelector('[data-submenu-toggle]');
     if (!toggle) continue;
     toggle.addEventListener('click', (event) => {
       event.stopPropagation();
       const open = toggle.getAttribute('aria-expanded') !== 'true';
-      for (const other of submenus) {
-        const otherToggle = other.querySelector('[data-campaign-submenu-toggle]');
-        if (!otherToggle) continue;
-        const next = other === submenu && open;
-        other.dataset.open = String(next);
-        otherToggle.setAttribute('aria-expanded', String(next));
-      }
+      closeSubmenus();
+      item.dataset.open = String(open);
+      toggle.setAttribute('aria-expanded', String(open));
     });
   }
 
+  navigation.addEventListener('click', (event) => {
+    if (!event.target.closest('a')) return;
+    setMenuState(false);
+  });
+
   document.addEventListener('click', (event) => {
-    if (event.target.closest('[data-campaign-submenu]')) return;
-    for (const submenu of submenus) {
-      const toggle = submenu.querySelector('[data-campaign-submenu-toggle]');
-      submenu.dataset.open = 'false';
-      toggle?.setAttribute('aria-expanded', 'false');
-    }
+    if (event.target.closest('#navegacion-principal, .nav-toggle')) return;
+    setMenuState(false);
   });
 
   document.addEventListener('keydown', (event) => {
-    if (event.key !== 'Escape') return;
-    for (const submenu of submenus) {
-      const toggle = submenu.querySelector('[data-campaign-submenu-toggle]');
-      submenu.dataset.open = 'false';
-      toggle?.setAttribute('aria-expanded', 'false');
-    }
+    if (event.key === 'Escape') setMenuState(false);
   });
 }
 
-setupCampaignSubmenus();
+setupPrimaryNavigation();
 
 const revealItems = document.querySelectorAll('[data-reveal]');
 

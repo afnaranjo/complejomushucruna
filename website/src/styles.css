@@ -402,6 +402,30 @@ a {
   box-shadow: 4px 4px 0 #00d2d6;
 }
 
+@media (min-width: 981px) and (max-width: 1180px) {
+  .site-header--finados {
+    gap: 16px;
+  }
+
+  .site-header--finados .brand img {
+    width: 88px;
+    height: 88px;
+  }
+
+  .site-header--finados .main-nav > ul {
+    gap: 0.25rem;
+  }
+
+  .site-header--finados .main-nav a {
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+  }
+
+  .site-header--finados .main-nav .main-nav__action {
+    padding: 0.62rem 0.64rem;
+  }
+}
+
 .hero {
   position: relative;
   isolation: isolate;

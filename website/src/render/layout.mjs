@@ -1,29 +1,12 @@
-import { primaryNavigation, site, socialLinks } from '../data/site.mjs';
+import { site, socialLinks } from '../data/site.mjs';
 import { renderFinadosFooter } from '../finados/footer.mjs';
 import { escapeHtml, externalAttributes } from './html.mjs';
+import { renderPrimaryNavigation } from './navigation.mjs';
 
 const institutionalAssetVersion = '20260904';
 const homeAssetVersion = '20260909';
+const stylesVersion = '20260915-1';
 const siteRuntimeVersion = '20260914-1';
-
-function navigation(currentRoute) {
-  return primaryNavigation.map((item) => {
-    const current = item.href === currentRoute ? ' aria-current="page"' : '';
-    const actionClass = item.emphasis
-      ? ` class="main-nav__action main-nav__action--${escapeHtml(item.emphasis)}"`
-      : '';
-    const purchaseLink = item.emphasis === 'stands' ? ' data-stands-purchase-link' : '';
-    const children = item.children?.length
-      ? `<button class="main-nav__submenu-toggle" type="button" aria-expanded="false" aria-label="Mostrar páginas de ${escapeHtml(item.label)}" data-submenu-toggle><span aria-hidden="true">⌄</span></button>
-        <ul class="main-nav__submenu">${item.children.map((child) => {
-          const childCurrent = child.href.split('#')[0] === currentRoute ? ' aria-current="page"' : '';
-          return `<li><a href="${escapeHtml(child.href)}"${childCurrent}>${escapeHtml(child.label)}</a></li>`;
-        }).join('')}</ul>`
-      : '';
-    const itemClass = children ? ' class="main-nav__item main-nav__item--has-submenu" data-submenu' : '';
-    return `<li${itemClass}><a${actionClass} href="${item.href}"${purchaseLink}${current}${externalAttributes(item.href)}>${escapeHtml(item.label)}</a>${children}</li>`;
-  }).join('');
-}
 
 export function renderLayout(page) {
   const isHome = page.route === '/';
@@ -40,7 +23,7 @@ export function renderLayout(page) {
     : `<footer class="site-footer">
     <div class="shell site-footer__grid">
       <div><p class="site-footer__name">${escapeHtml(site.legalName)}</p><p>${escapeHtml(site.description)}</p></div>
-      <div><p class="site-footer__title">Explora</p><ul>${navigation('')}</ul></div>
+      <div><p class="site-footer__title">Explora</p><ul>${renderPrimaryNavigation('')}</ul></div>
       <div><p class="site-footer__title">Conecta</p><div class="social-links">${social}</div></div>
     </div>
     <p class="site-footer__note">Consulta horarios, precios y disponibilidad en los canales oficiales antes de viajar.</p>
@@ -61,7 +44,7 @@ export function renderLayout(page) {
   <meta property="og:url" content="${escapeHtml(canonical)}">
   <link rel="icon" href="/assets/icons/logo-complejo-mushuc-runa.svg?v=${institutionalAssetVersion}" type="image/svg+xml">
   ${page.heroImage || isHome ? `<link rel="preload" as="image" href="${page.heroImage ?? '/assets/finados/expositor-artesanias.webp'}" fetchpriority="high">` : ''}
-  <link rel="stylesheet" href="/assets/styles.css?v=${homeAssetVersion}">
+  <link rel="stylesheet" href="/assets/styles.css?v=${stylesVersion}">
   ${page.stylesheet ? `<link rel="stylesheet" href="${page.stylesheet}">` : ''}
   <script type="module" src="/assets/site.js?v=${siteRuntimeVersion}"></script>
 </head>
@@ -73,7 +56,7 @@ export function renderLayout(page) {
       ${brand}
     </a>
     <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="navegacion-principal"><span></span><span></span><span></span><span class="sr-only">Abrir menú</span></button>
-    <nav id="navegacion-principal" class="main-nav" aria-label="Navegación principal"><ul>${navigation(page.route)}</ul></nav>
+    <nav id="navegacion-principal" class="main-nav" aria-label="Navegación principal"><ul>${renderPrimaryNavigation(page.route)}</ul></nav>
   </header>
   <main id="contenido">${page.body}</main>
   ${footer}

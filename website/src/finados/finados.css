@@ -111,8 +111,22 @@
     background: linear-gradient(180deg, rgba(36, 17, 70, .82), rgba(36, 17, 70, 0));
   }
 
+  /* Las landings de Finados usan la misma cabecera global que el resto del sitio. */
+  .site-header--finados .finados-brand img {
+    width: clamp(6rem, 10vw, 9rem);
+    height: auto;
+    object-fit: contain;
+  }
+
   .campaign-header.is-scrolled {
     background: rgba(36, 17, 70, .96);
+  }
+
+  /* Las landings de campaña tienen su propio lienzo; no heredan la textura institucional. */
+  body.stands-access-page::before,
+  body.dignities-page::before,
+  body.voceros-page::before {
+    display: none;
   }
 
   .campaign-nav {
@@ -1803,6 +1817,8 @@
 }
 
 @media (max-width: 639px) {
+  .site-header--finados .finados-brand img { width: 5.8rem; }
+
   .campaign-nav {
     gap: .35rem;
   }
@@ -2015,6 +2031,10 @@
     bottom: 1.5rem;
     max-width: 12rem;
   }
+}
+
+@media (min-width: 981px) and (max-width: 1180px) {
+  .site-header--finados .finados-brand img { width: 5.5rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {

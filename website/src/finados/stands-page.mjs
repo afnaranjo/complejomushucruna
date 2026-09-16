@@ -5,7 +5,7 @@ import { renderFinadosNavigation } from './navigation.mjs';
 
 const purchaseUrl = 'https://mushucticket.com/';
 const campaignAssetVersion = '20260903';
-const campaignRuntimeVersion = '20260914-2';
+const campaignRuntimeVersion = '20260915-1';
 const newTabAttributes = ' target="_blank" rel="noopener noreferrer"';
 
 export function renderStandsAccessPage(page) {
@@ -24,6 +24,7 @@ export function renderStandsAccessPage(page) {
   <link rel="icon" href="/assets/finados/favicon-finados.png" type="image/png" sizes="256x256">
   <link rel="apple-touch-icon" href="/assets/finados/favicon-finados.png">
   <link rel="preload" as="image" href="/assets/finados/logo-finados.svg?v=${campaignAssetVersion}" fetchpriority="high">
+  <link rel="stylesheet" href="/assets/styles.css?v=20260915-1">
   <link rel="stylesheet" href="/assets/finados/finados.css?v=${campaignRuntimeVersion}">
   <script type="module" src="/assets/finados/finados.js?v=${campaignRuntimeVersion}"></script>
 </head>
@@ -31,11 +32,13 @@ export function renderStandsAccessPage(page) {
   <a class="skip-link" href="#contenido">Ir al contenido</a>
   <div class="chumbi-line fixed inset-x-0 top-0 z-50 h-3" aria-hidden="true"></div>
 
-  <header class="stands-access-nav absolute inset-x-0 top-3 z-40">
-    <div class="mx-auto flex h-20 w-[min(100%-2rem,88rem)] items-center justify-end gap-3 sm:h-24">
-      ${renderFinadosNavigation({ currentRoute: page.route, showComplexLink: false })}
-      <a class="button-outline-light" href="/finados/"${newTabAttributes}>Volver a Finados</a>
-    </div>
+  <header class="site-header site-header--finados stands-access-nav" data-header>
+    <a class="brand finados-brand" href="/finados/" aria-label="Volver a Finados 2026">
+      <img src="/assets/finados/logo-finados.svg?v=${campaignAssetVersion}" width="766" height="449" alt="Finados 2026, legado que nos une">
+    </a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="navegacion-principal"><span></span><span></span><span></span><span class="sr-only">Abrir menú</span></button>
+    ${renderFinadosNavigation({ currentRoute: page.route })}
+    <a class="button-outline-light" href="/finados/"${newTabAttributes}>Volver a Finados</a>
   </header>
 
   <main id="contenido">

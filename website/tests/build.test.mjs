@@ -94,7 +94,7 @@ test('la portada adopta la cabecera de venta de Finados y simplifica la navegaci
   }
   assert.match(home, /class="site-header site-header--finados"/);
   assert.match(home, /\/assets\/icons\/logo-complejo\.svg\?v=20260909/);
-  assert.match(home, /\/assets\/styles\.css\?v=20260909/);
+  assert.match(home, /\/assets\/styles\.css\?v=20260915-1/);
   assert.match(home, /\/assets\/site\.js\?v=20260914-1/);
   assert.match(home, /Finados 2026 · Venta de stands/);
   assert.match(home, /14 de septiembre/);
@@ -111,6 +111,7 @@ test('la portada adopta la cabecera de venta de Finados y simplifica la navegaci
     mainNavigation,
     /class="main-nav__action main-nav__action--finados" href="\/finados\/">FINADOS 2026<\/a>/,
   );
+  assert.match(mainNavigation, /href="\/finados\/voceros\/">VOCEROS<\/a>/);
   assert.match(
     mainNavigation,
     /href="https:\/\/guiap\.com\/360\/mr2023-2024\/" target="_blank" rel="noopener noreferrer">TOUR VIRTUAL<\/a>/,
@@ -143,6 +144,7 @@ test('publica una acreditación de medios completa, limitada por fecha y respald
   assert.match(sitemap, /complejomushucruna\.com\/acreditacion-de-medios\//);
   assert.match(page, /<body class="media-accreditation-page">/);
   assert.match(page, /class="site-header site-header--finados"/);
+  assert.match(page, /<nav id="navegacion-principal"[\s\S]*href="\/finados\/voceros\/"[^>]*>VOCEROS<\/a>/);
   assert.match(page, /\/assets\/images\/acreditacion-medios-periodista\.jpg\?v=20260909/);
   assert.match(page, /\/assets\/media-accreditation\.css\?v=20260909/);
   assert.match(page, /Acreditación de medios/);
@@ -256,8 +258,10 @@ test('genera las páginas de Finados y ordena sus subpáginas en un menú desple
   assert.doesNotMatch(sitemap, /complejomushucruna\.com\/finados\/voceros\//);
   assert.doesNotMatch(sitemap, /complejomushucruna\.com\/finados\/dignidades-finados-2025\//);
   for (const page of [home, landing, voceros, dignities]) {
+    assert.equal((page.match(/<nav id="navegacion-principal"/g) ?? []).length, 1);
+    assert.doesNotMatch(page, /class="campaign-nav"/);
     const navigation = page.match(/<(?:ul class="main-nav__submenu"|ul class="campaign-submenu__list")[\s\S]*?<\/ul>/)?.[0] ?? '';
-    const expected = ['Programación artística', 'Dignidades 2025'];
+    const expected = ['Programación artística', 'Dignidades 2025', 'Voceros'];
     for (let index = 1; index < expected.length; index += 1) {
       assert.ok(
         navigation.toLocaleLowerCase('es').indexOf(expected[index - 1].toLocaleLowerCase('es'))
@@ -267,10 +271,11 @@ test('genera las páginas de Finados y ordena sus subpáginas en un menú desple
     }
   }
   for (const page of [home, landing, stands, voceros, dignities]) {
+    assert.equal((page.match(/<nav id="navegacion-principal"/g) ?? []).length, 1);
     const navigation = page.match(/<(?:ul class="main-nav__submenu"|ul class="campaign-submenu__list")[\s\S]*?<\/ul>/)?.[0] ?? '';
-    assert.doesNotMatch(navigation, />Voceros<\/a>/i);
+    assert.match(navigation, /href="\/finados\/voceros\/"[^>]*>VOCEROS<\/a>/i);
   }
-  assert.match(landing, /href="\/finados\/dignidades-finados-2025\/">Dignidades 2025<\/a>/);
+  assert.match(landing, /href="\/finados\/dignidades-finados-2025\/">DIGNIDADES 2025<\/a>/);
   assert.match(dignities, /<title>Dignidades Finados 2025 \| Mushuc Runa<\/title>/);
   assert.match(dignities, /<h1[^>]*>[\s\S]*Dignidades[\s\S]*Finados 2025[\s\S]*<\/h1>/);
   assert.match(dignities, /Euler Caicedo/);
@@ -283,8 +288,8 @@ test('genera las páginas de Finados y ordena sus subpáginas en un menú desple
   assert.ok(dignities.indexOf('id="ganadores"') < dignities.indexOf('class="dignities-sponsors"'));
   assert.equal((dignities.match(/<h1\b/g) ?? []).length, 1);
   assert.match(landing, /<meta name="robots" content="noindex, nofollow, noarchive">/);
-  assert.match(landing, /\/assets\/finados\/finados\.css\?v=20260914-2/);
-  assert.match(landing, /\/assets\/finados\/finados\.js\?v=20260914-2/);
+  assert.match(landing, /\/assets\/finados\/finados\.css\?v=20260915-1/);
+  assert.match(landing, /\/assets\/finados\/finados\.js\?v=20260915-1/);
   assert.match(landing, /Finados 2026 · Venta de stands/);
   assert.match(landing, /href="https:\/\/mushucticket\.com\/" data-stands-purchase-link/);
   assert.doesNotMatch(landing, /reserva\.mushucticket\.com\/customers/);
@@ -303,12 +308,12 @@ test('genera las páginas de Finados y ordena sus subpáginas en un menú desple
   assert.ok(landing.indexOf('id="william-luna"') < landing.indexOf('id="las-nanas"'));
   assert.ok(landing.indexOf('id="las-nanas"') < landing.indexOf('id="canales"'));
   assert.match(landing, />Instagram <span aria-hidden="true">↗<\/span><\/a>/);
-  assert.match(landing, /href="\/"[^>]*>Volver al Complejo/);
+  assert.match(landing, /href="\/"[^>]*>INICIO<\/a>/);
   assert.equal((landing.match(/<h1\b/g) ?? []).length, 1);
   assert.doesNotMatch(landing, /2 nov|120K|\$12/i);
   assert.match(stands, /<meta name="robots" content="noindex, nofollow, noarchive">/);
-  assert.match(stands, /\/assets\/finados\/finados\.css\?v=20260914-2/);
-  assert.match(stands, /\/assets\/finados\/finados\.js\?v=20260914-2/);
+  assert.match(stands, /\/assets\/finados\/finados\.css\?v=20260915-1/);
+  assert.match(stands, /\/assets\/finados\/finados\.js\?v=20260915-1/);
   assert.match(stands, /Acceso para compra de stands/);
   assert.match(stands, /14 de septiembre/);
   assert.match(stands, /datetime="2026-09-14T08:00:00-05:00"/);
@@ -330,7 +335,7 @@ test('genera las páginas de Finados y ordena sus subpáginas en un menú desple
   assert.match(stands, /data-countdown-value="hours">--<\/strong>\s*<small>Horas<\/small>/);
   assert.match(stands, /data-countdown-value="minutes">--<\/strong>\s*<small>Minutos<\/small>/);
   assert.match(stands, /data-countdown-value="seconds">--<\/strong>\s*<small>Segundos<\/small>/);
-  assert.equal((stands.match(/data-stands-purchase-link/g) ?? []).length, 3);
+  assert.equal((stands.match(/data-stands-purchase-link/g) ?? []).length, 4);
   assert.doesNotMatch(stands, /Haz clic en el botón y adquiere tu stand para ser parte de la expoferia más grande del Ecuador\./);
   assert.match(stands, /class="stands-online-note[^>]*">Venta exclusivamente online a través del canal de compra\.<\/p>/);
   assert.match(stands, /class="stands-section-button" href="#politicas-generales"[^>]*>Políticas y mapa/);

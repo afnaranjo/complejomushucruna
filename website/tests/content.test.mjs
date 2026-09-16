@@ -41,6 +41,7 @@ test('la navegación institucional prioriza venta, Finados y tour en el orden ap
     children: [
       { label: 'PROGRAMACIÓN ARTÍSTICA', href: '/finados/#artistas' },
       { label: 'DIGNIDADES 2025', href: '/finados/dignidades-finados-2025/' },
+      { label: 'VOCEROS', href: '/finados/voceros/' },
     ],
   });
   assert.deepEqual(primaryNavigation[3], {

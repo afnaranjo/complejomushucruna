@@ -4,7 +4,7 @@ import { renderFinadosFooter } from './footer.mjs';
 import { renderFinadosNavigation } from './navigation.mjs';
 
 const campaignAssetVersion = '20260914-1';
-const campaignRuntimeVersion = '20260914-2';
+const campaignRuntimeVersion = '20260915-1';
 
 export function renderFinadosDignitiesPage(page) {
   const canonical = `${site.baseUrl}${page.route}`;
@@ -21,6 +21,7 @@ export function renderFinadosDignitiesPage(page) {
   <meta name="theme-color" content="#f58a0a">
   <link rel="icon" href="/assets/finados/favicon-finados.png" type="image/png" sizes="256x256">
   <link rel="apple-touch-icon" href="/assets/finados/favicon-finados.png">
+  <link rel="stylesheet" href="/assets/styles.css?v=20260915-1">
   <link rel="stylesheet" href="/assets/finados/finados.css?v=${campaignRuntimeVersion}">
   <script type="module" src="/assets/finados/finados.js?v=${campaignRuntimeVersion}"></script>
 </head>
@@ -28,13 +29,12 @@ export function renderFinadosDignitiesPage(page) {
   <a class="skip-link" href="#contenido">Ir al contenido</a>
   <div class="chumbi-line fixed inset-x-0 top-0 z-50 h-3" aria-hidden="true"></div>
 
-  <header class="campaign-header fixed inset-x-0 top-3 z-40 transition-colors duration-200" data-header>
-    <div class="mx-auto flex h-20 w-[min(100%-2rem,88rem)] items-center justify-between sm:h-24">
-      <a href="/finados/" aria-label="Volver a Finados 2026">
-        <img class="h-auto w-20 sm:w-36" src="/assets/finados/logo-finados.svg?v=20260903" width="766" height="449" alt="Finados 2026, legado que nos une">
-      </a>
-      ${renderFinadosNavigation({ currentRoute: page.route })}
-    </div>
+  <header class="site-header site-header--finados campaign-header" data-header>
+    <a class="brand finados-brand" href="/finados/" aria-label="Volver a Finados 2026">
+      <img src="/assets/finados/logo-finados.svg?v=20260903" width="766" height="449" alt="Finados 2026, legado que nos une">
+    </a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="navegacion-principal"><span></span><span></span><span></span><span class="sr-only">Abrir menú</span></button>
+    ${renderFinadosNavigation({ currentRoute: page.route })}
   </header>
 
   <main id="contenido">

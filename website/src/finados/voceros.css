@@ -37,6 +37,13 @@
   left: 0;
 }
 
+.voceros-header.site-header {
+  right: auto;
+  left: 50%;
+  width: var(--shell);
+  transform: translateX(-50%);
+}
+
 .voceros-header__inner {
   display: flex;
   min-height: 6.5rem;
@@ -48,6 +55,12 @@
 .voceros-header__brand img {
   width: 8rem;
   height: auto;
+}
+
+.voceros-header .finados-brand img {
+  width: clamp(6rem, 10vw, 8rem);
+  height: auto;
+  object-fit: contain;
 }
 
 .voceros-hero {
@@ -1118,8 +1131,7 @@
 }
 
 @media (max-width: 699px) {
-  .voceros-header__brand img { width: 4.6rem; }
-  .voceros-header__inner { min-height: 5.5rem; }
+  .voceros-header .finados-brand img { width: 5.8rem; }
   .voceros-hero__grid { padding-top: 8rem; }
   .voceros-hero h1 { font-size: clamp(3.7rem, 18vw, 5.7rem); }
   .voceros-heading h2 { font-size: clamp(3rem, 14vw, 4.6rem); }
@@ -1133,6 +1145,10 @@
   .voceros-thanks__actions { display: grid; }
   .voceros-thanks button { width: 100%; }
   .voceros-legal__hero::after { right: -11rem; opacity: .4; }
+}
+
+@media (min-width: 981px) and (max-width: 1180px) {
+  .voceros-header .finados-brand img { width: 5.5rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
