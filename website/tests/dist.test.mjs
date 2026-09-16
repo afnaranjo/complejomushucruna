@@ -80,7 +80,14 @@ test('empaqueta la experiencia Finados con recursos locales y optimizados', asyn
   assert.match(landing, /\/assets\/finados\/finados\.css\?v=20260916-7/);
   assert.match(landing, /\/assets\/finados\/finados\.js\?v=20260916-7/);
   assert.match(landing, /rel="icon" href="\/assets\/finados\/favicon-finados\.png"/);
-  assert.match(landing, /rel="preload" as="image" href="\/assets\/finados\/expositor-artesanias\.webp"/);
+  assert.doesNotMatch(landing, /rel="preload" as="image" href="\/assets\/finados\/expositor-artesanias\.webp"/);
+  assert.match(landing, /<img src="\/assets\/finados\/expositor-artesanias\.webp"[^>]*loading="lazy" decoding="async"/);
+  assert.match(landing, /\/assets\/finados\/presentation\.css\?v=20260916-presentation-1/);
+  assert.match(landing, /\/assets\/finados\/presentation\.js\?v=20260916-presentation-1/);
+  const presentationCss = await stat(join(output, 'assets/finados/presentation.css'));
+  const presentationJs = await stat(join(output, 'assets/finados/presentation.js'));
+  assert.ok(presentationCss.size < 10_000);
+  assert.ok(presentationJs.size < 5_000);
   assert.match(landing, /Venta de stands/);
   assert.match(landing, /14 de septiembre/);
   assert.match(landing, /datetime="2026-09-14"/);

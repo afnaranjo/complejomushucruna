@@ -1,0 +1,46 @@
+/* Only the Finados landing: presentation first, stands preserved in the body. */
+.presentation-hero { position: relative; isolation: isolate; overflow: hidden; background: #241146; color: #f4eada; padding: clamp(9rem, 13vw, 12rem) 1rem 5rem; }
+.presentation-hero::before { position: absolute; z-index: -1; inset: 18% -12% -30% 55%; background: #6e2ce0; transform: rotate(-14deg); content: ""; }
+.presentation-shell { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(22rem, .85fr); align-items: center; gap: clamp(2rem, 4vw, 5rem); width: min(100%, 88rem); margin: auto; }
+.presentation-copy { min-width: 0; }
+.presentation-kicker { margin: 0 0 1.5rem; color: #00d2d6; font: 800 .875rem/1.5 "Inter", sans-serif; letter-spacing: .12em; text-transform: uppercase; }
+.presentation-title { margin: 0; font: 400 clamp(2.7rem, 4.9vw, 5rem)/1.13 "Anton", "Arial Narrow", sans-serif; text-transform: uppercase; }
+.presentation-title > span { display: block; }
+.presentation-title .presentation-event-name { margin-top: .35rem; font-size: clamp(3.3rem, 6.3vw, 6.5rem); line-height: 1.15; }
+.presentation-event-name em { font-style: normal; color: #ff2e8a; }
+.presentation-date { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 1.5rem; margin: 2rem 0 1.5rem; padding: 1.25rem 0; border-top: 2px solid #f4eada; border-bottom: 2px solid #f4eada; }
+.presentation-date time { font: 700 clamp(1.05rem, 1.7vw, 1.35rem)/1.6 "Inter", sans-serif; }
+.presentation-date strong { color: #ffc42e; font: 400 clamp(2.5rem, 4vw, 3.75rem)/1.15 "Anton", sans-serif; white-space: nowrap; }
+.presentation-date strong span { font: 800 1rem/1 "Inter", sans-serif; }
+.presentation-location { max-width: 32rem; margin: 0 0 1.75rem; font: 500 1.125rem/1.6 "Inter", sans-serif; }
+.presentation-location strong { display: block; color: #00d2d6; font-weight: 800; }
+.presentation-map { display: inline-flex; align-items: center; justify-content: center; gap: 1rem; min-height: 3.5rem; border: 2px solid #f4eada; border-radius: 999px; background: #00d2d6; padding: 1rem 1.5rem; box-shadow: 5px 5px 0 #ff2e8a; color: #241146; font: 800 .875rem/1.4 "Inter", sans-serif; text-decoration: none; }
+.presentation-map:hover { background: #f4eada; }
+.presentation-map:focus-visible { outline: 3px solid #ffc42e; outline-offset: 6px; }
+.presentation-timer-wrap { position: relative; min-width: 0; }
+.presentation-symbol { display: block; width: clamp(6rem, 10vw, 10rem); height: auto; margin: 0 0 1.75rem auto; padding: 1rem; border-radius: 50%; background: #f4eada; }
+.presentation-countdown { position: relative; border: 2px solid #f4eada; background: #f4eada; padding: clamp(1rem, 2vw, 2rem); box-shadow: 8px 8px 0 #00d2d6; color: #241146; }
+.presentation-countdown-label { margin: 0 0 1.5rem; font: 800 .875rem/1.5 "Inter", sans-serif; text-transform: uppercase; letter-spacing: .06em; }
+.presentation-clock { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .25rem; min-height: 7.5rem; }
+.presentation-unit { min-width: 0; text-align: center; }
+.presentation-unit strong { display: block; font: 400 clamp(2.2rem, 5.8vw, 4.8rem)/1.2 "Anton", sans-serif; font-variant-numeric: tabular-nums; }
+.presentation-unit span { display: block; margin-top: .5rem; font: 700 .875rem/1.4 "Inter", sans-serif; }
+.presentation-fallback { display: grid; min-height: 7.5rem; align-items: center; margin: 0; font: 700 1.25rem/1.6 "Inter", sans-serif; }
+.presentation-welcome { display: grid; min-height: 10.5rem; align-items: center; margin: 0; font: 400 clamp(2.2rem, 3.8vw, 3.6rem)/1.2 "Anton", sans-serif; text-align: center; text-transform: uppercase; text-wrap: balance; }
+.presentation-clock[hidden], .presentation-welcome[hidden], .presentation-countdown-label[hidden], .presentation-fallback[hidden] { display: none; }
+.presentation-countdown.is-live { box-shadow: 8px 8px 0 #ffc42e; }
+.presentation-weave { position: absolute; bottom: 0; left: 0; right: 0; height: .75rem; }
+.stands-body-title { font-family: "Anton", "Arial Narrow", sans-serif; font-style: normal; font-weight: 400; }
+@media (max-width: 960px) {
+  .presentation-shell { grid-template-columns: minmax(0, 1fr); gap: 2.5rem; }
+  .presentation-timer-wrap { width: min(100%, 42rem); }
+  .presentation-symbol { display: none; }
+  .presentation-unit strong { font-size: clamp(2.4rem, 8vw, 4.8rem); }
+}
+@media (max-width: 480px) {
+  .presentation-hero { padding-top: 8.5rem; padding-bottom: 3rem; }
+  .presentation-date { align-items: start; flex-direction: column; gap: .5rem; }
+  .presentation-title { font-size: clamp(2.1rem, 9vw, 2.7rem); }
+  .presentation-title .presentation-event-name { font-size: clamp(2.65rem, 11.5vw, 3.5rem); }
+  .presentation-kicker { letter-spacing: .06em; }
+}
