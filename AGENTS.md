@@ -848,3 +848,13 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Commit: `c51331b` (`Mejorar menú sticky y submenús de Finados`), sincronizado en `origin/main`.
 - Publicación externa: no se desplegó esta corrección; producción conserva temporalmente la versión anterior hasta autorización expresa de Alex.
 - Riesgos y pendientes: publicar la versión nueva y repetir la verificación HTTPS cuando Alex indique `sube`; no modificar el backend, Acreditación, Google Sheets ni las demás páginas.
+
+### 2026-09-16 — Tipografía Finados y ajuste visual de venta online
+
+- Se fijó de forma explícita la tipografía `Anton` para el titular de venta de stands, manteniendo `DM Serif Display` para el texto expresivo e `Inter` para etiquetas y navegación, según los tokens del sistema visual de Finados.
+- Se refinó el bloque de oferta `Fecha de venta`/`Venta online`: la sombra cian de la tarjeta clara pasó a un desfase de 4 px para conservar el acento sin formar una mancha azul dominante; la tarjeta online mantiene el acento fucsia con la misma proporción y capas aisladas.
+- Se incrementó la versión de caché de los recursos de campaña a `20260916-5` para que CSS y JavaScript no reutilicen la salida anterior. El menú sticky, el ancho completo y la navegación existente se conservaron sin cambios funcionales.
+- QA local: `npm run check` en verde con 109 pruebas Node, 18 suites PHP, 10 de integración, build de 114 archivos y `check-dist` válido. La comprobación visual local confirmó Anton cargada, CTA legible, sombras equilibradas, cabecera sticky y ancho de 100%.
+- Commit: `5d502ed` (`Ajustar tipografía y venta online de Finados`), listo para sincronizar en `origin/main`.
+- Publicación externa: ninguna; producción no fue modificada y conserva la versión anterior hasta autorización expresa de Alex.
+- Riesgos y pendientes: revisar en producción después de publicar, confirmar la percepción del acento cian en distintos tamaños y no tocar el backend, Acreditación de Medios, Google Sheets ni otras páginas.
