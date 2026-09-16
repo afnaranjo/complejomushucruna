@@ -887,7 +887,7 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 
 ### 2026-09-16 — Gafete visual de Voceros en formato historia
 
-- Se ajustó el gafete privado del portal de Voceros a una composición vertical de `1080 × 1920`, lista para estados de WhatsApp, Instagram Stories y otras redes. El lienzo usa el logo oficial de Finados, Anton/Inter, franja chumbi, marco cian, acentos fucsia/amarillo y la fotografía del vocero como protagonista.
+- Se ajustó el gafete privado del portal de Voceros a una composición vertical de `1080 × 1920`, lista para estados de WhatsApp, Instagram Stories y otras redes. El lienzo usa el logo oficial de Finados, Anton/Inter, franja chumbi, marco cian, acentos fucsia/amarillo, textura diagonal y marcas de los íconos locales de `crecimiento`, `legado` y `espectador`, con la fotografía del vocero como protagonista.
 - La interfaz explica el formato y conserva los botones de descarga/compartir; el gafete continúa oculto hasta que el perfil, consentimientos y fotografía estén completos. No se modificaron las landings públicas, la navegación, Acreditación de Medios ni Google Sheets.
 - QA local: `npm run build`, `node scripts/check-dist.mjs`, `node --test --test-concurrency=1 tests/vocero-portal.test.mjs tests/voceros.test.mjs` y `git diff --check` finalizaron correctamente. `npm run test:php` dejó una única prueba preexistente bloqueada por `information_schema.tables` en SQLite (`vocero_profile_locks_test.php`); no corresponde al gafete.
 - Publicación externa: ninguna; la versión está disponible solo en el entorno local temporal para revisión. Cualquier publicación requerirá autorización expresa y el flujo backend → frontend si se incluyen las migraciones de progreso.

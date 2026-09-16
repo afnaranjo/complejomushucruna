@@ -188,9 +188,20 @@ async function badgeBlob(profile, photoBlob) {
   context.fillStyle = '#ffc42e'; context.beginPath(); context.arc(120, 1515, 170, 0, Math.PI * 2); context.fill();
   context.globalAlpha = .3; context.strokeStyle = '#f4eada'; context.lineWidth = 6; context.beginPath(); context.arc(540, 670, 500, Math.PI * 1.04, Math.PI * 1.86); context.stroke(); context.globalAlpha = 1;
   context.fillStyle = '#ff2e8a'; context.save(); context.translate(-165, 705); context.rotate(-.35); context.fillRect(0, 0, 470, 82); context.restore();
+  context.globalAlpha = .08; context.strokeStyle = '#f4eada'; context.lineWidth = 2;
+  for (let x = -canvas.height; x < canvas.width; x += 42) { context.beginPath(); context.moveTo(x, 0); context.lineTo(x + canvas.height, canvas.height); context.stroke(); }
+  context.globalAlpha = 1;
   let logo = null;
   try { logo = await loadBadgeImage('/assets/finados/logo-finados.svg'); } catch { /* Logo is decorative; text remains the accessible fallback. */ }
   if (logo) { const maxW = 390; const maxH = 190; const scale = Math.min(maxW / logo.width, maxH / logo.height); context.drawImage(logo, (canvas.width - logo.width * scale) / 2, 70, logo.width * scale, logo.height * scale); }
+  const iconMarks = [
+    ['/assets/finados/icons/crecimiento.svg', 800, 205, 135, 150, .18],
+    ['/assets/finados/icons/legado.svg', 720, 1450, 150, 162, .16],
+    ['/assets/finados/icons/espectador.svg', 650, 1705, 300, 138, .2],
+  ];
+  for (const [source, x, y, width, height, opacity] of iconMarks) {
+    try { const icon = await loadBadgeImage(source); context.save(); context.globalAlpha = opacity; context.drawImage(icon, x, y, width, height); context.restore(); } catch { /* Decorative key-visual icons are optional. */ }
+  }
   context.textAlign = 'center'; context.fillStyle = '#f4eada'; context.font = '700 25px Inter, Arial'; context.fillText('COMUNIDAD DE VOCEROS · FINADOS 2026', 540, 390);
   context.fillStyle = '#f5c84b'; context.font = '700 30px Inter, Arial'; context.fillText('GAFETE DIGITAL', 540, 438);
   context.textAlign = 'left';
