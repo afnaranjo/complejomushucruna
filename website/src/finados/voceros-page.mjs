@@ -4,7 +4,8 @@ import { renderFinadosFooter } from './footer.mjs';
 import { renderFinadosNavigation } from './navigation.mjs';
 
 const campaignAssetVersion = '20260914-1';
-const campaignRuntimeVersion = '20260916-5';
+const campaignRuntimeVersion = '20260916-7';
+const navigationAssetVersion = '20260916-8';
 
 const levels = Object.freeze([
   {
@@ -83,7 +84,7 @@ export function renderVocerosPage(page) {
   <link rel="preload" as="image" href="/assets/finados/logo-finados.svg?v=${campaignAssetVersion}" fetchpriority="high">
   <link rel="stylesheet" href="/assets/finados/finados.css?v=${campaignRuntimeVersion}">
   <link rel="stylesheet" href="/assets/finados/voceros.css?v=${campaignRuntimeVersion}">
-  <link rel="stylesheet" href="/assets/finados/navigation.css?v=${campaignRuntimeVersion}">
+  <link rel="stylesheet" href="/assets/finados/navigation.css?v=${navigationAssetVersion}">
   <script type="module" src="/assets/finados/finados.js?v=${campaignRuntimeVersion}"></script>
 </head>
 <body class="voceros-page">

@@ -134,6 +134,9 @@ test('la portada adopta la cabecera de venta de Finados y simplifica la navegaci
   assert.ok(mainNavigation.indexOf('>HISTORIA</a>') < mainNavigation.indexOf('>VISITAMOS</a>'));
   assert.match(mainNavigation, /href="\/historia\/">HISTORIA<\/a>/);
   assert.match(mainNavigation, /href="\/visitanos\/">VISITAMOS<\/a>/);
+  for (const tone of ['winay', 'fuchsia', 'cyan', 'purple', 'poncho', 'lienzo']) {
+    assert.match(mainNavigation, new RegExp(`main-nav__item--tone-${tone}`));
+  }
 });
 
 test('publica una acreditación de medios completa, limitada por fecha y respaldada en servidor', async () => {
@@ -296,8 +299,8 @@ test('genera las páginas de Finados y ordena sus subpáginas en un menú desple
   assert.ok(dignities.indexOf('id="ganadores"') < dignities.indexOf('class="dignities-sponsors"'));
   assert.equal((dignities.match(/<h1\b/g) ?? []).length, 1);
   assert.match(landing, /<meta name="robots" content="noindex, nofollow, noarchive">/);
-  assert.match(landing, /\/assets\/finados\/finados\.css\?v=20260916-5/);
-  assert.match(landing, /\/assets\/finados\/finados\.js\?v=20260916-5/);
+  assert.match(landing, /\/assets\/finados\/finados\.css\?v=20260916-7/);
+  assert.match(landing, /\/assets\/finados\/finados\.js\?v=20260916-7/);
   assert.match(landing, /Finados 2026 · Venta de stands/);
   assert.match(landing, /href="https:\/\/mushucticket\.com\/" data-stands-purchase-link/);
   assert.doesNotMatch(landing, /reserva\.mushucticket\.com\/customers/);
@@ -320,8 +323,8 @@ test('genera las páginas de Finados y ordena sus subpáginas en un menú desple
   assert.equal((landing.match(/<h1\b/g) ?? []).length, 1);
   assert.doesNotMatch(landing, /2 nov|120K|\$12/i);
   assert.match(stands, /<meta name="robots" content="noindex, nofollow, noarchive">/);
-  assert.match(stands, /\/assets\/finados\/finados\.css\?v=20260916-5/);
-  assert.match(stands, /\/assets\/finados\/finados\.js\?v=20260916-5/);
+  assert.match(stands, /\/assets\/finados\/finados\.css\?v=20260916-7/);
+  assert.match(stands, /\/assets\/finados\/finados\.js\?v=20260916-7/);
   assert.match(stands, /Acceso para compra de stands/);
   assert.match(stands, /14 de septiembre/);
   assert.match(stands, /datetime="2026-09-14T08:00:00-05:00"/);

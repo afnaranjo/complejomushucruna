@@ -1,6 +1,8 @@
 import { primaryNavigation } from '../data/site.mjs';
 import { escapeHtml, externalAttributes } from './html.mjs';
 
+const topLevelTones = Object.freeze(['winay', 'fuchsia', 'cyan', 'purple', 'poncho', 'lienzo']);
+
 function routeMatches(href, currentRoute, { child = false } = {}) {
   const route = String(currentRoute || '').split('#')[0];
   const base = String(href || '').split('#')[0];
@@ -12,7 +14,7 @@ function routeMatches(href, currentRoute, { child = false } = {}) {
 }
 
 export function renderPrimaryNavigation(currentRoute = '') {
-  return primaryNavigation.map((item) => {
+  return primaryNavigation.map((item, index) => {
     const itemIsCurrent = routeMatches(item.href, currentRoute)
       || item.children?.some((child) => routeMatches(child.href, currentRoute, { child }));
     const current = itemIsCurrent ? ' aria-current="page"' : '';
@@ -31,7 +33,10 @@ export function renderPrimaryNavigation(currentRoute = '') {
           return `<li><a${childActionClass} href="${escapeHtml(child.href)}"${childPurchaseLink}${childCurrent}${externalAttributes(child.href)}>${escapeHtml(child.label)}</a></li>`;
         }).join('')}</ul>`
       : '';
-    const itemClass = children ? ' class="main-nav__item main-nav__item--has-submenu" data-submenu' : '';
-    return `<li${itemClass}><a${actionClass} href="${escapeHtml(item.href)}"${purchaseLink}${current}${externalAttributes(item.href)}>${escapeHtml(item.label)}</a>${children}</li>`;
+    const tone = topLevelTones[index % topLevelTones.length];
+    const itemClasses = ['main-nav__item', `main-nav__item--tone-${tone}`];
+    if (children) itemClasses.push('main-nav__item--has-submenu');
+    const itemAttributes = ` class="${itemClasses.join(' ')}"${children ? ' data-submenu' : ''}`;
+    return `<li${itemAttributes}><a${actionClass} href="${escapeHtml(item.href)}"${purchaseLink}${current}${externalAttributes(item.href)}>${escapeHtml(item.label)}</a>${children}</li>`;
   }).join('');
 }

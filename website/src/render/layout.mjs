@@ -50,10 +50,10 @@ export function renderLayout(page) {
     : `<link rel="icon" href="/assets/icons/logo-complejo-mushuc-runa.svg?v=${institutionalAssetVersion}" type="image/svg+xml">`}
   ${page.heroImage || isHome ? `<link rel="preload" as="image" href="${page.heroImage ?? '/assets/finados/expositor-artesanias.webp'}" fetchpriority="high">` : ''}
   ${isFinadosTheme
-    ? '<link rel="stylesheet" href="/assets/finados/finados.css?v=20260916-5">'
+    ? '<link rel="stylesheet" href="/assets/finados/finados.css?v=20260916-7">'
     : `<link rel="stylesheet" href="/assets/styles.css?v=${stylesVersion}">`}
   ${page.stylesheet ? `<link rel="stylesheet" href="${page.stylesheet}">` : ''}
-  ${isFinadosTheme ? '<link rel="stylesheet" href="/assets/finados/navigation.css?v=20260916-5">' : ''}
+  ${isFinadosTheme ? '<link rel="stylesheet" href="/assets/finados/navigation.css?v=20260916-8">' : ''}
   <script type="module" src="/assets/site.js?v=${siteRuntimeVersion}"></script>
 </head>
 <body${bodyClass ? ` class="${bodyClass}"` : ''}>

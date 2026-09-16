@@ -109,6 +109,74 @@
   box-shadow: 4px 4px 0 #00d2d6;
 }
 
+/* Cada sección principal tiene una señal cromática discreta; Finados 2026 funciona como CTA mate. */
+.site-header--finados .main-nav > ul > li {
+  --menu-accent: #ffc42e;
+  --menu-tint: rgba(255, 196, 46, .1);
+  --menu-tint-strong: rgba(255, 196, 46, .18);
+  --menu-ink: #f4eada;
+  display: flex;
+  min-height: 2.7rem;
+  align-items: center;
+  border: 1px solid rgba(244, 234, 218, .24);
+  border-bottom: 3px solid var(--menu-accent);
+  border-radius: .4rem;
+  background: var(--menu-tint);
+  transition: background 180ms ease, border-color 180ms ease;
+}
+.site-header--finados .main-nav > ul > li.main-nav__item--tone-winay { --menu-accent: #ffc42e; --menu-tint: rgba(255, 196, 46, .1); --menu-tint-strong: rgba(255, 196, 46, .18); }
+.site-header--finados .main-nav > ul > li.main-nav__item--tone-fuchsia {
+  --menu-accent: #00d2d6;
+  --menu-tint: #ff2e8a;
+  --menu-tint-strong: #ff2e8a;
+  --menu-ink: #241146;
+  border-color: #ff2e8a;
+}
+.site-header--finados .main-nav > ul > li.main-nav__item--tone-cyan { --menu-accent: #00d2d6; --menu-tint: rgba(0, 210, 214, .1); --menu-tint-strong: rgba(0, 210, 214, .18); }
+.site-header--finados .main-nav > ul > li.main-nav__item--tone-purple { --menu-accent: #6e2ce0; --menu-tint: rgba(110, 44, 224, .16); --menu-tint-strong: rgba(110, 44, 224, .28); }
+.site-header--finados .main-nav > ul > li.main-nav__item--tone-poncho { --menu-accent: #e01b24; --menu-tint: rgba(224, 27, 36, .12); --menu-tint-strong: rgba(224, 27, 36, .22); }
+.site-header--finados .main-nav > ul > li.main-nav__item--tone-lienzo { --menu-accent: #f4eada; --menu-tint: rgba(244, 234, 218, .1); --menu-tint-strong: rgba(244, 234, 218, .2); }
+.site-header--finados .main-nav > ul > li > a,
+.site-header--finados .main-nav > ul > li > a.main-nav__action {
+  display: inline-flex;
+  min-height: 2.7rem;
+  align-items: center;
+  padding: .64rem .76rem;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--menu-ink);
+  font-size: .72rem;
+  font-weight: 900;
+  letter-spacing: .05em;
+  line-height: 1;
+  white-space: nowrap;
+}
+.site-header--finados .main-nav > ul > li > a::after { display: none; }
+.site-header--finados .main-nav > ul > li > a.main-nav__action:hover,
+.site-header--finados .main-nav > ul > li > a.main-nav__action:focus-visible { transform: none; }
+.site-header--finados .main-nav > ul > li > .main-nav__submenu-toggle {
+  width: 1.95rem;
+  min-height: 2.7rem;
+  border-left: 1px solid rgba(244, 234, 218, .22);
+  color: var(--menu-ink);
+}
+.site-header--finados .main-nav > ul > li:hover,
+.site-header--finados .main-nav > ul > li:focus-within {
+  border-color: var(--menu-accent);
+  background: var(--menu-tint-strong);
+}
+.site-header--finados .main-nav > ul > li.main-nav__item--tone-fuchsia:hover,
+.site-header--finados .main-nav > ul > li.main-nav__item--tone-fuchsia:focus-within {
+  border-color: #00d2d6;
+  background: #ff2e8a;
+}
+.site-header--finados .main-nav > ul > li.main-nav__item--tone-fuchsia > .main-nav__submenu-toggle {
+  border-left-color: rgba(36, 17, 70, .24);
+  color: #241146;
+}
+
 .site-header--finados .main-nav .main-nav__submenu {
   position: absolute;
   top: calc(100% + .45rem);
@@ -186,6 +254,11 @@
   }
   .site-header--finados .main-nav[data-open="true"] { display: block; }
   .site-header--finados .main-nav > ul { display: block; }
+  .site-header--finados .main-nav > ul > li {
+    display: block;
+    width: 100%;
+    margin-bottom: .65rem;
+  }
   .site-header--finados .main-nav__item--has-submenu { display: grid; grid-template-columns: 1fr auto; }
   .site-header--finados .main-nav__submenu-toggle { width: 2.75rem; height: 2.75rem; }
   .site-header--finados .main-nav .main-nav__submenu {
@@ -197,7 +270,7 @@
     box-shadow: 4px 4px 0 #00d2d6;
     transform: none;
   }
-  .site-header--finados .main-nav a { display: block; padding: 13px 8px; }
+  .site-header--finados .main-nav > ul > li > a { display: flex; width: 100%; min-height: 2.9rem; padding: .85rem 1rem; }
   .site-header--finados .main-nav .main-nav__action { padding: .9rem 1rem; margin-block: .45rem; text-align: center; }
 }
 
