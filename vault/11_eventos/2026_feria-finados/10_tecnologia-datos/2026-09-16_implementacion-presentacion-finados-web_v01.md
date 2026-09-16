@@ -1,7 +1,7 @@
 ---
 titulo: "Header de presentación Finados 2026"
 responsable: "tecnología/diseño"
-estado: en-revision
+estado: publicado
 ultima_actualizacion: 2026-09-16
 fuente: "Solicitud de Alex y confirmación expresa del 17 de septiembre de 2026 a las 10:30"
 confidencialidad: interno
@@ -38,6 +38,15 @@ El reloj usa la diferencia con la fecha absoluta, no decrementos acumulativos. L
 - `npm run check` completo aprobado en Linux/PHP, exit code 0: 127 pruebas Node, 18 suites PHP, 10 integración, build de 125 archivos y 31 HTML/1030 referencias válidas. Cero pruebas omitidas.
 - Vista previa local: `http://127.0.0.1:4173/finados/`, HTTP 200. Apertura solicitada en el panel de Codex.
 - No se realizó revisión visual automatizada en navegador: no fue solicitada en esta tarea, conforme a la guía aplicada. La vista previa queda disponible para revisión de Alex.
-- La solicitud actual confirma diseño y fecha, pero no ordena un despliegue. **No se ha publicado este nuevo header en producción**; hace falta autorización expresa para ejecutar el procedimiento estándar con respaldo y verificación HTTPS.
+- La entrega inicial confirmó diseño y fecha sin ordenar un despliegue. Se mantuvo en Git y vista previa hasta la siguiente solicitud expresa de Alex, «sube a git y producción». La publicación autorizada se documenta a continuación.
 
-No se modifican credenciales, DNS, backend ni registros de personas en Google Sheets.
+No se cambian credenciales o DNS, no se despliega una nueva release de la API y no se envían registros de personas a Google Sheets.
+
+## Publicación autorizada del 2026-09-16
+
+- Fuente técnica publicada: `ff078f0`, enviada previamente a `origin/main`. Alex autorizó expresamente Git y producción; se reutilizó el procedimiento de alojamiento existente, sin crear un Site, migrar proveedor o cambiar dominio.
+- Configuración privada, prevuelo completo y despliegue estándar aprobados, ambos exit code 0. Cada modo repitió el check completo, con todas las suites y sin relajar validaciones. Se creó respaldo recuperable antes de transferir la salida y se conservaron la credencial existente de Sheets y los archivos exclusivos del servidor.
+- El procedimiento habitual del frontend comprobó el puente privado y la configuración legal gestionada de Voceros; no hubo nueva release de API, migración ni cambios de datos de participantes.
+- Verificación HTTPS independiente: **18 comprobaciones, cero fallos**, todas HTTP 200 y SHA-256 idéntico al build. Incluye `/finados/` sin parámetro y con renovación de consulta, los dos recursos nuevos de presentación, CSS/JS compartidos, navegación, logo, legado, expositor, cuatro fuentes y las páginas principales del Complejo, compra de stands, acreditación y SHOWS.
+- URL pública verificada: `https://complejomushucruna.com/finados/`. Fecha del contador: jueves 17 de septiembre de 2026, 10:30 `America/Guayaquil`; bienvenida automática conservada.
+- Las tres notas locales anteriores se restauraron con hashes idénticos y únicamente se retiró el stash propio tras verificarlo. Siguen fuera de esta publicación documental para no mezclar cambios anteriores no revisados.
