@@ -13,7 +13,9 @@ function routeMatches(href, currentRoute, { child = false } = {}) {
 
 export function renderPrimaryNavigation(currentRoute = '') {
   return primaryNavigation.map((item) => {
-    const current = routeMatches(item.href, currentRoute) ? ' aria-current="page"' : '';
+    const itemIsCurrent = routeMatches(item.href, currentRoute)
+      || item.children?.some((child) => routeMatches(child.href, currentRoute, { child }));
+    const current = itemIsCurrent ? ' aria-current="page"' : '';
     const actionClass = item.emphasis
       ? ` class="main-nav__action main-nav__action--${escapeHtml(item.emphasis)}"`
       : '';

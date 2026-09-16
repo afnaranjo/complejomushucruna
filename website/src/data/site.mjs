@@ -23,8 +23,14 @@ export const primaryNavigation = Object.freeze([
   { label: 'ACREDITACIÓN DE MEDIOS', href: '/acreditacion-de-medios/' },
   { label: 'TOUR VIRTUAL', href: site.tourUrl },
   { label: 'GRANJA', href: '/granja/' },
-  { label: 'HISTORIA', href: '/historia/' },
-  { label: 'VISITAMOS', href: '/visitanos/' },
+  {
+    label: 'NOSOTROS',
+    href: '/historia/',
+    children: Object.freeze([
+      { label: 'HISTORIA', href: '/historia/' },
+      { label: 'VISITAMOS', href: '/visitanos/' },
+    ]),
+  },
 ]);
 
 export const socialLinks = Object.freeze([

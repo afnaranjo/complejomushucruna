@@ -119,13 +119,16 @@ test('la portada adopta la cabecera de venta de Finados y simplifica la navegaci
   assert.match(mainNavigation, /href="\/granja\/"/);
   assert.match(mainNavigation, /href="\/historia\/"/);
   assert.match(mainNavigation, /href="\/visitanos\/"/);
-  const expectedOrder = ['INICIO', 'VENTA DE STANDS', 'FINADOS 2026', 'ACREDITACIÓN DE MEDIOS', 'TOUR VIRTUAL', 'GRANJA', 'HISTORIA', 'VISITAMOS'];
+  const expectedOrder = ['INICIO', 'VENTA DE STANDS', 'FINADOS 2026', 'ACREDITACIÓN DE MEDIOS', 'TOUR VIRTUAL', 'GRANJA', 'NOSOTROS'];
   for (let index = 1; index < expectedOrder.length; index += 1) {
     assert.ok(
       mainNavigation.indexOf(`>${expectedOrder[index - 1]}</a>`) < mainNavigation.indexOf(`>${expectedOrder[index]}</a>`),
       `${expectedOrder[index - 1]} debe mostrarse antes de ${expectedOrder[index]}`,
     );
   }
+  assert.ok(mainNavigation.indexOf('>HISTORIA</a>') < mainNavigation.indexOf('>VISITAMOS</a>'));
+  assert.match(mainNavigation, /href="\/historia\/">HISTORIA<\/a>/);
+  assert.match(mainNavigation, /href="\/visitanos\/">VISITAMOS<\/a>/);
 });
 
 test('publica una acreditación de medios completa, limitada por fecha y respaldada en servidor', async () => {

@@ -17,7 +17,6 @@ test('la navegación institucional prioriza venta, Finados y tour en el orden ap
     'https://guiap.com/360/mr2023-2024/',
     '/granja/',
     '/historia/',
-    '/visitanos/',
   ]);
   assert.deepEqual(primaryNavigation.map((item) => item.label), [
     'INICIO',
@@ -26,8 +25,7 @@ test('la navegación institucional prioriza venta, Finados y tour en el orden ap
     'ACREDITACIÓN DE MEDIOS',
     'TOUR VIRTUAL',
     'GRANJA',
-    'HISTORIA',
-    'VISITAMOS',
+    'NOSOTROS',
   ]);
   assert.deepEqual(primaryNavigation[1], {
     label: 'VENTA DE STANDS',
@@ -51,6 +49,14 @@ test('la navegación institucional prioriza venta, Finados y tour en el orden ap
   assert.deepEqual(primaryNavigation[4], {
     label: 'TOUR VIRTUAL',
     href: site.tourUrl,
+  });
+  assert.deepEqual(primaryNavigation[6], {
+    label: 'NOSOTROS',
+    href: '/historia/',
+    children: [
+      { label: 'HISTORIA', href: '/historia/' },
+      { label: 'VISITAMOS', href: '/visitanos/' },
+    ],
   });
 });
 
