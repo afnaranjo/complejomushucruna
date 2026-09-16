@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile, stat, mkdtemp } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { createHash } from 'node:crypto';
 import { pages } from '../src/pages.mjs';
 import { primaryNavigation } from '../src/data/site.mjs';
 import { showsProgram, plazaShows, showsAttractions, showsSponsors } from '../src/finados/shows-program.mjs';
@@ -53,6 +54,10 @@ test('conserva los shows de Plaza de la Luna y los atractivos del arte', () => {
   assert.match(output, /vasos de colada morada<br>rumbo al récord/);
   assert.match(output, /Luis Alfonso Chango P\./);
   assert.match(output, /código QR de información/);
+  assert.match(output, /shows-plaza-brand[^>]*><img[^>]*plaza-de-la-luna\.webp[^>]*width="170" height="165" alt="Plaza de la Luna"/);
+  assert.equal((output.match(/class="shows-plaza-show"/g) ?? []).length, 2);
+  assert.match(output, /<h4>Hueveando<\/h4><time datetime="2026-10-31">31 octubre<\/time>/);
+  assert.match(output, /<h4>Las Ñañas<\/h4><time datetime="2026-11-01">01 noviembre<\/time>/);
 });
 
 test('todos los auspiciantes están en el footer, sin cambios en otros pies de campaña', () => {
@@ -62,9 +67,21 @@ test('todos los auspiciantes están en el footer, sin cambios en otros pies de c
   assert.ok(sponsor > output.indexOf('<footer'));
   assert.ok(sponsor < output.lastIndexOf('</footer>'));
   for (const name of showsSponsors) assert.ok(output.includes(name), name);
-  assert.equal((output.match(/auspiciantes-finados-2026\.webp/g) ?? []).length, 1);
+  assert.equal((output.match(/auspiciantes-finados-2026\.svg/g) ?? []).length, 2);
+  assert.match(output, /width="2321" height="650"/);
+  assert.match(output, /Organiza: Luis Alfonso Chango P\. Auspician:/);
+  assert.ok(output.includes('Textilana Cooperativa de Ahorro y Crédito'));
   assert.doesNotMatch(renderFinadosFooter(), /shows-sponsors/);
-  assert.match(output, /tabindex="0" role="region" aria-label="Auspiciantes/);
+  assert.match(output, /shows-sponsors-art[^>]*target="_blank" rel="noopener noreferrer"/);
+  assert.doesNotMatch(output, /shows-sponsors-scroll|auspiciantes-finados-2026\.webp/);
+});
+
+test('la composición SVG de auspiciantes se conserva idéntica al archivo entregado', async () => {
+  const original = await readFile(new URL('../public/assets/finados/shows/auspiciantes-finados-2026.svg', import.meta.url));
+  assert.equal(createHash('sha256').update(original).digest('hex'), '1464352f77e98cfb7496fa9e8057638ded5c5cd9229e20608e3e857374106aaf');
+  const svg = original.toString('utf8');
+  assert.match(svg, /viewBox="0 0 2321 650"/);
+  assert.doesNotMatch(svg, /<(?:script|foreignObject|image)\b|(?:xlink:)?href="(?:https?:|file:|\/\/)/i);
 });
 
 test('el hero es conceptual y las imágenes oficiales son locales y adaptables', () => {
@@ -82,13 +99,16 @@ test('el hero es conceptual y las imágenes oficiales son locales y adaptables',
   }
 });
 
-test('los estilos son propios, evitan solapamientos y permiten el scroll de logos', async () => {
+test('los estilos amplían los shows y adaptan la composición completa sin desbordes', async () => {
   const css = await readFile(new URL('../src/finados/shows.css', import.meta.url), 'utf8');
   const theme = await readFile(new URL('../src/finados/finados.css', import.meta.url), 'utf8');
   assert.match(css, /padding-top: 132px/);
   assert.match(css, /padding-top: 108px/);
   assert.match(css, /minmax\(0, 1fr\)/);
-  assert.match(css, /overflow-x: auto/);
+  assert.match(css, /aspect-ratio: 2321 \/ 650/);
+  assert.match(css, /shows-plaza-show h4[^}]*clamp\(2rem, 3\.8vw, 3\.4rem\)/);
+  assert.match(css, /shows-plaza-list \{ grid-template-columns: 1fr;/);
+  assert.doesNotMatch(css, /min-width: 1050px|shows-sponsors-scroll/);
   assert.match(css, /prefers-reduced-motion/);
   assert.match(css, /max-width: 760px/);
   assert.doesNotMatch(css, /:root|@font-face|\.site-header|backdrop-filter/);
@@ -99,6 +119,7 @@ test('los activos WebP conservan su formato y presupuestos de tamaño', async ()
   for (const [name, budget] of [
     ['ambiente-concierto-800', 100_000], ['ambiente-concierto-1600', 200_000],
     ['auspiciantes-finados-2026', 100_000], ['cartel-shows-1240', 1_600_000], ['cartel-shows-2481', 4_500_000],
+    ['plaza-de-la-luna', 30_000],
   ]) {
     const path = new URL(`../public/assets/finados/shows/${name}.webp`, import.meta.url);
     const buffer = await readFile(path);
@@ -114,7 +135,10 @@ test('el build entrega SHOWS con CSS, imágenes y aviso de cookies', async () =>
   assert.ok(files.includes('finados/shows/index.html'));
   assert.ok(files.includes('assets/finados/shows.css'));
   assert.ok(files.includes('assets/finados/shows/auspiciantes-finados-2026.webp'));
+  assert.ok(files.includes('assets/finados/shows/auspiciantes-finados-2026.svg'));
+  assert.ok(files.includes('assets/finados/shows/plaza-de-la-luna.webp'));
   const output = await readFile(join(directory, 'finados/shows/index.html'), 'utf8');
   assert.match(output, /data-cookie-consent/);
   assert.match(output, /Nuestro sitio web utiliza cookies para mejorar tu navegación\./);
+  assert.match(output, /shows\.css\?v=20260916-shows-2/);
 });

@@ -32,5 +32,6 @@ export const showsSponsors = Object.freeze([
   'Cogarol',
   'Whisky John Morris',
   'Tequila Azteca',
+  'Textilana Cooperativa de Ahorro y Crédito',
   'Pollos al Gusto',
 ]);

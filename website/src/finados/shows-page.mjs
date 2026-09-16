@@ -4,7 +4,7 @@ import { renderFinadosFooter } from './footer.mjs';
 import { renderFinadosNavigation } from './navigation.mjs';
 import { showsProgram, plazaShows, showsAttractions, showsSponsors } from './shows-program.mjs';
 
-const version = '20260916-shows-1';
+const version = '20260916-shows-2';
 const asset = name => `/assets/finados/shows/${name}.webp?v=${version}`;
 
 function renderProgram() {
@@ -16,10 +16,10 @@ function renderProgram() {
 
 function renderSponsors() {
   return `<section class="shows-sponsors" aria-labelledby="shows-sponsors-title">
-    <div class="shows-sponsors-heading"><p class="shows-kicker">Quienes hacen posible la feria</p><h2 id="shows-sponsors-title">Auspiciantes</h2></div>
-    <div class="shows-sponsors-scroll" tabindex="0" role="region" aria-label="Auspiciantes en una sola línea; desplázate horizontalmente para verlos todos">
-      <img src="${asset('auspiciantes-finados-2026')}" width="2481" height="208" alt="${escapeHtml(showsSponsors.join('; '))}" loading="lazy" decoding="async">
-    </div>
+    <h2 id="shows-sponsors-title" class="sr-only">Organizador y auspiciantes</h2>
+    <a class="shows-sponsors-art" href="/assets/finados/shows/auspiciantes-finados-2026.svg?v=${version}" target="_blank" rel="noopener noreferrer" aria-label="Ampliar composición oficial de organizador y auspiciantes en otra pestaña">
+      <img src="/assets/finados/shows/auspiciantes-finados-2026.svg?v=${version}" width="2321" height="650" alt="Organiza: Luis Alfonso Chango P. Auspician: ${escapeHtml(showsSponsors.join('; '))}. Composición oficial con cenefa, organizador centrado y logos en su orden original." loading="lazy" decoding="async">
+    </a>
   </section>`;
 }
 
@@ -89,8 +89,8 @@ export function renderFinadosShowsPage(page) {
       </header>
       <div class="shows-date-list">${renderProgram()}</div>
       <section class="shows-plaza" aria-labelledby="shows-plaza-title">
-        <h3 id="shows-plaza-title">Plaza de la Luna</h3>
-        <div class="shows-plaza-list">${plazaShows.map(show => `<p><strong>${escapeHtml(show.artist)}</strong><time datetime="${show.iso}">${show.date}</time></p>`).join('')}</div>
+        <h3 id="shows-plaza-title" class="shows-plaza-brand"><img src="${asset('plaza-de-la-luna')}" width="170" height="165" alt="Plaza de la Luna" loading="lazy" decoding="async"></h3>
+        <div class="shows-plaza-list">${plazaShows.map(show => `<article class="shows-plaza-show"><h4>${escapeHtml(show.artist)}</h4><time datetime="${show.iso}">${show.date}</time></article>`).join('')}</div>
       </section>
     </section>
 
