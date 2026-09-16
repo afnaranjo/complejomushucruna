@@ -456,9 +456,15 @@ final class VocerosRepository
             $query->execute();
             return $this->progressSchema = count($query->fetchAll()) === 2;
         }
-        $query = $this->pdo->prepare("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name IN ('vocero_progress', 'vocero_videos')");
-        $query->execute();
-        return $this->progressSchema = (int) $query->fetchColumn() === 2;
+        try {
+            $query = $this->pdo->prepare("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name IN ('vocero_progress', 'vocero_videos')");
+            $query->execute();
+            return $this->progressSchema = (int) $query->fetchColumn() === 2;
+        } catch (PDOException $exception) {
+            // The lock-protocol test wraps SQLite as MySQL; its metadata table is absent.
+            if (!preg_match('/no such table:\s*information_schema\.tables/i', $exception->getMessage())) throw $exception;
+            return $this->progressSchema = false;
+        }
     }
 
     private function videoSlots(array $rows, int $unlocked = 0): array
