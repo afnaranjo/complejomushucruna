@@ -1,9 +1,38 @@
 .media-accreditation-page {
+  --font-body: "Inter", "Helvetica Neue", Arial, sans-serif;
+  --font-nav: "Inter", "Helvetica Neue", Arial, sans-serif;
+  --font-display: "DM Serif Display", Georgia, serif;
+  --shell: min(1180px, calc(100vw - 48px));
+  --shadow: 0 24px 70px rgba(36, 17, 70, .16);
   background: #f4eada;
   color: #241146;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.65;
+}
+
+.media-accreditation-page .shell {
+  width: var(--shell);
+  margin-inline: auto;
+}
+
+.media-accreditation-page a {
+  text-underline-offset: .2em;
+}
+
+.media-accreditation-page .home-chumbi {
+  position: fixed;
+  z-index: 80;
+  inset: 0 0 auto;
+  height: 10px;
+  background: repeating-linear-gradient(90deg, #ff2e8a 0 18px, #ffc42e 18px 36px, #00d2d6 36px 54px, #6e2ce0 54px 72px, #e01b24 72px 90px, #f4eada 90px 108px);
 }
 
 .media-accreditation-page::before {
+  position: fixed;
+  inset: 0;
+  content: "";
+  pointer-events: none;
   z-index: 0;
   opacity: 0.06;
   background-image: url("/assets/icons/logo-complejo.svg?v=20260909");
@@ -628,55 +657,8 @@
   }
 }
 
-@media (max-width: 1160px) {
-  .site-header--finados {
-    min-height: 108px;
-  }
-
-  .site-header--finados .brand img {
-    width: 88px;
-    height: 88px;
-  }
-
-  .site-header--finados .nav-toggle {
-    display: block;
-    border-color: rgba(244, 234, 218, 0.62);
-    background: rgba(36, 17, 70, 0.82);
-  }
-
-  .site-header--finados .main-nav {
-    position: absolute;
-    top: 108px;
-    right: 0;
-    left: 0;
-    display: none;
-    padding: 20px;
-    border-top: 2px solid #00d2d6;
-    background: #241146;
-    box-shadow: var(--shadow);
-  }
-
-  .site-header--finados .main-nav[data-open="true"] {
-    display: block;
-  }
-
-  .site-header--finados .main-nav ul {
-    display: block;
-  }
-
-  .site-header--finados .main-nav a {
-    display: block;
-    padding: 13px 8px;
-  }
-
-  .site-header--finados .main-nav .main-nav__action {
-    padding: 0.9rem 1rem;
-    margin-block: 0.45rem;
-    text-align: center;
-  }
-}
-
 @media (max-width: 760px) {
+  .media-accreditation-page { --shell: min(1180px, calc(100vw - 32px)); }
   .media-hero,
   .media-hero__content {
     min-height: 760px;

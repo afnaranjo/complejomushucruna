@@ -213,10 +213,11 @@ const mainPages = [
     title: 'Acreditación de medios',
     description: 'Registro oficial para medios de comunicación que cubrirán el lanzamiento de Finados Mushuc Runa 2026.',
     bodyClass: 'media-accreditation-page',
+    designSystem: 'finados',
     headerVariant: 'finados',
     footerVariant: 'finados',
     heroImage: '/assets/images/acreditacion-medios-periodista.jpg?v=20260909',
-    stylesheet: '/assets/media-accreditation.css?v=20260909',
+    stylesheet: '/assets/media-accreditation.css?v=20260916-4',
     body: renderMediaAccreditationBody(),
   },
 ];

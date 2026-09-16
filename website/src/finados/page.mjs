@@ -11,7 +11,7 @@ const finadosSocialLinks = [
 
 const purchaseUrl = 'https://mushucticket.com/';
 const campaignAssetVersion = '20260903';
-const campaignRuntimeVersion = '20260916-3';
+const campaignRuntimeVersion = '20260916-4';
 
 const axes = [
   {
@@ -81,8 +81,8 @@ export function renderFinadosPage(page) {
   <link rel="icon" href="/assets/finados/favicon-finados.png" type="image/png" sizes="256x256">
   <link rel="apple-touch-icon" href="/assets/finados/favicon-finados.png">
   <link rel="preload" as="image" href="/assets/finados/expositor-artesanias.webp" fetchpriority="high">
-  <link rel="stylesheet" href="/assets/styles.css?v=20260916-3">
   <link rel="stylesheet" href="/assets/finados/finados.css?v=${campaignRuntimeVersion}">
+  <link rel="stylesheet" href="/assets/finados/navigation.css?v=${campaignRuntimeVersion}">
   <script type="module" src="/assets/finados/finados.js?v=${campaignRuntimeVersion}"></script>
 </head>
 <body class="bg-lienzo font-sans text-night antialiased selection:bg-winay selection:text-night">

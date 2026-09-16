@@ -8,7 +8,7 @@ const consents = JSON.parse(readFileSync(new URL('../../backend/finados-api/reso
 const legalVersions = { privacy: consents.data.version, image: consents.image.version, policies: consents.policies.version.split(' + ')[0], thermometer: consents.policies.version.split(' + ')[1], rights: '2026-09-14' };
 
 const campaignAssetVersion = '20260914-1';
-const campaignRuntimeVersion = '20260916-3';
+const campaignRuntimeVersion = '20260916-4';
 
 const controller = Object.freeze({
   name: 'Eventos Finados 2026',
@@ -136,9 +136,9 @@ export function renderVocerosLegalPage(page) {
   <link rel="icon" href="/assets/finados/favicon-finados.png" type="image/png" sizes="256x256">
   <link rel="apple-touch-icon" href="/assets/finados/favicon-finados.png">
   <link rel="preload" as="image" href="/assets/finados/logo-finados.svg?v=${campaignAssetVersion}" fetchpriority="high">
-  <link rel="stylesheet" href="/assets/styles.css?v=20260916-3">
   <link rel="stylesheet" href="/assets/finados/finados.css?v=${campaignRuntimeVersion}">
   <link rel="stylesheet" href="/assets/finados/voceros.css?v=${campaignRuntimeVersion}">
+  <link rel="stylesheet" href="/assets/finados/navigation.css?v=${campaignRuntimeVersion}">
   <script type="module" src="/assets/finados/finados.js?v=${campaignRuntimeVersion}"></script>
 </head>
 <body class="voceros-page voceros-legal-page">

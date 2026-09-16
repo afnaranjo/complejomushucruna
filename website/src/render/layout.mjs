@@ -10,12 +10,15 @@ const siteRuntimeVersion = '20260916-1';
 
 export function renderLayout(page) {
   const isHome = page.route === '/';
+  const isFinadosTheme = page.designSystem === 'finados';
   const hasFinadosHeader = isHome || page.headerVariant === 'finados';
   const bodyClass = [isHome ? 'home-page' : '', page.bodyClass ?? ''].filter(Boolean).join(' ');
   const canonical = `${site.baseUrl}${page.route}`;
   const title = page.route === '/' ? `${site.name} | ${site.tagline}` : `${page.title} | ${site.name}`;
   const social = socialLinks.map((item) => `<a href="${escapeHtml(item.href)}"${externalAttributes(item.href)}>${escapeHtml(item.label)}</a>`).join('');
-  const brand = hasFinadosHeader
+  const brand = isFinadosTheme
+    ? '<img src="/assets/finados/logo-finados.svg?v=20260903" width="766" height="449" alt="Finados 2026, legado que nos une">'
+    : hasFinadosHeader
     ? `<img src="/assets/icons/logo-complejo.svg?v=${homeAssetVersion}" width="1800" height="1800" alt="Complejo Intercultural y Deportivo Mushuc Runa">`
     : '<img src="/assets/images/logo-complejo-dorado.png" width="289" height="137" alt="Complejo Intercultural y Deportivo Mushuc Runa">';
   const footer = page.footerVariant === 'finados'
@@ -42,10 +45,15 @@ export function renderLayout(page) {
   <meta property="og:description" content="${escapeHtml(page.description)}">
   <meta property="og:type" content="website">
   <meta property="og:url" content="${escapeHtml(canonical)}">
-  <link rel="icon" href="/assets/icons/logo-complejo-mushuc-runa.svg?v=${institutionalAssetVersion}" type="image/svg+xml">
+  ${isFinadosTheme
+    ? '<meta name="theme-color" content="#241146"><link rel="icon" href="/assets/finados/favicon-finados.png" type="image/png" sizes="256x256">'
+    : `<link rel="icon" href="/assets/icons/logo-complejo-mushuc-runa.svg?v=${institutionalAssetVersion}" type="image/svg+xml">`}
   ${page.heroImage || isHome ? `<link rel="preload" as="image" href="${page.heroImage ?? '/assets/finados/expositor-artesanias.webp'}" fetchpriority="high">` : ''}
-  <link rel="stylesheet" href="/assets/styles.css?v=${stylesVersion}">
+  ${isFinadosTheme
+    ? '<link rel="stylesheet" href="/assets/finados/finados.css?v=20260916-4">'
+    : `<link rel="stylesheet" href="/assets/styles.css?v=${stylesVersion}">`}
   ${page.stylesheet ? `<link rel="stylesheet" href="${page.stylesheet}">` : ''}
+  ${isFinadosTheme ? '<link rel="stylesheet" href="/assets/finados/navigation.css?v=20260916-4">' : ''}
   <script type="module" src="/assets/site.js?v=${siteRuntimeVersion}"></script>
 </head>
 <body${bodyClass ? ` class="${bodyClass}"` : ''}>

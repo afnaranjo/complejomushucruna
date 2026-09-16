@@ -4,7 +4,7 @@ import { renderFinadosFooter } from './footer.mjs';
 import { renderFinadosNavigation } from './navigation.mjs';
 
 const campaignAssetVersion = '20260914-1';
-const campaignRuntimeVersion = '20260916-3';
+const campaignRuntimeVersion = '20260916-4';
 
 export function renderFinadosDignitiesPage(page) {
   const canonical = `${site.baseUrl}${page.route}`;
@@ -21,8 +21,8 @@ export function renderFinadosDignitiesPage(page) {
   <meta name="theme-color" content="#f58a0a">
   <link rel="icon" href="/assets/finados/favicon-finados.png" type="image/png" sizes="256x256">
   <link rel="apple-touch-icon" href="/assets/finados/favicon-finados.png">
-  <link rel="stylesheet" href="/assets/styles.css?v=20260916-3">
   <link rel="stylesheet" href="/assets/finados/finados.css?v=${campaignRuntimeVersion}">
+  <link rel="stylesheet" href="/assets/finados/navigation.css?v=${campaignRuntimeVersion}">
   <script type="module" src="/assets/finados/finados.js?v=${campaignRuntimeVersion}"></script>
 </head>
 <body class="dignities-page font-sans text-night antialiased selection:bg-winay selection:text-night">
