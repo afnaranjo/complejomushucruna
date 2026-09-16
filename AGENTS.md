@@ -845,6 +845,6 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Se ajustó la cabecera de Finados para ocupar todo el ancho disponible, distribuir el menú de forma proporcional y mantener el comportamiento responsive. El enlace externo de stands conserva su apertura segura y Acreditación de Medios mantiene su POST a `/api/acreditacion-de-medios/` y el puente de Google Sheets.
 - QA: `npm run check` en verde (105 pruebas Node, 18 PHP y 10 de integración); build local de 113 archivos con 30 HTML y 954 referencias. La comprobación visual/accessibility confirmó cabecera sticky y ancho completo en Finados/Voceros, y tarjetas coloreadas en Finados y Nosotros.
 - La cabecera de Finados queda sticky al desplazarse y las tarjetas de todos los submenús usan dimensiones uniformes con colores alternados de la paleta Finados, que se repite automáticamente para futuras opciones.
-- Commit: `ca93c54` (`Mejorar menú sticky y submenús de Finados`), pendiente de sincronizar en `origin/main`.
+- Commit: `c51331b` (`Mejorar menú sticky y submenús de Finados`), sincronizado en `origin/main`.
 - Publicación externa: no se desplegó esta corrección; producción conserva temporalmente la versión anterior hasta autorización expresa de Alex.
 - Riesgos y pendientes: publicar la versión nueva y repetir la verificación HTTPS cuando Alex indique `sube`; no modificar el backend, Acreditación, Google Sheets ni las demás páginas.
