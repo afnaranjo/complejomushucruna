@@ -1,7 +1,7 @@
 ---
 titulo: "Implementación de SHOWS Finados 2026"
 responsable: "tecnología/diseño"
-estado: aprobado
+estado: publicado
 ultima_actualizacion: 2026-09-16
 fuente: "afiche FINAL proporcionado por Alex y fuente web existente"
 confidencialidad: interno
@@ -11,6 +11,8 @@ tags: [feria-finados-2026, tecnologia, web, shows]
 # SHOWS Finados 2026
 
 Relacionado: [[README|Tecnología y datos]] y [[../../../_memoria-del-proyecto|Memoria del proyecto]].
+
+Estado vigente: SHOWS publicada el 2026-09-16 en [la página de producción](https://complejomushucruna.com/finados/shows/). Fuente técnica y pruebas en `origin/main` (`299ab83`); el resultado completo del despliegue se registra al final de esta nota. Los bloqueos relatados a continuación corresponden a intentos anteriores y quedaron resueltos.
 
 ## Alcance verificado
 
@@ -54,7 +56,7 @@ Modo utilizado: herramienta integrada `image_gen`, generación original sin imá
 - Al cierre de la creación, la página y sus artes permanecían locales por la limitación histórica de difusión del cartel. En el siguiente mensaje del 2026-09-16, Alex autorizó expresamente `sube a git y producción`, en respuesta a la pregunta sobre el afiche completo y el repositorio público. La autorización cubre la página SHOWS y los recursos entregados; no habilita anuncios adicionales ajenos al afiche.
 - Las verificaciones parciales no equivalen a `npm run check` completo: esta computadora carece de PHP y tiene restricciones de symlinks. No se omiten ni debilitan los gates del despliegue.
 
-## Próximo paso
+## Próximo paso inicial (histórico)
 
 Responsable: tecnología. Autorización recibida el 2026-09-16. Sincronizar los commits técnicos con GitHub, ejecutar el prevuelo completo en un entorno compatible y desplegar con respaldo. Registrar el resultado real; la autorización no sustituye las validaciones del despliegue.
 
@@ -86,3 +88,12 @@ Responsable: tecnología. Autorización recibida el 2026-09-16. Sincronizar los 
 - La prueba de terminal en Linux fallaba al leer el maestro después de cerrar el último descriptor esclavo del pseudoterminal. El fixture ahora mantiene abierto el esclavo desechable hasta verificar el estado restaurado. No se suprimen errores de lectura ni se modifican el comando real, la captura oculta de contraseñas o sus controles. La prueba enfocada de autenticación aprobó; también aprobó la prueba API después de instalar PHP CGI.
 - El check completo, la integración, el build, el prevuelo remoto y la publicación se vuelven a ejecutar antes de considerar SHOWS publicada. Los resultados anteriores no sustituyen esas comprobaciones.
 - Resultado posterior verificado: `npm run check` completo terminó con exit code 0: 118 pruebas Node, 18 suites PHP y 10 pruebas de integración aprobadas; build de 121 archivos y validación de 31 HTML/1024 referencias. `git diff --check` también aprobó. Falta todavía el prevuelo remoto y el despliegue estándar con respaldo; esta aprobación local no se presenta como publicación.
+
+## Publicación completada y verificada del 2026-09-16
+
+- Correcciones de fixtures y evidencia completa subidas a `origin/main` en `299ab83`; sincronización `0 0`. Las tres notas locales previas permanecieron fuera de ese commit técnico.
+- Configuración privada Linux validada. El prevuelo estándar `--check` aprobó sobre `main` limpia, repitiendo el check completo y comprobando SSH, destino canónico, runtime remoto, salud del backend y lint PHP, sin escribir en el servidor.
+- El modo estándar `--deploy` volvió a ejecutar todas sus validaciones y terminó con exit code 0. Se creó primero una copia de seguridad recuperable, se conservó la credencial remota existente de Google Sheets y se transfirió el inventario estático sin eliminar archivos exclusivos del servidor. No se desplegó una nueva release del backend ni se realizaron cambios DNS o registros de personas en Sheets.
+- Verificación HTTPS estándar aprobada. Verificación adicional independiente: 17 archivos respondieron HTTP 200 y sus SHA-256 coinciden exactamente con el build local: SHOWS, portada, Finados, compra de stands, acreditación de medios, tres CSS, cinco imágenes SHOWS y las cuatro fuentes Finados. Sin diferencias ni fallos.
+- Las tres notas locales se restauraron con hashes idénticos; se retiró únicamente el stash propio de esta publicación después de verificarlo.
+- **Resultado:** SHOWS está en GitHub y producción, con su identidad Finados, orden del afiche y auspiciantes en el footer. No queda bloqueado por WSL, PHP, permisos o symlinks. Responsable: tecnología/diseño.
