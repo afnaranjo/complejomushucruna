@@ -30,6 +30,7 @@ test('la navegación institucional agrupa venta dentro de Finados y conserva el 
     href: '/finados/',
     emphasis: 'finados',
     children: [
+      { label: 'SHOWS', href: '/finados/shows/' },
       { label: 'VENTA DE STANDS', href: 'https://www.mushucticket.com/', emphasis: 'stands' },
       { label: 'PROGRAMACIÓN ARTÍSTICA', href: '/finados/#artistas' },
       { label: 'DIGNIDADES 2025', href: '/finados/dignidades-finados-2025/' },

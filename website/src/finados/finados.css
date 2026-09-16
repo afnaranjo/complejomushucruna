@@ -2,6 +2,7 @@
 @source "./page.mjs";
 @source "./stands-page.mjs";
 @source "./dignities-page.mjs";
+@source "./shows-page.mjs";
 
 @font-face {
   font-family: "Anton";

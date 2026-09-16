@@ -22,6 +22,7 @@ import {
 } from './render/components.mjs';
 import { renderFinadosPage } from './finados/page.mjs';
 import { renderFinadosDignitiesPage } from './finados/dignities-page.mjs';
+import { renderFinadosShowsPage } from './finados/shows-page.mjs';
 import { renderStandsAccessPage } from './finados/stands-page.mjs';
 import { renderVocerosLegalPage } from './finados/voceros-legal-page.mjs';
 import { renderVocerosPage } from './finados/voceros-page.mjs';
@@ -250,6 +251,14 @@ const finadosDignitiesPage = {
   render: renderFinadosDignitiesPage,
 };
 
+const finadosShowsPage = {
+  route: '/finados/shows/',
+  title: 'Shows Finados 2026',
+  description: 'Artistas, fechas, shows y auspiciantes de Finados Mushuc Runa 2026. Consulta el cartel oficial de la feria.',
+  indexable: false,
+  render: renderFinadosShowsPage,
+};
+
 const finadosVocerosPage = {
   route: '/finados/voceros/',
   title: 'Voceros',
@@ -287,6 +296,7 @@ export const pages = Object.freeze([
   ...mainPages,
   ...archivePages,
   finadosPreview,
+  finadosShowsPage,
   finadosVocerosPage,
   ...['acceso', 'mi-registro', 'restablecer'].map(slug => ({ route: `/finados/voceros/${slug}/`, title: 'Cuenta de Vocero', indexable: false, render: renderVoceroPortalPage })),
   ...vocerosLegalPages,

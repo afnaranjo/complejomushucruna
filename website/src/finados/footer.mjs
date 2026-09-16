@@ -1,7 +1,8 @@
 const campaignAssetVersion = '20260903';
 
-export function renderFinadosFooter() {
+export function renderFinadosFooter({ sponsors = '' } = {}) {
   return `<footer class="bg-night px-4 py-12 text-lienzo">
+    ${sponsors}
     <div class="mx-auto flex w-[min(100%,88rem)] flex-col gap-8 border-t border-lienzo/30 pt-8 sm:flex-row sm:items-end sm:justify-between">
       <div>
         <img class="h-auto w-36" src="/assets/finados/logo-finados.svg?v=${campaignAssetVersion}" width="766" height="449" alt="Finados 2026">
