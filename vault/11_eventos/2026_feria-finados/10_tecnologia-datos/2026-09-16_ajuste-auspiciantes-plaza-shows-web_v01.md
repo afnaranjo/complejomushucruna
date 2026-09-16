@@ -1,7 +1,7 @@
 ---
 titulo: "Auspiciantes y Plaza de la Luna en SHOWS"
 responsable: "tecnología/diseño"
-estado: aprobado
+estado: publicado
 ultima_actualizacion: 2026-09-16
 fuente: "SVG de auspiciantes proporcionado por Alex y afiche FINAL aprobado"
 confidencialidad: interno
@@ -34,9 +34,18 @@ Alex autorizó modificar `/finados/shows/` y publicar en GitHub y producción. E
 - Nueve pruebas específicas SHOWS en verde: contenido, composición inmutable, seguridad, footer, logo, fechas, tamaño tipográfico, responsive, activos y versionado.
 - `npm run check` completo en Linux/PHP: exit code 0, 121 pruebas Node, 18 suites PHP, 10 integración, build de 123 archivos y 31 HTML/1027 referencias válidas. Sin reducir validaciones ni alterar fixtures.
 - Revisión visual en escritorio y viewport móvil de 390 × 844: logo legible, titulares de aproximadamente 49 px y 42 px, fechas originales, tarjetas apiladas en móvil y ancho de documento sin desbordamiento. SVG completo en el footer, sin cambiar composición; override de viewport retirado al terminar.
-- Publicación con respaldo: pendiente de finalización. Los controles locales no se presentan como despliegue completado.
+- Publicación completada mediante el procedimiento estándar; resultado verificado al final de esta nota.
 - Las tres notas documentales previas permanecen fuera del commit de esta tarea, sin pérdida de cambios ajenos.
 
 ## Riesgos y seguimiento
 
 La composición completa mantiene una única fila de auspiciantes, como el diseño entregado; en pantallas pequeñas puede ampliarse en otra pestaña. La resolución del logo es la nativa del afiche: un maestro vectorial independiente permitiría una futura mejora, sin impedir este ajuste solicitado. No se modifican DNS, credenciales, backend ni datos de personas en Sheets.
+
+## Resultado de producción del 2026-09-16
+
+- Implementación y pruebas enviadas a `origin/main` en `b52a5eb` (`Mejorar auspiciantes y shows de Plaza de la Luna`).
+- Configuración privada, prevuelo y despliegue estándar aprobados desde `main` limpia y sincronizada. El procedimiento repitió el check completo en ambos modos, creó respaldo recuperable antes de transferir y conservó la credencial existente de Sheets; no eliminó archivos exclusivos del servidor.
+- Verificación independiente HTTPS: 19 archivos, todos HTTP 200 y SHA-256 idéntico al build. Incluye SHOWS, cinco páginas principales, tres CSS, el SVG nuevo, logo de Plaza de la Luna, artes y las cuatro fuentes de Finados. Cero diferencias o fallos.
+- Navegador de producción recargado: muestra el logo, las dos tarjetas ampliadas y la composición SVG nueva; recursos versionados `20260916-shows-2`.
+- Las tres notas locales previas se restauraron con hashes idénticos; únicamente se retiró el stash propio de la publicación después de comprobarlo.
+- No hubo nueva release del backend, cambios DNS, envío de datos de personas a Sheets, ni modificaciones del canal de compra. Se mantuvo el procedimiento habitual de configuración legal/controlador gestionado del frontend.
