@@ -6,7 +6,7 @@ Este directorio contiene el frontend completo de `complejomushucruna.com`, inclu
 
 Al 2026-09-16, `origin/main` contiene el frontend completo, las rutas Finados y Administración, el backend de Voceros, migraciones, recursos legales, pruebas, scripts de build/despliegue y la documentación del proyecto. El código publicado corresponde a `0e0ecf0`; las credenciales, fotos de producción, configuraciones privadas y llaves SSH nunca forman parte del repositorio.
 
-La revisión local más reciente también unifica la portada `/` con la navegación Finados (`d5740dd`); producción requiere una autorización de publicación adicional para recibir ese último ajuste.
+La revisión local más reciente también unifica la portada `/` con la navegación Finados (`d999169`); producción requiere una autorización de publicación adicional para recibir ese último ajuste.
 
 Para obtener todo en otra computadora, usa la copia existente (no clones una segunda vez) y ejecuta desde la raíz:
 
