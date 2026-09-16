@@ -28,7 +28,12 @@ test('la identidad institucional permanece independiente de la campaña', () => 
   for (const route of ['/', '/granja/', '/historia/', '/visitanos/']) {
     const html = renderLayout(pages.find(page => page.route === route));
     assert.match(html, /href="\/assets\/styles\.css\?v=20260916-3"/);
-    assert.doesNotMatch(html, /href="\/assets\/finados\/(finados|navigation)\.css/);
+    assert.doesNotMatch(html, /href="\/assets\/finados\/finados\.css/);
+    if (route === '/') {
+      assert.match(html, /href="\/assets\/finados\/navigation\.css\?v=20260916-8"/);
+    } else {
+      assert.doesNotMatch(html, /href="\/assets\/finados\/navigation\.css/);
+    }
   }
 });
 
