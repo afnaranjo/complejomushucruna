@@ -828,3 +828,13 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Commit: `ee4e2e3` (`Unificar navegación pública y submenú de Voceros`), pendiente de sincronizar en `origin/main`.
 - Publicación externa: ninguna; no se desplegó el frontend ni se modificó el backend, Acreditación de Medios, Google Sheets, DNS u otro servicio.
 - Riesgos y pendientes: revisar visualmente el menú en producción y desplegarlo solo con autorización expresa; las páginas privadas de cuenta de Voceros conservan su cabecera aislada.
+
+### 2026-09-16 — Jerarquía final y corrección de clic del menú público
+
+- Se corrigió el comportamiento del menú compartido para que la etiqueta de cualquier sección con submenú abra sus opciones en la primera pulsación y conserve la navegación del enlace en la siguiente; el botón desplegable mantiene el mismo estado accesible y el cierre por enlace, Escape y clic exterior.
+- Se estandarizó la jerarquía solicitada: `INICIO`, `VENTA DE STANDS`, `FINADOS 2026`, `ACREDITACIÓN DE MEDIOS`, `TOUR VIRTUAL`, `GRANJA` y `NOSOTROS`; dentro de `FINADOS 2026` permanecen `PROGRAMACIÓN ARTÍSTICA`, `DIGNIDADES 2025` y `VOCEROS`, y dentro de `NOSOTROS` están `HISTORIA` y `VISITAMOS`.
+- Se actualizaron las versiones de caché de `site.js` y `finados.js` a `20260916-1`. La ruta y el POST de Acreditación de Medios, incluido el puente de Google Sheets, no fueron modificados.
+- QA: `npm run check` y el prevuelo completo de despliegue en verde: 105 pruebas Node, 18 PHP, 10 de integración, build de 113 archivos y 918 referencias válidas. En local y producción se comprobó por accesibilidad que las etiquetas `FINADOS 2026` y `NOSOTROS` abren sus submenús.
+- Commits: `5eb42b0` (`Corregir apertura del submenú de Finados`) y `da5133c` (`Ordenar menú y agrupar sección Nosotros`), sincronizados en `origin/main`.
+- Publicación externa: despliegue autorizado del frontend en `complejomushucruna.com`; se creó respaldo remoto, se transfirió sin borrar archivos exclusivos y se verificó por HTTPS la portada y `/finados/`. No se modificaron el backend, `finados.complejomushucruna.com`, DNS, Meta, Bitrix, Notion, Google Sheets ni Mushuc Ticket.
+- Riesgos y pendientes: la landing `/finados/` conserva `noindex, nofollow, noarchive`; el usuario Administrador del portal todavía debe crearse mediante ingreso oculto y siguen pendientes la autorización escrita para representantes de menores y el procedimiento de eliminación al cumplir tres años.

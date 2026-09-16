@@ -2,7 +2,7 @@
 titulo: "Pendientes ejecutivos"
 responsable: "dirección integral de la feria"
 estado: en-revision
-ultima_actualizacion: 2026-09-15
+ultima_actualizacion: 2026-09-16
 fuente: interna
 confidencialidad: interno
 tags:
@@ -14,7 +14,7 @@ tags:
 
 ## Cierre documental reciente
 
-- [x] Unificar localmente la navegación pública de la portada, Finados, compra de stands, Dignidades, Voceros, documentos legales y Acreditación de Medios; añadir `VOCEROS` al submenú de `FINADOS 2026`, compactar la cabecera en tabletas y conservar intacto el POST/puente de Google Sheets de Acreditación. QA: `npm run check` completo, 105 Node, 18 PHP, 10 integración, build de 113 archivos y 918 referencias válidas. Commit `ee4e2e3`; no publicado. Responsable: Alex/tecnología/diseño. Completado: 2026-09-15.
+- [x] Unificar y publicar la navegación pública de la portada, Finados, compra de stands, Dignidades, Voceros, documentos legales y Acreditación de Medios; ordenar `INICIO`, `VENTA DE STANDS`, `FINADOS 2026`, `ACREDITACIÓN DE MEDIOS`, `TOUR VIRTUAL`, `GRANJA` y `NOSOTROS`, agrupar `HISTORIA` y `VISITAMOS` dentro de `NOSOTROS`, añadir `VOCEROS` al submenú de `FINADOS 2026`, hacer que la etiqueta padre abra el submenú al primer clic y conservar intacto el POST/puente de Google Sheets de Acreditación. QA: `npm run check` y prevuelo de despliegue en verde, 105 Node, 18 PHP, 10 integración, build de 113 archivos y 918 referencias válidas; producción verificada por HTTPS y accesibilidad. Commits `5eb42b0` y `da5133c`. Responsable: Alex/tecnología/diseño. Completado: 2026-09-16.
 - [x] Implementar, revisar, versionar y desplegar el [[11_eventos/2026_feria-finados/10_tecnologia-datos/2026-09-15_plan-implementacion-cuentas-voceros-fotografia-web_v01|portal autenticado de Voceros]]: perfiles aislados, foto privada, administración, recuperación, consentimiento canónico, cola durable, backup verificable, health del SAPI web y propiedad protegida del endpoint; 105 pruebas Node, 18 archivos PHP y 10 pruebas de integración en verde. Backend desplegado antes del frontend; health y rutas públicas verificados. Completado: 2026-09-15.
 - [x] Consolidar en un único [[11_eventos/2026_feria-finados/00_direccion-control/2026-09-07_informe-maestro-proyecto-finados-2026_v01|informe maestro sanitizado]] todo el contexto, evidencia, estrategias, sistemas, frentes, riesgos, estado y próximos pasos del proyecto, sin credenciales, identificadores internos, datos personales sensibles, contactos privados, contratos ni programación bajo embargo. Responsable: dirección integral/documentación. Completado: 2026-09-07.
 
