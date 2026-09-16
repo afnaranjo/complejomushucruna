@@ -14,6 +14,7 @@ test('representante: los cuatro campos se presentan como obligatorios, sin etiqu
   const { renderVoceroForm } = await import('../src/finados/vocero-form.mjs');
   const catalogue = JSON.parse(await readFile(new URL('../backend/finados-api/resources/vocero-consents.json', import.meta.url)));
   const html = renderVoceroForm(catalogue);
+  assert.equal((html.match(/type="submit"/g) ?? []).length, 1, 'el formulario debe mostrar un único botón de guardado');
   for (const name of ['representante_nombre', 'representante_cedula', 'representante_telefono', 'representante_correo']) {
     const label = html.match(new RegExp(`<label[^>]*for="${name}"[^>]*>[\\s\\S]*?<\\/label>`))?.[0];
     assert.ok(label, name);
@@ -21,6 +22,40 @@ test('representante: los cuatro campos se presentan como obligatorios, sin etiqu
     assert.match(label, /<span aria-hidden="true">\*<\/span>/);
     assert.match(label, /<input[^>]* required>/);
   }
+});
+
+test('autoguardado: agrupa cambios y ejecuta una sola vez después de la pausa', async () => {
+  const { createAutoSaveScheduler } = await clientModule();
+  const callbacks = [];
+  let nextId = 0;
+  const pending = new Map();
+  const scheduler = createAutoSaveScheduler(() => { callbacks.push('saved'); }, {
+    delay: 700,
+    setTimeoutImplementation: (callback, delay) => { const id = ++nextId; pending.set(id, { callback, delay }); return id; },
+    clearTimeoutImplementation: id => pending.delete(id),
+  });
+  scheduler.schedule();
+  scheduler.schedule();
+  assert.equal(pending.size, 1);
+  const timer = pending.values().next().value;
+  await timer.callback();
+  assert.deepEqual(callbacks, ['saved']);
+});
+
+test('autoguardado: solo se habilita con el formulario completo y un perfil social', async () => {
+  const { isProfileReadyForAutoSave } = await clientModule();
+  const values = new Map([
+    ['fecha_nacimiento', { value: '2000-01-01' }],
+    ['tiktok', { value: 'https://tiktok.com/@vocero' }],
+    ['instagram', { value: '' }],
+    ['facebook', { value: '' }],
+  ]);
+  const form = { checkValidity: () => false, elements: { namedItem: name => values.get(name) } };
+  assert.equal(isProfileReadyForAutoSave(form), false);
+  form.checkValidity = () => true;
+  assert.equal(isProfileReadyForAutoSave(form), true);
+  values.get('tiktok').value = '';
+  assert.equal(isProfileReadyForAutoSave(form), false);
 });
 
 test('cliente invoca fetch sin ligar this al cliente (compatible con Window.fetch)', async () => {

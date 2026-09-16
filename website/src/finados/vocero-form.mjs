@@ -14,7 +14,6 @@ export function renderVoceroForm(consents) {
 <p id="photo-help">Sube una foto reciente, de frente, con el rostro visible y sin filtros. Se usará para verificar tu identidad y, si corresponde, elaborar y entregar tu credencial o gafete. Su carga no autoriza por sí sola la publicación en canales oficiales. JPG, PNG o WebP; máximo 5 MB.</p>
 <label class="vocero-field" for="fotografia"><span data-photo-label>Seleccionar fotografía</span><input id="fotografia" name="fotografia" type="file" accept="image/jpeg,image/png,image/webp" required aria-describedby="photo-help"></label>
 <button class="vocero-quiet" data-photo-replace type="button" hidden>Reemplazar fotografía</button>
-<button class="vocero-primary vocero-photo-save" type="submit">Guardar registro</button>
 </section>
 <div class="vocero-profile-details">
 <section aria-labelledby="personal-title"><p class="vocero-eyebrow">02 · Tus datos</p><h2 id="personal-title">Información personal</h2><p>Los campos con * son obligatorios.</p>
@@ -44,7 +43,7 @@ ${field('representante_correo', 'Correo del representante', 'type="email" maxlen
 <section class="vocero-consents" aria-labelledby="consents-title"><p class="vocero-eyebrow">04 · Consentimientos</p><h2 id="consents-title">Revisa y confirma</h2>
 ${[['policies', 'consentimiento_politicas'], ['image', 'autorizacion_imagen'], ['data', 'consentimiento_datos']].map(([key, name]) => `<label class="vocero-check"><input type="checkbox" name="${name}" value="Sí" required><span>${esc(consents[key].text)}</span></label>`).join('')}
 <nav class="vocero-legal-links" aria-label="Documentos de consentimiento"><a href="/finados/voceros/politicas-del-vocero/" target="_blank" rel="noopener noreferrer">Políticas del Vocero</a><a href="/finados/voceros/bases-del-termometro/" target="_blank" rel="noopener noreferrer">Bases del Termómetro</a><a href="/finados/voceros/autorizacion-de-imagen/" target="_blank" rel="noopener noreferrer">Autorización de uso de imagen</a><a href="/finados/voceros/politica-de-privacidad/" target="_blank" rel="noopener noreferrer">Política de Privacidad</a></nav>
-</section><div class="vocero-save"><p data-save-help>Revisa tus datos y guarda tu registro.</p><button class="vocero-primary" type="submit">Guardar registro</button></div>
+</section><div class="vocero-save"><div><p data-save-help>Tus cambios se guardan automáticamente cuando el formulario está completo.</p><p class="vocero-save-status" data-auto-save-status role="status" aria-live="polite"></p></div><button class="vocero-primary" type="submit">Guardar registro</button></div>
 </div></div></fieldset></form>`;
 }
 

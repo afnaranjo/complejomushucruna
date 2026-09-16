@@ -901,3 +901,11 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Publicación externa: se ejecutó `npm run backend:deploy` y después `npm run deploy` desde la copia autorizada de Complejo Muchuc Runa. El backend creó respaldo, aplicó migraciones y verificó health; el frontend creó respaldo y se transfirió sin borrar archivos exclusivos ni alterar Acreditación de Medios, Google Sheets, DNS o `superplataforma`.
 - Verificación HTTPS posterior: `/`, `/finados/`, `/finados/voceros/`, `/admin/` y `finados.complejomushucruna.com/api/health` devolvieron HTTP 200; el asset público del gafete contiene los iconos `crecimiento`, `legado` y `espectador`.
 - Riesgos y pendientes: el usuario Administrador sigue siendo una operación separada; mantener credenciales y llaves fuera de Git y del chat. Los nueve archivos locales con sufijo `2` quedaron respaldados fuera del repositorio en `Downloads`.
+
+### 2026-09-16 — Un solo guardado y autoguardado del registro de Voceros
+
+- Se eliminó el botón duplicado de `Mi registro`; queda un único `Guardar registro` al final del formulario.
+- Se añadió autoguardado con pausa de 900 ms después de cambios, únicamente cuando el formulario completo pasa sus validaciones, la fotografía requerida está presente y existe al menos una red social. No se almacenan datos personales en `localStorage`/`sessionStorage` ni se envían formularios incompletos.
+- Se añadió estado accesible de guardado (`Guardando cambios…` / `Guardado automáticamente.`) y se conservaron el guardado manual, la carga privada de fotografía, consentimientos, gafete y flujo de Acreditación de Medios.
+- QA: 120 pruebas Node, 18 pruebas PHP y 10 de integración; build de 121 archivos, 31 HTML y 1025 referencias; `check-dist` válido. La batería HTTP requirió permisos de loopback del entorno y pasó completa.
+- Publicación externa: ninguna en esta sesión; queda pendiente autorización expresa para ejecutar el despliegue frontend. No se tocaron backend, `superplataforma`, DNS, Acreditación de Medios ni Google Sheets.

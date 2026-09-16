@@ -358,11 +358,6 @@ input[type=file]::file-selector-button {
   font-size:.875rem;
   color:var(--muted)
 }
-.vocero-photo-save {
-  display:block;
-  width:100%;
-  margin-top:1.25rem
-}
 .vocero-photo [data-photo-replace] {
   width:100%
 }
@@ -403,6 +398,16 @@ input[type=file]::file-selector-button {
   color:var(--muted);
   max-width:40ch;
   margin:0
+}
+.vocero-save-status {
+  min-height:1.25em;
+  margin-top:.35rem !important;
+  color:var(--accent) !important;
+  font-size:.75rem !important;
+  font-weight:700;
+}
+.vocero-save-status[data-error=true] {
+  color:#b12652 !important;
 }
 .vocero-save button {
   flex-shrink:0
@@ -513,9 +518,6 @@ input[type=file]::file-selector-button {
   }
   #photo-help,.vocero-photo>.vocero-field,.vocero-photo>[data-photo-replace] {
     grid-column:2
-  }
-  .vocero-photo-save {
-    grid-column:1/-1
   }
   .vocero-workspace-heading {
     gap:1rem

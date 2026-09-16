@@ -123,6 +123,37 @@ export class VoceroProfileState {
   }
 }
 
+export function createAutoSaveScheduler(save, {
+  delay = 900,
+  setTimeoutImplementation = globalThis.setTimeout,
+  clearTimeoutImplementation = globalThis.clearTimeout,
+} = {}) {
+  if (typeof save !== 'function') throw new TypeError('La función de autoguardado es obligatoria.');
+  let timer = null;
+  let running = false;
+  let queued = false;
+  const schedule = () => {
+    if (timer !== null) clearTimeoutImplementation(timer);
+    timer = setTimeoutImplementation(async () => {
+      timer = null;
+      if (running) { queued = true; return; }
+      running = true;
+      try { await save(); }
+      finally {
+        running = false;
+        if (queued) { queued = false; schedule(); }
+      }
+    }, delay);
+    return timer;
+  };
+  const cancel = () => {
+    if (timer !== null) clearTimeoutImplementation(timer);
+    timer = null;
+    queued = false;
+  };
+  return { schedule, cancel };
+}
+
 export class PhotoPreview {
   constructor(url = URL, events = globalThis) {
     this.url = url; this.current = '';
@@ -132,11 +163,11 @@ export class PhotoPreview {
   clear() { if (this.current) this.url.revokeObjectURL(this.current); this.current = ''; }
 }
 
-function showFeedback(element, message, error = false) {
+function showFeedback(element, message, error = false, { focus = true } = {}) {
   element.textContent = message;
   element.dataset.error = String(error);
   element.setAttribute('role', error ? 'alert' : 'status');
-  if (message) element.focus();
+  if (message && focus) element.focus();
 }
 function ageToday(value) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return NaN;
@@ -155,6 +186,13 @@ function validateForm(form) {
   const password = form.elements.namedItem('password');
   const confirmation = form.elements.namedItem('confirmation');
   if (confirmation && password.value !== confirmation.value) throw new Error('Las contraseñas no coinciden. Revisa la confirmación.');
+}
+
+export function isProfileReadyForAutoSave(form) {
+  if (!form?.checkValidity?.() || !form.elements?.namedItem) return false;
+  const value = name => String(form.elements.namedItem(name)?.value ?? '').trim();
+  const age = ageToday(value('fecha_nacimiento'));
+  return Number.isFinite(age) && age >= 16 && ['tiktok', 'instagram', 'facebook'].some(name => value(name) !== '');
 }
 
 async function loadBadgeImage(source) {
@@ -232,7 +270,7 @@ export async function initializeVoceroPortal(root = document, location = globalT
   const feedback = root.querySelector('[data-vocero-feedback]');
   const retry = root.querySelector('[data-session-retry]');
   const relogin = root.querySelector('[data-session-login]');
-  const message = (text, error = false) => showFeedback(feedback, text, error);
+  const message = (text, error = false, focus = true) => showFeedback(feedback, text, error, { focus });
   const reportError = error => { message(error.message, true); relogin.hidden = error.status !== 401 || view !== 'profile'; };
   root.addEventListener('input', event => event.target.removeAttribute?.('aria-invalid'));
   let ready = false;
@@ -241,6 +279,8 @@ export async function initializeVoceroPortal(root = document, location = globalT
   const preview = new PhotoPreview();
   const profileForm = root.querySelector('[data-vocero-profile]');
   const photo = root.querySelector('[name="fotografia"]');
+  const autoSaveStatus = root.querySelector('[data-auto-save-status]');
+  let autoSaveScheduler = null;
   let photoGeneration = 0;
   const image = root.querySelector('[data-photo-preview]');
   const progressPanel = root.querySelector('[data-vocero-progress]');
@@ -258,7 +298,7 @@ export async function initializeVoceroPortal(root = document, location = globalT
     const placeholder = root.querySelector('[data-photo-placeholder]');
     if (placeholder) placeholder.hidden = false;
   };
-  globalThis.addEventListener?.('pagehide', () => { photoGeneration++; clearPhoto(); });
+  globalThis.addEventListener?.('pagehide', () => { autoSaveScheduler?.cancel(); photoGeneration++; clearPhoto(); });
   globalThis.addEventListener?.('pageshow', event => { if (event.persisted) location.reload(); });
   const loadSavedPhoto = async () => {
     const generation = ++photoGeneration;
@@ -285,7 +325,7 @@ export async function initializeVoceroPortal(root = document, location = globalT
     root.querySelector('[data-photo-label]').textContent = profile.photo?.available ? 'Fotografía nueva (opcional)' : 'Seleccionar fotografía';
     profileForm.querySelector('fieldset').disabled = !state.editable;
     for (const button of profileForm.querySelectorAll('button[type="submit"]')) button.hidden = !state.editable;
-    root.querySelector('[data-save-help]').textContent = state.editable ? 'Revisa tus datos y guarda tu registro.' : 'Tu registro está en revisión o ya tiene una decisión. Puedes consultar tus datos; para cambios, contacta a la coordinación.';
+    root.querySelector('[data-save-help]').textContent = state.editable ? 'Tus cambios se guardan automáticamente cuando el formulario está completo.' : 'Tu registro está en revisión o ya tiene una decisión. Puedes consultar tus datos; para cambios, contacta a la coordinación.';
     root.querySelector('.vocero-consents').hidden = !state.editable;
     updateMinor();
     updateProgress(profile);
@@ -362,6 +402,53 @@ export async function initializeVoceroPortal(root = document, location = globalT
   // Remove the recovery token from the address bar before any subsequent navigation.
   let resetToken = view === 'reset' ? new URLSearchParams(location.search).get('token') ?? '' : '';
   if (view === 'reset' && location.search) globalThis.history?.replaceState(null, '', location.pathname);
+  const setAutoSaveStatus = (text, error = false) => {
+    if (!autoSaveStatus) return;
+    autoSaveStatus.textContent = text;
+    autoSaveStatus.dataset.error = String(error);
+  };
+  function validateProfileBusinessRules(data) {
+    const age = ageToday(data.get('fecha_nacimiento'));
+    if (!Number.isFinite(age) || age < 16) throw new Error('El programa recibe participantes desde los 16 años. Revisa tu fecha de nacimiento.');
+    if (!['tiktok', 'instagram', 'facebook'].some(name => data.get(name)?.trim())) throw new Error('Ingresa al menos un enlace de tu perfil social.');
+  }
+  async function saveProfile({ auto = false } = {}) {
+    if (!profileForm || !state.editable || profileForm.getAttribute('aria-busy') === 'true') return false;
+    const fields = profileForm.querySelector('fieldset');
+    try {
+      if (auto && !isProfileReadyForAutoSave(profileForm)) return false;
+      if (!auto) validateForm(profileForm);
+      // FormData must be captured before disabling controls.
+      const data = new FormData(profileForm);
+      validateProfileBusinessRules(data);
+      fields.disabled = true; profileForm.setAttribute('aria-busy', 'true');
+      setAutoSaveStatus(auto ? 'Guardando cambios…' : 'Guardando…');
+      const saved = await api.saveProfile(state.body(data));
+      populate(saved);
+      if (photo) photo.value = '';
+      clearPhoto();
+      setAutoSaveStatus(auto ? 'Guardado automáticamente.' : 'Guardado correctamente.');
+      message(auto ? 'Cambios guardados automáticamente.' : 'Registro guardado. Puedes consultar aquí el estado de tu participación.', false, !auto);
+      if (saved.photo?.available) {
+        try { const blob = await loadSavedPhoto(); await updateBadge(saved, blob); }
+        catch { message('Registro guardado. No se pudo cargar la vista previa de tu foto; vuelve a abrir tu registro para consultarla.', false, !auto); }
+      }
+      return true;
+    } catch (error) {
+      reportError(error);
+      setAutoSaveStatus(auto ? 'No se pudo guardar automáticamente. Revisa tu conexión.' : '', true);
+      return false;
+    } finally {
+      fields.disabled = !state.editable;
+      profileForm.setAttribute('aria-busy', 'false');
+    }
+  }
+  const scheduleAutoSave = () => {
+    if (!ready || !profileForm || !state.editable || profileForm.getAttribute('aria-busy') === 'true') return;
+    if (!isProfileReadyForAutoSave(profileForm)) return;
+    autoSaveScheduler?.schedule();
+  };
+  autoSaveScheduler = profileForm ? createAutoSaveScheduler(() => saveProfile({ auto: true })) : null;
   function submit(form, action) {
     form?.addEventListener('submit', async event => {
       event.preventDefault();
@@ -393,17 +480,10 @@ export async function initializeVoceroPortal(root = document, location = globalT
     for (const form of forms) { form.reset(); form.hidden = true; }
     message('Contraseña actualizada. Inicia sesión con tu nueva contraseña.');
   });
-  submit(profileForm, async data => {
-    const age = ageToday(data.get('fecha_nacimiento'));
-    if (!Number.isFinite(age) || age < 16) throw new Error('El programa recibe participantes desde los 16 años. Revisa tu fecha de nacimiento.');
-    if (!['tiktok', 'instagram', 'facebook'].some(name => data.get(name)?.trim())) throw new Error('Ingresa al menos un enlace de tu perfil social.');
-    const saved = await api.saveProfile(state.body(data));
-    populate(saved);
-    photo.value = ''; clearPhoto();
-    message('Registro guardado. Puedes consultar aquí el estado de tu participación.');
-    if (saved.photo?.available) {
-      try { const blob = await loadSavedPhoto(); await updateBadge(saved, blob); } catch { message('Registro guardado. No se pudo cargar la vista previa de tu foto; vuelve a abrir tu registro para consultarla.'); }
-    }
+  profileForm?.addEventListener('submit', event => {
+    event.preventDefault();
+    if (!ready || profileForm.getAttribute('aria-busy') === 'true') return;
+    void saveProfile();
   });
   photo?.addEventListener('change', () => {
     const selected = photo.files?.[0];
@@ -413,10 +493,12 @@ export async function initializeVoceroPortal(root = document, location = globalT
   });
   root.querySelector('[data-photo-replace]')?.addEventListener('click', () => photo.click());
   profileForm?.elements.namedItem('fecha_nacimiento').addEventListener('change', updateMinor);
+  profileForm?.addEventListener('input', scheduleAutoSave);
+  profileForm?.addEventListener('change', scheduleAutoSave);
   const logout = root.querySelector('[data-vocero-logout]');
   logout?.addEventListener('click', async () => {
     logout.disabled = true;
-    try { await api.logout(); photoGeneration++; clearPhoto(); profileForm.reset(); location.assign(ACCESS); }
+    try { autoSaveScheduler?.cancel(); await api.logout(); photoGeneration++; clearPhoto(); profileForm.reset(); location.assign(ACCESS); }
     catch (error) { reportError(error); logout.disabled = false; }
   });
   async function start() {

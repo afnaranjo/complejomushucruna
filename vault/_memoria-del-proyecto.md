@@ -148,6 +148,8 @@ El 28 de agosto quedó confirmado `¡LEGADO QUE NOS UNE!` como eslogan gráfico 
 
 - Cierre del 2026-09-16: se corrigió la detección del esquema de progreso para el protocolo SQLite simulado (`VocerosRepository`, commit `6952499`) y se ejecutó el flujo oficial `backend:deploy` → `deploy` desde `origin/main`, con respaldo remoto, migraciones, health y publicación estática sin borrar archivos exclusivos. QA completo pasó con 118 pruebas Node, 18 PHP, 10 de integración, build de 121 archivos y 1025 referencias válidas. HTTPS confirmó HTTP 200 en `/`, `/finados/`, `/finados/voceros/`, `/admin/` y `/api/health`; el asset público del gafete contiene los iconos de `crecimiento`, `legado` y `espectador`. No se tocaron `superplataforma`, `complejomushucruna.ec`, DNS, Acreditación de Medios ni Google Sheets.
 
+- El 2026-09-16 se eliminó el botón duplicado de `Mi registro` y se dejó un único `Guardar registro`. El formulario ahora agrupa cambios y autoguarda después de 900 ms solo cuando pasa todas las validaciones, tiene la fotografía requerida y al menos una red social; el botón manual permanece como respaldo. No se usan `localStorage`/`sessionStorage` para datos personales. QA: 120 pruebas Node, 18 PHP, 10 integración y build de 121 archivos/1025 referencias; queda pendiente publicar este ajuste.
+
 ## Enlaces
 
 - [[_inicio|Centro de mando]]
