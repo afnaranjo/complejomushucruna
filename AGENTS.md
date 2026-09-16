@@ -877,3 +877,10 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Para otra computadora se dejó el flujo en `website/README.md`: trabajar en una sola copia, `git checkout main`, `git fetch origin`, `git pull --ff-only origin main`, `npm ci` y `npm run check`. `.env.deploy`, llaves, passphrases y credenciales se crean únicamente de forma local.
 - Publicación externa: backend y frontend actualizados en sus dominios autorizados. No se tocaron `complejomushucruna.ec`, DNS, Acreditación de Medios, Google Sheets, Meta, Bitrix, Notion ni Mushuc Ticket.
 - Riesgos y pendientes: no crear una segunda copia del repositorio; mantener la rotación de la passphrase expuesta y la creación/verificación del usuario Administrador como operaciones separadas y seguras; cualquier rollback requiere autorización y respaldo específico.
+
+### 2026-09-16 — QA local de menú unificado en la portada
+
+- La revisión solicitada encontró una diferencia real: `/finados/`, Voceros, Dignidades, stands y Acreditación ya cargaban `navigation.css?v=20260916-8`, pero la portada `/` conservaba únicamente el estilo institucional y mostraba otro tratamiento visual.
+- Se corrigió `render/layout.mjs` para que la portada que usa `site-header--finados` cargue la misma hoja de navegación. Las páginas institucionales `/granja/`, `/historia/` y `/visitanos/` permanecen independientes; no se cambió el contenido ni el POST/puente de Acreditación de Medios.
+- QA local en las seis landings: menú con seis etiquetas en el mismo orden, fondo mate fucsia para `FINADOS 2026`, tintes discretos para los demás niveles, sticky activo y `navigation.css?v=20260916-8`. Se ejecutaron `npm run check` y `check-dist`: 109 pruebas Node, 18 PHP, 10 integración, build de 114 archivos, 30 HTML y 956 referencias, todo en verde.
+- Commit: `d5740dd` (`Unificar menú Finados en la portada`), sincronizado en `origin/main`. Esta corrección adicional no se desplegó a producción; requiere autorización expresa y repetir el flujo backend → frontend solo si cambia el backend, o frontend si se publica únicamente el menú.
