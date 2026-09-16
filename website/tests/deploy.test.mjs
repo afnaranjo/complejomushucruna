@@ -112,22 +112,26 @@ function recalculateManagedPayloadDigest(source) {
   return source.slice(0, digestStart) + digest + source.slice(digestStart + 64);
 }
 
-async function publicEndpointInstallFixture(existingSource, endpointSource = replacementEndpointSource) {
+async function publicEndpointInstallFixture(existingSource, endpointSource = replacementEndpointSource, {
+  privateDataWithinDocroot = false,
+} = {}) {
   const { installPublicBootstrap } = await import('../scripts/deploy-finados-backend.mjs');
   const { publishFrontendFiles } = await import('../scripts/deploy-cpanel.mjs');
   const temp = await mkdtemp(join(tmpdir(), 'finados-first-publish-'));
-  await mkdir(join(temp, 'api/voceros'), { recursive: true });
-  await mkdir(join(temp, 'private-data'), { mode: 0o700 });
-  const privateDirectory = await realpath(join(temp, 'private-data'));
+  await mkdir(join(temp, 'public', 'api/voceros'), { recursive: true });
+  const docroot = await realpath(join(temp, 'public'));
+  const privateData = join(privateDataWithinDocroot ? docroot : temp, 'private-data');
+  await mkdir(privateData, { mode: 0o700 });
+  const privateDirectory = await realpath(privateData);
   await writeFile(join(privateDirectory, 'finados-backend.json'), '{}', { mode: 0o600 });
   const ownership = join(privateDirectory, 'voceros-endpoint-ownership.json');
-  const endpoint = join(temp, 'api/voceros/index.php');
+  const endpoint = join(docroot, 'api/voceros/index.php');
   if (existingSource !== undefined) await writeFile(endpoint, existingSource);
   const transport = recordingTransport();
   transport.run = async operation => {
     const input = operation.input.replaceAll(
       '/home/usuario_cpanel/public_html/complejomushucruna.com',
-      temp,
+      docroot,
     ).replaceAll('/home/usuario_cpanel/private-data', privateDirectory);
     const result = spawnSync('php', [], { input, encoding: 'utf8' });
     if (result.status !== 0) throw new Error('fixture install failed');
@@ -142,7 +146,7 @@ async function publicEndpointInstallFixture(existingSource, endpointSource = rep
     normalize: () => stages.push('permissions'),
     verify: () => stages.push('HTTPS'),
   });
-  return { endpoint, ownership, privateDirectory, publish, stages };
+  return { endpoint, ownership, privateDirectory, docroot, publish, stages };
 }
 
 test('backend prevuelo ejecuta lecturas sin migración ni escritura y devuelve salud del subdominio', async () => {
@@ -352,6 +356,7 @@ test('backend carga las excepciones globales antes de ejecutar el respaldo empaq
 test('backend primer despliegue migra atómicamente el endpoint histórico exacto aprobado', async () => {
   const historical = historicalVocerosEndpoint();
   const fixture = await publicEndpointInstallFixture(historical);
+  assert.ok(!fixture.privateDirectory.startsWith(fixture.docroot + '/'));
 
   await fixture.publish();
 
@@ -359,6 +364,18 @@ test('backend primer despliegue migra atómicamente el endpoint histórico exact
   assert.notEqual(installed, historical);
   assert.match(installed, /FINADOS MANAGED BOOTSTRAP BEGIN/);
   assert.deepEqual(fixture.stages, ['upload', 'permissions', 'HTTPS']);
+});
+
+test('backend rechaza datos privados dentro de un docroot canónico sin publicar archivos', async () => {
+  const historical = historicalVocerosEndpoint();
+  const fixture = await publicEndpointInstallFixture(historical, replacementEndpointSource, {
+    privateDataWithinDocroot: true,
+  });
+  assert.ok(fixture.privateDirectory.startsWith(fixture.docroot + '/'));
+  await assert.rejects(fixture.publish());
+  assert.equal(await readFile(fixture.endpoint, 'utf8'), historical);
+  await assert.rejects(stat(fixture.ownership));
+  assert.deepEqual(fixture.stages, []);
 });
 
 test('backend registra en un manifiesto privado el hash exacto del endpoint instalado', async () => {
@@ -554,8 +571,13 @@ test('backend acepta solo la versión administrada previa explícita sin confiar
   const { preparePublicEndpoint } = await import('../scripts/deploy-finados-backend.mjs');
   const config = fixtureConfig();
   const endMarker = '// FINADOS MANAGED BOOTSTRAP END\n';
-  const previousPayload = (await readFile(join(websiteRoot, 'public/api/voceros/index.php'), 'utf8'))
+  const previousPayload = execFileSync('git', ['show', '0bbd0fd:website/public/api/voceros/index.php'], {
+    cwd: repositoryRoot,
+    encoding: 'utf8',
+  })
     .replace(/^<\?php\s*declare\(strict_types=1\);/, '<?php');
+  assert.equal(createHash('sha256').update(previousPayload).digest('hex'),
+    '92ee73c40b0a8ad383d44437772a270f4764f963e759b42b148325cb8c021a98');
   const previous = `<?php\ndeclare(strict_types=1);\n// FINADOS MANAGED BOOTSTRAP BEGIN\n`
     + `putenv('FINADOS_CONFIG_PATH=${config.FINADOS_CONFIG_PATH}');\n`
     + `putenv('FINADOS_BACKEND_ROOT=${config.FINADOS_BACKEND_ROOT}');\n`
@@ -583,17 +605,18 @@ test('backend acepta solo la versión administrada previa explícita sin confiar
 test('backend bootstrap real conserva PHP strict_types e instalación repetida', async () => {
   const { installPublicBootstrap } = await import('../scripts/deploy-finados-backend.mjs');
   const temp = await mkdtemp(join(tmpdir(), 'finados-bootstrap-'));
-  await mkdir(join(temp, 'api/voceros'), { recursive: true });
+  await mkdir(join(temp, 'public', 'api/voceros'), { recursive: true });
+  const docroot = await realpath(join(temp, 'public'));
   await mkdir(join(temp, 'private-data'), { mode: 0o700 });
   const privateDirectory = await realpath(join(temp, 'private-data'));
-  const endpoint = join(temp, 'api/voceros/index.php');
+  const endpoint = join(docroot, 'api/voceros/index.php');
   await writeFile(endpoint, historicalVocerosEndpoint());
   const source = replacementEndpointSource
     + "if (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__) echo getenv('FINADOS_BACKEND_ROOT');\n";
   const transport = recordingTransport();
   await installPublicBootstrap(fixtureConfig(), transport, { source });
   for (let i = 0; i < 2; i++) {
-    const input = transport.operations[0].input.replaceAll('/home/usuario_cpanel/public_html/complejomushucruna.com', temp)
+    const input = transport.operations[0].input.replaceAll('/home/usuario_cpanel/public_html/complejomushucruna.com', docroot)
       .replaceAll('/home/usuario_cpanel/private-data', privateDirectory)
       .replaceAll('.finados-', `.finados-${i}-`);
     const result = spawnSync('php', [], { input, encoding: 'utf8' });

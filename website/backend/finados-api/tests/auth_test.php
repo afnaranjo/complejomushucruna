@@ -203,6 +203,20 @@ same(1, proc_close($process));
 
 // A real pseudoterminal sends each input only after its ready prompt, independently of stdout.
 $cliPdo->exec('DROP TRIGGER fail_rotation');
+function tty_keepalive($process)
+{
+    if (PHP_OS_FAMILY !== 'Linux') { return null; }
+    // Linux master reads return EIO once the last slave descriptor closes. Keep
+    // the disposable slave alive so we can inspect restored state after exit,
+    // without suppressing stream errors or changing the real command's IO.
+    $status = proc_get_status($process);
+    same(true, $status['running']);
+    $slave = readlink('/proc/' . $status['pid'] . '/fd/0');
+    same(1, preg_match('~^/dev/pts/[0-9]+$~D', $slave));
+    $handle = fopen($slave, 'r+');
+    same(true, is_resource($handle));
+    return $handle;
+}
 function tty_state($terminal, string $option = '-a'): string
 {
     $statePipes = [];
@@ -246,6 +260,7 @@ function tty_finish($process, array $pipes, string &$terminalOutput): array
 foreach ([[], ['-d', 'disable_functions=pcntl_signal,pcntl_async_signals,pcntl_signal_get_handler']] as $phpFlags) {
 $ttyPipes = [];
 $process = proc_open([PHP_BINARY, ...$phpFlags, __DIR__ . '/../bin/create-admin.php', ...$args], [0 => ['pty'], 1 => ['pipe', 'w'], 2 => ['pty']], $ttyPipes);
+$ttySlave = tty_keepalive($process);
 $originalTerminal = tty_state($ttyPipes[0], '-g');
 foreach ($ttyPipes as $pipe) { stream_set_blocking($pipe, false); }
 $ttyOutput = '';
@@ -265,6 +280,7 @@ try {
     same(false, str_contains($ttyOutput, $ttyHash));
 } finally {
     proc_terminate($process, 9);
+    if (is_resource($ttySlave)) { fclose($ttySlave); }
     foreach ($ttyPipes as $pipe) { fclose($pipe); }
     proc_close($process);
 }
@@ -273,6 +289,7 @@ try {
 foreach (function_exists('pcntl_signal') ? [SIGINT, SIGTERM, SIGHUP] : [] as $signal) {
     $ttyPipes = [];
     $process = proc_open([PHP_BINARY, __DIR__ . '/../bin/create-admin.php', ...$args], [0 => ['pty'], 1 => ['pipe', 'w'], 2 => ['pty']], $ttyPipes);
+    $ttySlave = tty_keepalive($process);
     $originalTerminal = tty_state($ttyPipes[0], '-g');
     foreach ($ttyPipes as $pipe) { stream_set_blocking($pipe, false); }
     $ttyOutput = '';
@@ -289,6 +306,7 @@ foreach (function_exists('pcntl_signal') ? [SIGINT, SIGTERM, SIGHUP] : [] as $si
         same(true, hash_equals($ttyHash, $cliPdo->query('SELECT password_hash FROM admin_users')->fetchColumn()));
     } finally {
         proc_terminate($process, 9);
+        if (is_resource($ttySlave)) { fclose($ttySlave); }
         foreach ($ttyPipes as $pipe) { fclose($pipe); }
         proc_close($process);
     }
