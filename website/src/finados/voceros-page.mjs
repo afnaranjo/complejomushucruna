@@ -4,7 +4,7 @@ import { renderFinadosFooter } from './footer.mjs';
 import { renderFinadosNavigation } from './navigation.mjs';
 
 const campaignAssetVersion = '20260914-1';
-const campaignRuntimeVersion = '20260915-1';
+const campaignRuntimeVersion = '20260916-1';
 
 const levels = Object.freeze([
   {

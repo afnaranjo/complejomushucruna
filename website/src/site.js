@@ -50,25 +50,37 @@ export function setupSubmenus(root = document) {
   const items = [...root.querySelectorAll('[data-submenu]')];
   if (!items.length) return;
 
+  const closeSubmenus = () => {
+    for (const item of items) {
+      const toggle = item.querySelector('[data-submenu-toggle]');
+      if (toggle) setSubmenuState(item, toggle, false);
+    }
+  };
+
   for (const item of items) {
     const toggle = item.querySelector('[data-submenu-toggle]');
     if (!toggle) continue;
+    const parentLink = item.querySelector(':scope > a');
+
+    parentLink?.addEventListener('click', (event) => {
+      if (item.dataset.open === 'true') return;
+      event.preventDefault();
+      event.stopPropagation();
+      closeSubmenus();
+      setSubmenuState(item, toggle, true);
+    });
+
     toggle.addEventListener('click', (event) => {
       event.stopPropagation();
       const nextState = toggle.getAttribute('aria-expanded') !== 'true';
-      for (const other of items) {
-        const otherToggle = other.querySelector('[data-submenu-toggle]');
-        if (otherToggle) setSubmenuState(other, otherToggle, other === item && nextState);
-      }
+      closeSubmenus();
+      if (nextState) setSubmenuState(item, toggle, true);
     });
   }
 
   root.addEventListener('click', (event) => {
     if (event.target.closest('[data-submenu]')) return;
-    for (const item of items) {
-      const toggle = item.querySelector('[data-submenu-toggle]');
-      if (toggle) setSubmenuState(item, toggle, false);
-    }
+    closeSubmenus();
   });
 }
 

@@ -25,6 +25,11 @@ function setupPrimaryNavigation() {
       item.querySelector('[data-submenu-toggle]')?.setAttribute('aria-expanded', 'false');
     }
   };
+  const openSubmenu = (item, toggle) => {
+    closeSubmenus();
+    item.dataset.open = 'true';
+    toggle.setAttribute('aria-expanded', 'true');
+  };
   const setMenuState = (open) => {
     button.setAttribute('aria-expanded', String(open));
     navigation.dataset.open = String(open);
@@ -38,12 +43,18 @@ function setupPrimaryNavigation() {
   for (const item of submenus) {
     const toggle = item.querySelector('[data-submenu-toggle]');
     if (!toggle) continue;
+    const parentLink = item.querySelector(':scope > a');
+    parentLink?.addEventListener('click', (event) => {
+      if (item.dataset.open === 'true') return;
+      event.preventDefault();
+      event.stopPropagation();
+      openSubmenu(item, toggle);
+    });
     toggle.addEventListener('click', (event) => {
       event.stopPropagation();
       const open = toggle.getAttribute('aria-expanded') !== 'true';
-      closeSubmenus();
-      item.dataset.open = String(open);
-      toggle.setAttribute('aria-expanded', String(open));
+      if (open) openSubmenu(item, toggle);
+      else closeSubmenus();
     });
   }
 
