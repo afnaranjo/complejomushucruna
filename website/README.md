@@ -2,6 +2,23 @@
 
 Este directorio contiene el frontend completo de `complejomushucruna.com`, incluidas `/finados/`, `/admin/` y `/admin/voceros/`. Node.js y Tailwind CSS 4 generan HTML, CSS y JavaScript estáticos. Los formularios usan PHP; Voceros se guarda en MySQL/MariaDB mediante PDO y sincroniza Google Sheets como destino secundario. La API administrativa vive exclusivamente en `finados.complejomushucruna.com/api/`. No se usa WordPress ni un framework de servidor.
 
+## Estado integral sincronizado
+
+Al 2026-09-16, `origin/main` contiene el frontend completo, las rutas Finados y Administración, el backend de Voceros, migraciones, recursos legales, pruebas, scripts de build/despliegue y la documentación del proyecto. El código publicado corresponde a `0e0ecf0`; las credenciales, fotos de producción, configuraciones privadas y llaves SSH nunca forman parte del repositorio.
+
+Para obtener todo en otra computadora, usa la copia existente (no clones una segunda vez) y ejecuta desde la raíz:
+
+```bash
+git checkout main
+git fetch origin
+git pull --ff-only origin main
+cd website
+npm ci
+npm run check
+```
+
+El último comando vuelve a probar Node, PHP, integración, build y referencias antes de cualquier cambio. Para publicar desde esa computadora se requiere configurar localmente `.env.deploy`, ejecutar los prevuelos y contar con autorización expresa; no se deben copiar contraseñas ni llaves al repositorio.
+
 ## Qué se versiona y qué nunca se sube
 
 Git conserva el código, las páginas, estilos, pruebas, activos autorizados, el constructor y este procedimiento. `dist/`, `node_modules/`, `website/.env.deploy` y cualquier llave SSH privada permanecen fuera de Git.
