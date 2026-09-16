@@ -858,3 +858,12 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Commit: `5d502ed` (`Ajustar tipografía y venta online de Finados`), listo para sincronizar en `origin/main`.
 - Publicación externa: ninguna; producción no fue modificada y conserva la versión anterior hasta autorización expresa de Alex.
 - Riesgos y pendientes: revisar en producción después de publicar, confirmar la percepción del acento cian en distintos tamaños y no tocar el backend, Acreditación de Medios, Google Sheets ni otras páginas.
+
+### 2026-09-16 — Refinamiento sutil y CTA mate del menú Finados
+
+- Alex señaló que el menú colorido anterior se veía infantil y pidió una solución sutil, con un llamado mate para `FINADOS 2026` que motive el clic sin efecto glass.
+- Se mantuvo el menú continuo, sticky, proporcional y responsive. Los niveles generales usan tintes oscuros de baja intensidad, bordes finos y una línea inferior con el acento de cada sección; `FINADOS 2026` usa fucsia sólido mate, texto morado, sin transparencia ni sombra, con un remate cian discreto para conservar la jerarquía de la paleta.
+- Se añadió el versionado independiente `navigation.css?v=20260916-8` a la cabecera compartida y a las páginas Finados para invalidar la caché sin modificar contenido, rutas, backend, Acreditación de Medios, Google Sheets ni otras páginas.
+- QA local: `npm run check` en verde con 109 pruebas Node, 18 pruebas PHP y 10 de integración; build de 114 archivos, 30 HTML y 955 referencias; `check-dist` válido. La inspección del navegador local confirmó fondo mate `rgb(255, 46, 138)` y ausencia de sombra en `FINADOS 2026`, con los demás acentos discretos.
+- Commit: `b528b0e` (`Refinar menú mate de Finados`). Publicación externa: el commit queda pendiente de push; no se desplegó producción y el servidor público permanece sin cambios hasta autorización expresa de Alex.
+- Riesgos y pendientes: validar la percepción del CTA mate en escritorio y móvil al publicar; conservar `complejomushucruna.com` como único destino de frontend y no tocar `finados.complejomushucruna.com`, DNS o servicios externos.
