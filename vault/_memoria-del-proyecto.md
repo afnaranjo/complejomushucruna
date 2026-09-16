@@ -146,6 +146,8 @@ El 28 de agosto quedó confirmado `¡LEGADO QUE NOS UNE!` como eslogan gráfico 
 
 - El 2026-09-16 se refinó el gafete privado de Voceros como imagen de historia `1080 × 1920`: logo Finados, Anton/Inter, franja chumbi, marco cian, textura diagonal, marcas de los íconos locales de `crecimiento`, `legado` y `espectador`, acentos fucsia/amarillo y fotografía del vocero. La interfaz solo lo muestra cuando el perfil, los tres consentimientos y la fotografía están completos, y ofrece descarga/compartir. La comprobación local de build, referencias y pruebas específicas pasó; producción no se modificó.
 
+- Cierre del 2026-09-16: se corrigió la detección del esquema de progreso para el protocolo SQLite simulado (`VocerosRepository`, commit `6952499`) y se ejecutó el flujo oficial `backend:deploy` → `deploy` desde `origin/main`, con respaldo remoto, migraciones, health y publicación estática sin borrar archivos exclusivos. QA completo pasó con 118 pruebas Node, 18 PHP, 10 de integración, build de 121 archivos y 1025 referencias válidas. HTTPS confirmó HTTP 200 en `/`, `/finados/`, `/finados/voceros/`, `/admin/` y `/api/health`; el asset público del gafete contiene los iconos de `crecimiento`, `legado` y `espectador`. No se tocaron `superplataforma`, `complejomushucruna.ec`, DNS, Acreditación de Medios ni Google Sheets.
+
 ## Enlaces
 
 - [[_inicio|Centro de mando]]

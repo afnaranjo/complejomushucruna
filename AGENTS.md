@@ -892,3 +892,12 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - QA local: `npm run build`, `node scripts/check-dist.mjs`, `node --test --test-concurrency=1 tests/vocero-portal.test.mjs tests/voceros.test.mjs` y `git diff --check` finalizaron correctamente. `npm run test:php` dejó una única prueba preexistente bloqueada por `information_schema.tables` en SQLite (`vocero_profile_locks_test.php`); no corresponde al gafete.
 - Publicación externa: ninguna; la versión está disponible solo en el entorno local temporal para revisión. Cualquier publicación requerirá autorización expresa y el flujo backend → frontend si se incluyen las migraciones de progreso.
 - Riesgos y pendientes: validar el gafete con fotografía real autorizada, revisar descarga/compartir en iOS y Android, y decidir cuándo desplegar la migración de progreso y el gafete. No guardar fotos, llaves, contraseñas ni credenciales en Git.
+
+### 2026-09-16 — Corrección SQLite y publicación final del portal de Voceros
+
+- Se corrigió `VocerosRepository::hasProgressSchema()` para que el protocolo SQLite simulado no falle al consultar `information_schema.tables`; en MySQL se conserva la detección original y solo se trata como esquema ausente el error SQLite específico.
+- QA completo: 118 pruebas Node, 18 pruebas PHP y 10 de integración; build de 121 archivos, 31 HTML y 1025 referencias; `check-dist` válido.
+- Commit: `6952499` (`Fix SQLite metadata fallback in Voceros`), subido a `origin/main`; la rama quedó sincronizada `0 0`.
+- Publicación externa: se ejecutó `npm run backend:deploy` y después `npm run deploy` desde la copia autorizada de Complejo Muchuc Runa. El backend creó respaldo, aplicó migraciones y verificó health; el frontend creó respaldo y se transfirió sin borrar archivos exclusivos ni alterar Acreditación de Medios, Google Sheets, DNS o `superplataforma`.
+- Verificación HTTPS posterior: `/`, `/finados/`, `/finados/voceros/`, `/admin/` y `finados.complejomushucruna.com/api/health` devolvieron HTTP 200; el asset público del gafete contiene los iconos `crecimiento`, `legado` y `espectador`.
+- Riesgos y pendientes: el usuario Administrador sigue siendo una operación separada; mantener credenciales y llaves fuera de Git y del chat. Los nueve archivos locales con sufijo `2` quedaron respaldados fuera del repositorio en `Downloads`.
