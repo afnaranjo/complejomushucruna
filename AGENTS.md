@@ -917,3 +917,10 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Verificación HTTPS posterior: `/finados/voceros/` y `/finados/voceros/mi-registro/` devolvieron HTTP 200; la ruta privada contiene un único `Guardar registro` y el aviso de autoguardado. `finados.complejomushucruna.com/api/health` devolvió HTTP 200 con contrato `vocero-accounts-v1`, migración `003_vocero_accounts` lista y capacidades de cuenta, perfil, foto privada, recuperación y carga habilitadas.
 - Publicación externa: frontend actualizado; backend permaneció sin cambios. No se tocaron `superplataforma`, `complejomushucruna.ec`, DNS, Acreditación de Medios, Google Sheets, Meta, Bitrix ni Mushuc Ticket.
 - Riesgos y pendientes: falta realizar una prueba operativa con un usuario real autorizado y verificar el flujo de login/autoguardado en dispositivos finales. La creación de cuenta persiste la cuenta en backend; el registro de perfil se persiste al completar validaciones, fotografía, consentimientos y red social. No se guardan datos personales en `localStorage`/`sessionStorage`.
+
+### 2026-09-16 — Diagnóstico de cuenta nueva no visible en administración
+
+- Se realizó una consulta agregada de solo lectura en producción después de que Alex reportó una cuenta nueva ausente en `/admin/voceros/`. El resultado fue `vocero_accounts = 4`, `voceros = 3`, `vocero_account_links = 0` y `vocero_photos = 0`; no se leyeron correos, nombres, contraseñas ni fotografías.
+- La causa está confirmada por el flujo: `Crear cuenta` persiste primero `vocero_accounts`, mientras el listado administrativo consulta `voceros`. El vínculo se crea cuando la persona inicia sesión y guarda su ficha completa en `Mi registro`; por eso una cuenta recién creada no aparece aún en el panel.
+- Publicación externa: ninguna; solo lectura por SSH y revisión de código. No se modificaron cuentas, perfiles, fotos, base, frontend, backend ni servicios externos.
+- Pendiente operativo: iniciar sesión con esa cuenta, completar los campos obligatorios, fotografía, tres consentimientos y al menos una red social; después de guardar/autoguardar, el perfil quedará vinculado y aparecerá en administración.
