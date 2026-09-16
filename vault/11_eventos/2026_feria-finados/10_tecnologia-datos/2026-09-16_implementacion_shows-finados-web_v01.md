@@ -1,7 +1,7 @@
 ---
 titulo: "Implementación de SHOWS Finados 2026"
 responsable: "tecnología/diseño"
-estado: en-revision
+estado: aprobado
 ultima_actualizacion: 2026-09-16
 fuente: "afiche FINAL proporcionado por Alex y fuente web existente"
 confidencialidad: interno
@@ -51,9 +51,9 @@ Modo utilizado: herramienta integrada `image_gen`, generación original sin imá
 - Build: 121 archivos, 31 HTML, 1024 referencias válidas.
 - Vista previa HTTP disponible en `/finados/shows/`; revisión visual en escritorio y viewport de 390 × 844. Anton visible, título fuera de la cabecera, artistas sin desbordes y logos con scroll localizado.
 - Se conservaron fuera del commit técnico los cambios previos de `AGENTS.md`, memoria y pendientes.
-- **Publicación externa: pendiente.** La memoria todavía limita la difusión del cartel no anunciado. La solicitud actual autoriza crear la página, pero no pide desplegar ni resuelve expresamente la publicación íntegra en el repositorio público. Confirmar con Alex antes de push/producción. Los nombres y artes de la nueva página permanecen locales.
+- Al cierre de la creación, la página y sus artes permanecían locales por la limitación histórica de difusión del cartel. En el siguiente mensaje del 2026-09-16, Alex autorizó expresamente `sube a git y producción`, en respuesta a la pregunta sobre el afiche completo y el repositorio público. La autorización cubre la página SHOWS y los recursos entregados; no habilita anuncios adicionales ajenos al afiche.
 - Las verificaciones parciales no equivalen a `npm run check` completo: esta computadora carece de PHP y tiene restricciones de symlinks. No se omiten ni debilitan los gates del despliegue.
 
 ## Próximo paso
 
-Responsable: Alex/tecnología. Fecha: después de revisar la vista previa y antes de cualquier publicación externa. Confirmar la autorización del afiche completo para GitHub público y producción; ejecutar el prevuelo completo en un entorno compatible y desplegar con respaldo solo tras esa autorización.
+Responsable: tecnología. Autorización recibida el 2026-09-16. Sincronizar los commits técnicos con GitHub, ejecutar el prevuelo completo en un entorno compatible y desplegar con respaldo. Registrar el resultado real; la autorización no sustituye las validaciones del despliegue.
