@@ -5,7 +5,7 @@ import { renderPrimaryNavigation } from './navigation.mjs';
 
 const institutionalAssetVersion = '20260904';
 const homeAssetVersion = '20260909';
-const stylesVersion = '20260915-1';
+const stylesVersion = '20260916-3';
 const siteRuntimeVersion = '20260916-1';
 
 export function renderLayout(page) {

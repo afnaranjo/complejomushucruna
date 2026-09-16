@@ -24,7 +24,11 @@ export function renderPrimaryNavigation(currentRoute = '') {
       ? `<button class="main-nav__submenu-toggle" type="button" aria-expanded="false" aria-label="Mostrar páginas de ${escapeHtml(item.label)}" data-submenu-toggle><span aria-hidden="true">⌄</span></button>
         <ul class="main-nav__submenu">${item.children.map((child) => {
           const childCurrent = routeMatches(child.href, currentRoute, { child }) ? ' aria-current="page"' : '';
-          return `<li><a href="${escapeHtml(child.href)}"${childCurrent}${externalAttributes(child.href)}>${escapeHtml(child.label)}</a></li>`;
+          const childActionClass = child.emphasis
+            ? ` class="main-nav__action main-nav__action--${escapeHtml(child.emphasis)}"`
+            : '';
+          const childPurchaseLink = child.emphasis === 'stands' ? ' data-stands-purchase-link' : '';
+          return `<li><a${childActionClass} href="${escapeHtml(child.href)}"${childPurchaseLink}${childCurrent}${externalAttributes(child.href)}>${escapeHtml(child.label)}</a></li>`;
         }).join('')}</ul>`
       : '';
     const itemClass = children ? ' class="main-nav__item main-nav__item--has-submenu" data-submenu' : '';

@@ -838,3 +838,13 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Commits: `5eb42b0` (`Corregir apertura del submenú de Finados`) y `da5133c` (`Ordenar menú y agrupar sección Nosotros`), sincronizados en `origin/main`.
 - Publicación externa: despliegue autorizado del frontend en `complejomushucruna.com`; se creó respaldo remoto, se transfirió sin borrar archivos exclusivos y se verificó por HTTPS la portada y `/finados/`. No se modificaron el backend, `finados.complejomushucruna.com`, DNS, Meta, Bitrix, Notion, Google Sheets ni Mushuc Ticket.
 - Riesgos y pendientes: la landing `/finados/` conserva `noindex, nofollow, noarchive`; el usuario Administrador del portal todavía debe crearse mediante ingreso oculto y siguen pendientes la autorización escrita para representantes de menores y el procedimiento de eliminación al cumplir tres años.
+
+### 2026-09-16 — Venta de stands dentro de Finados y cabecera a ancho completo
+
+- Se reorganizó la navegación pública para que `VENTA DE STANDS` aparezca únicamente dentro del submenú de `FINADOS 2026`; el nivel superior queda como `INICIO`, `FINADOS 2026`, `ACREDITACIÓN DE MEDIOS`, `TOUR VIRTUAL`, `GRANJA` y `NOSOTROS`. Se conservaron `PROGRAMACIÓN ARTÍSTICA`, `DIGNIDADES 2025` y `VOCEROS` en Finados, y `HISTORIA`/`VISITAMOS` en Nosotros.
+- Se ajustó la cabecera de Finados para ocupar todo el ancho disponible, distribuir el menú de forma proporcional y mantener el comportamiento responsive. El enlace externo de stands conserva su apertura segura y Acreditación de Medios mantiene su POST a `/api/acreditacion-de-medios/` y el puente de Google Sheets.
+- QA: `npm run check` en verde (105 pruebas Node, 18 PHP y 10 de integración); build local de 113 archivos con 30 HTML y 954 referencias. La comprobación visual/accessibility confirmó cabecera sticky y ancho completo en Finados/Voceros, y tarjetas coloreadas en Finados y Nosotros.
+- La cabecera de Finados queda sticky al desplazarse y las tarjetas de todos los submenús usan dimensiones uniformes con colores alternados de la paleta Finados, que se repite automáticamente para futuras opciones.
+- Commit: `ca93c54` (`Mejorar menú sticky y submenús de Finados`), pendiente de sincronizar en `origin/main`.
+- Publicación externa: no se desplegó esta corrección; producción conserva temporalmente la versión anterior hasta autorización expresa de Alex.
+- Riesgos y pendientes: publicar la versión nueva y repetir la verificación HTTPS cuando Alex indique `sube`; no modificar el backend, Acreditación, Google Sheets ni las demás páginas.

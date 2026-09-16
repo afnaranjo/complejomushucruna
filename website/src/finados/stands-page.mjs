@@ -5,7 +5,7 @@ import { renderFinadosNavigation } from './navigation.mjs';
 
 const purchaseUrl = 'https://mushucticket.com/';
 const campaignAssetVersion = '20260903';
-const campaignRuntimeVersion = '20260916-1';
+const campaignRuntimeVersion = '20260916-3';
 const newTabAttributes = ' target="_blank" rel="noopener noreferrer"';
 
 export function renderStandsAccessPage(page) {
@@ -24,7 +24,7 @@ export function renderStandsAccessPage(page) {
   <link rel="icon" href="/assets/finados/favicon-finados.png" type="image/png" sizes="256x256">
   <link rel="apple-touch-icon" href="/assets/finados/favicon-finados.png">
   <link rel="preload" as="image" href="/assets/finados/logo-finados.svg?v=${campaignAssetVersion}" fetchpriority="high">
-  <link rel="stylesheet" href="/assets/styles.css?v=20260915-1">
+  <link rel="stylesheet" href="/assets/styles.css?v=20260916-3">
   <link rel="stylesheet" href="/assets/finados/finados.css?v=${campaignRuntimeVersion}">
   <script type="module" src="/assets/finados/finados.js?v=${campaignRuntimeVersion}"></script>
 </head>

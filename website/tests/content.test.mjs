@@ -7,11 +7,10 @@ import {
   site,
 } from '../src/data/site.mjs';
 
-test('la navegación institucional prioriza venta, Finados y tour en el orden aprobado', () => {
+test('la navegación institucional agrupa venta dentro de Finados y conserva el orden aprobado', () => {
   assert.equal(site.name, 'Complejo Mushuc Runa');
   assert.deepEqual(primaryNavigation.map((item) => item.href), [
     '/',
-    'https://www.mushucticket.com/',
     '/finados/',
     '/acreditacion-de-medios/',
     'https://guiap.com/360/mr2023-2024/',
@@ -20,7 +19,6 @@ test('la navegación institucional prioriza venta, Finados y tour en el orden ap
   ]);
   assert.deepEqual(primaryNavigation.map((item) => item.label), [
     'INICIO',
-    'VENTA DE STANDS',
     'FINADOS 2026',
     'ACREDITACIÓN DE MEDIOS',
     'TOUR VIRTUAL',
@@ -28,29 +26,25 @@ test('la navegación institucional prioriza venta, Finados y tour en el orden ap
     'NOSOTROS',
   ]);
   assert.deepEqual(primaryNavigation[1], {
-    label: 'VENTA DE STANDS',
-    href: 'https://www.mushucticket.com/',
-    emphasis: 'stands',
-  });
-  assert.deepEqual(primaryNavigation[2], {
     label: 'FINADOS 2026',
     href: '/finados/',
     emphasis: 'finados',
     children: [
+      { label: 'VENTA DE STANDS', href: 'https://www.mushucticket.com/', emphasis: 'stands' },
       { label: 'PROGRAMACIÓN ARTÍSTICA', href: '/finados/#artistas' },
       { label: 'DIGNIDADES 2025', href: '/finados/dignidades-finados-2025/' },
       { label: 'VOCEROS', href: '/finados/voceros/' },
     ],
   });
-  assert.deepEqual(primaryNavigation[3], {
+  assert.deepEqual(primaryNavigation[2], {
     label: 'ACREDITACIÓN DE MEDIOS',
     href: '/acreditacion-de-medios/',
   });
-  assert.deepEqual(primaryNavigation[4], {
+  assert.deepEqual(primaryNavigation[3], {
     label: 'TOUR VIRTUAL',
     href: site.tourUrl,
   });
-  assert.deepEqual(primaryNavigation[6], {
+  assert.deepEqual(primaryNavigation[5], {
     label: 'NOSOTROS',
     href: '/historia/',
     children: [

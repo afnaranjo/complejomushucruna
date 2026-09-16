@@ -120,6 +120,7 @@
 
   .campaign-header.is-scrolled {
     background: rgba(36, 17, 70, .96);
+    backdrop-filter: blur(12px);
   }
 
   /* Las landings de campaña tienen su propio lienzo; no heredan la textura institucional. */

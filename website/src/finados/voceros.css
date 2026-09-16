@@ -39,9 +39,9 @@
 
 .voceros-header.site-header {
   right: auto;
-  left: 50%;
-  width: var(--shell);
-  transform: translateX(-50%);
+  left: 0;
+  width: 100%;
+  transform: none;
 }
 
 .voceros-header__inner {
