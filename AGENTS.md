@@ -818,3 +818,13 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Commit desplegado y sincronizado al momento de la verificación: `e0016bc` (`Endurecer cierre y despliegue del portal de Voceros`). El prevuelo remoto posterior de backend y frontend finalizó correctamente y no modificó el servidor.
 - Seguridad: no se versionaron credenciales, llaves ni contraseñas. El usuario Administrador todavía no existe; debe crearse mediante el prompt oculto de `npm run backend:admin` y comprobarse sin escribir la contraseña en chat, archivos o historial.
 - Riesgos y pendientes: autorización escrita para menores, procedimiento de eliminación al cumplir tres años, prueba operativa del Administrador y seguimiento de respaldos/restauración. La raíz del subdominio de backend puede responder 403 por diseño; la superficie publicada es `/api/`.
+
+### 2026-09-15 — Navegación pública unificada y submenú de Voceros
+
+- Se centralizó el render del menú público en `website/src/render/navigation.mjs` para que la portada institucional, Finados, compra de stands, Dignidades, Voceros, sus documentos legales y Acreditación de Medios compartan el mismo marcado, estados activos, submenú y navegación responsive.
+- Se añadió `VOCEROS` como subopción de `FINADOS 2026`, con botón móvil, cierre por enlace/Escape y comportamiento accesible. En tabletas se compactó la cabecera para mantener proporciones sin desbordamiento.
+- Acreditación de Medios conserva sin cambios el `action="/api/acreditacion-medios/"`, su método POST, el endpoint PHP y el puente de Google Sheets.
+- QA local: `npm run check` completo en verde: 105 pruebas Node, 18 pruebas PHP, 10 pruebas de integración, build de 113 archivos y `check-dist` válido con 918 referencias.
+- Commit: `ee4e2e3` (`Unificar navegación pública y submenú de Voceros`), pendiente de sincronizar en `origin/main`.
+- Publicación externa: ninguna; no se desplegó el frontend ni se modificó el backend, Acreditación de Medios, Google Sheets, DNS u otro servicio.
+- Riesgos y pendientes: revisar visualmente el menú en producción y desplegarlo solo con autorización expresa; las páginas privadas de cuenta de Voceros conservan su cabecera aislada.
