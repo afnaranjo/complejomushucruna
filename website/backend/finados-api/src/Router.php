@@ -182,6 +182,17 @@ final class Router
                     ? ['registered' => false, 'email' => $user['email'], 'status' => null, 'photo' => ['available' => false, 'width' => null, 'height' => null, 'created_at' => null]]
                     : ['registered' => true, ...$own], $headers);
             }
+            if (preg_match('~^/api/vocero/videos/([1-5])$~D', $path, $parts)) {
+                $user = $this->voceroAuth->requireUser();
+                if ($method !== 'POST') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+                if ($origin !== $this->config->allowedOrigin() || !is_string($ip) || inet_pton($ip) === false || $query !== []) throw new Forbidden();
+                $this->voceroAuth->verifyCsrf($token);
+                $body = $this->body($server, $rawBody, ['url']);
+                if (!is_string($body['url'] ?? null)) throw new InvalidArgumentException();
+                $profile = new VoceroProfile($this->pdo, $this->config);
+                $saved = $profile->saveVideo($user['id'], (int) $parts[1], $body['url'], $ip);
+                return $this->json(200, ['ok' => true, ...$saved], $headers);
+            }
             $user = $this->auth->requireUser();
             if (!in_array($method, self::METHODS, true)) return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
             if (in_array($method, ['POST', 'PATCH'], true)) {
@@ -237,6 +248,15 @@ final class Router
                     return new Response(200, $headers, $jpeg);
                 }
                 return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+            }
+            if (preg_match('~^/api/voceros/([^/]+)/progress$~D', $path, $parts)) {
+                $id = $parts[1];
+                if (preg_match('/^[a-f0-9]{32}$/D', $id) !== 1 || $method !== 'PATCH' || $query !== []) {
+                    return $this->error($method === 'PATCH' ? 422 : 405, $method === 'PATCH' ? 'validation_error' : 'method_not_allowed', $method === 'PATCH' ? 'Revisa los datos de progreso.' : 'Método no permitido.', $headers);
+                }
+                $body = $this->body($server, $rawBody, ['followers_count', 'level', 'traffic_light', 'videos_unlocked', 'kit_status']);
+                $this->repository->updateProgress($id, $body, $user['id'], $ip);
+                return $this->json(200, ['ok' => true], $headers);
             }
             if (preg_match('~^/api/voceros/([^/]+)(/notes)?$~D', $path, $parts)) {
                 $id = $parts[1]; $notes = isset($parts[2]);

@@ -42,8 +42,8 @@ export function createAdminClient(baseUrl = API, fetchImplementation = fetch) {
   if (![API, LOCAL_API].filter(Boolean).includes(baseUrl)) throw new Error('Origen de API no permitido.');
   let csrf = '';
   async function request(path, options = {}) {
-    if (!/^\/(?:auth\/(?:session|login|logout)|dashboard|voceros(?:\/[a-zA-Z0-9-]+(?:\/notes)?)?)(?:\?[^#]*)?$/.test(path)
-      && !/^\/voceros\/[a-f0-9]{32}\/(?:photo|password-reset)$/.test(path)) throw new Error('Ruta de API no permitida.');
+    if (!/^\/(?:auth\/(?:session|login|logout)|dashboard|voceros(?:\/[a-zA-Z0-9-]+(?:\/(?:notes|progress))?)?)(?:\?[^#]*)?$/.test(path)
+      && !/^\/voceros\/[a-f0-9]{32}\/(?:photo|password-reset|progress)$/.test(path)) throw new Error('Ruta de API no permitida.');
     const method = (options.method ?? 'GET').toUpperCase();
     if (!['GET', 'POST', 'PATCH'].includes(method)) throw new Error('Método no permitido.');
     const headers = { Accept: options.blob && path.endsWith('/photo') ? 'image/jpeg' : 'application/json' };
@@ -224,6 +224,10 @@ export async function initializeAdmin() {
   const dialog = query('[data-detail]');
   const detailFeedback = query('[data-detail-feedback]');
   const statusForm = query('[data-status-form]');
+  const progressForm = query('[data-progress-form]');
+  const progressFeedback = query('[data-progress-feedback]');
+  const progressSummary = query('[data-admin-progress-summary]');
+  const adminVideos = query('[data-admin-videos]');
   const noteForm = query('[data-note-form]');
   let filters = normalizeFilters();
   let pagination = { page: 1, pages: 0 };
@@ -244,7 +248,8 @@ export async function initializeAdmin() {
     photoImage.removeAttribute('src'); photoImage.hidden = true;
     photoDownload.removeAttribute('href'); photoDownload.removeAttribute('download'); photoDownload.hidden = true;
     photoMessage.textContent = ''; resetInput.value = ''; resetOutput.hidden = true; resetButton.disabled = true;
-    feedback(resetFeedback, '');
+    feedback(resetFeedback, ''); feedback(progressFeedback, '');
+    progressForm.querySelector('fieldset').disabled = true; progressForm.reset(); progressSummary.textContent = 'Sin actualizar'; adminVideos.replaceChildren();
   }
   clearPrivateDetail = () => { currentId = null; detailGeneration++; clearMedia(); };
   globalThis.addEventListener?.('pagehide', clearPrivateDetail);
@@ -349,11 +354,29 @@ export async function initializeAdmin() {
     for (const consent of data.consents ?? []) consents.append(node('p', `${consent.consent_type ?? 'Consentimiento'} · ${consent.text_version ?? '—'} · ${consent.accepted ? 'Aceptado' : 'No aceptado'} · ${dateTime(consent.accepted_at)}`));
     query('[data-detail-content]').replaceChildren(submitted, dl, consents);
     statusForm.elements.status.value = data.status;
+    renderProgress(data.progress ?? {});
     query('[data-notes]').replaceChildren();
     for (const note of data.notes ?? []) {
       const li = node('li'); li.append(node('p', note.body), node('small', `${dateTime(note.created_at)} · Usuario ${note.author_id}`)); query('[data-notes]').append(li);
     }
     if (!data.notes?.length) query('[data-notes]').append(node('li', 'Todavía no hay notas.'));
+  }
+  function renderProgress(progress) {
+    const value = progress ?? {};
+    progressForm.elements.followers_count.value = String(Number(value.followers_count) || 0);
+    progressForm.elements.level.value = String(Number(value.level) || 0);
+    progressForm.elements.traffic_light.value = value.traffic_light ?? 'red';
+    progressForm.elements.videos_unlocked.value = String(Number(value.videos_unlocked) || 0);
+    progressForm.elements.kit_status.value = value.kit_status ?? 'pendiente';
+    progressSummary.textContent = `${value.level_label ?? 'En preparación'} · ${Number(value.followers_count) || 0} seguidores validados · ${value.kit_status === 'retirado' ? 'Kit retirado' : 'Kit pendiente'}`;
+    adminVideos.replaceChildren();
+    for (const video of value.videos ?? []) {
+      const item = node('article', undefined, 'admin-video-item');
+      item.append(node('strong', `Video ${video.slot}`), node('span', video.unlocked ? (video.status === 'submitted' ? 'Enlace recibido' : 'Habilitado') : 'Bloqueado'));
+      if (video.url) { const link = node('a', video.url); link.href = video.url; link.target = '_blank'; link.rel = 'noopener noreferrer'; item.append(link); }
+      adminVideos.append(item);
+    }
+    if (!adminVideos.children.length) adminVideos.append(node('p', 'Los cinco espacios aparecerán al actualizar el progreso.'));
   }
   async function loadDetail(id, generation, media = false) {
     const data = await client.request('/voceros/' + encodeURIComponent(id));
@@ -380,12 +403,12 @@ export async function initializeAdmin() {
     currentId = id; opener = trigger;
     const generation = ++detailGeneration;
     query('[data-detail-content]').replaceChildren(); query('[data-notes]').replaceChildren(); noteForm.reset();
-    statusForm.querySelector('fieldset').disabled = noteForm.querySelector('fieldset').disabled = true;
+    statusForm.querySelector('fieldset').disabled = noteForm.querySelector('fieldset').disabled = progressForm.querySelector('fieldset').disabled = true;
     dialog.showModal(); query('#detail-title').focus();
     feedback(detailFeedback, 'Cargando detalle…');
     try {
       if (await loadDetail(id, generation, true)) {
-        statusForm.querySelector('fieldset').disabled = noteForm.querySelector('fieldset').disabled = false;
+        statusForm.querySelector('fieldset').disabled = noteForm.querySelector('fieldset').disabled = progressForm.querySelector('fieldset').disabled = false;
         feedback(detailFeedback, '');
       }
     } catch (error) { if (generation === detailGeneration) fail(error, detailFeedback); }
@@ -400,13 +423,14 @@ export async function initializeAdmin() {
     event.preventDefault();
     const id = currentId; const generation = detailGeneration;
     if (!id) return;
-    const body = kind === 'status' ? { status: statusForm.elements.status.value } : { body: noteForm.elements.body.value.trim() };
+    const body = kind === 'status' ? { status: statusForm.elements.status.value } : kind === 'progress' ? JSON.parse(progressForm.dataset.pendingBody ?? '{}') : { body: noteForm.elements.body.value.trim() };
     if (kind === 'note' && !body.body) { feedback(detailFeedback, 'Escribe una nota antes de guardar.', 'error'); return; }
-    statusForm.querySelector('fieldset').disabled = noteForm.querySelector('fieldset').disabled = true;
+    statusForm.querySelector('fieldset').disabled = noteForm.querySelector('fieldset').disabled = progressForm.querySelector('fieldset').disabled = true;
     feedback(detailFeedback, 'Guardando…');
     let saved = false;
     try {
-      await client.request('/voceros/' + encodeURIComponent(id) + (kind === 'note' ? '/notes' : ''), { method: kind === 'note' ? 'POST' : 'PATCH', body });
+      const path = '/voceros/' + encodeURIComponent(id) + (kind === 'note' ? '/notes' : kind === 'progress' ? '/progress' : '');
+      await client.request(path, { method: kind === 'note' ? 'POST' : 'PATCH', body });
       saved = true;
       // A confirmed status change affects the workspace even if its inspector closed.
       // Start both refreshes before checking detail lifetime or reloading the detail.
@@ -418,17 +442,25 @@ export async function initializeAdmin() {
       if (kind === 'note') noteForm.reset();
       await loadDetail(id, generation);
       if (generation !== detailGeneration) return;
-      feedback(detailFeedback, kind === 'note' ? 'Nota guardada.' : 'Estado actualizado.', 'success');
+      feedback(detailFeedback, kind === 'note' ? 'Nota guardada.' : kind === 'progress' ? 'Progreso actualizado.' : 'Estado actualizado.', 'success');
     } catch (error) {
       if (generation === detailGeneration) {
         if (saved && error.status !== 401) feedback(detailFeedback, 'El cambio se guardó, pero no se pudo actualizar el detalle. Cierra y vuelve a abrir el registro.', 'error');
         else fail(error, detailFeedback);
       }
     } finally {
-      if (generation === detailGeneration) statusForm.querySelector('fieldset').disabled = noteForm.querySelector('fieldset').disabled = false;
+      if (generation === detailGeneration) statusForm.querySelector('fieldset').disabled = noteForm.querySelector('fieldset').disabled = progressForm.querySelector('fieldset').disabled = false;
     }
   }
   statusForm.addEventListener('submit', event => mutate(event, 'status'));
+  progressForm.addEventListener('submit', event => {
+    const body = {
+      followers_count: Number(progressForm.elements.followers_count.value), level: Number(progressForm.elements.level.value),
+      traffic_light: progressForm.elements.traffic_light.value, videos_unlocked: Number(progressForm.elements.videos_unlocked.value), kit_status: progressForm.elements.kit_status.value,
+    };
+    progressForm.dataset.pendingBody = JSON.stringify(body);
+    mutate(event, 'progress');
+  });
   noteForm.addEventListener('submit', event => mutate(event, 'note'));
   form.addEventListener('submit', event => {
     event.preventDefault();

@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { escapeHtml as esc } from '../render/html.mjs';
-import { renderVoceroForm } from './vocero-form.mjs';
+import { renderVoceroForm, renderVoceroProgressPanels } from './vocero-form.mjs';
 
 // Server-owned text is incorporated at build time and escaped as HTML, never fetched by the browser.
 const consents = JSON.parse(readFileSync(new URL('../../backend/finados-api/resources/vocero-consents.json', import.meta.url), 'utf8'));
@@ -11,7 +11,7 @@ export function renderVoceroPortalPage(page) {
   const mode = page.route.endsWith('/mi-registro/') ? 'profile' : page.route.endsWith('/restablecer/') ? 'reset' : 'access';
   const api = page.adminEnvironment === 'development' ? (page.adminApiBase ?? 'http://127.0.0.1:4174/api') : 'https://finados.complejomushucruna.com/api';
   const title = { access: 'Tu cuenta de Vocero', profile: 'Mi registro', reset: 'Restablecer contraseña' }[mode];
-  const content = mode === 'profile' ? `<div class="vocero-workspace-heading"><div><p class="vocero-eyebrow">Comunidad de Voceros</p><h1>${title}</h1><p data-profile-status>Comprobando tu registro…</p></div><button class="vocero-quiet" type="button" data-vocero-logout disabled>Cerrar sesión</button></div>${renderVoceroForm(consents)}`
+  const content = mode === 'profile' ? `<div class="vocero-workspace-heading"><div><p class="vocero-eyebrow">Comunidad de Voceros</p><h1>${title}</h1><p data-profile-status>Comprobando tu registro…</p></div><button class="vocero-quiet" type="button" data-vocero-logout disabled>Cerrar sesión</button></div>${renderVoceroProgressPanels()}${renderVoceroForm(consents)}`
     : mode === 'reset' ? `<div class="vocero-access-intro"><p class="vocero-eyebrow">Recupera tu acceso</p><h1>${title}</h1><p>Elige una contraseña de 10 a 128 caracteres.</p></div><form data-vocero-reset novalidate><fieldset disabled>${password('reset-password', 'Nueva contraseña', 'new-password')}${password('reset-confirmation', 'Confirma tu contraseña', 'new-password')}<button class="vocero-primary" type="submit">Guardar contraseña</button></fieldset></form><a href="/finados/voceros/acceso/?modo=login">Volver a iniciar sesión</a>`
     : `<div class="vocero-access-intro"><p class="vocero-eyebrow">Comunidad de Voceros</p><h1>${title}</h1><p>Crea tu cuenta para completar el registro y consultar su estado.</p></div>
 <nav class="vocero-modes" aria-label="Acceso a tu cuenta"><button type="button" data-mode="register" aria-pressed="true">Crear cuenta</button><button type="button" data-mode="login" aria-pressed="false">Iniciar sesión</button></nav>

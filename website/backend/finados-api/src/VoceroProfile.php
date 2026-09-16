@@ -42,7 +42,24 @@ final class VoceroProfile
         $photo = $this->photoRow((int) $linked['id']);
         $result['photo'] = $photo === null ? ['available' => false, 'width' => null, 'height' => null, 'created_at' => null]
             : ['available' => true, 'width' => (int) $photo['width'], 'height' => (int) $photo['height'], 'created_at' => $photo['created_at']];
+        $result['progress'] = $record['progress'] ?? $this->repository->progressForVocero((int) $linked['id']);
+        $required = ['full_name', 'cedula', 'birth_date', 'whatsapp', 'city', 'main_network', 'previous_participation', 'community_source', 'kit_pickup'];
+        $hasRequired = array_reduce($required, static fn (bool $complete, string $field): bool => $complete && trim((string) ($result[$field] ?? '')) !== '', true);
+        $hasSocial = array_reduce(['tiktok', 'instagram', 'facebook'], static fn (bool $complete, string $field): bool => $complete || trim((string) ($result[$field] ?? '')) !== '', false);
+        $acceptedConsents = count(array_filter($record['consents'] ?? [], static fn (array $consent): bool => (int) ($consent['accepted'] ?? 0) === 1));
+        $result['profile_complete'] = $hasRequired && $hasSocial && $photo !== null && $acceptedConsents >= 3;
         return $result;
+    }
+
+    public function saveVideo(int $accountId, int $slot, string $url, string $ip): array
+    {
+        if (inet_pton($ip) === false) throw new Forbidden('Invalid request.');
+        $this->account($accountId);
+        $linked = $this->linked($accountId);
+        if ($linked === null) throw new Forbidden('Complete your profile first.');
+        if (!in_array($linked['status'], ['Nuevo', 'Pendiente de autorización', 'Aprobado'], true)) throw new Forbidden('Registration is read-only.');
+        $this->repository->saveVideoByVoceroId((int) $linked['id'], $slot, $url, $ip);
+        return $this->get($accountId) ?? throw new OutOfBoundsException('Registration not found.');
     }
 
     public function save(int $accountId, array $fields, array $files, string $ip, string $userAgent): array

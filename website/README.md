@@ -8,6 +8,12 @@ Al 2026-09-16, `origin/main` contiene el frontend completo, las rutas Finados y 
 
 La revisión local más reciente también unifica la portada `/` con la navegación Finados (`d999169`); producción requiere una autorización de publicación adicional para recibir ese último ajuste.
 
+### Portal de Voceros: progreso, videos y gafete
+
+La copia local incluye el panel privado de Voceros con niveles y semáforo administrables, cinco espacios de video desbloqueables y un gafete digital generado en formato historia `1080 × 1920`. El gafete utiliza el kit visual de Finados —logo oficial, Anton/Inter, franja chumbi, morado, fucsia, cian y amarillo— y se habilita únicamente al completar perfil, consentimientos y fotografía. La fotografía permanece privada y no se sube a Git.
+
+El cambio está preparado para revisión local y todavía no está publicado. Si se autoriza su salida, despliega primero el backend (incluida la migración de progreso) y después el frontend; comprueba descarga y compartir en los dispositivos objetivo. No modifiques la navegación, Acreditación de Medios, Google Sheets ni otras landings.
+
 Para obtener todo en otra computadora, usa la copia existente (no clones una segunda vez) y ejecuta desde la raíz:
 
 ```bash

@@ -144,6 +144,8 @@ El equipo integral está organizando la Feria de Finados 2026 en el Complejo Int
 
 El 28 de agosto quedó confirmado `¡LEGADO QUE NOS UNE!` como eslogan gráfico y `ES TRADICIÓN` como plataforma comunicativa. La Semana 1 conserva la salida completa de `Pista 01` el sábado 29 a las 19:00 y el Reel de siluetas el domingo 30 a las 19:00, ambos condicionados. La prioridad inmediata es que Are alinee el relato, Alejandro entregue tres candidatos y solicite la gráfica, Cristian prepare el maestro y tres variantes 9:16, y Andrés ejecute pruebas de cámara y adaptación audiovisual. El sábado debe quedar preparada la secuencia coordinada `Archivo Finados MR` 15:30, `Somos Finados MR` 16:15 y `Finados Mushuc Runa` 19:00; crear cuentas o publicarla requiere autorización externa, dueño, recuperación, moderación y gates completos. El domingo a las 14:00 deben quedar elegidos el rostro titular y su suplente, con consentimiento y disponibilidad. Después corresponde cerrar aprendizajes y diseñar la Semana 2. Siguen pendientes los aprobadores, suplente de Community, derechos, validación de afirmaciones, concepto 200K, guía móvil y `Camino al Megaescenario`. Ninguna pieza propuesta se publica automáticamente.
 
+- El 2026-09-16 se refinó el gafete privado de Voceros como imagen de historia `1080 × 1920`: logo Finados, Anton/Inter, franja chumbi, marco cian, acentos fucsia/amarillo y fotografía del vocero. La interfaz solo lo muestra cuando el perfil, los tres consentimientos y la fotografía están completos, y ofrece descarga/compartir. La comprobación local de build, referencias y pruebas específicas pasó; producción no se modificó.
+
 ## Enlaces
 
 - [[_inicio|Centro de mando]]

@@ -19,9 +19,16 @@ final class RegistrationRateLimit extends RuntimeException {}
 final class VocerosRepository
 {
     public const STATUSES = ['Nuevo', 'En revisión', 'Aprobado', 'Rechazado', 'Pendiente de autorización'];
+    public const LEVELS = [
+        0 => 'En preparación', 1 => 'Primer paso', 2 => 'Gorra', 3 => 'Kit completo',
+        4 => 'Trae a los tuyos', 5 => 'Noche de concierto', 6 => 'Tope',
+    ];
+    public const TRAFFIC_LIGHTS = ['red', 'yellow', 'green'];
+    public const KIT_STATUSES = ['pendiente', 'retirado'];
     private const ENCRYPTED = ['cedula', 'birth_date', 'whatsapp', 'email', 'representative_name', 'representative_cedula', 'representative_phone', 'representative_email'];
     private const INDEXED = ['cedula', 'whatsapp', 'email', 'representative_cedula', 'representative_phone', 'representative_email'];
     private readonly Audit $audit;
+    private ?bool $progressSchema = null;
 
     public function __construct(private readonly PDO $pdo, private readonly Crypto $crypto, ?Audit $audit = null)
     {
@@ -287,7 +294,81 @@ final class VocerosRepository
         $query = $this->pdo->prepare('SELECT id, author_id, body, created_at FROM vocero_notes WHERE vocero_id = ? ORDER BY created_at, id');
         $query->execute([$row['id']]);
         $detail['notes'] = $query->fetchAll();
+        $detail['progress'] = $this->progressForVocero((int) $row['id']);
         return $detail;
+    }
+
+    /** Returns progress and five stable video slots. Older test databases get safe defaults. */
+    public function progressForVocero(int $voceroId): array
+    {
+        $default = ['followers_count' => 0, 'level' => 0, 'level_label' => self::LEVELS[0], 'traffic_light' => 'red', 'videos_unlocked' => 0, 'kit_status' => 'pendiente', 'updated_at' => null];
+        if (!$this->hasProgressSchema()) return $default + ['videos' => $this->videoSlots([])];
+        $query = $this->pdo->prepare('SELECT followers_count, level, traffic_light, videos_unlocked, kit_status, updated_at FROM vocero_progress WHERE vocero_id = ?');
+        $query->execute([$voceroId]);
+        $row = $query->fetch() ?: [];
+        $progress = array_merge($default, [
+            'followers_count' => (int) ($row['followers_count'] ?? 0),
+            'level' => (int) ($row['level'] ?? 0),
+            'traffic_light' => in_array($row['traffic_light'] ?? '', self::TRAFFIC_LIGHTS, true) ? $row['traffic_light'] : 'red',
+            'videos_unlocked' => (int) ($row['videos_unlocked'] ?? 0),
+            'kit_status' => in_array($row['kit_status'] ?? '', self::KIT_STATUSES, true) ? $row['kit_status'] : 'pendiente',
+            'updated_at' => $row['updated_at'] ?? null,
+        ]);
+        $progress['level'] = max(0, min(6, $progress['level']));
+        $progress['level_label'] = self::LEVELS[$progress['level']];
+        $progress['videos_unlocked'] = max(0, min(5, $progress['videos_unlocked']));
+        $query = $this->pdo->prepare('SELECT slot, url, status, submitted_at, updated_at FROM vocero_videos WHERE vocero_id = ? ORDER BY slot');
+        $query->execute([$voceroId]);
+        $progress['videos'] = $this->videoSlots($query->fetchAll(), $progress['videos_unlocked']);
+        return $progress;
+    }
+
+    public function updateProgress(string $publicId, array $input, int $actorId, string $ip = ''): void
+    {
+        if (!$this->hasProgressSchema()) throw new RuntimeException('Progress schema unavailable.');
+        $followers = filter_var($input['followers_count'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 0, 'max_range' => 1000000000]]);
+        $level = filter_var($input['level'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 0, 'max_range' => 6]]);
+        $unlocked = filter_var($input['videos_unlocked'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 0, 'max_range' => 5]]);
+        $light = $input['traffic_light'] ?? null;
+        $kit = $input['kit_status'] ?? null;
+        if ($followers === false || $level === false || $unlocked === false || !is_string($light) || !in_array($light, self::TRAFFIC_LIGHTS, true) || !is_string($kit) || !in_array($kit, self::KIT_STATUSES, true)) {
+            throw new InvalidArgumentException('Invalid progress.');
+        }
+        $this->mutate($publicId, $actorId, function (array $row) use ($publicId, $actorId, $ip, $followers, $level, $unlocked, $light, $kit): void {
+            $now = gmdate('Y-m-d H:i:s');
+            $values = [$row['id'], $followers, $level, $light, $unlocked, $kit, $now];
+            if ($this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql') {
+                $sql = 'INSERT INTO vocero_progress (vocero_id, followers_count, level, traffic_light, videos_unlocked, kit_status, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE followers_count = VALUES(followers_count), level = VALUES(level), traffic_light = VALUES(traffic_light), videos_unlocked = VALUES(videos_unlocked), kit_status = VALUES(kit_status), updated_at = VALUES(updated_at)';
+            } else {
+                $sql = 'INSERT INTO vocero_progress (vocero_id, followers_count, level, traffic_light, videos_unlocked, kit_status, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?) ON CONFLICT(vocero_id) DO UPDATE SET followers_count = excluded.followers_count, level = excluded.level, traffic_light = excluded.traffic_light, videos_unlocked = excluded.videos_unlocked, kit_status = excluded.kit_status, updated_at = excluded.updated_at';
+            }
+            $this->pdo->prepare($sql)->execute($values);
+            $this->audit->log('vocero.progress_updated', $actorId, 'vocero', $publicId, ['followers_count' => $followers, 'level' => $level, 'traffic_light' => $light, 'videos_unlocked' => $unlocked, 'kit_status' => $kit], $ip);
+        });
+    }
+
+    public function saveVideoByVoceroId(int $voceroId, int $slot, string $url, string $ip = ''): void
+    {
+        if (!$this->hasProgressSchema()) throw new RuntimeException('Progress schema unavailable.');
+        if ($slot < 1 || $slot > 5 || !filter_var($url, FILTER_VALIDATE_URL) || !str_starts_with(strtolower($url), 'https://') || strlen($url) > 500) throw new InvalidArgumentException('Invalid video URL.');
+        $this->pdo->beginTransaction();
+        try {
+            $query = $this->pdo->prepare('SELECT public_id FROM voceros WHERE id = ?'); $query->execute([$voceroId]); $publicId = $query->fetchColumn();
+            if (!is_string($publicId)) throw new OutOfBoundsException('Registration not found.');
+            $query = $this->pdo->prepare('SELECT videos_unlocked FROM vocero_progress WHERE vocero_id = ?'); $query->execute([$voceroId]);
+            $unlocked = (int) $query->fetchColumn();
+            if ($slot > $unlocked) throw new OutOfBoundsException('Video slot locked.');
+            $now = gmdate('Y-m-d H:i:s');
+            $values = [$voceroId, $slot, $url, 'submitted', $now, $now];
+            if ($this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql') $sql = 'INSERT INTO vocero_videos (vocero_id, slot, url, status, submitted_at, updated_at) VALUES (?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE url = VALUES(url), status = VALUES(status), submitted_at = VALUES(submitted_at), updated_at = VALUES(updated_at)';
+            else $sql = 'INSERT INTO vocero_videos (vocero_id, slot, url, status, submitted_at, updated_at) VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT(vocero_id, slot) DO UPDATE SET url = excluded.url, status = excluded.status, submitted_at = excluded.submitted_at, updated_at = excluded.updated_at';
+            $this->pdo->prepare($sql)->execute($values);
+            $this->audit->log('vocero.video_submitted', null, 'vocero', $publicId, ['slot' => $slot], $ip);
+            $this->pdo->commit();
+        } catch (Throwable $exception) {
+            if ($this->pdo->inTransaction()) $this->pdo->rollBack();
+            throw $exception;
+        }
     }
 
     /** Only the authenticated admin detail consumes this minimal metadata. */
@@ -365,6 +446,26 @@ final class VocerosRepository
         $query->execute([$submissionId]);
         $result = $query->fetchColumn();
         return $result === false ? null : $result;
+    }
+
+    private function hasProgressSchema(): bool
+    {
+        if ($this->progressSchema !== null) return $this->progressSchema;
+        if ($this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite') {
+            $query = $this->pdo->prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name IN ('vocero_progress', 'vocero_videos')");
+            $query->execute();
+            return $this->progressSchema = count($query->fetchAll()) === 2;
+        }
+        $query = $this->pdo->prepare("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name IN ('vocero_progress', 'vocero_videos')");
+        $query->execute();
+        return $this->progressSchema = (int) $query->fetchColumn() === 2;
+    }
+
+    private function videoSlots(array $rows, int $unlocked = 0): array
+    {
+        $bySlot = [];
+        foreach ($rows as $row) $bySlot[(int) $row['slot']] = ['slot' => (int) $row['slot'], 'unlocked' => (int) $row['slot'] <= $unlocked, 'url' => (string) ($row['url'] ?? ''), 'status' => (string) ($row['status'] ?? 'empty'), 'submitted_at' => $row['submitted_at'] ?? null, 'updated_at' => $row['updated_at'] ?? null];
+        return array_map(static fn (int $slot): array => $bySlot[$slot] ?? ['slot' => $slot, 'unlocked' => $slot <= $unlocked, 'url' => '', 'status' => 'empty', 'submitted_at' => null, 'updated_at' => null], range(1, 5));
     }
 
     private function filterText(array $filters, string $field, int $limit): string
