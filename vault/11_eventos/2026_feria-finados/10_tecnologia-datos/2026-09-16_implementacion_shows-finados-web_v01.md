@@ -57,3 +57,13 @@ Modo utilizado: herramienta integrada `image_gen`, generación original sin imá
 ## Próximo paso
 
 Responsable: tecnología. Autorización recibida el 2026-09-16. Sincronizar los commits técnicos con GitHub, ejecutar el prevuelo completo en un entorno compatible y desplegar con respaldo. Registrar el resultado real; la autorización no sustituye las validaciones del despliegue.
+
+## Resultado del intento autorizado del 2026-09-16
+
+- GitHub actualizado: `15fea09` (implementación) y `04e32a3` (autorización), con `main` sincronizada `0 0` al iniciar el prevuelo.
+- Se recuperaron los seis campos `FINADOS_*` desde el controlador público ya instalado y directorios existentes, comprobando sus rutas canónicas y permisos. Se completó únicamente `website/.env.deploy`, ignorado por Git. No se leyeron ni copiaron credenciales del JSON privado; no se cambiaron rutas o archivos del servidor. `deploy:validate` ahora aprueba también la configuración completa del backend.
+- `npm run check` no aprobó: este Windows carece de PHP local y rechaza la creación de enlaces simbólicos con `EPERM`, incluso fuera del sandbox. No hay Docker ni instalación de WSL disponible.
+- El prevuelo estándar `npm run deploy:check`, desde `main` limpia y sincronizada, se detuvo con **`No se pudo ejecutar npm.cmd.`** en el lanzador Windows, antes de llegar a respaldos, configuración o transferencia. No se omitió ni debilitó ninguna prueba para publicar.
+- Las tres notas locales previas se guardaron temporalmente y se restauraron; sus hashes coincidieron exactamente. Se retiró solo el stash creado por esta ejecución después de verificar la restauración.
+- Consulta remota posterior de solo lectura: SHOWS y su hero todavía no están instalados; PHP remoto y el backend existente sí están presentes. `GET /api/health` responde HTTP 200 con contrato `vocero-accounts-v1`. No hubo cambios en producción, backend, Sheets, DNS o canal de compra.
+- **Pendiente:** ejecutar el prevuelo y despliegue en un entorno compatible con PHP y enlaces simbólicos, o preparar ese entorno local con autorización adicional porque implica instalar componentes de sistema. Revisar también el lanzador `npm.cmd` si se conserva la ejecución nativa Windows. Responsable: Alex/tecnología. Fecha: antes de producción.
