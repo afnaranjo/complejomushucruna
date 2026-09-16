@@ -1096,11 +1096,18 @@
     max-width: 49rem;
   }
 
+  .hero-stands h1 {
+    font-family: var(--font-display);
+    font-style: normal;
+    font-weight: 400;
+  }
+
   .hero-offer-grid {
     display: grid;
     max-width: 42rem;
     gap: .85rem;
     grid-template-columns: 1.12fr .88fr;
+    isolation: isolate;
   }
 
   .hero-date-card,
@@ -1112,8 +1119,11 @@
   }
 
   .hero-date-card {
+    position: relative;
+    z-index: 1;
     background: #f4eada;
-    box-shadow: 7px 7px 0 #00d2d6;
+    /* Accent cyan visible as a crisp edge, not as a dominant blue slab. */
+    box-shadow: 4px 4px 0 #00d2d6;
   }
 
   .hero-date-card span,
@@ -1137,9 +1147,11 @@
   }
 
   .hero-online-card {
+    position: relative;
+    z-index: 2;
     background: #00d2d6;
     border-color: #00d2d6;
-    box-shadow: 7px 7px 0 #ff2e8a;
+    box-shadow: 4px 4px 0 #ff2e8a;
     transform: rotate(-1deg);
   }
 

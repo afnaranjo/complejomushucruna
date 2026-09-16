@@ -11,7 +11,7 @@ const finadosSocialLinks = [
 
 const purchaseUrl = 'https://mushucticket.com/';
 const campaignAssetVersion = '20260903';
-const campaignRuntimeVersion = '20260916-4';
+const campaignRuntimeVersion = '20260916-5';
 
 const axes = [
   {

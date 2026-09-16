@@ -13,8 +13,8 @@ test('Finados y sus registros no cargan el CSS institucional del Complejo', () =
     assert.doesNotMatch(html, /href="\/assets\/styles\.css/, page.route);
     assert.doesNotMatch(html, /\/assets\/fonts\//, page.route);
     if (!/\/(acceso|mi-registro|restablecer)\/$/.test(page.route)) {
-      assert.match(html, /\/assets\/finados\/finados\.css\?v=20260916-4/, page.route);
-      assert.match(html, /\/assets\/finados\/navigation\.css\?v=20260916-4/, page.route);
+      assert.match(html, /\/assets\/finados\/finados\.css\?v=20260916-5/, page.route);
+      assert.match(html, /\/assets\/finados\/navigation\.css\?v=20260916-5/, page.route);
       assert.match(html, /id="navegacion-principal"/, page.route);
     }
     if (page.route === '/acreditacion-de-medios/') {

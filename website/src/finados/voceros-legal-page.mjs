@@ -8,7 +8,7 @@ const consents = JSON.parse(readFileSync(new URL('../../backend/finados-api/reso
 const legalVersions = { privacy: consents.data.version, image: consents.image.version, policies: consents.policies.version.split(' + ')[0], thermometer: consents.policies.version.split(' + ')[1], rights: '2026-09-14' };
 
 const campaignAssetVersion = '20260914-1';
-const campaignRuntimeVersion = '20260916-4';
+const campaignRuntimeVersion = '20260916-5';
 
 const controller = Object.freeze({
   name: 'Eventos Finados 2026',
