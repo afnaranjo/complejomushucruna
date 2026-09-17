@@ -199,3 +199,7 @@ El 28 de agosto quedó confirmado `¡LEGADO QUE NOS UNE!` como eslogan gráfico 
 ### 2026-09-17 — Backend y frontend publicados
 
 - Tras corregir la validación del inventario para el comportamiento de clonación de APFS, la suite completa quedó en verde y se publicó el backend con respaldo y migración 005. Luego se activó el frontend y se verificó `https://complejomushucruna.com`.
+
+### 2026-09-17 — Registros de prueba archivados
+
+- Se archivaron en producción los tres registros de prueba confirmados por Alex. Permanecen en la trazabilidad con estado `Eliminado` y sus accesos vinculados desactivados.

@@ -965,3 +965,9 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - `npm run check` quedó en verde (134 pruebas Node, pruebas PHP, integración, build y `check-dist`). Se publicó el backend con respaldo, migración y activación atómica; después se publicó y verificó el frontend en `https://complejomushucruna.com`.
 - Commit: `989bb84` (`Permitir artefactos APFS clonados en el prevuelo`). Producción actualizada; no se modificaron DNS, Acreditación de Medios, Google Sheets ni `superplataforma`.
 - Pendiente: probar en producción el acceso de Voceros y el panel administrativo con credenciales autorizadas.
+
+### 2026-09-17 — Retiro de registros de prueba solicitado
+
+- Alex confirmó retirar los tres registros visibles como pruebas: Robins Gomez, Alex Francisco Naranjo Licintuña y Flor Perez.
+- Se archivaron mediante `VocerosRepository::archive` en producción, conservando auditoría y desactivando sus accesos vinculados. Verificación posterior: 0 registros `Nuevo`; 4 registros `Eliminado` en total (incluye uno anterior).
+- Publicación externa: retiro administrativo autorizado; no se eliminaron físicamente datos ni se tocaron otros proyectos.
