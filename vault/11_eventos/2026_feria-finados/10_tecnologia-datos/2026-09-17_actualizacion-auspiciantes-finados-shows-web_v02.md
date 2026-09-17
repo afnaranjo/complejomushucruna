@@ -1,7 +1,7 @@
 ---
 titulo: "Segunda actualización de auspiciantes visibles de Finados 2026"
 responsable: "tecnología/diseño"
-estado: aprobado
+estado: publicado
 ultima_actualizacion: 2026-09-17
 fuente: "Solicitud expresa de Alex y nuevo SVG oficial recibido el 17 de septiembre de 2026"
 confidencialidad: interno
@@ -34,4 +34,13 @@ El nuevo SVG oficial tiene 321.395 bytes y `viewBox="0 0 2321 650"`. SHA-256: `1
 - El SVG público coincide por SHA-256 con el nuevo maestro recibido. WebP de respaldo de 50.138 bytes, dentro del presupuesto original. Dignidades 2025 y sus activos no tienen modificaciones.
 - `git diff --check` aprobado. Solo los activos, renderer, exportador, pruebas y esta nota de la tarea entrarán en el commit; las tres notas locales previas permanecen fuera del staging.
 
-Pendiente publicar el commit técnico y completar el procedimiento estándar de producción con respaldo, conservación de Google Sheets y verificación HTTPS independiente. No se considera publicada esta revisión hasta registrar resultados reales.
+## Resultado real de publicación
+
+- Commit técnico `953bad7` (`Actualizar segunda versión de auspiciantes Finados 2026`) subido a `origin/main`, sin notas locales ajenas en el commit. Pull solicitado ejecutado: no había cambios entrantes.
+- Configuración privada, prevuelo completo y despliegue estándar aprobados con exit code 0. Ambos modos repitieron el check completo; respaldo remoto recuperable antes de transferir, credencial existente de Google Sheets conservada y archivos exclusivos sin eliminar.
+- Verificación HTTPS independiente: 25 respuestas HTTP 200 con SHA-256 igual al build, más dos comprobaciones de composición compartida. Total 27 comprobaciones, cero fallos. Incluye Finados y SHOWS sin parámetros y con caché nueva, SVG sin consulta y versionado, WebP, estilos, cuatro fuentes y páginas principales, incluida Dignidades 2025.
+- Ambas páginas entregan el SVG nuevo con Mutualista Ambato y caché `20260917-sponsors-2`. Los activos históricos de 2025 permanecen sin cambios.
+- Las tres notas locales se restauraron con hashes idénticos después del despliegue; solo se retiró el stash temporal propio tras comprobarlo. Memoria, pendientes y bitácora actualizados por separado; el cierre documental de esta tarea no mezcla sus modificaciones previas no revisadas.
+- Publicación externa: GitHub y frontend autorizado. Configuración legal/controlador y puente privado verificados por el procedimiento habitual, sin nueva release de backend, cambios DNS, credenciales ni envío de registros de personas a Google Sheets.
+
+Seguimiento: mantener el maestro aprobado único y renovar su caché en cada nueva versión. En móvil el arte conserva su fila original y puede ampliarse en pestaña nueva. No queda bloqueo de publicación de esta revisión.
