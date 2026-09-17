@@ -4,6 +4,7 @@ import { renderFinadosFooter } from './footer.mjs';
 import { renderFinadosNavigation } from './navigation.mjs';
 import { showsProgram, plazaShows, showsAttractions } from './shows-program.mjs';
 import { renderFinadosSponsors, sponsorAssetVersion } from './sponsors.mjs';
+import { renderFairOpeningHeader, renderOpeningAssets } from './opening-header.mjs';
 
 const version = '20260916-shows-2';
 const asset = name => `/assets/finados/shows/${name}.webp?v=${version}`;
@@ -32,6 +33,7 @@ export function renderFinadosShowsPage(page) {
   <link rel="stylesheet" href="/assets/finados/navigation.css?v=20260916-8">
   <link rel="stylesheet" href="/assets/finados/shows.css?v=20260917-shows-3">
   <link rel="stylesheet" href="/assets/finados/sponsors.css?v=${sponsorAssetVersion}">
+  ${renderOpeningAssets()}
   <script type="module" src="/assets/finados/finados.js?v=20260916-7"></script>
 </head>
 <body class="shows-page font-sans text-night antialiased selection:bg-winay selection:text-night">
@@ -46,6 +48,7 @@ export function renderFinadosShowsPage(page) {
   </header>
 
   <main id="contenido">
+    ${renderFairOpeningHeader({ compact: true })}
     <section class="shows-hero" aria-labelledby="shows-title">
       <picture class="shows-hero-image">
         <source media="(max-width: 640px)" srcset="${asset('ambiente-concierto-800')}">

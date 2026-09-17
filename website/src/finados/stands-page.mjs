@@ -2,6 +2,7 @@ import { site } from '../data/site.mjs';
 import { escapeHtml, externalAttributes } from '../render/html.mjs';
 import { STANDS_WELCOME_SWITCH_AT } from '../stands-sale-schedule.js';
 import { renderFinadosNavigation } from './navigation.mjs';
+import { renderFairOpeningHeader, renderOpeningAssets } from './opening-header.mjs';
 
 const purchaseUrl = 'https://mushucticket.com/';
 const campaignAssetVersion = '20260903';
@@ -27,6 +28,7 @@ export function renderStandsAccessPage(page) {
   <link rel="preload" as="image" href="/assets/finados/logo-finados.svg?v=${campaignAssetVersion}" fetchpriority="high">
   <link rel="stylesheet" href="/assets/finados/finados.css?v=${campaignRuntimeVersion}">
   <link rel="stylesheet" href="/assets/finados/navigation.css?v=${navigationAssetVersion}">
+  ${renderOpeningAssets()}
   <script type="module" src="/assets/finados/finados.js?v=${campaignRuntimeVersion}"></script>
 </head>
 <body class="stands-access-page bg-night font-sans text-lienzo antialiased selection:bg-winay selection:text-night">
@@ -43,6 +45,7 @@ export function renderStandsAccessPage(page) {
   </header>
 
   <main id="contenido">
+    ${renderFairOpeningHeader({ compact: true })}
     <section class="stands-access-hero relative isolate flex min-h-[100svh] items-center overflow-hidden px-4 pb-20 pt-32 text-center sm:pb-24 sm:pt-36">
       <div class="stands-access-backdrop absolute inset-0 -z-30" aria-hidden="true"></div>
       <img class="stands-access-spectator absolute -z-20" src="/assets/finados/icons/espectador.svg?v=${campaignAssetVersion}" alt="" width="1271" height="587" aria-hidden="true">

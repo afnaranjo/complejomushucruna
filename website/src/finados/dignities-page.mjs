@@ -2,6 +2,7 @@ import { site } from '../data/site.mjs';
 import { escapeHtml } from '../render/html.mjs';
 import { renderFinadosFooter } from './footer.mjs';
 import { renderFinadosNavigation } from './navigation.mjs';
+import { renderFairOpeningHeader, renderOpeningAssets } from './opening-header.mjs';
 
 const campaignAssetVersion = '20260914-1';
 const campaignRuntimeVersion = '20260916-7';
@@ -24,6 +25,7 @@ export function renderFinadosDignitiesPage(page) {
   <link rel="apple-touch-icon" href="/assets/finados/favicon-finados.png">
   <link rel="stylesheet" href="/assets/finados/finados.css?v=${campaignRuntimeVersion}">
   <link rel="stylesheet" href="/assets/finados/navigation.css?v=${navigationAssetVersion}">
+  ${renderOpeningAssets()}
   <script type="module" src="/assets/finados/finados.js?v=${campaignRuntimeVersion}"></script>
 </head>
 <body class="dignities-page font-sans text-night antialiased selection:bg-winay selection:text-night">
@@ -39,6 +41,7 @@ export function renderFinadosDignitiesPage(page) {
   </header>
 
   <main id="contenido">
+    ${renderFairOpeningHeader({ compact: true })}
     <section class="dignities-hero" aria-labelledby="dignities-title">
       <div class="dignities-hero-rays" aria-hidden="true"></div>
       <div class="dignities-hero-grid">

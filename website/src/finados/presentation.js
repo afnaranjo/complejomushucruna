@@ -1,8 +1,9 @@
-export const PRESENTATION_AT = '2026-09-17T10:30:00-05:00';
+// Keep the published asset/API names; the clock now counts down to fair opening.
+export const PRESENTATION_AT = '2026-10-30T10:30:00-05:00';
 export const PRESENTATION_WELCOME = 'Bienvenidos a Finados Mushuc Runa 2026.';
 
 export function presentationCountdown(now, target = Date.parse(PRESENTATION_AT)) {
-  if (!Number.isFinite(now) || !Number.isFinite(target)) throw new TypeError('Fecha de presentación inválida.');
+  if (!Number.isFinite(now) || !Number.isFinite(target)) throw new TypeError('Fecha de inicio de la feria inválida.');
   const remaining = Math.max(0, target - now);
   return {
     live: now >= target,
@@ -49,7 +50,7 @@ export function setupPresentationCountdown(doc, {
       return true;
     }
     for (const key of ['days', 'hours', 'minutes', 'seconds']) values[key].textContent = String(parts[key]).padStart(2, '0');
-    const announcement = `Faltan ${parts.days} días, ${parts.hours} horas y ${parts.minutes} minutos para la presentación de Finados 2026.`;
+    const announcement = `Faltan ${parts.days} días, ${parts.hours} horas y ${parts.minutes} minutos para el inicio de Finados Mushuc Runa 2026.`;
     if (status.textContent !== announcement) status.textContent = announcement;
     return false;
   }

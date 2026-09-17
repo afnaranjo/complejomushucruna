@@ -2,6 +2,7 @@ import { site, socialLinks } from '../data/site.mjs';
 import { renderFinadosFooter } from '../finados/footer.mjs';
 import { escapeHtml, externalAttributes } from './html.mjs';
 import { renderPrimaryNavigation } from './navigation.mjs';
+import { renderFairOpeningHeader, renderOpeningAssets } from '../finados/opening-header.mjs';
 
 const institutionalAssetVersion = '20260904';
 const homeAssetVersion = '20260909';
@@ -10,6 +11,7 @@ const siteRuntimeVersion = '20260916-1';
 
 export function renderLayout(page) {
   const isHome = page.route === '/';
+  const isMedia = page.route === '/acreditacion-de-medios/';
   const isFinadosTheme = page.designSystem === 'finados';
   const hasFinadosHeader = isHome || page.headerVariant === 'finados';
   const bodyClass = [isHome ? 'home-page' : '', page.bodyClass ?? ''].filter(Boolean).join(' ');
@@ -48,12 +50,13 @@ export function renderLayout(page) {
   ${isFinadosTheme
     ? '<meta name="theme-color" content="#241146"><link rel="icon" href="/assets/finados/favicon-finados.png" type="image/png" sizes="256x256">'
     : `<link rel="icon" href="/assets/icons/logo-complejo-mushuc-runa.svg?v=${institutionalAssetVersion}" type="image/svg+xml">`}
-  ${page.heroImage || isHome ? `<link rel="preload" as="image" href="${page.heroImage ?? '/assets/finados/expositor-artesanias.webp'}" fetchpriority="high">` : ''}
+  ${page.heroImage ? `<link rel="preload" as="image" href="${page.heroImage}" fetchpriority="high">` : ''}
   ${isFinadosTheme
     ? '<link rel="stylesheet" href="/assets/finados/finados.css?v=20260916-7">'
     : `<link rel="stylesheet" href="/assets/styles.css?v=${stylesVersion}">`}
   ${page.stylesheet ? `<link rel="stylesheet" href="${page.stylesheet}">` : ''}
   ${hasFinadosHeader ? '<link rel="stylesheet" href="/assets/finados/navigation.css?v=20260916-8">' : ''}
+  ${isHome || isMedia ? renderOpeningAssets() : ''}
   <script type="module" src="/assets/site.js?v=${siteRuntimeVersion}"></script>
 </head>
 <body${bodyClass ? ` class="${bodyClass}"` : ''}>
@@ -66,7 +69,7 @@ export function renderLayout(page) {
     <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="navegacion-principal"><span></span><span></span><span></span><span class="sr-only">Abrir menú</span></button>
     <nav id="navegacion-principal" class="main-nav" aria-label="Navegación principal"><ul>${renderPrimaryNavigation(page.route)}</ul></nav>
   </header>
-  <main id="contenido">${page.body}</main>
+  <main id="contenido">${isMedia ? renderFairOpeningHeader({ compact: true }) : ''}${page.body}</main>
   ${footer}
 </body>
 </html>`;

@@ -6,6 +6,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import { pages } from '../src/pages.mjs';
 import { renderLayout } from '../src/render/layout.mjs';
+import { injectInvitationOpeningHeader } from '../src/finados/opening-header.mjs';
 
 const websiteRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const execFileAsync = promisify(execFile);
@@ -122,7 +123,8 @@ export async function buildSite(outputDirectory = join(websiteRoot, 'dist'), { a
     if (htmlFile.startsWith('admin/') || /^finados\/voceros\/(acceso|mi-registro|restablecer)\//.test(htmlFile)) continue;
     const path = join(output, htmlFile);
     const html = await readFile(path, 'utf8');
-    await writeFile(path, injectCookieConsent(html), 'utf8');
+    const route = `/${htmlFile.replace(/index\.html$/, '')}`;
+    await writeFile(path, injectCookieConsent(injectInvitationOpeningHeader(html, route)), 'utf8');
   }
 
   return (await listFiles(output)).sort();

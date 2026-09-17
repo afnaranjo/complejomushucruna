@@ -3,7 +3,7 @@ import { escapeHtml, externalAttributes } from '../render/html.mjs';
 import { renderFinadosFooter } from './footer.mjs';
 import { renderFinadosSponsors, sponsorAssetVersion } from './sponsors.mjs';
 import { renderFinadosNavigation } from './navigation.mjs';
-import { PRESENTATION_AT, PRESENTATION_WELCOME } from './presentation.js';
+import { renderFairOpeningHeader, renderOpeningAssets } from './opening-header.mjs';
 
 const finadosSocialLinks = [
   { label: 'Facebook', href: 'https://www.facebook.com/FinadosMushucRunaEc' },
@@ -15,7 +15,6 @@ const purchaseUrl = 'https://mushucticket.com/';
 const campaignAssetVersion = '20260903';
 const campaignRuntimeVersion = '20260916-7';
 const navigationAssetVersion = '20260916-8';
-const presentationVersion = '20260916-presentation-1';
 
 const axes = [
   {
@@ -86,10 +85,9 @@ export function renderFinadosPage(page) {
   <link rel="apple-touch-icon" href="/assets/finados/favicon-finados.png">
   <link rel="stylesheet" href="/assets/finados/finados.css?v=${campaignRuntimeVersion}">
   <link rel="stylesheet" href="/assets/finados/navigation.css?v=${navigationAssetVersion}">
-  <link rel="stylesheet" href="/assets/finados/presentation.css?v=${presentationVersion}">
+  ${renderOpeningAssets()}
   <link rel="stylesheet" href="/assets/finados/sponsors.css?v=${sponsorAssetVersion}">
   <script type="module" src="/assets/finados/finados.js?v=${campaignRuntimeVersion}"></script>
-  <script type="module" src="/assets/finados/presentation.js?v=${presentationVersion}"></script>
 </head>
 <body class="bg-lienzo font-sans text-night antialiased selection:bg-winay selection:text-night">
   <a class="skip-link" href="#contenido">Ir al contenido</a>
@@ -104,30 +102,7 @@ export function renderFinadosPage(page) {
   </header>
 
   <main id="contenido">
-    <section id="inicio" class="presentation-hero" aria-labelledby="presentation-title">
-      <div class="presentation-shell">
-        <div class="presentation-copy">
-          <p class="presentation-kicker">Mushuc Runa · ¡Legado que nos une!</p>
-          <h1 id="presentation-title" class="presentation-title"><span>Presentación</span><span class="presentation-event-name">Finados <em>2026</em></span></h1>
-          <p class="presentation-date"><time datetime="${PRESENTATION_AT}">Jueves 17 de septiembre de 2026</time><strong>10:30 <span>AM</span></strong></p>
-          <p class="presentation-location">Complejo Intercultural y Deportivo <strong>MUSHUC RUNA</strong></p>
-          <a class="presentation-map" href="${escapeHtml(route.href)}"${externalAttributes(route.href)}>Mapa de ubicación <span aria-hidden="true">↗</span><span class="sr-only"> (se abre en otra pestaña)</span></a>
-        </div>
-        <div class="presentation-timer-wrap">
-          <img class="presentation-symbol" src="/assets/finados/icons/legado.svg?v=${campaignAssetVersion}" width="899" height="969" alt="" aria-hidden="true">
-          <div class="presentation-countdown" data-presentation-countdown data-target="${PRESENTATION_AT}">
-            <p class="presentation-countdown-label" data-presentation-label>La presentación comienza en</p>
-            <div class="presentation-clock" data-presentation-clock aria-hidden="true" hidden>
-              ${[['days', 'Días'], ['hours', 'Horas'], ['minutes', 'Minutos'], ['seconds', 'Segundos']].map(([key, label]) => `<div class="presentation-unit"><strong data-presentation-value="${key}">00</strong><span>${label}</span></div>`).join('')}
-            </div>
-            <p class="presentation-fallback" data-presentation-fallback>17 de septiembre de 2026 · 10:30 AM (hora de Ecuador)</p>
-            <p class="presentation-welcome" data-presentation-welcome hidden>${PRESENTATION_WELCOME}</p>
-            <span class="sr-only" aria-live="polite" aria-atomic="true" data-presentation-status>La presentación de Finados 2026 será el jueves 17 de septiembre a las 10:30, hora de Ecuador.</span>
-          </div>
-        </div>
-      </div>
-      <div class="chumbi-line presentation-weave" aria-hidden="true"></div>
-    </section>
+    ${renderFairOpeningHeader()}
 
     <section id="venta-de-stands" class="hero-stage hero-stands relative isolate min-h-[100svh] overflow-hidden bg-night text-lienzo" aria-labelledby="stands-body-title">
       <div class="hero-stands-backdrop absolute inset-0 -z-30" aria-hidden="true"></div>

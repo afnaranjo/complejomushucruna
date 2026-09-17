@@ -1,4 +1,5 @@
 import { escapeHtml, externalAttributes } from './html.mjs';
+import { renderFairOpeningHeader } from '../finados/opening-header.mjs';
 
 export function hero({ eyebrow, heading, intro, image = '' }) {
   const style = image ? ` style="--hero-image: url('${escapeHtml(image)}')"` : '';
@@ -18,12 +19,13 @@ export function hero({ eyebrow, heading, intro, image = '' }) {
 export function homeFinadosHero() {
   const purchaseUrl = 'https://mushucticket.com/';
 
-  return `<section class="hero hero--finados home-story__hero" aria-labelledby="home-finados-title">
+  return `${renderFairOpeningHeader({ titleId: 'home-finados-title' })}
+  <section class="hero hero--finados home-story__hero" aria-labelledby="home-stands-title">
     <img class="hero-finados__watermark" src="/assets/icons/logo-complejo.svg?v=20260904-2" width="1800" height="1800" alt="" aria-hidden="true">
     <div class="hero-finados__grid shell">
       <div class="hero-finados__copy">
         <p class="hero-finados__eyebrow">Finados 2026 · Venta de stands</p>
-        <h1 id="home-finados-title"><span>Haz crecer</span><span>tu negocio</span><span>en Finados</span></h1>
+        <h2 id="home-stands-title" class="home-stands-title"><span>Haz crecer</span><span>tu negocio</span><span>en Finados</span></h2>
         <p class="hero-finados__intro">Tu talento, tus productos y tu historia también hacen parte de esta tradición.</p>
         <div class="hero-finados__offer">
           <div class="hero-finados__date">
@@ -38,7 +40,7 @@ export function homeFinadosHero() {
         </div>
       </div>
       <figure class="hero-finados__expositor">
-        <img src="/assets/finados/expositor-artesanias.webp" width="743" height="1405" alt="Expositor de artesanías sosteniendo productos de madera" fetchpriority="high">
+        <img src="/assets/finados/expositor-artesanias.webp" width="743" height="1405" alt="Expositor de artesanías sosteniendo productos de madera" loading="lazy" decoding="async">
         <figcaption>Participa como dueño de tu stand</figcaption>
       </figure>
     </div>
