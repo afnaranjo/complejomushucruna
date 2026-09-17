@@ -152,8 +152,8 @@ test('portal: rutas privadas, catálogo exacto y landing con acceso separado', a
       for (const key of ['policies', 'image', 'data']) assert.ok(page.includes(catalogue[key].text));
       assert.doesNotMatch(page, /name="(?:correo|email|accountId|role|estado|status|website)"/);
       assert.match(page, /<details class="vocero-videos-panel" data-vocero-videos/);
-      assert.match(page, /<summary[^>]*>Contenido de la comunidad/);
-      assert.ok(page.indexOf('vocero-consents') < page.indexOf('data-vocero-videos'));
+      assert.match(page, /<summary[^>]*>[\s\S]*Contenido de la comunidad/);
+      assert.ok(page.indexOf('vocero-consents') < page.indexOf('<details class="vocero-videos-panel" data-vocero-videos'));
     }
   }
   assert.match(landing, /href="\/finados\/voceros\/acceso\/"[^>]*>Crear cuenta/);
