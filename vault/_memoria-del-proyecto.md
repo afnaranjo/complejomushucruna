@@ -234,3 +234,7 @@ El 28 de agosto quedó confirmado `¡LEGADO QUE NOS UNE!` como eslogan gráfico 
 
 - La sección de cinco videos ahora aparece al final de la vista privada y plegada mientras está bloqueada; los consentimientos aceptados se muestran marcados al volver a entrar.
 - Build y `check-dist` válidos; pendiente publicación del frontend.
+
+### 2026-09-17 — Publicación de videos plegables y checks
+
+- Se publicó el ajuste en `complejomushucruna.com` desde `8cef425`, con respaldo remoto y verificación del despliegue.

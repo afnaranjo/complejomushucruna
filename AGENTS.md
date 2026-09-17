@@ -1010,3 +1010,8 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Se movió `Contenido de la comunidad` al final de la vista privada, dentro de un panel `<details>` colapsado por defecto cuando los cinco espacios están bloqueados; se abre automáticamente al habilitarse un video.
 - Al cargar el perfil se restauran los tres checks de consentimiento a partir de la evidencia guardada por el backend. No se modificaron reglas de consentimiento, backend, fotografías ni otras landings.
 - QA local: build y `check-dist` válidos; pruebas específicas del portal ejecutadas. Pendiente desplegar frontend después de commit.
+
+### 2026-09-17 — Publicación de videos plegables y consentimientos
+
+- Se publicó el commit `8cef425` en `https://complejomushucruna.com`; la sección de videos quedó al final y plegada cuando está bloqueada, y los consentimientos aceptados se restauran marcados al cargar el perfil.
+- El despliegue creó respaldo remoto y conservó backend, Google Sheets, archivos exclusivos y los demás dominios sin cambios.
