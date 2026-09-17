@@ -24,6 +24,14 @@ export function trafficLightLabel(light) {
   return { short: value.short, long: value.long };
 }
 
+/** Formats the identity number for the public badge without exposing it in full. */
+export function formatBadgeCedula(value) {
+  const digits = String(value ?? '').replace(/\D/g, '');
+  if (!digits) return 'No disponible';
+  if (digits.length <= 4) return `••••${digits}`;
+  return `${digits.slice(0, 3)}••••${digits.slice(-2)}`;
+}
+
 /** Returns the QR matrix so the canvas renderer and tests share one encoder. */
 export function createBadgeQrMatrix(value) {
   if (typeof value !== 'string' || value.length < 1 || value.length > 512) throw new TypeError('Contenido QR inválido.');
@@ -287,7 +295,8 @@ async function badgeBlob(profile, photoBlob) {
   // Encabezado separado del título para que ningún texto se solape.
   context.textAlign = 'center'; context.fillStyle = '#f4eada'; context.font = '700 24px Inter, Arial, sans-serif'; context.fillText('COMUNIDAD DE VOCEROS', 540, 318);
   context.fillStyle = '#ffc42e'; context.font = '700 30px Inter, Arial, sans-serif'; context.fillText('FINADOS 2026', 540, 360);
-  context.textAlign = 'left'; context.fillStyle = '#ffffff'; context.font = '900 104px Anton, Arial Narrow, sans-serif'; context.fillText('INVITADO', 70, 490); context.fillText('ESPECIAL', 70, 605);
+  context.textAlign = 'left'; context.fillStyle = '#ffffff'; context.font = '900 104px Anton, Arial Narrow, sans-serif'; context.fillText('VOCERO', 70, 490);
+  context.fillStyle = '#ffc42e'; context.fillText('2026', 70, 605);
   context.fillStyle = '#00d2d6'; context.fillRect(74, 644, 360, 12);
 
   // Validate the stable public identifier before creating a temporary photo URL.
@@ -298,7 +307,8 @@ async function badgeBlob(profile, photoBlob) {
   const image = await (globalThis.createImageBitmap
     ? globalThis.createImageBitmap(photoBlob)
     : (photoUrl = URL.createObjectURL(photoBlob), loadBadgeImage(photoUrl)));
-  const frame = { x: 86, y: 710, width: 908, height: 560 };
+  // Retrato tipo carnet: la proporción vertical evita deformar la fotografía.
+  const frame = { x: 86, y: 710, width: 430, height: 560 };
   context.fillStyle = '#f4eada'; roundRect(frame.x - 16, frame.y - 16, frame.width + 32, frame.height + 32, 28); context.fill();
   context.save(); roundRect(frame.x, frame.y, frame.width, frame.height, 18); context.clip();
   const scale = Math.max(frame.width / image.width, frame.height / image.height);
@@ -306,30 +316,37 @@ async function badgeBlob(profile, photoBlob) {
   context.drawImage(image, frame.x + (frame.width - width) / 2, frame.y + (frame.height - height) / 2, width, height); context.restore();
   image.close?.();
 
-  // Identidad y semáforo en una tarjeta estable, con espacio reservado para el QR.
-  context.textAlign = 'left'; context.fillStyle = '#f4eada'; context.font = '700 25px Inter, Arial, sans-serif'; context.fillText('VOCERO OFICIAL', 78, 1360);
-  const name = String(profile.full_name ?? 'Vocero').trim().slice(0, 42) || 'Vocero';
-  let nameSize = 60;
-  while (nameSize > 40) { context.font = `900 ${nameSize}px Inter, Arial, sans-serif`; if (context.measureText(name).width <= 610) break; nameSize -= 2; }
-  context.fillStyle = '#ffffff'; context.fillText(name, 78, 1430);
-  context.fillStyle = '#f4eada'; roundRect(74, 1465, 620, 122, 20); context.fill();
-  context.fillStyle = '#391f6f'; context.font = '700 18px Inter, Arial, sans-serif'; context.fillText('NIVEL ACTUAL', 98, 1498);
-  context.font = '900 34px Anton, Arial Narrow, sans-serif'; context.fillText(level, 98, 1544);
-  context.fillStyle = lightLabel.color; context.beginPath(); context.arc(602, 1523, 14, 0, Math.PI * 2); context.fill();
-  context.fillStyle = '#391f6f'; context.font = '700 18px Inter, Arial, sans-serif'; context.fillText(lightLabel.short.toUpperCase(), 625, 1530);
-
+  // Panel de validación: QR individual y estado del vocero junto al retrato.
+  const panel = { x: 570, y: 710, width: 420, height: 560 };
+  context.fillStyle = '#f4eada'; roundRect(panel.x, panel.y, panel.width, panel.height, 28); context.fill();
+  context.textAlign = 'left'; context.fillStyle = '#391f6f'; context.font = '700 21px Inter, Arial, sans-serif'; context.fillText('VOCERO 2026', panel.x + 30, panel.y + 48);
   const qrSize = 248;
-  const qrX = 756;
-  const qrY = 1342;
-  context.fillStyle = '#f4eada'; roundRect(qrX - 18, qrY - 18, qrSize + 36, qrSize + 36, 22); context.fill();
+  const qrX = panel.x + (panel.width - qrSize) / 2;
+  const qrY = panel.y + 74;
+  context.fillStyle = '#ffffff'; roundRect(qrX - 14, qrY - 14, qrSize + 28, qrSize + 28, 18); context.fill();
   const quiet = 4;
   const cell = qrSize / (matrix.length + quiet * 2);
-  context.fillStyle = '#f4eada'; context.fillRect(qrX, qrY, qrSize, qrSize);
+  context.fillStyle = '#ffffff'; context.fillRect(qrX, qrY, qrSize, qrSize);
   context.fillStyle = '#241146';
   for (let row = 0; row < matrix.length; row += 1) for (let column = 0; column < matrix.length; column += 1) {
     if (matrix[row][column]) context.fillRect(qrX + (column + quiet) * cell, qrY + (row + quiet) * cell, cell + .4, cell + .4);
   }
-  context.textAlign = 'center'; context.fillStyle = '#f4eada'; context.font = '700 16px Inter, Arial, sans-serif'; context.fillText('ESCANEA PARA VALIDAR', qrX + qrSize / 2, 1636);
+  context.textAlign = 'center'; context.fillStyle = '#391f6f'; context.font = '700 15px Inter, Arial, sans-serif'; context.fillText('ESCANEA PARA VALIDAR', panel.x + panel.width / 2, panel.y + 358);
+  context.textAlign = 'left'; context.fillStyle = '#391f6f'; context.font = '700 16px Inter, Arial, sans-serif'; context.fillText('NIVEL ACTUAL', panel.x + 30, panel.y + 405);
+  let panelLevelSize = 30;
+  while (panelLevelSize > 20) { context.font = `900 ${panelLevelSize}px Anton, Arial Narrow, sans-serif`; if (context.measureText(level).width <= panel.width - 60) break; panelLevelSize -= 2; }
+  context.fillText(level, panel.x + 30, panel.y + 445);
+  context.fillStyle = lightLabel.color; context.beginPath(); context.arc(panel.x + 42, panel.y + 495, 13, 0, Math.PI * 2); context.fill();
+  context.fillStyle = '#391f6f'; context.font = '700 17px Inter, Arial, sans-serif'; context.fillText(lightLabel.short.toUpperCase(), panel.x + 66, panel.y + 501);
+
+  // Identidad debajo de ambos bloques, con espacio suficiente para nombres largos y cédula.
+  context.textAlign = 'left'; context.fillStyle = '#f4eada'; context.font = '700 25px Inter, Arial, sans-serif'; context.fillText('VOCERO OFICIAL', 78, 1360);
+  const name = String(profile.full_name ?? 'Vocero').trim().slice(0, 42) || 'Vocero';
+  let nameSize = 60;
+  while (nameSize > 40) { context.font = `900 ${nameSize}px Inter, Arial, sans-serif`; if (context.measureText(name).width <= 900) break; nameSize -= 2; }
+  context.fillStyle = '#ffffff'; context.fillText(name, 78, 1430);
+  context.fillStyle = '#f4eada'; context.font = '700 20px Inter, Arial, sans-serif'; context.fillText(`C.I. ${formatBadgeCedula(profile.cedula)}`, 78, 1472);
+  context.fillStyle = '#00d2d6'; context.fillRect(78, 1500, 360, 10);
   context.textAlign = 'left'; context.fillStyle = '#ffc42e'; context.font = '700 25px Inter, Arial, sans-serif'; context.fillText('¡LEGADO QUE NOS UNE!', 78, 1678);
   context.fillStyle = '#f4eada'; context.font = '500 22px Inter, Arial, sans-serif'; context.fillText('Comparte tu voz, celebra nuestras raíces.', 78, 1730);
   context.fillStyle = '#ffffff'; context.font = '700 22px Inter, Arial, sans-serif'; context.fillText('VALIDACIÓN INDIVIDUAL · FINADOS 2026', 78, 1784);

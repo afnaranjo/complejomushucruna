@@ -59,7 +59,7 @@ test('autoguardado: se habilita con el formulario completo aunque no haya red so
 });
 
 test('gafete: el QR de validación es único por vocero y no admite identificadores privados', async () => {
-  const { badgeVerificationUrl, createBadgeQrMatrix, trafficLightLabel } = await clientModule();
+  const { badgeVerificationUrl, createBadgeQrMatrix, trafficLightLabel, formatBadgeCedula } = await clientModule();
   const firstId = 'a'.repeat(32);
   const secondId = 'b'.repeat(32);
   const firstUrl = badgeVerificationUrl(firstId);
@@ -76,6 +76,17 @@ test('gafete: el QR de validación es único por vocero y no admite identificado
   assert.deepEqual(trafficLightLabel('red'), { short: 'Rojo', long: 'En preparación' });
   assert.deepEqual(trafficLightLabel('yellow'), { short: 'Amarillo', long: 'En avance' });
   assert.deepEqual(trafficLightLabel('green'), { short: 'Verde', long: 'Listo' });
+  assert.equal(formatBadgeCedula('1803001234'), '180••••34');
+  assert.equal(formatBadgeCedula(''), 'No disponible');
+});
+
+test('gafete: conserva la composición vertical y el título actualizado', async () => {
+  const source = await readFile(new URL('../src/finados/vocero-portal.js', import.meta.url), 'utf8');
+  assert.match(source, /fillText\('VOCERO', 70, 490\)/);
+  assert.match(source, /fillText\('2026', 70, 605\)/);
+  assert.match(source, /width: 430, height: 560/);
+  assert.doesNotMatch(source, /fillText\('INVITADO'/);
+  assert.match(source, /formatBadgeCedula\(profile\.cedula\)/);
 });
 
 test('validación: consulta solo el identificador público y no envía cookies', async () => {

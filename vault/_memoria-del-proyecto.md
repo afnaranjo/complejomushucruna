@@ -211,3 +211,9 @@ El 28 de agosto quedó confirmado `¡LEGADO QUE NOS UNE!` como eslogan gráfico 
 ### 2026-09-17 — Reuso de datos de fichas archivadas
 
 - Las fichas nuevas ya no chocan con datos de fichas archivadas; solo las fichas activas mantienen la regla de unicidad. Cambio publicado en producción con pruebas completas en verde.
+
+### 2026-09-17 — Rediseño vertical del gafete de Voceros
+
+- El gafete se reorganizó a formato historia `1080 × 1920` con fotografía vertical tipo carnet, título `VOCERO 2026`, panel lateral para QR individual, nivel y semáforo, y mejor separación de identidad y pie gráfico.
+- Se añadió la cédula en formato parcialmente enmascarado (`primeros tres + últimos dos dígitos`) para apoyar la validación sin publicar el número completo. El QR conserva como único dato el `public_id` aleatorio.
+- QA: suite específica y `npm run check` en verde; cambios locales sin despliegue externo en esta sesión.
