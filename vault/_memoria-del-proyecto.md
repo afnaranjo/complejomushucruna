@@ -186,3 +186,8 @@ El 28 de agosto quedó confirmado `¡LEGADO QUE NOS UNE!` como eslogan gráfico 
 - [[11_eventos/2026_feria-finados/01_concepto-experiencia/2026-08-24_arquitectura-experiencia-asistencia-200k-finados-2026_v01|Arquitectura de experiencia y asistencia 200K]]
 - [[11_eventos/2026_feria-finados/10_tecnologia-datos/2026-08-24_guia-movil-informativa-sin-backend-finados-2026_v01|Guía móvil informativa sin backend]]
 - [[11_eventos/2026_feria-finados/05_marketing-comunicacion/05_alianzas-difusion/2026-08-24_programa-creadores-referidos-finados-2026_v01|Programa de creadores y referidos]]
+
+### 2026-09-16 — Progreso de videos de Voceros
+
+- Se implementó en local el control individual de los cinco videos de cada vocero. Administración marca cada espacio y registra su fecha de habilitación; el portal informa “Disponible desde” y solo permite guardar enlaces de espacios habilitados.
+- La migración `005_vocero_video_enablement` añade el estado de configuración y la fecha por espacio, con compatibilidad para registros anteriores. Commit `6e67d42`; no se publicó producción.
