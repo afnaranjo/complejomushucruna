@@ -225,3 +225,7 @@ El 28 de agosto quedó confirmado `¡LEGADO QUE NOS UNE!` como eslogan gráfico 
 ### 2026-09-17 — Corrección de solapamiento y carga del gafete
 
 - La franja fucsia se desplazó detrás del bloque de foto para despejar el subtítulo y los recursos decorativos se cargan en paralelo. El ajuste está validado en local y pendiente de publicación.
+
+### 2026-09-17 — Publicación de la corrección del gafete
+
+- La corrección visual y de carga se publicó en `complejomushucruna.com` desde `ee8e085`, con respaldo remoto y verificación del despliegue.

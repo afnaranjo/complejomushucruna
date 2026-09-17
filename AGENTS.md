@@ -999,3 +999,8 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 
 - Se bajó la franja fucsia inclinada para no cubrir `INVITADO ESPECIAL` y se cargaron logo e íconos decorativos en paralelo con `Promise.all`, reduciendo esperas innecesarias durante la generación del gafete.
 - QA local: build de 128 archivos, `check-dist`, helper del gafete y `git diff --check` en verde. Pendiente publicar este ajuste frontend; no se tocó backend ni otros proyectos.
+
+### 2026-09-17 — Publicación de la corrección del gafete
+
+- Se publicó el commit `ee8e085` en `https://complejomushucruna.com`, con la franja fucsia reubicada y la carga paralela de recursos decorativos.
+- El despliegue creó respaldo remoto, conservó archivos exclusivos y no modificó backend, DNS, Acreditación de Medios, Google Sheets ni otros proyectos.
