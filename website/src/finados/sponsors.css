@@ -1,0 +1,7 @@
+/* The same official composition is shared only by Finados and SHOWS. */
+.finados-sponsors-body { display: flow-root; background: #391f6f; padding: 3rem 1rem 0; }
+.finados-sponsors-body .finados-sponsors { margin-bottom: 0; }
+.finados-sponsors { width: min(100%, 88rem); margin: 0 auto 3rem; }
+.finados-sponsors-art { display: block; }
+.finados-sponsors-art img { display: block; width: 100%; height: auto; aspect-ratio: 2321 / 650; }
+.finados-sponsors-art:focus-visible { outline: 3px solid #00d2d6; outline-offset: 6px; }

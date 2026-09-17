@@ -25,13 +25,4 @@ export const showsAttractions = Object.freeze([
   'Granja turística',
 ]);
 
-export const showsSponsors = Object.freeze([
-  'Mushuc Runa Cooperativa de Ahorro y Crédito',
-  'Pushak Ltda. Cooperativa de Ahorro y Crédito',
-  'Seguros Unidos',
-  'Cogarol',
-  'Whisky John Morris',
-  'Tequila Azteca',
-  'Textilana Cooperativa de Ahorro y Crédito',
-  'Pollos al Gusto',
-]);
+export { finadosSponsors as showsSponsors } from './sponsors.mjs';

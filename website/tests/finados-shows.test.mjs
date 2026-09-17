@@ -8,6 +8,7 @@ import { pages } from '../src/pages.mjs';
 import { primaryNavigation } from '../src/data/site.mjs';
 import { showsProgram, plazaShows, showsAttractions, showsSponsors } from '../src/finados/shows-program.mjs';
 import { renderFinadosFooter } from '../src/finados/footer.mjs';
+import { renderFinadosSponsors } from '../src/finados/sponsors.mjs';
 import { buildSite } from '../scripts/build.mjs';
 
 const page = pages.find(page => page.route === '/finados/shows/');
@@ -62,7 +63,7 @@ test('conserva los shows de Plaza de la Luna y los atractivos del arte', () => {
 
 test('todos los auspiciantes están en el footer, sin cambios en otros pies de campaña', () => {
   const output = html();
-  const sponsor = output.indexOf('class="shows-sponsors"');
+  const sponsor = output.indexOf('class="finados-sponsors"');
   assert.ok(sponsor > output.indexOf('</main>'));
   assert.ok(sponsor > output.indexOf('<footer'));
   assert.ok(sponsor < output.lastIndexOf('</footer>'));
@@ -71,17 +72,23 @@ test('todos los auspiciantes están en el footer, sin cambios en otros pies de c
   assert.match(output, /width="2321" height="650"/);
   assert.match(output, /Organiza: Luis Alfonso Chango P\. Auspician:/);
   assert.ok(output.includes('Textilana Cooperativa de Ahorro y Crédito'));
-  assert.doesNotMatch(renderFinadosFooter(), /shows-sponsors/);
-  assert.match(output, /shows-sponsors-art[^>]*target="_blank" rel="noopener noreferrer"/);
+  assert.doesNotMatch(renderFinadosFooter(), /finados-sponsors/);
+  assert.match(output, /finados-sponsors-art[^>]*target="_blank" rel="noopener noreferrer"/);
   assert.doesNotMatch(output, /shows-sponsors-scroll|auspiciantes-finados-2026\.webp/);
 });
 
 test('la composición SVG de auspiciantes se conserva idéntica al archivo entregado', async () => {
   const original = await readFile(new URL('../public/assets/finados/shows/auspiciantes-finados-2026.svg', import.meta.url));
-  assert.equal(createHash('sha256').update(original).digest('hex'), '1464352f77e98cfb7496fa9e8057638ded5c5cd9229e20608e3e857374106aaf');
+  assert.equal(createHash('sha256').update(original).digest('hex'), 'd2959d3384bd410b35a4bf80df422d0e83bd56c9adcd9e9a6ff95de73f5537fa');
   const svg = original.toString('utf8');
   assert.match(svg, /viewBox="0 0 2321 650"/);
-  assert.doesNotMatch(svg, /<(?:script|foreignObject|image)\b|(?:xlink:)?href="(?:https?:|file:|\/\/)/i);
+  assert.doesNotMatch(svg, /<(?:script|foreignObject|iframe|object|embed)\b|\bon[a-z]+\s*=|<!ENTITY|<\?xml-stylesheet/i);
+  const references = [...svg.matchAll(/(?:xlink:)?href="([^"]*)"/gi)].map(match => match[1]);
+  assert.equal(references.length, 1);
+  assert.match(references[0], /^data:image\/png;base64,[A-Za-z0-9+/]+={0,2}$/);
+  const png = Buffer.from(references[0].slice('data:image/png;base64,'.length), 'base64');
+  assert.ok(png.length < 1_000_000);
+  assert.equal(png.subarray(0, 8).toString('hex'), '89504e470d0a1a0a');
 });
 
 test('el hero es conceptual y las imágenes oficiales son locales y adaptables', () => {
@@ -102,10 +109,14 @@ test('el hero es conceptual y las imágenes oficiales son locales y adaptables',
 test('los estilos amplían los shows y adaptan la composición completa sin desbordes', async () => {
   const css = await readFile(new URL('../src/finados/shows.css', import.meta.url), 'utf8');
   const theme = await readFile(new URL('../src/finados/finados.css', import.meta.url), 'utf8');
+  const sponsors = await readFile(new URL('../src/finados/sponsors.css', import.meta.url), 'utf8');
   assert.match(css, /padding-top: 132px/);
   assert.match(css, /padding-top: 108px/);
   assert.match(css, /minmax\(0, 1fr\)/);
-  assert.match(css, /aspect-ratio: 2321 \/ 650/);
+  assert.match(sponsors, /aspect-ratio: 2321 \/ 650/);
+  assert.match(sponsors, /width: min\(100%, 88rem\)/);
+  assert.match(sponsors, /width: 100%; height: auto/);
+  assert.doesNotMatch(sponsors, /:root|@font-face|\.site-header|min-width/);
   assert.match(css, /shows-plaza-show h4[^}]*clamp\(2rem, 3\.8vw, 3\.4rem\)/);
   assert.match(css, /shows-plaza-list \{ grid-template-columns: 1fr;/);
   assert.doesNotMatch(css, /min-width: 1050px|shows-sponsors-scroll/);
@@ -134,11 +145,40 @@ test('el build entrega SHOWS con CSS, imágenes y aviso de cookies', async () =>
   const files = await buildSite(directory);
   assert.ok(files.includes('finados/shows/index.html'));
   assert.ok(files.includes('assets/finados/shows.css'));
+  assert.ok(files.includes('assets/finados/sponsors.css'));
   assert.ok(files.includes('assets/finados/shows/auspiciantes-finados-2026.webp'));
   assert.ok(files.includes('assets/finados/shows/auspiciantes-finados-2026.svg'));
   assert.ok(files.includes('assets/finados/shows/plaza-de-la-luna.webp'));
   const output = await readFile(join(directory, 'finados/shows/index.html'), 'utf8');
   assert.match(output, /data-cookie-consent/);
   assert.match(output, /Nuestro sitio web utiliza cookies para mejorar tu navegación\./);
-  assert.match(output, /shows\.css\?v=20260916-shows-2/);
+  assert.match(output, /shows\.css\?v=20260917-shows-3/);
+  assert.match(output, /sponsors\.css\?v=20260917-sponsors-1/);
+  const finados = await readFile(join(directory, 'finados/index.html'), 'utf8');
+  assert.match(finados, /sponsors\.css\?v=20260917-sponsors-1/);
+  assert.ok(finados.includes(renderFinadosSponsors()));
+});
+
+test('Finados y SHOWS comparten al final la composición nueva sin cambiar otras páginas', () => {
+  const finadosPage = pages.find(item => item.route === '/finados/');
+  const finados = finadosPage.render(finadosPage);
+  const shows = html();
+  const composition = renderFinadosSponsors();
+  for (const output of [finados, shows]) {
+    assert.ok(output.includes(composition));
+    assert.equal((output.match(/class="finados-sponsors"/g) ?? []).length, 1);
+    assert.equal((output.match(/<h1\b/g) ?? []).length, 1);
+    assert.ok(output.indexOf(composition) > output.indexOf('</main>'));
+    assert.ok(output.indexOf(composition) < output.indexOf('Volver a complejomushucruna.com'));
+    assert.match(output, /auspiciantes-finados-2026\.svg\?v=20260917-sponsors-1/);
+    assert.ok(output.includes('Credi Fácil Ltda. Cooperativa de Ahorro y Crédito'));
+    assert.ok(output.includes('Óptica Interandina'));
+  }
+  assert.ok(shows.indexOf(composition) > shows.indexOf('<footer'));
+  assert.ok(finados.indexOf(composition) < finados.indexOf('<footer'));
+  assert.equal(finados.match(/<footer[\s\S]*?<\/footer>/)?.[0], renderFinadosFooter());
+  assert.ok(finados.indexOf('id="legado"') < finados.indexOf(composition));
+  for (const other of pages.filter(item => item.render && !['/finados/', '/finados/shows/'].includes(item.route))) {
+    assert.doesNotMatch(other.render(other), /finados-sponsors|sponsors\.css/);
+  }
 });

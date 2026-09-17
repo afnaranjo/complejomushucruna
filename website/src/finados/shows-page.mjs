@@ -2,7 +2,8 @@ import { site } from '../data/site.mjs';
 import { escapeHtml } from '../render/html.mjs';
 import { renderFinadosFooter } from './footer.mjs';
 import { renderFinadosNavigation } from './navigation.mjs';
-import { showsProgram, plazaShows, showsAttractions, showsSponsors } from './shows-program.mjs';
+import { showsProgram, plazaShows, showsAttractions } from './shows-program.mjs';
+import { renderFinadosSponsors, sponsorAssetVersion } from './sponsors.mjs';
 
 const version = '20260916-shows-2';
 const asset = name => `/assets/finados/shows/${name}.webp?v=${version}`;
@@ -12,15 +13,6 @@ function renderProgram() {
     <time class="shows-date" datetime="${show.iso}"><span>${show.day}</span><strong>${show.date}</strong><span>${show.month}</span></time>
     <div class="shows-artists"><h3>${show.artists.map(escapeHtml).join('<span> · </span>')}</h3></div>
   </article>`).join('\n');
-}
-
-function renderSponsors() {
-  return `<section class="shows-sponsors" aria-labelledby="shows-sponsors-title">
-    <h2 id="shows-sponsors-title" class="sr-only">Organizador y auspiciantes</h2>
-    <a class="shows-sponsors-art" href="/assets/finados/shows/auspiciantes-finados-2026.svg?v=${version}" target="_blank" rel="noopener noreferrer" aria-label="Ampliar composición oficial de organizador y auspiciantes en otra pestaña">
-      <img src="/assets/finados/shows/auspiciantes-finados-2026.svg?v=${version}" width="2321" height="650" alt="Organiza: Luis Alfonso Chango P. Auspician: ${escapeHtml(showsSponsors.join('; '))}. Composición oficial con cenefa, organizador centrado y logos en su orden original." loading="lazy" decoding="async">
-    </a>
-  </section>`;
 }
 
 export function renderFinadosShowsPage(page) {
@@ -38,7 +30,8 @@ export function renderFinadosShowsPage(page) {
   <link rel="apple-touch-icon" href="/assets/finados/favicon-finados.png">
   <link rel="stylesheet" href="/assets/finados/finados.css?v=20260916-7">
   <link rel="stylesheet" href="/assets/finados/navigation.css?v=20260916-8">
-  <link rel="stylesheet" href="/assets/finados/shows.css?v=${version}">
+  <link rel="stylesheet" href="/assets/finados/shows.css?v=20260917-shows-3">
+  <link rel="stylesheet" href="/assets/finados/sponsors.css?v=${sponsorAssetVersion}">
   <script type="module" src="/assets/finados/finados.js?v=20260916-7"></script>
 </head>
 <body class="shows-page font-sans text-night antialiased selection:bg-winay selection:text-night">
@@ -102,7 +95,7 @@ export function renderFinadosShowsPage(page) {
       </div>
     </section>
   </main>
-  ${renderFinadosFooter({ sponsors: renderSponsors() })}
+  ${renderFinadosFooter({ sponsors: renderFinadosSponsors() })}
 </body>
 </html>`;
 }

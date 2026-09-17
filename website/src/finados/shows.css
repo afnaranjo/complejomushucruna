@@ -54,10 +54,6 @@
 .shows-colada { grid-column: 1 / -1; display: flex; align-items: center; gap: 2rem; margin: 0; padding-top: 2rem; border-top: 2px solid #f4eada; }
 .shows-colada strong { color: #ffc42e; font: 400 clamp(2.6rem, 5.8vw, 5.6rem)/1.15 "Anton", sans-serif; text-transform: uppercase; }
 .shows-colada span { font-size: clamp(1rem, 1.6vw, 1.4rem); line-height: 1.5; font-weight: 600; }
-.shows-sponsors { width: min(100%, 88rem); margin: 0 auto 3rem; }
-.shows-sponsors-art { display: block; }
-.shows-sponsors-art img { display: block; width: 100%; height: auto; aspect-ratio: 2321 / 650; }
-.shows-sponsors-art:focus-visible { outline: 3px solid #00d2d6; outline-offset: 6px; }
 @media (max-width: 760px) {
   .shows-hero { min-height: 650px; padding-top: 108px; }
   .shows-hero-image img { object-position: 64% center; }
