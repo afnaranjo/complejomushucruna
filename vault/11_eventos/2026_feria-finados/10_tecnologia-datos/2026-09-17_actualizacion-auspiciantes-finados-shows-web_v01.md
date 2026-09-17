@@ -1,7 +1,7 @@
 ---
 titulo: "Auspiciantes actualizados en Finados y SHOWS"
 responsable: "tecnología/diseño"
-estado: aprobado
+estado: publicado
 ultima_actualizacion: 2026-09-17
 fuente: "Solicitud de Alex y SVG oficial actualizado recibido el 17 de septiembre de 2026"
 confidencialidad: interno
@@ -32,10 +32,19 @@ La copia única avanzó mediante fast-forward de `253f1e3` a `53342d9`, incorpor
 - `npm run check` completo en Linux/PHP: exit code 0; 137 pruebas Node, 20 suites PHP y 10 de integración. Build de 129 archivos, 32 HTML y 1047 referencias válidas.
 - Diez pruebas específicas SHOWS, con composición idéntica al maestro, PNG incrustado verificado, orden artístico intacto, render compartido, footer común conservado, responsive y caché nueva. Las seis pruebas de presentación siguen aprobadas.
 - El primer check detectó la invariancia del footer común de Acreditación. Se corrigió la ubicación del bloque en Finados, sin cambiar esa prueba ni los formularios; el check completo posterior quedó en verde.
-- Pendiente: publicación estándar con respaldo recuperable y verificación HTTPS independiente de ambas páginas y activos. La autorización expresa de publicación ya consta en esta solicitud.
+- La autorización expresa de publicación consta en esta solicitud. El resultado verificado está registrado debajo.
 
 Los tres documentos locales previos permanecen separados del commit técnico. No se prevén cambios de backend, DNS, credenciales ni envío de registros a Sheets.
 
 ## Seguimiento
 
 La fila original se conserva también en móvil; puede ampliarse desde el propio arte para leer logos pequeños sin recortar ni alterar la composición aprobada.
+
+## Resultado de producción del 17 de septiembre de 2026
+
+- Implementación y pruebas publicadas en `origin/main` mediante `5966f87` (`Actualizar auspiciantes oficiales en Finados y SHOWS`).
+- Configuración privada, prevuelo completo y despliegue estándar aprobados desde `main` limpia y sincronizada. Ambos modos repitieron `npm run check` sin omisiones. Respaldo recuperable antes de transferir, credencial Sheets conservada y archivos exclusivos del servidor sin eliminar.
+- Verificación independiente: 24 respuestas HTTPS HTTP 200 con SHA-256 idéntico al build, más dos comprobaciones del bloque compartido. Total: 26 comprobaciones, cero fallos. Incluye Finados y SHOWS sin parámetros y renovadas, el SVG sin consulta y versionado, respaldo WebP, CSS propio, contador, cuatro fuentes y páginas principales.
+- Ambas páginas entregan el maestro nuevo con caché `20260917-sponsors-1`. La composición original se conserva exactamente; el footer común de Finados y Acreditación permanece sin cambios.
+- Las tres notas locales se restauraron con hashes idénticos tras publicar; solo se retiró el stash propio. Memoria, pendientes y bitácora se actualizaron conservando las modificaciones documentales anteriores fuera del commit.
+- Publicación externa: GitHub y frontend autorizado. Se mantiene la configuración legal/controlador administrado del procedimiento habitual; no hubo una nueva release del backend, cambios DNS, credenciales ni envíos de registros de personas a Sheets.
