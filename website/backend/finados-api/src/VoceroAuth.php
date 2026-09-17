@@ -66,6 +66,28 @@ final class VoceroAuth
         } catch (\PDOException $error) {
             if ($transactionStarted) $this->rollBack();
             if (!$this->isEmailDuplicateViolation($error)) throw $error;
+            // A retired account may be registered again. Only unlinked accounts
+            // are eligible; archived profiles remain inaccessible until an
+            // administrator explicitly restores them.
+            $existing = $this->pdo->prepare('SELECT id, public_id, active FROM vocero_accounts WHERE email_idx = ?');
+            $existing->execute([$emailIndex]);
+            $archived = $existing->fetch();
+            if ($archived !== false && (int) $archived['active'] === 0) {
+                $linked = $this->pdo->prepare('SELECT 1 FROM vocero_account_links WHERE account_id = ? LIMIT 1');
+                $linked->execute([(int) $archived['id']]);
+                if ($linked->fetchColumn() === false) {
+                    $this->pdo->beginTransaction();
+                    try {
+                        $this->pdo->prepare('UPDATE vocero_accounts SET password_hash = ?, privacy_version = ?, privacy_hash = ?, privacy_acknowledged_at = ?, active = 1, updated_at = ? WHERE id = ? AND active = 0')
+                            ->execute([Auth::hashPassword($password), $this->accountConsent['version'], hash('sha256', $this->accountConsent['text']), $nowText, $nowText, (int) $archived['id']]);
+                        $this->audit->log('vocero_account.reactivated', null, 'vocero_account', $archived['public_id'], [], $ip);
+                        $this->pdo->commit();
+                    } catch (Throwable $reactivationError) {
+                        if ($this->pdo->inTransaction()) $this->pdo->rollBack();
+                        throw $reactivationError;
+                    }
+                }
+            }
         }
         // The caller receives the same opaque result for a fresh or duplicate account, without a session.
         return [];

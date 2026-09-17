@@ -3,13 +3,14 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/Test.php';
-foreach (['Config', 'Database', 'Http', 'Auth', 'VoceroAuth', 'Router'] as $class) {
+foreach (['Config', 'Database', 'Http', 'Auth', 'Crypto', 'VoceroAuth', 'Router'] as $class) {
     $sourcePath = __DIR__ . '/../src/' . $class . '.php';
     if (is_file($sourcePath)) require_once $sourcePath;
 }
 
 use Finados\Auth;
 use Finados\Config;
+use Finados\Crypto;
 use Finados\Database;
 use Finados\Forbidden;
 use Finados\Router;
@@ -157,10 +158,20 @@ throws(fn () => $auth->register('audit-failure@example.invalid', 'contraseña v�
 $pdo->exec('DROP TRIGGER fail_vocero_registration_audit');
 same(2, (int) $pdo->query('SELECT COUNT(*) FROM vocero_accounts')->fetchColumn());
 same(1, (int) $pdo->query("SELECT COUNT(*) FROM audit_log WHERE event_type = 'vocero_account.registered'")->fetchColumn());
+$crypto = new Crypto($config);
+$reactivationEmail = 'reactivate@example.invalid';
+$auth->register($reactivationEmail, 'contraseña válida', true, '192.0.2.41');
+$reactivationIndex = $crypto->lookup($reactivationEmail);
+$reactivationId = (int) $pdo->query("SELECT id FROM vocero_accounts WHERE email_idx = '" . $reactivationIndex . "'")->fetchColumn();
+$pdo->prepare('UPDATE vocero_accounts SET active = 0 WHERE id = ?')->execute([$reactivationId]);
+$auth->register($reactivationEmail, 'nueva contraseña válida', true, '192.0.2.41');
+same(1, (int) $pdo->query('SELECT active FROM vocero_accounts WHERE id = ' . $reactivationId)->fetchColumn());
+throws(fn () => $auth->login($reactivationEmail, 'contraseña válida', '192.0.2.41'), Unauthorized::class);
+$auth->login($reactivationEmail, 'nueva contraseña válida', '192.0.2.41');
 
 // A successful login upgrades a legacy unversioned bcrypt hash without changing the account.
 $legacyVoceroHash = password_hash('contraseña válida', PASSWORD_BCRYPT, ['cost' => 4]);
-$registeredAccountId = (int) $pdo->query("SELECT id FROM vocero_accounts WHERE email_idx <> 'idx-a' ORDER BY id DESC LIMIT 1")->fetchColumn();
+$registeredAccountId = (int) $pdo->query("SELECT id FROM vocero_accounts WHERE email_idx <> 'idx-a' AND email_idx <> '" . $reactivationIndex . "' ORDER BY id DESC LIMIT 1")->fetchColumn();
 $pdo->prepare('UPDATE vocero_accounts SET password_hash = ? WHERE id = ?')->execute([$legacyVoceroHash, $registeredAccountId]);
 
 // Login rotates the session and CSRF while retaining only a server-issued role.
