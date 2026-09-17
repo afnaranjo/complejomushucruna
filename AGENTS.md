@@ -971,3 +971,9 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Alex confirmó retirar los tres registros visibles como pruebas: Robins Gomez, Alex Francisco Naranjo Licintuña y Flor Perez.
 - Se archivaron mediante `VocerosRepository::archive` en producción, conservando auditoría y desactivando sus accesos vinculados. Verificación posterior: 0 registros `Nuevo`; 4 registros `Eliminado` en total (incluye uno anterior).
 - Publicación externa: retiro administrativo autorizado; no se eliminaron físicamente datos ni se tocaron otros proyectos.
+
+### 2026-09-17 — Reactivación segura de cuentas retiradas
+
+- Se ajustó el registro de Voceros para reactivar una cuenta inactiva sin ficha vinculada cuando se vuelve a registrar el mismo correo, actualizando la contraseña y conservando la auditoría. Las cuentas con ficha archivada no se reactivan automáticamente.
+- Se añadieron pruebas de reactivación y se ejecutó la suite completa; backend y frontend fueron publicados y verificados en producción.
+- Commit: `a569f60` (`Reactivar cuentas de vocero retiradas`).
