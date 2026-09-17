@@ -994,3 +994,8 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 
 - Se desplegó el commit `86c512d` en `https://complejomushucruna.com`; el encabezado ahora muestra `VOCERO 2026` en una línea y `INVITADO ESPECIAL` debajo, con la paleta y tipografías del key visual.
 - El despliegue creó respaldo remoto, conservó Google Sheets y archivos exclusivos, y no modificó backend, DNS, Acreditación de Medios ni otros proyectos.
+
+### 2026-09-17 — Corrección de solapamiento y carga del gafete
+
+- Se bajó la franja fucsia inclinada para no cubrir `INVITADO ESPECIAL` y se cargaron logo e íconos decorativos en paralelo con `Promise.all`, reduciendo esperas innecesarias durante la generación del gafete.
+- QA local: build de 128 archivos, `check-dist`, helper del gafete y `git diff --check` en verde. Pendiente publicar este ajuste frontend; no se tocó backend ni otros proyectos.

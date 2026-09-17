@@ -221,3 +221,7 @@ El 28 de agosto quedó confirmado `¡LEGADO QUE NOS UNE!` como eslogan gráfico 
 ### 2026-09-17 — Publicación del ajuste visual del gafete
 
 - Se publicó el ajuste `VOCERO 2026` + `INVITADO ESPECIAL` en el frontend de `complejomushucruna.com` desde el commit `86c512d`, con respaldo remoto y verificación del despliegue.
+
+### 2026-09-17 — Corrección de solapamiento y carga del gafete
+
+- La franja fucsia se desplazó detrás del bloque de foto para despejar el subtítulo y los recursos decorativos se cargan en paralelo. El ajuste está validado en local y pendiente de publicación.

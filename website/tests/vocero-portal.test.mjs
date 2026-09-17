@@ -84,9 +84,12 @@ test('gafete: conserva la composición vertical y el título actualizado', async
   const source = await readFile(new URL('../src/finados/vocero-portal.js', import.meta.url), 'utf8');
   assert.match(source, /fillText\('VOCERO 2026', 70, 505\)/);
   assert.match(source, /fillText\('INVITADO ESPECIAL', 74, 570\)/);
+  assert.match(source, /context\.translate\(-170, 720\)/);
   assert.match(source, /width: 430, height: 560/);
   assert.doesNotMatch(source, /fillText\('INVITADO'/);
   assert.match(source, /formatBadgeCedula\(profile\.cedula\)/);
+  assert.match(source, /Promise\.all\(/);
+  assert.match(source, /iconMarks\.map/);
 });
 
 test('validación: consulta solo el identificador público y no envía cookies', async () => {

@@ -275,22 +275,28 @@ async function badgeBlob(profile, photoBlob) {
   context.globalAlpha = .16; context.fillStyle = '#00d2d6'; context.beginPath(); context.arc(930, 290, 260, 0, Math.PI * 2); context.fill();
   context.fillStyle = '#ffc42e'; context.beginPath(); context.arc(100, 1510, 170, 0, Math.PI * 2); context.fill();
   context.globalAlpha = .28; context.strokeStyle = '#f4eada'; context.lineWidth = 6; context.beginPath(); context.arc(520, 650, 500, Math.PI * 1.04, Math.PI * 1.86); context.stroke(); context.globalAlpha = 1;
-  context.fillStyle = '#ff2e8a'; context.save(); context.translate(-170, 660); context.rotate(-.35); context.fillRect(0, 0, 430, 72); context.restore();
+  context.fillStyle = '#ff2e8a'; context.save(); context.translate(-170, 720); context.rotate(-.35); context.fillRect(0, 0, 430, 72); context.restore();
   context.globalAlpha = .08; context.strokeStyle = '#f4eada'; context.lineWidth = 2;
   for (let x = -canvas.height; x < canvas.width; x += 42) { context.beginPath(); context.moveTo(x, 0); context.lineTo(x + canvas.height, canvas.height); context.stroke(); }
   context.globalAlpha = 1;
 
   let logo = null;
-  try { logo = await loadBadgeImage('/assets/finados/logo-finados.svg'); } catch { /* Logo is decorative; text remains the accessible fallback. */ }
-  if (logo) { const maxW = 360; const maxH = 200; const scale = Math.min(maxW / logo.width, maxH / logo.height); context.drawImage(logo, (canvas.width - logo.width * scale) / 2, 66, logo.width * scale, logo.height * scale); }
   const iconMarks = [
     ['/assets/finados/icons/crecimiento.svg', 825, 204, 125, 138, .16],
     ['/assets/finados/icons/legado.svg', 700, 1632, 142, 150, .14],
     ['/assets/finados/icons/espectador.svg', 650, 1740, 300, 130, .16],
   ];
-  for (const [source, x, y, width, height, opacity] of iconMarks) {
-    try { const icon = await loadBadgeImage(source); context.save(); context.globalAlpha = opacity; context.drawImage(icon, x, y, width, height); context.restore(); } catch { /* Decorative key-visual icons are optional. */ }
-  }
+  const [loadedLogo, ...loadedIcons] = await Promise.all([
+    loadBadgeImage('/assets/finados/logo-finados.svg').catch(() => null),
+    ...iconMarks.map(async ([source]) => loadBadgeImage(source).catch(() => null)),
+  ]);
+  logo = loadedLogo;
+  if (logo) { const maxW = 360; const maxH = 200; const scale = Math.min(maxW / logo.width, maxH / logo.height); context.drawImage(logo, (canvas.width - logo.width * scale) / 2, 66, logo.width * scale, logo.height * scale); }
+  loadedIcons.forEach((icon, index) => {
+    if (!icon) return;
+    const [, x, y, width, height, opacity] = iconMarks[index];
+    context.save(); context.globalAlpha = opacity; context.drawImage(icon, x, y, width, height); context.restore();
+  });
 
   // Encabezado separado del título para que ningún texto se solape.
   context.textAlign = 'center'; context.fillStyle = '#f4eada'; context.font = '700 24px Inter, Arial, sans-serif'; context.fillText('COMUNIDAD DE VOCEROS', 540, 318);
