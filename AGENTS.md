@@ -977,3 +977,8 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Se ajustó el registro de Voceros para reactivar una cuenta inactiva sin ficha vinculada cuando se vuelve a registrar el mismo correo, actualizando la contraseña y conservando la auditoría. Las cuentas con ficha archivada no se reactivan automáticamente.
 - Se añadieron pruebas de reactivación y se ejecutó la suite completa; backend y frontend fueron publicados y verificados en producción.
 - Commit: `a569f60` (`Reactivar cuentas de vocero retiradas`).
+
+### 2026-09-17 — Reuso de datos tras retirar una ficha
+
+- Se ajustó la validación de perfil para que una ficha nueva no choque con datos de fichas archivadas (`Eliminado`); las fichas activas continúan protegidas contra duplicados.
+- La corrección se publicó junto con el backend y se verificó el frontend en producción. Commit: `e74181d` (`Permitir reuso de fichas archivadas`).

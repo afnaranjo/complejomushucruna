@@ -207,3 +207,7 @@ El 28 de agosto quedó confirmado `¡LEGADO QUE NOS UNE!` como eslogan gráfico 
 ### 2026-09-17 — Reactivación al volver a registrar un correo retirado
 
 - El registro ahora reactiva cuentas inactivas sin ficha vinculada cuando el mismo correo se registra de nuevo; las cuentas con perfil archivado permanecen bloqueadas hasta restauración administrativa explícita. Se publicó backend y frontend con pruebas completas en verde.
+
+### 2026-09-17 — Reuso de datos de fichas archivadas
+
+- Las fichas nuevas ya no chocan con datos de fichas archivadas; solo las fichas activas mantienen la regla de unicidad. Cambio publicado en producción con pruebas completas en verde.
