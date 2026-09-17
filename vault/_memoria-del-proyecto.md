@@ -217,3 +217,7 @@ El 28 de agosto quedó confirmado `¡LEGADO QUE NOS UNE!` como eslogan gráfico 
 - El gafete se reorganizó a formato historia `1080 × 1920` con fotografía vertical tipo carnet, título `VOCERO 2026`, panel lateral para QR individual, nivel y semáforo, y mejor separación de identidad y pie gráfico.
 - Se añadió la cédula en formato parcialmente enmascarado (`primeros tres + últimos dos dígitos`) para apoyar la validación sin publicar el número completo. El QR conserva como único dato el `public_id` aleatorio.
 - QA: suite específica y `npm run check` en verde; cambios locales sin despliegue externo en esta sesión.
+
+### 2026-09-17 — Publicación del ajuste visual del gafete
+
+- Se publicó el ajuste `VOCERO 2026` + `INVITADO ESPECIAL` en el frontend de `complejomushucruna.com` desde el commit `86c512d`, con respaldo remoto y verificación del despliegue.

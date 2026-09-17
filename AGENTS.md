@@ -989,3 +989,8 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - El gafete imprime la cédula como `180••••34` (primeros tres y últimos dos dígitos) para validar sin exponer el documento completo; el QR continúa codificando solo el `public_id` aleatorio y permite consultar la validación pública.
 - Se añadieron pruebas para el formateo de cédula y la composición vertical. `npm run check`, `git diff --check` y la suite específica del portal quedaron en verde. No se tocaron backend, landings, Acreditación de Medios, Google Sheets ni otros proyectos.
 - Publicación externa: pendiente de autorización expresa para ejecutar el despliegue frontend. Riesgos y pendientes: revisar el gafete descargado con una foto autorizada y confirmar que la política de exposición parcial de cédula sea la deseada antes de publicarlo.
+
+### 2026-09-17 — Publicación del ajuste visual del gafete
+
+- Se desplegó el commit `86c512d` en `https://complejomushucruna.com`; el encabezado ahora muestra `VOCERO 2026` en una línea y `INVITADO ESPECIAL` debajo, con la paleta y tipografías del key visual.
+- El despliegue creó respaldo remoto, conservó Google Sheets y archivos exclusivos, y no modificó backend, DNS, Acreditación de Medios ni otros proyectos.
