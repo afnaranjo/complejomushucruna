@@ -211,12 +211,23 @@ final class Router
                     'pages' => (int) ceil($result['total'] / $result['per_page']),
                 ]], $headers);
             }
+            if ($path === '/api/vocero-accounts' && $method === 'GET') {
+                if ($query !== []) throw new InvalidArgumentException();
+                return $this->json(200, ['items' => $this->repository->pendingAccounts()], $headers);
+            }
+            if ($path === '/api/vocero-accounts') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+            if (preg_match('~^/api/vocero-accounts/([a-f0-9]{32})/delete$~D', $path, $parts)) {
+                if ($method !== 'POST' || $query !== []) return $this->error($method === 'POST' ? 422 : 405, $method === 'POST' ? 'validation_error' : 'method_not_allowed', $method === 'POST' ? 'Revisa los datos de la solicitud.' : 'Método no permitido.', $headers);
+                $this->body($server, $rawBody, []);
+                $this->repository->archiveAccount($parts[1], $user['id'], $ip);
+                return $this->json(200, ['ok' => true], $headers);
+            }
             if ($path === '/api/dashboard' && $method === 'GET') {
                 $statuses = array_fill_keys(VocerosRepository::STATUSES, 0);
-                foreach ($this->pdo->query('SELECT status, COUNT(*) AS count FROM voceros GROUP BY status') as $row) $statuses[$row['status']] = (int) $row['count'];
+                foreach ($this->pdo->query("SELECT status, COUNT(*) AS count FROM voceros WHERE status <> 'Eliminado' GROUP BY status") as $row) $statuses[$row['status']] = (int) $row['count'];
                 $dates = [];
-                foreach ($this->pdo->query('SELECT DATE(submitted_at) AS day, COUNT(*) AS count FROM voceros GROUP BY DATE(submitted_at) ORDER BY day') as $row) $dates[$row['day']] = (int) $row['count'];
-                $recent = $this->pdo->prepare('SELECT COUNT(*) FROM voceros WHERE submitted_at >= ? AND submitted_at <= ?');
+                foreach ($this->pdo->query("SELECT DATE(submitted_at) AS day, COUNT(*) AS count FROM voceros WHERE status <> 'Eliminado' GROUP BY DATE(submitted_at) ORDER BY day") as $row) $dates[$row['day']] = (int) $row['count'];
+                $recent = $this->pdo->prepare("SELECT COUNT(*) FROM voceros WHERE status <> 'Eliminado' AND submitted_at >= ? AND submitted_at <= ?");
                 $recent->execute([gmdate('Y-m-d H:i:s', time() - 7 * 86400), gmdate('Y-m-d H:i:s')]);
                 return $this->json(200, ['total' => array_sum($statuses), 'byStatus' => $statuses, 'byDate' => (object) $dates, 'lastSevenDays' => (int) $recent->fetchColumn()], $headers);
             }
@@ -225,6 +236,12 @@ final class Router
                 return $this->export($filters, $user['id'], $ip, $headers);
             }
             if ($path === '/api/voceros/export') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+            if (preg_match('~^/api/voceros/([a-f0-9]{32})/delete$~D', $path, $parts)) {
+                if ($method !== 'POST' || $query !== []) return $this->error($method === 'POST' ? 422 : 405, $method === 'POST' ? 'validation_error' : 'method_not_allowed', $method === 'POST' ? 'Revisa los datos de la solicitud.' : 'Método no permitido.', $headers);
+                $this->body($server, $rawBody, []);
+                $this->repository->archive($parts[1], $user['id'], $ip);
+                return $this->json(200, ['ok' => true], $headers);
+            }
             if (preg_match('~^/api/voceros/([^/]+)/(photo|password-reset)$~D', $path, $parts)) {
                 $id = $parts[1]; $action = $parts[2];
                 if (preg_match('/^[a-f0-9]{32}$/D', $id) !== 1 || $query !== []) throw new InvalidArgumentException();

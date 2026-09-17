@@ -42,8 +42,8 @@ export function createAdminClient(baseUrl = API, fetchImplementation = fetch) {
   if (![API, LOCAL_API].filter(Boolean).includes(baseUrl)) throw new Error('Origen de API no permitido.');
   let csrf = '';
   async function request(path, options = {}) {
-    if (!/^\/(?:auth\/(?:session|login|logout)|dashboard|voceros(?:\/[a-zA-Z0-9-]+(?:\/(?:notes|progress))?)?)(?:\?[^#]*)?$/.test(path)
-      && !/^\/voceros\/[a-f0-9]{32}\/(?:photo|password-reset|progress)$/.test(path)) throw new Error('Ruta de API no permitida.');
+    if (!/^\/(?:auth\/(?:session|login|logout)|dashboard|vocero-accounts|voceros(?:\/[a-zA-Z0-9-]+(?:\/(?:notes|progress))?)?)(?:\?[^#]*)?$/.test(path)
+      && !/^\/(?:vocero-accounts|voceros)\/[a-f0-9]{32}\/(?:delete|photo|password-reset|progress)$/.test(path)) throw new Error('Ruta de API no permitida.');
     const method = (options.method ?? 'GET').toUpperCase();
     if (!['GET', 'POST', 'PATCH'].includes(method)) throw new Error('Método no permitido.');
     const headers = { Accept: options.blob && path.endsWith('/photo') ? 'image/jpeg' : 'application/json' };
@@ -74,6 +74,9 @@ export function createAdminClient(baseUrl = API, fetchImplementation = fetch) {
     session: () => request('/auth/session'),
     login: (username, password) => request('/auth/login', { method: 'POST', body: { username, password } }),
     logout: () => request('/auth/logout', { method: 'POST' }),
+    pendingAccounts: () => request('/vocero-accounts'),
+    deletePendingAccount: id => request(`/vocero-accounts/${id}/delete`, { method: 'POST', body: {} }),
+    deleteProfile: id => request(`/voceros/${id}/delete`, { method: 'POST', body: {} }),
     export: filters => {
       const { page, pageSize, ...body } = normalizeFilters(filters);
       return request('/voceros/export', { method: 'POST', body, blob: true });
@@ -219,6 +222,9 @@ export async function initializeAdmin() {
   const previous = query('[data-previous]');
   const next = query('[data-next]');
   const exportButton = query('[data-admin-export]');
+  const pendingAccounts = query('[data-pending-accounts]');
+  const pendingCount = query('[data-pending-count]');
+  const pendingMessage = query('[data-pending-message]');
   const logout = document.querySelector('[data-admin-logout]');
   const sidebarUser = document.querySelector('[data-admin-sidebar-user]');
   const dialog = query('[data-detail]');
@@ -243,11 +249,12 @@ export async function initializeAdmin() {
   const resetOutput = query('[data-reset-output]');
   const resetInput = query('[data-reset-url]');
   const resetFeedback = query('[data-reset-feedback]');
+  const deleteButton = query('[data-admin-delete]');
   function clearMedia() {
     detailAccess.close();
     photoImage.removeAttribute('src'); photoImage.hidden = true;
     photoDownload.removeAttribute('href'); photoDownload.removeAttribute('download'); photoDownload.hidden = true;
-    photoMessage.textContent = ''; resetInput.value = ''; resetOutput.hidden = true; resetButton.disabled = true;
+    photoMessage.textContent = ''; resetInput.value = ''; resetOutput.hidden = true; resetButton.disabled = true; deleteButton.disabled = true;
     feedback(resetFeedback, ''); feedback(progressFeedback, '');
     progressForm.querySelector('fieldset').disabled = true; progressForm.reset(); progressSummary.textContent = 'Sin actualizar'; adminVideos.replaceChildren();
   }
@@ -290,6 +297,40 @@ export async function initializeAdmin() {
       renderCounts(query('[data-status-counts]'), data.byStatus);
       renderCounts(query('[data-date-counts]'), data.byDate);
     } finally { dashboard.setAttribute('aria-busy', 'false'); }
+  }
+  const confirmRetirement = message => typeof globalThis.confirm === 'function' && globalThis.confirm(message);
+  function renderPending(items) {
+    pendingAccounts.replaceChildren();
+    pendingCount.textContent = `${items.length} ${items.length === 1 ? 'cuenta' : 'cuentas'}`;
+    for (const account of items) {
+      const row = node('tr');
+      const email = node('td', account.email); email.dataset.label = 'Correo'; row.append(email);
+      const created = node('td', dateTime(account.created_at)); created.dataset.label = 'Creada'; row.append(created);
+      const status = node('td', account.status || 'Pendiente de ficha'); status.dataset.label = 'Estado'; row.append(status);
+      const actionCell = node('td'); actionCell.dataset.label = 'Acciones';
+      const button = node('button', 'Eliminar cuenta', 'button-danger'); button.type = 'button';
+      button.addEventListener('click', async () => {
+        if (!confirmRetirement('Esto desactivará el acceso de esta cuenta y conservará su trazabilidad. ¿Continuar?')) return;
+        button.disabled = true; feedback(pendingMessage, 'Retirando cuenta…');
+        try {
+          await client.deletePendingAccount(account.public_id);
+          await Promise.all([summary(), loadPendingAccounts()]);
+          feedback(pendingMessage, 'Cuenta retirada.', 'success');
+        } catch (error) {
+          button.disabled = false; fail(error, pendingMessage);
+        }
+      });
+      actionCell.append(button); row.append(actionCell); pendingAccounts.append(row);
+    }
+    feedback(pendingMessage, items.length ? '' : 'No hay cuentas pendientes de ficha.');
+  }
+  async function loadPendingAccounts() {
+    try {
+      const data = await client.pendingAccounts();
+      renderPending(Array.isArray(data.items) ? data.items : []);
+    } catch (error) {
+      pendingAccounts.replaceChildren(); pendingCount.textContent = 'No disponible'; fail(error, pendingMessage);
+    }
   }
   async function list() {
     const generation = ++listGeneration;
@@ -382,6 +423,7 @@ export async function initializeAdmin() {
     const data = await client.request('/voceros/' + encodeURIComponent(id));
     if (generation !== detailGeneration || currentId !== id || !dialog.open) return false;
     renderDetail(data);
+    deleteButton.disabled = data.status === 'Eliminado' || data.account?.active === false;
     if (media) {
       resetButton.disabled = !data.account?.active;
       if (!data.account?.active) feedback(resetFeedback, 'Este registro no tiene una cuenta activa vinculada.');
@@ -398,6 +440,20 @@ export async function initializeAdmin() {
     }
     return true;
   }
+  deleteButton.addEventListener('click', async () => {
+    const id = currentId; const generation = detailGeneration;
+    if (!id || !confirmRetirement('Esto ocultará el registro, desactivará el acceso y conservará la trazabilidad. ¿Continuar?')) return;
+    deleteButton.disabled = true; feedback(detailFeedback, 'Retirando registro…');
+    try {
+      await client.deleteProfile(id);
+      const results = await Promise.allSettled([list(), summary(), loadPendingAccounts()]);
+      for (const result of results) if (result.status === 'rejected') fail(result.reason);
+      if (generation === detailGeneration && dialog.open) dialog.close();
+      feedback(status, 'Registro retirado.', 'success');
+    } catch (error) {
+      if (generation === detailGeneration) { deleteButton.disabled = false; fail(error, detailFeedback); }
+    }
+  });
   async function openDetail(id, trigger) {
     clearMedia(); detailAccess.open(id);
     currentId = id; opener = trigger;
@@ -489,7 +545,7 @@ export async function initializeAdmin() {
     query('[data-admin-user]').textContent = `Sesión: ${username} · Registros del formulario de Voceros`;
     if (sidebarUser) sidebarUser.textContent = username;
     form.querySelector('fieldset').disabled = false; exportButton.disabled = false; logout.disabled = false;
-    const results = await Promise.allSettled([summary(), list()]);
+    const results = await Promise.allSettled([summary(), list(), loadPendingAccounts()]);
     for (const result of results) if (result.status === 'rejected') { fail(result.reason); retry.hidden = false; }
   };
   await session();

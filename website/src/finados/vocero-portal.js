@@ -192,7 +192,7 @@ export function isProfileReadyForAutoSave(form) {
   if (!form?.checkValidity?.() || !form.elements?.namedItem) return false;
   const value = name => String(form.elements.namedItem(name)?.value ?? '').trim();
   const age = ageToday(value('fecha_nacimiento'));
-  return Number.isFinite(age) && age >= 16 && ['tiktok', 'instagram', 'facebook'].some(name => value(name) !== '');
+  return Number.isFinite(age) && age >= 16;
 }
 
 async function loadBadgeImage(source) {

@@ -64,6 +64,14 @@ test('admin renderiza foto privada y recuperación con campo de solo lectura', a
   assert.match(html, /Sin fotografía histórica/); assert.match(html, /readonly[^>]*data-reset-url/);
   assert.match(html, /img-src 'self' blob:/);
 });
+
+test('admin muestra cuentas pendientes y acción de retiro protegida', async () => {
+  const { renderAdminVocerosPage } = await import('../src/admin/page.mjs');
+  const html = renderAdminVocerosPage({ title: 'Voceros', route: '/admin/voceros/' });
+  assert.match(html, /data-pending-accounts/);
+  assert.match(html, /Cuentas pendientes de ficha/);
+  assert.match(html, /data-admin-delete/);
+});
 test('admin genera acceso aislado, recursos y configuración segura de producción', async () => {
   const out = await mkdtemp(join(tmpdir(), 'admin-build-'));
   const files = await buildSite(out);
@@ -183,6 +191,23 @@ test('admin cliente obtiene y rota CSRF, envía cookies y descarga exportación 
   assert.match(await csv.text(), /1,Prueba/);
   assert.throws(() => createAdminClient('https://evil.example/api'));
   await assert.rejects(() => client.request('//evil.example'));
+});
+
+test('admin cliente permite consultar pendientes y retirar registros con POST protegido', async () => {
+  const { createAdminClient } = await load();
+  const calls = [];
+  const client = createAdminClient(undefined, async (url, options) => {
+    calls.push({ url, ...options });
+    return Response.json({ csrf: 'csrf-token', items: [] });
+  });
+  await client.session();
+  await client.request('/vocero-accounts');
+  await client.request('/vocero-accounts/' + 'a'.repeat(32) + '/delete', { method: 'POST', body: {} });
+  await client.request('/voceros/' + 'b'.repeat(32) + '/delete', { method: 'POST', body: {} });
+  assert.equal(calls[1].url.endsWith('/vocero-accounts'), true);
+  assert.equal(calls[2].method, 'POST');
+  assert.equal(calls[2].headers['X-CSRF-Token'], 'csrf-token');
+  assert.equal(calls[3].url.endsWith('/voceros/' + 'b'.repeat(32) + '/delete'), true);
 });
 
 test('admin cliente distingue errores de sesión, permiso, validación y red', async () => {

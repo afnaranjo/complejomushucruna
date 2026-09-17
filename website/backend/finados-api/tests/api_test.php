@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/Test.php';
-foreach (['Config', 'Database', 'Crypto', 'Audit', 'VocerosRepository', 'Auth'] as $class) {
+foreach (['Config', 'Database', 'Crypto', 'Audit', 'VocerosRepository', 'Auth', 'VoceroAuth'] as $class) {
     require_once __DIR__ . '/../src/' . $class . '.php';
 }
 
@@ -244,6 +244,17 @@ $oldCookie = $cookie; $cookie = api_cookie($login); $csrf = $login['json']['csrf
 same(401, api_request('GET', '/api/voceros', cookie: $oldCookie)['status']);
 same(true, api_request('GET', '/api/auth/session', cookie: $cookie)['json']['authenticated']);
 
+// Newly created accounts are visible to admins before a profile is linked and can be safely retired.
+$pendingAuth = new Finados\VoceroAuth($apiPdo, $apiConfig);
+$pendingAuth->register('pending-api@example.invalid', bin2hex(random_bytes(16)), true, '192.0.2.99');
+$pendingAccountPublicId = (string) $apiPdo->query("SELECT public_id FROM vocero_accounts WHERE email_idx = " . $apiPdo->quote((new Finados\Crypto($apiConfig))->lookup('pending-api@example.invalid')))->fetchColumn();
+$pendingApi = api_request('GET', '/api/vocero-accounts', cookie: $cookie);
+same(200, $pendingApi['status']); same(1, count($pendingApi['json']['items']));
+same('pending-api@example.invalid', $pendingApi['json']['items'][0]['email']);
+same(200, api_request('POST', '/api/vocero-accounts/' . $pendingAccountPublicId . '/delete', [], $cookie, $csrf)['status']);
+same([], api_request('GET', '/api/vocero-accounts', cookie: $cookie)['json']['items']);
+same(0, (int) $apiPdo->query("SELECT active FROM vocero_accounts WHERE public_id = " . $apiPdo->quote($pendingAccountPublicId))->fetchColumn());
+
 $list = api_request('GET', '/api/voceros?page=1&pageSize=1', cookie: $cookie);
 same(200, $list['status']);
 same(['page' => 1, 'pageSize' => 1, 'total' => 2, 'pages' => 2], $list['json']['pagination']);
@@ -358,6 +369,14 @@ foreach ([['search' => 'PII'], ['search_hash' => 'PII'], ['date_from' => '2026-0
     throws(fn () => $apiAudit->log('vocero.exported', 1, 'vocero', null, ['count' => 1, 'filters' => $badMetadata]), InvalidArgumentException::class);
 }
 same(405, api_request('GET', '/api/voceros/export', cookie: $cookie)['status']);
+
+// Profile retirement removes it from the default workspace while preserving an explicit archived view.
+same(200, api_request('POST', '/api/voceros/' . $apiId . '/delete', [], $cookie, $csrf)['status']);
+same('Eliminado', $apiRepository->find($apiId)['status']);
+same(103, api_request('GET', '/api/voceros', cookie: $cookie)['json']['pagination']['total']);
+same(1, api_request('GET', '/api/voceros?status=Eliminado', cookie: $cookie)['json']['pagination']['total']);
+$archivedDashboard = api_request('GET', '/api/dashboard', cookie: $cookie);
+same(103, $archivedDashboard['json']['total']); same(false, array_key_exists('Eliminado', $archivedDashboard['json']['byStatus']));
 
 // Real CGI upload parsing, isolated cookies and session-bound ownership (not client IDs).
 same(401, api_request('GET', '/api/vocero/profile', cookie: $cookie)['status']);

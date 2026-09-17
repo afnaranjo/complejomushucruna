@@ -19,6 +19,7 @@ final class RegistrationRateLimit extends RuntimeException {}
 final class VocerosRepository
 {
     public const STATUSES = ['Nuevo', 'En revisión', 'Aprobado', 'Rechazado', 'Pendiente de autorización'];
+    private const LIST_STATUSES = ['Nuevo', 'En revisión', 'Aprobado', 'Rechazado', 'Pendiente de autorización', 'Eliminado'];
     public const LEVELS = [
         0 => 'En preparación', 1 => 'Primer paso', 2 => 'Gorra', 3 => 'Kit completo',
         4 => 'Trae a los tuyos', 5 => 'Noche de concierto', 6 => 'Tope',
@@ -209,6 +210,59 @@ final class VocerosRepository
         return $changes !== [] || $appended;
     }
 
+    /** Accounts are visible to admins as soon as they register, even before a profile is linked. */
+    public function pendingAccounts(): array
+    {
+        $query = $this->pdo->query('SELECT a.public_id, a.email_enc, a.created_at FROM vocero_accounts a LEFT JOIN vocero_account_links l ON l.account_id = a.id WHERE a.active = 1 AND l.account_id IS NULL ORDER BY a.created_at DESC, a.id DESC');
+        return array_map(function (array $row): array {
+            return [
+                'public_id' => $row['public_id'],
+                'email' => $this->crypto->decrypt($row['email_enc']),
+                'status' => 'Pendiente de ficha',
+                'created_at' => $row['created_at'],
+            ];
+        }, $query->fetchAll());
+    }
+
+    /** Retires an unlinked account without deleting its audit or privacy evidence. */
+    public function archiveAccount(string $publicId, int $actorId, string $ip = ''): void
+    {
+        if (preg_match('/^[a-f0-9]{32}$/D', $publicId) !== 1) throw new InvalidArgumentException('Invalid account identifier.');
+        $this->pdo->beginTransaction();
+        try {
+            $actor = $this->pdo->prepare('SELECT id FROM admin_users WHERE id = ? AND active = 1');
+            $actor->execute([$actorId]);
+            if ($actor->fetchColumn() === false) throw new InvalidArgumentException('Invalid audit actor.');
+            $lock = $this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql' ? ' FOR UPDATE' : '';
+            $query = $this->pdo->prepare('SELECT id, active FROM vocero_accounts WHERE public_id = ?' . $lock);
+            $query->execute([$publicId]);
+            $account = $query->fetch();
+            if ($account === false || (int) $account['active'] !== 1) throw new OutOfBoundsException('Account not found.');
+            $linked = $this->pdo->prepare('SELECT 1 FROM vocero_account_links WHERE account_id = ?');
+            $linked->execute([(int) $account['id']]);
+            if ($linked->fetchColumn() !== false) throw new InvalidArgumentException('Use the profile retirement action for a linked account.');
+            $this->pdo->prepare('UPDATE vocero_accounts SET active = 0, updated_at = ? WHERE id = ?')->execute([gmdate('Y-m-d H:i:s'), (int) $account['id']]);
+            $this->audit->log('vocero_account.deleted', $actorId, 'vocero_account', $publicId, [], $ip);
+            $this->pdo->commit();
+        } catch (Throwable $exception) {
+            if ($this->pdo->inTransaction()) $this->pdo->rollBack();
+            if ($exception instanceof PDOException) throw new RuntimeException('Unable to retire account.');
+            throw $exception;
+        }
+    }
+
+    /** Retires a profile and its linked login while preserving records for audit/retention. */
+    public function archive(string $publicId, int $actorId, string $ip = ''): void
+    {
+        $this->mutate($publicId, $actorId, function (array $row) use ($publicId, $actorId, $ip): void {
+            if ($row['status'] === 'Eliminado') throw new OutOfBoundsException('Registration already retired.');
+            $now = gmdate('Y-m-d H:i:s');
+            $this->pdo->prepare('UPDATE voceros SET status = ?, updated_at = ? WHERE id = ?')->execute(['Eliminado', $now, $row['id']]);
+            $this->pdo->prepare('UPDATE vocero_accounts SET active = 0, updated_at = ? WHERE id IN (SELECT account_id FROM vocero_account_links WHERE vocero_id = ?)')->execute([$now, $row['id']]);
+            $this->audit->log('vocero.deleted', $actorId, 'vocero', $publicId, [], $ip);
+        });
+    }
+
     public function list(array $filters): array
     {
         $page = filter_var($filters['page'] ?? 1, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => 1000000]]);
@@ -221,7 +275,7 @@ final class VocerosRepository
         foreach (['status' => 40, 'city' => 100, 'main_network' => 20, 'previous_participation' => 60] as $field => $limit) {
             $value = $this->filterText($filters, $field, $limit);
             if ($value !== '') {
-                if ($field === 'status' && !in_array($value, self::STATUSES, true)) {
+                if ($field === 'status' && !in_array($value, self::LIST_STATUSES, true)) {
                     throw new InvalidArgumentException('Invalid registration status.');
                 }
                 $where[] = $field . ' = ?';
@@ -252,6 +306,10 @@ final class VocerosRepository
             $like = '%' . str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $search) . '%';
             $index = $this->crypto->lookup($search);
             array_push($parameters, $like, $like, strtolower($search), strtolower($search), $index, $index, $index);
+        }
+        if (($filters['status'] ?? '') === '') {
+            $where[] = 'status <> ?';
+            $parameters[] = 'Eliminado';
         }
         $clause = $where === [] ? '' : ' WHERE ' . implode(' AND ', $where);
         $query = $this->pdo->prepare('SELECT COUNT(*) FROM voceros' . $clause);
@@ -386,6 +444,7 @@ final class VocerosRepository
             throw new InvalidArgumentException('Invalid registration status.');
         }
         $this->mutate($publicId, $actorId, function (array $row) use ($publicId, $status, $actorId, $ip): void {
+            if ($row['status'] === 'Eliminado') throw new OutOfBoundsException('Registration already retired.');
             if ($row['status'] === $status) {
                 return;
             }

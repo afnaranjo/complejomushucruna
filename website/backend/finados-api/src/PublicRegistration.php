@@ -10,7 +10,7 @@ use InvalidArgumentException;
 /** Business rules mirrored from the still-active anonymous intake; no persistence or transport. */
 final class PublicRegistration
 {
-    public static function validate(array $fields, string $accountEmail): array
+    public static function validate(array $fields, string $accountEmail, bool $requireSocial = true): array
     {
         $allowed = ['submission_id', 'nombre_completo', 'cedula', 'fecha_nacimiento', 'whatsapp', 'ciudad',
             'tiktok', 'instagram', 'facebook', 'red_principal', 'vocero_previo', 'fuente_comunidad', 'retiro_kit',
@@ -46,7 +46,7 @@ final class PublicRegistration
             $record[$network] = self::text($fields, $network, 300);
             if ($record[$network] !== '' && (!filter_var($record[$network], FILTER_VALIDATE_URL) || strtolower((string) parse_url($record[$network], PHP_URL_SCHEME)) !== 'https')) throw new InvalidArgumentException('Invalid social profile.');
         }
-        if ($record['tiktok'] === '' && $record['instagram'] === '' && $record['facebook'] === '') throw new InvalidArgumentException('A social profile is required.');
+        if ($requireSocial && $record['tiktok'] === '' && $record['instagram'] === '' && $record['facebook'] === '') throw new InvalidArgumentException('A social profile is required.');
         foreach (['name' => ['nombre', 160], 'cedula' => ['cedula', 10], 'phone' => ['telefono', 10], 'email' => ['correo', 180]] as $target => [$source, $limit]) {
             $record['representative_' . $target] = self::text($fields, 'representante_' . $source, $limit, $age < 18 ? 1 : 0);
         }

@@ -45,9 +45,8 @@ final class VoceroProfile
         $result['progress'] = $record['progress'] ?? $this->repository->progressForVocero((int) $linked['id']);
         $required = ['full_name', 'cedula', 'birth_date', 'whatsapp', 'city', 'main_network', 'previous_participation', 'community_source', 'kit_pickup'];
         $hasRequired = array_reduce($required, static fn (bool $complete, string $field): bool => $complete && trim((string) ($result[$field] ?? '')) !== '', true);
-        $hasSocial = array_reduce(['tiktok', 'instagram', 'facebook'], static fn (bool $complete, string $field): bool => $complete || trim((string) ($result[$field] ?? '')) !== '', false);
         $acceptedConsents = count(array_filter($record['consents'] ?? [], static fn (array $consent): bool => (int) ($consent['accepted'] ?? 0) === 1));
-        $result['profile_complete'] = $hasRequired && $hasSocial && $photo !== null && $acceptedConsents >= 3;
+        $result['profile_complete'] = $hasRequired && $photo !== null && $acceptedConsents >= 3;
         return $result;
     }
 
@@ -66,7 +65,9 @@ final class VoceroProfile
     {
         if (inet_pton($ip) === false) throw new Forbidden('Invalid request.');
         $account = $this->account($accountId);
-        $record = PublicRegistration::validate($fields, $this->crypto->decrypt($account['email_enc']));
+        // Social links help verify reach but are optional for authenticated voceros.
+        // Anonymous intake keeps its stricter requirement through the default validator flag.
+        $record = PublicRegistration::validate($fields, $this->crypto->decrypt($account['email_enc']), false);
         $consents = $this->consents($ip, $userAgent, $record['submitted_at']);
         $upload = $this->upload($files);
         $prepared = null; $promoted = false; $committed = false; $lock = null;

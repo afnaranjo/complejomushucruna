@@ -26,7 +26,7 @@ ${field('whatsapp', 'Número de WhatsApp', 'type="tel" autocomplete="tel" inputm
 ${field('ciudad', 'Ciudad', 'autocomplete="address-level2" maxlength="100"')}
 </div></section>
 <section aria-labelledby="social-title"><p class="vocero-eyebrow">03 · Tu comunidad</p><h2 id="social-title">Redes y participación</h2>
-<p id="social-help">Llena al menos uno. Sin el enlace de tu perfil no podemos verificar tus vistas en el termómetro. Usa enlaces que comiencen con https://.</p>
+<p id="social-help">Los enlaces son opcionales. Si los compartes, podremos verificar tus vistas en el termómetro. Usa enlaces que comiencen con https://.</p>
 <div class="vocero-fields">
 ${['tiktok', 'instagram', 'facebook'].map(name => field(name, `Enlace de tu perfil de ${name === 'tiktok' ? 'TikTok' : name[0].toUpperCase() + name.slice(1)}`, 'type="url" maxlength="300" pattern="https://.*" aria-describedby="social-help"', true)).join('')}
 ${select('red_principal', '¿En cuál red publicas más?', ['TikTok', 'Instagram', 'Facebook'])}

@@ -42,7 +42,7 @@ test('autoguardado: agrupa cambios y ejecuta una sola vez después de la pausa',
   assert.deepEqual(callbacks, ['saved']);
 });
 
-test('autoguardado: solo se habilita con el formulario completo y un perfil social', async () => {
+test('autoguardado: se habilita con el formulario completo aunque no haya red social', async () => {
   const { isProfileReadyForAutoSave } = await clientModule();
   const values = new Map([
     ['fecha_nacimiento', { value: '2000-01-01' }],
@@ -55,7 +55,20 @@ test('autoguardado: solo se habilita con el formulario completo y un perfil soci
   form.checkValidity = () => true;
   assert.equal(isProfileReadyForAutoSave(form), true);
   values.get('tiktok').value = '';
-  assert.equal(isProfileReadyForAutoSave(form), false);
+  assert.equal(isProfileReadyForAutoSave(form), true);
+});
+
+test('registro: los enlaces sociales se presentan como opcionales', async () => {
+  const { renderVoceroForm } = await import('../src/finados/vocero-form.mjs');
+  const catalogue = JSON.parse(await readFile(new URL('../backend/finados-api/resources/vocero-consents.json', import.meta.url)));
+  const html = renderVoceroForm(catalogue);
+  for (const name of ['tiktok', 'instagram', 'facebook']) {
+    const label = html.match(new RegExp(`<label[^>]*for="${name}"[^>]*>[\\s\\S]*?<\\/label>`))?.[0];
+    assert.ok(label, name);
+    assert.match(label, /Opcional/);
+    assert.doesNotMatch(label, /required/);
+  }
+  assert.doesNotMatch(html, /Llena al menos uno/);
 });
 
 test('cliente invoca fetch sin ligar this al cliente (compatible con Window.fetch)', async () => {

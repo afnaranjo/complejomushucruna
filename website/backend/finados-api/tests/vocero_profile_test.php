@@ -140,10 +140,12 @@ foreach (['accountId', 'account_id', 'email', 'correo', 'role', 'estado', 'statu
 // All canonical consents and the existing business validation remain server-enforced on edits.
 foreach ([['cedula' => 'abc'], ['fecha_nacimiento' => '2026-02-30'], ['fecha_nacimiento' => '2099-01-01'],
     ['fecha_nacimiento' => '2020-01-01'], ['whatsapp' => '1234567890'], ['tiktok' => 'http://example.invalid'],
-    ['tiktok' => ''], ['red_principal' => 'Otra'], ['vocero_previo' => 'Otra'], ['fuente_comunidad' => 'Otra'], ['retiro_kit' => 'Otra'],
+    ['red_principal' => 'Otra'], ['vocero_previo' => 'Otra'], ['fuente_comunidad' => 'Otra'], ['retiro_kit' => 'Otra'],
     ['consentimiento_politicas' => 'No'], ['autorizacion_imagen' => 'No'], ['consentimiento_datos' => 'No'], ['ciudad' => []]] as $invalid) {
     throws(fn () => $profile->save($profileAccountId, profile_fields($invalid), [], '192.0.2.1', 'Prueba'), InvalidArgumentException::class);
 }
+$socialOptional = $profile->save($profileAccountId, profile_fields(['tiktok' => '', 'instagram' => '', 'facebook' => '']), [], '192.0.2.1', 'Prueba');
+same(true, $socialOptional['profile_complete']);
 foreach (['consentimiento_politicas', 'autorizacion_imagen', 'consentimiento_datos'] as $required) {
     $missing = profile_fields(); unset($missing[$required]);
     throws(fn () => $profile->save($profileAccountId, $missing, [], '192.0.2.1', 'Prueba'), InvalidArgumentException::class);
