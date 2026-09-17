@@ -31,6 +31,7 @@ $apiPdo->exec(file_get_contents(__DIR__ . '/../migrations/001_initial_sqlite.sql
 $apiPdo->exec(file_get_contents(__DIR__ . '/../migrations/002_sheets_outbox_sqlite.sql'));
 $apiPdo->exec(file_get_contents(__DIR__ . '/../migrations/003_vocero_accounts_sqlite.sql'));
 $apiPdo->exec(file_get_contents(__DIR__ . '/../migrations/004_vocero_progress_sqlite.sql'));
+$apiPdo->exec(file_get_contents(__DIR__ . '/../migrations/005_vocero_video_enablement_sqlite.sql'));
 $apiPdo->exec('PRAGMA journal_mode = WAL');
 $apiSecret = bin2hex(random_bytes(24));
 $apiHash = Finados\Auth::hashPassword($apiSecret);

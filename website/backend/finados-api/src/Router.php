@@ -279,7 +279,7 @@ final class Router
                 if (preg_match('/^[a-f0-9]{32}$/D', $id) !== 1 || $method !== 'PATCH' || $query !== []) {
                     return $this->error($method === 'PATCH' ? 422 : 405, $method === 'PATCH' ? 'validation_error' : 'method_not_allowed', $method === 'PATCH' ? 'Revisa los datos de progreso.' : 'Método no permitido.', $headers);
                 }
-                $body = $this->body($server, $rawBody, ['followers_count', 'level', 'traffic_light', 'videos_unlocked', 'kit_status']);
+                $body = $this->body($server, $rawBody, ['followers_count', 'level', 'traffic_light', 'videos_unlocked', 'video_slots', 'kit_status']);
                 $this->repository->updateProgress($id, $body, $user['id'], $ip);
                 return $this->json(200, ['ok' => true], $headers);
             }

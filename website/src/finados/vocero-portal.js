@@ -207,6 +207,11 @@ function ageToday(value) {
   const [y, m, d] = today.split('-').map(Number);
   return y - year - (m < month || (m === month && d < day) ? 1 : 0);
 }
+function videoEnabledDate(value) {
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return '';
+  const [year, month, day] = value.split('-').map(Number);
+  return new Intl.DateTimeFormat('es-EC', { dateStyle: 'medium', timeZone: 'UTC' }).format(new Date(Date.UTC(year, month - 1, day)));
+}
 function validateForm(form) {
   const invalid = [...form.elements].find(element => element.willValidate && !element.checkValidity());
   if (invalid) {
@@ -420,7 +425,7 @@ export async function initializeVoceroPortal(root = document, location = globalT
       const input = slotElement.querySelector('[data-video-url]'); const button = slotElement.querySelector('[data-video-save]'); const status = slotElement.querySelector('[data-video-status]');
       if (input) { input.disabled = !unlocked; input.value = video.url ?? ''; }
       if (button) button.disabled = !unlocked;
-      if (status) status.textContent = !video.unlocked ? 'Bloqueado por coordinación' : video.status === 'submitted' ? 'Enlace recibido' : 'Habilitado para enviar';
+      if (status) status.textContent = !video.unlocked ? 'Bloqueado por coordinación' : video.status === 'submitted' ? `Enlace recibido · Disponible desde ${videoEnabledDate(video.enabled_at) || 'la fecha indicada'}` : `Habilitado para enviar · Disponible desde ${videoEnabledDate(video.enabled_at) || 'la fecha indicada'}`;
       slotElement.dataset.locked = String(!unlocked);
     }
   }

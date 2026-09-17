@@ -142,6 +142,11 @@ function dateTime(value) {
   const parsed = new Date(/Z$|[+-]\d\d:\d\d$/.test(value) ? value : value.replace(' ', 'T') + 'Z');
   return Number.isNaN(parsed.getTime()) ? '—' : new Intl.DateTimeFormat('es-EC', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'America/Guayaquil' }).format(parsed);
 }
+function dateOnly(value) {
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return '—';
+  const [year, month, day] = value.split('-').map(Number);
+  return new Intl.DateTimeFormat('es-EC', { dateStyle: 'medium', timeZone: 'UTC' }).format(new Date(Date.UTC(year, month - 1, day)));
+}
 
 export function initializeAdminNavigation(root = document, compact = globalThis.matchMedia?.('(max-width: 1120px)').matches ?? false) {
   const navigation = root.querySelector('[data-admin-navigation]');
@@ -234,6 +239,7 @@ export async function initializeAdmin() {
   const progressFeedback = query('[data-progress-feedback]');
   const progressSummary = query('[data-admin-progress-summary]');
   const adminVideos = query('[data-admin-videos]');
+  const videoInput = (slot, suffix) => progressForm.elements.namedItem(`video_${slot}_${suffix}`);
   const noteForm = query('[data-note-form]');
   let filters = normalizeFilters();
   let pagination = { page: 1, pages: 0 };
@@ -407,17 +413,30 @@ export async function initializeAdmin() {
     progressForm.elements.followers_count.value = String(Number(value.followers_count) || 0);
     progressForm.elements.level.value = String(Number(value.level) || 0);
     progressForm.elements.traffic_light.value = value.traffic_light ?? 'red';
-    progressForm.elements.videos_unlocked.value = String(Number(value.videos_unlocked) || 0);
     progressForm.elements.kit_status.value = value.kit_status ?? 'pendiente';
-    progressSummary.textContent = `${value.level_label ?? 'En preparación'} · ${Number(value.followers_count) || 0} seguidores validados · ${value.kit_status === 'retirado' ? 'Kit retirado' : 'Kit pendiente'}`;
+    const videos = Array.isArray(value.videos) ? value.videos : [];
+    const enabledCount = videos.filter(video => Boolean(video.unlocked)).length;
+    progressSummary.textContent = `${value.level_label ?? 'En preparación'} · ${Number(value.followers_count) || 0} seguidores validados · ${enabledCount} de 5 videos habilitados · ${value.kit_status === 'retirado' ? 'Kit retirado' : 'Kit pendiente'}`;
+    for (const slot of [1, 2, 3, 4, 5]) {
+      const video = videos.find(item => Number(item.slot) === slot) ?? { slot, unlocked: false, enabled_at: null };
+      const checkbox = videoInput(slot, 'enabled'); const date = videoInput(slot, 'enabled_at');
+      if (checkbox) checkbox.checked = Boolean(video.unlocked);
+      if (date) { date.value = typeof video.enabled_at === 'string' ? video.enabled_at.slice(0, 10) : ''; date.required = Boolean(video.unlocked); }
+    }
     adminVideos.replaceChildren();
-    for (const video of value.videos ?? []) {
-      const item = node('article', undefined, 'admin-video-item');
+    for (const video of videos) {
+      const stateClass = video.unlocked ? (video.status === 'submitted' ? ' admin-video-item--submitted' : ' admin-video-item--enabled') : '';
+      const item = node('article', undefined, 'admin-video-item' + stateClass);
       item.append(node('strong', `Video ${video.slot}`), node('span', video.unlocked ? (video.status === 'submitted' ? 'Enlace recibido' : 'Habilitado') : 'Bloqueado'));
+      if (video.enabled_at) item.append(node('small', 'Disponible desde ' + dateOnly(String(video.enabled_at).slice(0, 10))));
       if (video.url) { const link = node('a', video.url); link.href = video.url; link.target = '_blank'; link.rel = 'noopener noreferrer'; item.append(link); }
       adminVideos.append(item);
     }
     if (!adminVideos.children.length) adminVideos.append(node('p', 'Los cinco espacios aparecerán al actualizar el progreso.'));
+  }
+  for (const slot of [1, 2, 3, 4, 5]) {
+    const checkbox = videoInput(slot, 'enabled'); const date = videoInput(slot, 'enabled_at');
+    checkbox?.addEventListener('change', () => { if (date) { date.required = checkbox.checked; if (!checkbox.checked) date.value = ''; } });
   }
   async function loadDetail(id, generation, media = false) {
     const data = await client.request('/voceros/' + encodeURIComponent(id));
@@ -510,9 +529,21 @@ export async function initializeAdmin() {
   }
   statusForm.addEventListener('submit', event => mutate(event, 'status'));
   progressForm.addEventListener('submit', event => {
+    event.preventDefault();
+    const videoSlots = [];
+    for (const slot of [1, 2, 3, 4, 5]) {
+      const enabled = Boolean(videoInput(slot, 'enabled')?.checked);
+      const enabledAt = videoInput(slot, 'enabled_at')?.value || null;
+      if (enabled && !enabledAt) {
+        feedback(progressFeedback, `Indica la fecha de habilitación del video ${slot}.`, 'error');
+        videoInput(slot, 'enabled_at')?.focus();
+        return;
+      }
+      videoSlots.push({ slot, enabled, enabled_at: enabled ? enabledAt : null });
+    }
     const body = {
       followers_count: Number(progressForm.elements.followers_count.value), level: Number(progressForm.elements.level.value),
-      traffic_light: progressForm.elements.traffic_light.value, videos_unlocked: Number(progressForm.elements.videos_unlocked.value), kit_status: progressForm.elements.kit_status.value,
+      traffic_light: progressForm.elements.traffic_light.value, video_slots: videoSlots, kit_status: progressForm.elements.kit_status.value,
     };
     progressForm.dataset.pendingBody = JSON.stringify(body);
     mutate(event, 'progress');

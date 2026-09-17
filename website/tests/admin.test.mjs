@@ -65,6 +65,16 @@ test('admin renderiza foto privada y recuperación con campo de solo lectura', a
   assert.match(html, /img-src 'self' blob:/);
 });
 
+test('admin presenta cinco habilitaciones independientes con fecha por video', async () => {
+  const { renderAdminVocerosPage } = await import('../src/admin/page.mjs');
+  const html = renderAdminVocerosPage({ title: 'Voceros', route: '/admin/voceros/' });
+  assert.equal((html.match(/name="video_[1-5]_enabled"/g) ?? []).length, 5);
+  assert.equal((html.match(/name="video_[1-5]_enabled_at"/g) ?? []).length, 5);
+  assert.match(html, /data-admin-video-controls/);
+  assert.match(html, /Marca cada video y registra la fecha/);
+  assert.doesNotMatch(html, /name="videos_unlocked"/);
+});
+
 test('admin muestra cuentas pendientes y acción de retiro protegida', async () => {
   const { renderAdminVocerosPage } = await import('../src/admin/page.mjs');
   const html = renderAdminVocerosPage({ title: 'Voceros', route: '/admin/voceros/' });
