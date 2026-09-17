@@ -1021,3 +1021,10 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Se corrigió `VoceroProfile::get` para devolver al perfil autenticado el tipo, estado aceptado y versión de cada consentimiento, excluyendo IP, hashes, identificadores internos y demás evidencia privada.
 - El frontend restaura las casillas marcadas al cargar el perfil; los consentimientos nuevos siguen requiriendo una confirmación explícita antes de guardar.
 - QA: pruebas Node/PHP específicas, build de 128 archivos, `check-dist` y `git diff --check` en verde. Publicación externa pendiente; al cambiar backend se requiere desplegar backend y después frontend.
+
+### 2026-09-17 — Despliegue de restauración de consentimientos
+
+- Se desplegó el backend y luego el frontend desde `main`, incluyendo el commit `a69bc71`.
+- Prevuelo y verificación completos; producción quedó publicada en `https://complejomushucruna.com`.
+- Se creó respaldo remoto recuperable, se conservaron Google Sheets y archivos exclusivos del servidor; no se modificaron DNS, Acreditación de Medios ni otros proyectos.
+- La cuenta de prueba `naranjoalex199391@gmail.com` no se modificó: permanece archivada con su ficha vinculada.
