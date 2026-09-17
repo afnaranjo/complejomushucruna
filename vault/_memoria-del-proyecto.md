@@ -195,3 +195,7 @@ El 28 de agosto quedó confirmado `¡LEGADO QUE NOS UNE!` como eslogan gráfico 
 ### 2026-09-17 — Publicación pendiente por prevuelo local
 
 - Se intentó publicar el backend autorizado, pero el script se detuvo antes de conectarse para transferir porque la suite completa reportó ocho fallos conocidos en fixtures sintéticos de despliegue. No hubo cambios externos ni aplicación de la migración 005.
+
+### 2026-09-17 — Backend y frontend publicados
+
+- Tras corregir la validación del inventario para el comportamiento de clonación de APFS, la suite completa quedó en verde y se publicó el backend con respaldo y migración 005. Luego se activó el frontend y se verificó `https://complejomushucruna.com`.

@@ -958,3 +958,10 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Alex autorizó el despliegue backend → frontend. `npm run backend:deploy` inició el prevuelo completo, pero se detuvo antes de cualquier transferencia porque la suite Node conserva ocho fallos conocidos en fixtures de despliegue (enlaces físicos/transportes sintéticos del entorno local).
 - No se creó respaldo remoto, no se aplicó la migración 005 y no se activó ninguna release. Producción, DNS, Acreditación de Medios, Google Sheets y `superplataforma` permanecen sin cambios.
 - Pendiente: corregir o aislar los fixtures locales sin relajar las validaciones de seguridad y repetir primero el backend y luego el frontend. No se debe omitir `npm run check` ni forzar la activación.
+
+### 2026-09-17 — Despliegue backend y frontend completado
+
+- Se corrigió el prevuelo para aceptar el contador `nlink === 2` que APFS reporta en archivos clonados localmente, manteniendo el rechazo de enlaces simbólicos y destinos inseguros.
+- `npm run check` quedó en verde (134 pruebas Node, pruebas PHP, integración, build y `check-dist`). Se publicó el backend con respaldo, migración y activación atómica; después se publicó y verificó el frontend en `https://complejomushucruna.com`.
+- Commit: `989bb84` (`Permitir artefactos APFS clonados en el prevuelo`). Producción actualizada; no se modificaron DNS, Acreditación de Medios, Google Sheets ni `superplataforma`.
+- Pendiente: probar en producción el acceso de Voceros y el panel administrativo con credenciales autorizadas.
