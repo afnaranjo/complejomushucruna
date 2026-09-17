@@ -42,6 +42,13 @@ final class VoceroProfile
         $photo = $this->photoRow((int) $linked['id']);
         $result['photo'] = $photo === null ? ['available' => false, 'width' => null, 'height' => null, 'created_at' => null]
             : ['available' => true, 'width' => (int) $photo['width'], 'height' => (int) $photo['height'], 'created_at' => $photo['created_at']];
+        // Return only the accepted state needed to restore the authenticated form.
+        // Evidence such as IP, hashes and internal identifiers never leaves the server.
+        $result['consents'] = array_map(static fn (array $consent): array => [
+            'consent_type' => (string) ($consent['consent_type'] ?? ''),
+            'accepted' => (int) ($consent['accepted'] ?? 0),
+            'text_version' => (string) ($consent['text_version'] ?? ''),
+        ], $record['consents'] ?? []);
         $result['progress'] = $record['progress'] ?? $this->repository->progressForVocero((int) $linked['id']);
         $required = ['full_name', 'cedula', 'birth_date', 'whatsapp', 'city', 'main_network', 'previous_participation', 'community_source', 'kit_pickup'];
         $hasRequired = array_reduce($required, static fn (bool $complete, string $field): bool => $complete && trim((string) ($result[$field] ?? '')) !== '', true);

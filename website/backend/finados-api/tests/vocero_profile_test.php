@@ -114,7 +114,10 @@ same('Nuevo', $profileOwn['status']);
 same(str_repeat('1', 32), $profileOwn['submission_id']);
 same(['available' => true, 'width' => 80, 'height' => 100, 'created_at' => $profileStoredPhoto['created_at']], $profileOwn['photo']);
 same('image/jpeg', getimagesizefromstring($profile->photo($profileAccountId))['mime']);
-foreach (['storage_key', 'sha256', 'bytes', 'consents', 'notes', 'email_enc', 'account_id', 'id'] as $privateField) same(false, array_key_exists($privateField, $profileOwn));
+foreach (['storage_key', 'sha256', 'bytes', 'notes', 'email_enc', 'account_id', 'id'] as $privateField) same(false, array_key_exists($privateField, $profileOwn));
+same(['politicas', 'imagen', 'datos'], array_column($profileOwn['consents'], 'consent_type'));
+same([1, 1, 1], array_map(static fn (array $consent): int => (int) $consent['accepted'], $profileOwn['consents']));
+foreach ($profileOwn['consents'] as $consent) foreach (['ip', 'ip_enc', 'vocero_id', 'text_hash'] as $privateField) same(false, array_key_exists($privateField, $consent));
 same(false, str_contains(json_encode($profileOwn), $profileStoredPhoto['storage_key']));
 
 $profileEvidence = $profileDb->query('SELECT * FROM vocero_consents ORDER BY id')->fetchAll();

@@ -238,3 +238,8 @@ El 28 de agosto quedó confirmado `¡LEGADO QUE NOS UNE!` como eslogan gráfico 
 ### 2026-09-17 — Publicación de videos plegables y checks
 
 - Se publicó el ajuste en `complejomushucruna.com` desde `8cef425`, con respaldo remoto y verificación del despliegue.
+
+### 2026-09-17 — Restauración de checks de consentimiento
+
+- El perfil autenticado ahora recibe únicamente el estado y versión de sus consentimientos para que las casillas permanezcan marcadas después de guardar y volver a entrar; la evidencia privada no se expone.
+- QA local en verde; pendiente desplegar backend y frontend.

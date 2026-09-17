@@ -1015,3 +1015,9 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 
 - Se publicó el commit `8cef425` en `https://complejomushucruna.com`; la sección de videos quedó al final y plegada cuando está bloqueada, y los consentimientos aceptados se restauran marcados al cargar el perfil.
 - El despliegue creó respaldo remoto y conservó backend, Google Sheets, archivos exclusivos y los demás dominios sin cambios.
+
+### 2026-09-17 — Restauración de checks de consentimiento
+
+- Se corrigió `VoceroProfile::get` para devolver al perfil autenticado el tipo, estado aceptado y versión de cada consentimiento, excluyendo IP, hashes, identificadores internos y demás evidencia privada.
+- El frontend restaura las casillas marcadas al cargar el perfil; los consentimientos nuevos siguen requiriendo una confirmación explícita antes de guardar.
+- QA: pruebas Node/PHP específicas, build de 128 archivos, `check-dist` y `git diff --check` en verde. Publicación externa pendiente; al cambiar backend se requiere desplegar backend y después frontend.

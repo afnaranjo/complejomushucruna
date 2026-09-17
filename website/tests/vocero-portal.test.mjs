@@ -163,6 +163,13 @@ test('portal: rutas privadas, catálogo exacto y landing con acceso separado', a
   assert.doesNotMatch(await readFile(join(output, 'assets/finados/vocero-portal.js'), 'utf8'), /127\.0\.0\.1|localStorage|sessionStorage|document\.cookie/);
 });
 
+test('consentimientos: el cliente restaura las casillas aceptadas del perfil', async () => {
+  const source = await readFile(new URL('../src/finados/vocero-portal.js', import.meta.url), 'utf8');
+  assert.match(source, /profile\.consents/);
+  assert.match(source, /input\.checked =/);
+  assert.match(source, /consent\.accepted/);
+});
+
 test('validación pública: crea una vista aislada, sin indexar ni exponer datos privados', async () => {
   const output = await mkdtemp(join(tmpdir(), 'vocero-verification-'));
   const files = await buildSite(output);
