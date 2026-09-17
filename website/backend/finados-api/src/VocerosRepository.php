@@ -381,6 +381,29 @@ final class VocerosRepository
         return $progress;
     }
 
+    /**
+     * Public, minimal projection used by the validation page linked from a badge QR.
+     * It intentionally excludes email, cédula, phone, photo, videos and internal status.
+     */
+    public function publicVerification(string $publicId): ?array
+    {
+        if (preg_match('/^[a-f0-9]{32}$/D', $publicId) !== 1) throw new InvalidArgumentException('Invalid public identifier.');
+        $query = $this->pdo->prepare("SELECT id, full_name FROM voceros WHERE public_id = ? AND status IN ('Nuevo', 'En revisión', 'Aprobado', 'Pendiente de autorización')");
+        $query->execute([$publicId]);
+        $row = $query->fetch();
+        if ($row === false) return null;
+        $progress = $this->progressForVocero((int) $row['id']);
+        $lightLabels = ['red' => ['short' => 'Rojo', 'long' => 'En preparación'], 'yellow' => ['short' => 'Amarillo', 'long' => 'En avance'], 'green' => ['short' => 'Verde', 'long' => 'Listo']];
+        $light = $lightLabels[$progress['traffic_light']] ?? $lightLabels['red'];
+        return [
+            'name' => (string) $row['full_name'],
+            'level' => (int) $progress['level'],
+            'level_label' => (string) $progress['level_label'],
+            'traffic_light' => (string) $progress['traffic_light'],
+            'traffic_light_label' => $light,
+        ];
+    }
+
     public function updateProgress(string $publicId, array $input, int $actorId, string $ip = ''): void
     {
         if (!$this->hasProgressSchema()) throw new RuntimeException('Progress schema unavailable.');

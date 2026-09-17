@@ -82,6 +82,14 @@ final class Router
             if ($path === '/api/health' && $method === 'GET') {
                 return $this->health($headers);
             }
+            // Badge QR validation is deliberately public but returns only a minimal projection.
+            if (preg_match('~^/api/voceros/verify/([a-f0-9]{32})$~D', $path, $parts)) {
+                if ($method !== 'GET') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+                if ($query !== []) throw new InvalidArgumentException();
+                $verification = $this->repository->publicVerification($parts[1]);
+                if ($verification === null) throw new OutOfBoundsException();
+                return $this->json(200, ['ok' => true, 'verification' => $verification], $headers);
+            }
             if ($path === '/api/auth/session' && $method === 'GET') {
                 try { $user = $this->auth->requireUser(); } catch (Unauthorized) { $user = null; }
                 return $this->json(200, ['authenticated' => $user !== null, 'user' => $user, 'csrf' => $this->auth->csrfToken()], $headers);
@@ -299,7 +307,8 @@ final class Router
                 }
                 return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
             }
-            if (in_array($path, ['/api/health', '/api/auth/login', '/api/auth/logout', '/api/auth/session', '/api/voceros', '/api/dashboard', '/api/vocero/auth/session', '/api/vocero/auth/register', '/api/vocero/auth/login', '/api/vocero/auth/logout'], true)) {
+            if (in_array($path, ['/api/health', '/api/auth/login', '/api/auth/logout', '/api/auth/session', '/api/voceros', '/api/dashboard', '/api/vocero/auth/session', '/api/vocero/auth/register', '/api/vocero/auth/login', '/api/vocero/auth/logout'], true)
+                || preg_match('~^/api/voceros/verify/[a-f0-9]{32}$~D', $path) === 1) {
                 return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
             }
             return $this->error(404, 'not_found', 'Recurso no encontrado.', $headers);

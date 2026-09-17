@@ -56,6 +56,7 @@ test('genera las rutas institucionales y el archivo histórico', async () => {
     'visitanos/index.html',
     'acceso-compra-stands/index.html',
     'finados/dignidades-finados-2025/index.html',
+    'finados/voceros/verificar/index.html',
     'eventos/archivo/finados-2021/index.html',
     'eventos/archivo/navidad-2025/index.html',
   ]) {

@@ -97,6 +97,8 @@ export async function buildSite(outputDirectory = join(websiteRoot, 'dist'), { a
   await cp(join(websiteRoot, 'src', 'finados', 'voceros.css'), join(finadosAssets, 'voceros.css'));
   await cp(join(websiteRoot, 'src', 'finados', 'voceros.js'), join(finadosAssets, 'voceros.js'));
   await cp(join(websiteRoot, 'src', 'finados', 'vocero-portal.css'), join(finadosAssets, 'vocero-portal.css'));
+  await cp(join(websiteRoot, 'src', 'finados', 'qrcode-generator.mjs'), join(finadosAssets, 'qrcode-generator.mjs'));
+  await cp(join(websiteRoot, 'src', 'finados', 'vocero-verification.js'), join(finadosAssets, 'vocero-verification.js'));
   const portalScript = await readFile(join(websiteRoot, 'src', 'finados', 'vocero-portal.js'), 'utf8');
   await writeFile(join(finadosAssets, 'vocero-portal.js'), portalScript.replace(
     "const LOCAL_API = 'http://127.0.0.1:4174/api';",

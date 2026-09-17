@@ -58,6 +58,43 @@ test('autoguardado: se habilita con el formulario completo aunque no haya red so
   assert.equal(isProfileReadyForAutoSave(form), true);
 });
 
+test('gafete: el QR de validación es único por vocero y no admite identificadores privados', async () => {
+  const { badgeVerificationUrl, createBadgeQrMatrix, trafficLightLabel } = await clientModule();
+  const firstId = 'a'.repeat(32);
+  const secondId = 'b'.repeat(32);
+  const firstUrl = badgeVerificationUrl(firstId);
+  const secondUrl = badgeVerificationUrl(secondId);
+  assert.match(firstUrl, /^https:\/\/complejomushucruna\.com\/finados\/voceros\/verificar\/\?id=a{32}$/);
+  assert.notEqual(firstUrl, secondUrl);
+  assert.doesNotMatch(firstUrl, /@|cedula|correo|email|foto|photo/i);
+  assert.throws(() => badgeVerificationUrl('no-es-un-id'));
+  const firstMatrix = createBadgeQrMatrix(firstUrl);
+  const secondMatrix = createBadgeQrMatrix(secondUrl);
+  assert.ok(firstMatrix.length >= 21);
+  assert.equal(firstMatrix.length, firstMatrix[0].length);
+  assert.notDeepEqual(firstMatrix, secondMatrix);
+  assert.deepEqual(trafficLightLabel('red'), { short: 'Rojo', long: 'En preparación' });
+  assert.deepEqual(trafficLightLabel('yellow'), { short: 'Amarillo', long: 'En avance' });
+  assert.deepEqual(trafficLightLabel('green'), { short: 'Verde', long: 'Listo' });
+});
+
+test('validación: consulta solo el identificador público y no envía cookies', async () => {
+  const { fetchBadgeVerification, verificationApiUrl } = await import('../src/finados/vocero-verification.js');
+  const publicId = 'c'.repeat(32);
+  let request;
+  const result = await fetchBadgeVerification('https://finados.complejomushucruna.com/api', publicId, async (url, options) => {
+    request = { url, options };
+    return new Response(JSON.stringify({ ok: true, verification: { name: 'Persona de prueba', level_label: 'Gorra', traffic_light: 'green' } }), { status: 200 });
+  });
+  assert.equal(request.url, verificationApiUrl('https://finados.complejomushucruna.com/api', publicId));
+  assert.equal(request.options.credentials, 'omit');
+  assert.equal(request.options.cache, 'no-store');
+  assert.equal(request.options.redirect, 'error');
+  assert.deepEqual(result, { name: 'Persona de prueba', level: 'Gorra', light: { short: 'Verde', long: 'Listo' } });
+  await assert.rejects(fetchBadgeVerification('https://finados.complejomushucruna.com/api', 'not-an-id', async () => new Response()), /inválido/);
+  assert.throws(() => verificationApiUrl('https://other.example/api', publicId), /inválido/);
+});
+
 test('registro: los enlaces sociales se presentan como opcionales', async () => {
   const { renderVoceroForm } = await import('../src/finados/vocero-form.mjs');
   const catalogue = JSON.parse(await readFile(new URL('../backend/finados-api/resources/vocero-consents.json', import.meta.url)));
@@ -107,6 +144,18 @@ test('portal: rutas privadas, catálogo exacto y landing con acceso separado', a
   assert.doesNotMatch(landing, /data-voceros-form|action="\/api\/voceros\/"/);
   assert.doesNotMatch(await readFile(join(output, 'sitemap.xml'), 'utf8'), /voceros\/(acceso|mi-registro|restablecer)/);
   assert.doesNotMatch(await readFile(join(output, 'assets/finados/vocero-portal.js'), 'utf8'), /127\.0\.0\.1|localStorage|sessionStorage|document\.cookie/);
+});
+
+test('validación pública: crea una vista aislada, sin indexar ni exponer datos privados', async () => {
+  const output = await mkdtemp(join(tmpdir(), 'vocero-verification-'));
+  const files = await buildSite(output);
+  assert.ok(files.includes('finados/voceros/verificar/index.html'));
+  const page = await readFile(join(output, 'finados/voceros/verificar/index.html'), 'utf8');
+  assert.match(page, /<meta name="robots" content="noindex, nofollow, noarchive">/);
+  assert.match(page, /data-vocero-verification/);
+  assert.match(page, /https:\/\/finados\.complejomushucruna\.com\/api/);
+  assert.match(page, /vocero-verification\.js/);
+  assert.doesNotMatch(page, /name="(?:email|cedula|whatsapp|fotografia)"/i);
 });
 
 test('portal: build local comparte la API validada y el cliente rechaza otros orígenes', async () => {

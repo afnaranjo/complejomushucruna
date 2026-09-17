@@ -1,7 +1,38 @@
+import { qrcode } from './qrcode-generator.mjs';
+
 const API = 'https://finados.complejomushucruna.com/api';
 const LOCAL_API = 'http://127.0.0.1:4174/api';
 const ACCESS = '/finados/voceros/acceso/?modo=login';
 const PROFILE = '/finados/voceros/mi-registro/';
+
+const BADGE_VERIFICATION_ORIGIN = 'https://complejomushucruna.com';
+const BADGE_TRAFFIC_LIGHTS = Object.freeze({
+  red: Object.freeze({ short: 'Rojo', long: 'En preparación', color: '#e01b24' }),
+  yellow: Object.freeze({ short: 'Amarillo', long: 'En avance', color: '#ffc42e' }),
+  green: Object.freeze({ short: 'Verde', long: 'Listo', color: '#35c277' }),
+});
+
+/** Builds the only public value encoded in a vocero badge QR. */
+export function badgeVerificationUrl(publicId) {
+  if (typeof publicId !== 'string' || !/^[a-f0-9]{32}$/.test(publicId)) throw new TypeError('Identificador público inválido.');
+  return `${BADGE_VERIFICATION_ORIGIN}/finados/voceros/verificar/?id=${publicId}`;
+}
+
+export function trafficLightLabel(light) {
+  const value = BADGE_TRAFFIC_LIGHTS[light];
+  if (!value) throw new TypeError('Semáforo inválido.');
+  return { short: value.short, long: value.long };
+}
+
+/** Returns the QR matrix so the canvas renderer and tests share one encoder. */
+export function createBadgeQrMatrix(value) {
+  if (typeof value !== 'string' || value.length < 1 || value.length > 512) throw new TypeError('Contenido QR inválido.');
+  const code = qrcode(0, 'M');
+  code.addData(value, 'Byte');
+  code.make();
+  const size = code.getModuleCount();
+  return Array.from({ length: size }, (_, row) => Array.from({ length: size }, (_, column) => code.isDark(row, column)));
+}
 
 export class VoceroError extends Error {
   constructor(status, context = '') {
@@ -211,55 +242,94 @@ async function badgeBlob(profile, photoBlob) {
   canvas.width = 1080; canvas.height = 1920;
   const context = canvas.getContext('2d');
   if (!context) return null;
-  const roundRect = (x, y, width, height, radius) => { context.beginPath(); if (context.roundRect) context.roundRect(x, y, width, height, radius); else { context.rect(x, y, width, height); } };
+  const roundRect = (x, y, width, height, radius) => { context.beginPath(); if (context.roundRect) context.roundRect(x, y, width, height, radius); else context.rect(x, y, width, height); };
+  const progress = profile.progress ?? {};
+  const light = BADGE_TRAFFIC_LIGHTS[progress.traffic_light] ? progress.traffic_light : 'red';
+  const lightLabel = BADGE_TRAFFIC_LIGHTS[light];
+  const level = String(progress.level_label ?? 'En preparación').trim().slice(0, 36) || 'En preparación';
+
   const gradient = context.createLinearGradient(0, 0, canvas.width, canvas.height);
-  gradient.addColorStop(0, '#241146'); gradient.addColorStop(0.44, '#3c1679'); gradient.addColorStop(1, '#df2b84');
+  gradient.addColorStop(0, '#241146'); gradient.addColorStop(0.48, '#391f6f'); gradient.addColorStop(1, '#b51f78');
   context.fillStyle = gradient; context.fillRect(0, 0, canvas.width, canvas.height);
-  // Franja chumbi, marco cian y formas orbitantes para que se sienta como un póster de Finados.
+
+  // Franja chumbi, marco cian y formas orbitantes del key visual.
   const chumbi = ['#ff2e8a', '#ffc42e', '#00d2d6', '#f4eada'];
   for (let x = 0, index = 0; x < canvas.width; x += 60, index += 1) {
     context.fillStyle = chumbi[index % chumbi.length]; context.fillRect(x, 0, 60, 24);
   }
   context.fillStyle = '#00d2d6'; context.fillRect(0, canvas.height - 24, canvas.width, 24);
   context.strokeStyle = '#00d2d6'; context.lineWidth = 6; context.strokeRect(22, 22, canvas.width - 44, canvas.height - 44);
-  context.globalAlpha = .18; context.fillStyle = '#00d2d6'; context.beginPath(); context.arc(950, 260, 250, 0, Math.PI * 2); context.fill();
-  context.fillStyle = '#ffc42e'; context.beginPath(); context.arc(120, 1515, 170, 0, Math.PI * 2); context.fill();
-  context.globalAlpha = .3; context.strokeStyle = '#f4eada'; context.lineWidth = 6; context.beginPath(); context.arc(540, 670, 500, Math.PI * 1.04, Math.PI * 1.86); context.stroke(); context.globalAlpha = 1;
-  context.fillStyle = '#ff2e8a'; context.save(); context.translate(-165, 705); context.rotate(-.35); context.fillRect(0, 0, 470, 82); context.restore();
+  context.globalAlpha = .16; context.fillStyle = '#00d2d6'; context.beginPath(); context.arc(930, 290, 260, 0, Math.PI * 2); context.fill();
+  context.fillStyle = '#ffc42e'; context.beginPath(); context.arc(100, 1510, 170, 0, Math.PI * 2); context.fill();
+  context.globalAlpha = .28; context.strokeStyle = '#f4eada'; context.lineWidth = 6; context.beginPath(); context.arc(520, 650, 500, Math.PI * 1.04, Math.PI * 1.86); context.stroke(); context.globalAlpha = 1;
+  context.fillStyle = '#ff2e8a'; context.save(); context.translate(-170, 660); context.rotate(-.35); context.fillRect(0, 0, 430, 72); context.restore();
   context.globalAlpha = .08; context.strokeStyle = '#f4eada'; context.lineWidth = 2;
   for (let x = -canvas.height; x < canvas.width; x += 42) { context.beginPath(); context.moveTo(x, 0); context.lineTo(x + canvas.height, canvas.height); context.stroke(); }
   context.globalAlpha = 1;
+
   let logo = null;
   try { logo = await loadBadgeImage('/assets/finados/logo-finados.svg'); } catch { /* Logo is decorative; text remains the accessible fallback. */ }
-  if (logo) { const maxW = 390; const maxH = 190; const scale = Math.min(maxW / logo.width, maxH / logo.height); context.drawImage(logo, (canvas.width - logo.width * scale) / 2, 70, logo.width * scale, logo.height * scale); }
+  if (logo) { const maxW = 360; const maxH = 200; const scale = Math.min(maxW / logo.width, maxH / logo.height); context.drawImage(logo, (canvas.width - logo.width * scale) / 2, 66, logo.width * scale, logo.height * scale); }
   const iconMarks = [
-    ['/assets/finados/icons/crecimiento.svg', 800, 205, 135, 150, .18],
-    ['/assets/finados/icons/legado.svg', 720, 1450, 150, 162, .16],
-    ['/assets/finados/icons/espectador.svg', 650, 1705, 300, 138, .2],
+    ['/assets/finados/icons/crecimiento.svg', 825, 204, 125, 138, .16],
+    ['/assets/finados/icons/legado.svg', 700, 1632, 142, 150, .14],
+    ['/assets/finados/icons/espectador.svg', 650, 1740, 300, 130, .16],
   ];
   for (const [source, x, y, width, height, opacity] of iconMarks) {
     try { const icon = await loadBadgeImage(source); context.save(); context.globalAlpha = opacity; context.drawImage(icon, x, y, width, height); context.restore(); } catch { /* Decorative key-visual icons are optional. */ }
   }
-  context.textAlign = 'center'; context.fillStyle = '#f4eada'; context.font = '700 25px Inter, Arial'; context.fillText('COMUNIDAD DE VOCEROS · FINADOS 2026', 540, 390);
-  context.fillStyle = '#f5c84b'; context.font = '700 30px Inter, Arial'; context.fillText('GAFETE DIGITAL', 540, 438);
-  context.textAlign = 'left';
-  context.fillStyle = '#ffffff'; context.font = '900 116px Anton, Arial Narrow, sans-serif'; context.fillText('INVITADO', 70, 510); context.fillText('ESPECIAL', 70, 635);
-  context.fillStyle = '#00cfd1'; context.fillRect(74, 682, 360, 12);
-  const image = await (globalThis.createImageBitmap ? globalThis.createImageBitmap(photoBlob) : loadBadgeImage(URL.createObjectURL(photoBlob)));
-  const frame = { x: 90, y: 760, width: 900, height: 730 };
+
+  // Encabezado separado del título para que ningún texto se solape.
+  context.textAlign = 'center'; context.fillStyle = '#f4eada'; context.font = '700 24px Inter, Arial, sans-serif'; context.fillText('COMUNIDAD DE VOCEROS', 540, 318);
+  context.fillStyle = '#ffc42e'; context.font = '700 30px Inter, Arial, sans-serif'; context.fillText('FINADOS 2026', 540, 360);
+  context.textAlign = 'left'; context.fillStyle = '#ffffff'; context.font = '900 104px Anton, Arial Narrow, sans-serif'; context.fillText('INVITADO', 70, 490); context.fillText('ESPECIAL', 70, 605);
+  context.fillStyle = '#00d2d6'; context.fillRect(74, 644, 360, 12);
+
+  // Validate the stable public identifier before creating a temporary photo URL.
+  const qrText = badgeVerificationUrl(String(profile.public_id ?? ''));
+  const matrix = createBadgeQrMatrix(qrText);
+
+  let photoUrl = '';
+  const image = await (globalThis.createImageBitmap
+    ? globalThis.createImageBitmap(photoBlob)
+    : (photoUrl = URL.createObjectURL(photoBlob), loadBadgeImage(photoUrl)));
+  const frame = { x: 86, y: 710, width: 908, height: 560 };
   context.fillStyle = '#f4eada'; roundRect(frame.x - 16, frame.y - 16, frame.width + 32, frame.height + 32, 28); context.fill();
   context.save(); roundRect(frame.x, frame.y, frame.width, frame.height, 18); context.clip();
   const scale = Math.max(frame.width / image.width, frame.height / image.height);
   const width = image.width * scale; const height = image.height * scale;
   context.drawImage(image, frame.x + (frame.width - width) / 2, frame.y + (frame.height - height) / 2, width, height); context.restore();
   image.close?.();
-  context.fillStyle = '#f4eada'; context.textAlign = 'left'; context.font = '700 29px Inter, Arial'; context.fillText('VOCERO OFICIAL', 82, 1590);
-  context.fillStyle = '#ffffff'; context.font = '900 62px Inter, Arial';
-  const name = String(profile.full_name ?? 'Vocero').trim().slice(0, 34);
-  context.fillText(name, 80, 1680);
-  context.fillStyle = '#f5c84b'; context.font = '700 26px Inter, Arial'; context.fillText('LEGADO QUE NOS UNE', 82, 1755);
-  context.fillStyle = '#f4eada'; context.font = '500 23px Inter, Arial'; context.fillText('Comparte tu voz, celebra nuestras raíces.', 82, 1812);
-  context.textAlign = 'right'; context.fillStyle = '#ffffff'; context.font = '700 23px Inter, Arial'; context.fillText('MUSHUC RUNA', 998, 1812);
+
+  // Identidad y semáforo en una tarjeta estable, con espacio reservado para el QR.
+  context.textAlign = 'left'; context.fillStyle = '#f4eada'; context.font = '700 25px Inter, Arial, sans-serif'; context.fillText('VOCERO OFICIAL', 78, 1360);
+  const name = String(profile.full_name ?? 'Vocero').trim().slice(0, 42) || 'Vocero';
+  let nameSize = 60;
+  while (nameSize > 40) { context.font = `900 ${nameSize}px Inter, Arial, sans-serif`; if (context.measureText(name).width <= 610) break; nameSize -= 2; }
+  context.fillStyle = '#ffffff'; context.fillText(name, 78, 1430);
+  context.fillStyle = '#f4eada'; roundRect(74, 1465, 620, 122, 20); context.fill();
+  context.fillStyle = '#391f6f'; context.font = '700 18px Inter, Arial, sans-serif'; context.fillText('NIVEL ACTUAL', 98, 1498);
+  context.font = '900 34px Anton, Arial Narrow, sans-serif'; context.fillText(level, 98, 1544);
+  context.fillStyle = lightLabel.color; context.beginPath(); context.arc(602, 1523, 14, 0, Math.PI * 2); context.fill();
+  context.fillStyle = '#391f6f'; context.font = '700 18px Inter, Arial, sans-serif'; context.fillText(lightLabel.short.toUpperCase(), 625, 1530);
+
+  const qrSize = 248;
+  const qrX = 756;
+  const qrY = 1342;
+  context.fillStyle = '#f4eada'; roundRect(qrX - 18, qrY - 18, qrSize + 36, qrSize + 36, 22); context.fill();
+  const quiet = 4;
+  const cell = qrSize / (matrix.length + quiet * 2);
+  context.fillStyle = '#f4eada'; context.fillRect(qrX, qrY, qrSize, qrSize);
+  context.fillStyle = '#241146';
+  for (let row = 0; row < matrix.length; row += 1) for (let column = 0; column < matrix.length; column += 1) {
+    if (matrix[row][column]) context.fillRect(qrX + (column + quiet) * cell, qrY + (row + quiet) * cell, cell + .4, cell + .4);
+  }
+  context.textAlign = 'center'; context.fillStyle = '#f4eada'; context.font = '700 16px Inter, Arial, sans-serif'; context.fillText('ESCANEA PARA VALIDAR', qrX + qrSize / 2, 1636);
+  context.textAlign = 'left'; context.fillStyle = '#ffc42e'; context.font = '700 25px Inter, Arial, sans-serif'; context.fillText('¡LEGADO QUE NOS UNE!', 78, 1678);
+  context.fillStyle = '#f4eada'; context.font = '500 22px Inter, Arial, sans-serif'; context.fillText('Comparte tu voz, celebra nuestras raíces.', 78, 1730);
+  context.fillStyle = '#ffffff'; context.font = '700 22px Inter, Arial, sans-serif'; context.fillText('VALIDACIÓN INDIVIDUAL · FINADOS 2026', 78, 1784);
+  context.textAlign = 'right'; context.fillText('MUSHUC RUNA', 1000, 1834);
+  if (photoUrl) URL.revokeObjectURL(photoUrl);
   return new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
 }
 

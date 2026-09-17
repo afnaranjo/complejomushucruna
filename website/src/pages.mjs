@@ -27,6 +27,7 @@ import { renderStandsAccessPage } from './finados/stands-page.mjs';
 import { renderVocerosLegalPage } from './finados/voceros-legal-page.mjs';
 import { renderVocerosPage } from './finados/voceros-page.mjs';
 import { renderVoceroPortalPage } from './finados/vocero-portal-page.mjs';
+import { renderVoceroVerificationPage } from './finados/vocero-verification-page.mjs';
 import { renderMediaAccreditationBody } from './media-accreditation/page.mjs';
 import { renderAdminLoginPage, renderAdminVocerosPage } from './admin/page.mjs';
 
@@ -267,6 +268,14 @@ const finadosVocerosPage = {
   render: renderVocerosPage,
 };
 
+const voceroVerificationPage = {
+  route: '/finados/voceros/verificar/',
+  title: 'Validación de gafete',
+  description: 'Confirma el nivel y el semáforo de un vocero oficial de Finados Mushuc Runa 2026.',
+  indexable: false,
+  render: renderVoceroVerificationPage,
+};
+
 const vocerosLegalPages = [
   ['politicas-del-vocero', 'Políticas del Vocero', 'policies'],
   ['bases-del-termometro', 'Bases del Termómetro', 'thermometer'],
@@ -298,6 +307,7 @@ export const pages = Object.freeze([
   finadosPreview,
   finadosShowsPage,
   finadosVocerosPage,
+  voceroVerificationPage,
   ...['acceso', 'mi-registro', 'restablecer'].map(slug => ({ route: `/finados/voceros/${slug}/`, title: 'Cuenta de Vocero', indexable: false, render: renderVoceroPortalPage })),
   ...vocerosLegalPages,
   finadosDignitiesPage,

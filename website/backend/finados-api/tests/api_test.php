@@ -30,6 +30,7 @@ $apiPdo = Finados\Database::connect($apiConfig);
 $apiPdo->exec(file_get_contents(__DIR__ . '/../migrations/001_initial_sqlite.sql'));
 $apiPdo->exec(file_get_contents(__DIR__ . '/../migrations/002_sheets_outbox_sqlite.sql'));
 $apiPdo->exec(file_get_contents(__DIR__ . '/../migrations/003_vocero_accounts_sqlite.sql'));
+$apiPdo->exec(file_get_contents(__DIR__ . '/../migrations/004_vocero_progress_sqlite.sql'));
 $apiPdo->exec('PRAGMA journal_mode = WAL');
 $apiSecret = bin2hex(random_bytes(24));
 $apiHash = Finados\Auth::hashPassword($apiSecret);
@@ -53,6 +54,9 @@ $apiOtherId = $apiRepository->create(array_replace($apiRecord, [
     'submission_id' => str_repeat('c', 32), 'full_name' => 'Otra persona', 'city' => 'Otra ciudad',
     'main_network' => 'Instagram', 'previous_participation' => 'Sí', 'submitted_at' => '2020-01-01 10:00:00',
 ]), $apiConsents);
+$apiInternalId = (int) $apiPdo->query('SELECT id FROM voceros WHERE public_id = ' . $apiPdo->quote($apiId))->fetchColumn();
+$apiPdo->prepare('INSERT INTO vocero_progress (vocero_id, followers_count, level, traffic_light, videos_unlocked, kit_status, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)')
+    ->execute([$apiInternalId, 15000, 3, 'yellow', 2, 'pendiente', gmdate('Y-m-d H:i:s')]);
 $apiWorker = temp_file(<<<'PHP'
 <?php
 require getenv('FINADOS_TEST_SOURCE') . '/Router.php';
@@ -136,6 +140,20 @@ foreach (['/api/voceros', '/api/voceros/' . $apiId, '/api/dashboard'] as $apiPat
 foreach ([['PATCH', '/api/voceros/' . $apiId], ['POST', '/api/voceros/' . $apiId . '/notes'], ['POST', '/api/voceros/export'], ['POST', '/api/auth/logout']] as [$method, $apiPath]) {
     same(401, api_request($method, $apiPath, [])['status']);
 }
+$verification = api_request('GET', '/api/voceros/verify/' . $apiId, origin: null);
+same(200, $verification['status']);
+same(['ok', 'verification'], array_keys($verification['json']));
+same([
+    'name' => '=Persona Sintética', 'level' => 3, 'level_label' => 'Kit completo',
+    'traffic_light' => 'yellow', 'traffic_light_label' => ['short' => 'Amarillo', 'long' => 'En avance'],
+], $verification['json']['verification']);
+foreach (['email', 'cedula', 'whatsapp', 'photo', 'videos', 'status', 'public_id'] as $privateField) {
+    same(false, array_key_exists($privateField, $verification['json']['verification']));
+}
+same(404, api_request('GET', '/api/voceros/verify/' . str_repeat('f', 32), origin: null)['status']);
+same(422, api_request('GET', '/api/voceros/verify/' . $apiId . '?extra=1', origin: null)['status']);
+same(405, api_request('POST', '/api/voceros/verify/' . $apiId, [], origin: null)['status']);
+same(403, api_request('GET', '/api/voceros/verify/' . $apiId, origin: 'https://malicioso.example')['status']);
 $health = api_request('GET', '/api/health', origin: null);
 same(200, $health['status']);
 same(['ok', 'service', 'contract', 'migration', 'capabilities', 'runtime', 'storage', 'limits'], array_keys($health['json']));
@@ -303,6 +321,8 @@ foreach (Finados\VocerosRepository::STATUSES as $status) {
     same(200, api_request('PATCH', '/api/voceros/' . $apiId, ['status' => $status], $cookie, $csrf)['status']);
     same($status, $apiRepository->find($apiId)['status']);
 }
+same(200, api_request('PATCH', '/api/voceros/' . $apiId, ['status' => 'Rechazado'], $cookie, $csrf)['status']);
+same(404, api_request('GET', '/api/voceros/verify/' . $apiId, origin: null)['status']);
 foreach (['', 'not-an-ip'] as $invalidIp) {
     same(403, api_request('POST', '/api/voceros/' . $apiId . '/notes', ['body' => 'No debe guardarse'], $cookie, $csrf, server: ['REMOTE_ADDR' => $invalidIp])['status']);
 }
@@ -373,6 +393,7 @@ same(405, api_request('GET', '/api/voceros/export', cookie: $cookie)['status']);
 // Profile retirement removes it from the default workspace while preserving an explicit archived view.
 same(200, api_request('POST', '/api/voceros/' . $apiId . '/delete', [], $cookie, $csrf)['status']);
 same('Eliminado', $apiRepository->find($apiId)['status']);
+same(404, api_request('GET', '/api/voceros/verify/' . $apiId, origin: null)['status']);
 same(103, api_request('GET', '/api/voceros', cookie: $cookie)['json']['pagination']['total']);
 same(1, api_request('GET', '/api/voceros?status=Eliminado', cookie: $cookie)['json']['pagination']['total']);
 $archivedDashboard = api_request('GET', '/api/dashboard', cookie: $cookie);
