@@ -96,8 +96,10 @@ final class VoceroProfile
                 $query->execute([$record['submission_id']]);
                 if ($query->fetchColumn() !== false) throw new InvalidArgumentException('Submission identifier unavailable.');
             }
-            $query = $this->pdo->prepare('SELECT id FROM voceros WHERE (cedula_idx = ? OR email_idx = ? OR whatsapp_idx = ?) AND id <> ?');
-            $query->execute([$this->crypto->lookup($record['cedula']), $this->crypto->lookup($record['email']), $this->crypto->lookup($record['whatsapp']), $linked['id'] ?? 0]);
+            // Retired test/history rows must not block a fresh profile for a
+            // reactivated account; active registrations remain unique.
+            $query = $this->pdo->prepare('SELECT id FROM voceros WHERE status <> ? AND (cedula_idx = ? OR email_idx = ? OR whatsapp_idx = ?) AND id <> ?');
+            $query->execute(['Eliminado', $this->crypto->lookup($record['cedula']), $this->crypto->lookup($record['email']), $this->crypto->lookup($record['whatsapp']), $linked['id'] ?? 0]);
             if ($query->fetchColumn() !== false) throw new DuplicateRegistration('Registration already exists.');
             if ($linked === null) {
                 $record['registration_ip'] = $ip;
