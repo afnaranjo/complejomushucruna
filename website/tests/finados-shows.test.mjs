@@ -79,7 +79,7 @@ test('todos los auspiciantes están en el footer, sin cambios en otros pies de c
 
 test('la composición SVG de auspiciantes se conserva idéntica al archivo entregado', async () => {
   const original = await readFile(new URL('../public/assets/finados/shows/auspiciantes-finados-2026.svg', import.meta.url));
-  assert.equal(createHash('sha256').update(original).digest('hex'), 'd2959d3384bd410b35a4bf80df422d0e83bd56c9adcd9e9a6ff95de73f5537fa');
+  assert.equal(createHash('sha256').update(original).digest('hex'), '1f0efb9415cbddd2a9c5535160b183346e2bc66f98498e41f5770cd4e05af2dc');
   const svg = original.toString('utf8');
   assert.match(svg, /viewBox="0 0 2321 650"/);
   assert.doesNotMatch(svg, /<(?:script|foreignObject|iframe|object|embed)\b|\bon[a-z]+\s*=|<!ENTITY|<\?xml-stylesheet/i);
@@ -153,9 +153,9 @@ test('el build entrega SHOWS con CSS, imágenes y aviso de cookies', async () =>
   assert.match(output, /data-cookie-consent/);
   assert.match(output, /Nuestro sitio web utiliza cookies para mejorar tu navegación\./);
   assert.match(output, /shows\.css\?v=20260917-shows-3/);
-  assert.match(output, /sponsors\.css\?v=20260917-sponsors-1/);
+  assert.match(output, /sponsors\.css\?v=20260917-sponsors-2/);
   const finados = await readFile(join(directory, 'finados/index.html'), 'utf8');
-  assert.match(finados, /sponsors\.css\?v=20260917-sponsors-1/);
+  assert.match(finados, /sponsors\.css\?v=20260917-sponsors-2/);
   assert.ok(finados.includes(renderFinadosSponsors()));
 });
 
@@ -170,9 +170,12 @@ test('Finados y SHOWS comparten al final la composición nueva sin cambiar otras
     assert.equal((output.match(/<h1\b/g) ?? []).length, 1);
     assert.ok(output.indexOf(composition) > output.indexOf('</main>'));
     assert.ok(output.indexOf(composition) < output.indexOf('Volver a complejomushucruna.com'));
-    assert.match(output, /auspiciantes-finados-2026\.svg\?v=20260917-sponsors-1/);
+    assert.match(output, /auspiciantes-finados-2026\.svg\?v=20260917-sponsors-2/);
     assert.ok(output.includes('Credi Fácil Ltda. Cooperativa de Ahorro y Crédito'));
     assert.ok(output.includes('Óptica Interandina'));
+    assert.ok(output.includes('Mutualista Ambato'));
+    assert.ok(showsSponsors.indexOf('Óptica Interandina') < showsSponsors.indexOf('Mutualista Ambato'));
+    assert.ok(showsSponsors.indexOf('Mutualista Ambato') < showsSponsors.indexOf('Pollos al Gusto'));
   }
   assert.ok(shows.indexOf(composition) > shows.indexOf('<footer'));
   assert.ok(finados.indexOf(composition) < finados.indexOf('<footer'));

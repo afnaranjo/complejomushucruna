@@ -1,6 +1,6 @@
 import { escapeHtml } from '../render/html.mjs';
 
-export const sponsorAssetVersion = '20260917-sponsors-1';
+export const sponsorAssetVersion = '20260917-sponsors-2';
 export const finadosSponsors = Object.freeze([
   'Mushuc Runa Cooperativa de Ahorro y Crédito',
   'Pushak Ltda. Cooperativa de Ahorro y Crédito',
@@ -11,6 +11,7 @@ export const finadosSponsors = Object.freeze([
   'Tequila Azteca',
   'Textilana Cooperativa de Ahorro y Crédito',
   'Óptica Interandina',
+  'Mutualista Ambato',
   'Pollos al Gusto',
 ]);
 

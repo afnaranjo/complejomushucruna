@@ -11,8 +11,8 @@ if (!sourcePath || !sharpModule) throw new Error('Indica el SVG oficial y el mó
 const original = await readFile(sourcePath);
 const svg = original.toString('utf8');
 const digest = createHash('sha256').update(original).digest('hex');
-const approvedDigest = 'd2959d3384bd410b35a4bf80df422d0e83bd56c9adcd9e9a6ff95de73f5537fa';
-// The approved September 17 master contains one embedded, inert PNG.
+const approvedDigest = '1f0efb9415cbddd2a9c5535160b183346e2bc66f98498e41f5770cd4e05af2dc';
+// The second approved September 17 master includes Mutualista Ambato and one inert PNG.
 const references = [...svg.matchAll(/(?:xlink:)?href=["']([^"']*)["']/gi)].map(match => match[1]);
 const safeReference = value => {
   if (/^#[\w.-]+$/.test(value)) return true;
