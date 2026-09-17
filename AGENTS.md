@@ -952,3 +952,9 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - QA local: pruebas de administración y portal (`node --test ... tests/admin.test.mjs tests/vocero-portal.test.mjs`), API y progreso (`php backend/finados-api/tests/run.php api_test.php vocero_progress_test.php`), `npm run build`, `node scripts/check-dist.mjs`, `php -l` y `git diff --check` en verde. La suite Node completa mantiene ocho fallos preexistentes de fixtures de despliegue por enlaces físicos duplicados en el entorno local.
 - Commit: `6e67d42` (`Habilitar videos por vocero con fecha`). Publicación externa: ninguna; no se desplegó producción, no se modificaron DNS, Acreditación de Medios, Google Sheets ni `superplataforma`.
 - Riesgos y pendientes: antes de desplegar se debe aplicar la migración 005 en `finados.complejomushucruna.com`, desplegar el backend y luego el frontend, y probar con un vocero y un administrador autorizados. La fecha se registra como dato de habilitación, no como un programador automático.
+
+### 2026-09-17 — Prevuelo de publicación bloqueado por fixtures locales
+
+- Alex autorizó el despliegue backend → frontend. `npm run backend:deploy` inició el prevuelo completo, pero se detuvo antes de cualquier transferencia porque la suite Node conserva ocho fallos conocidos en fixtures de despliegue (enlaces físicos/transportes sintéticos del entorno local).
+- No se creó respaldo remoto, no se aplicó la migración 005 y no se activó ninguna release. Producción, DNS, Acreditación de Medios, Google Sheets y `superplataforma` permanecen sin cambios.
+- Pendiente: corregir o aislar los fixtures locales sin relajar las validaciones de seguridad y repetir primero el backend y luego el frontend. No se debe omitir `npm run check` ni forzar la activación.

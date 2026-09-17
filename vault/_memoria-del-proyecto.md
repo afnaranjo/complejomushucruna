@@ -191,3 +191,7 @@ El 28 de agosto quedó confirmado `¡LEGADO QUE NOS UNE!` como eslogan gráfico 
 
 - Se implementó en local el control individual de los cinco videos de cada vocero. Administración marca cada espacio y registra su fecha de habilitación; el portal informa “Disponible desde” y solo permite guardar enlaces de espacios habilitados.
 - La migración `005_vocero_video_enablement` añade el estado de configuración y la fecha por espacio, con compatibilidad para registros anteriores. Commit `6e67d42`; no se publicó producción.
+
+### 2026-09-17 — Publicación pendiente por prevuelo local
+
+- Se intentó publicar el backend autorizado, pero el script se detuvo antes de conectarse para transferir porque la suite completa reportó ocho fallos conocidos en fixtures sintéticos de despliegue. No hubo cambios externos ni aplicación de la migración 005.
