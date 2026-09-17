@@ -1,7 +1,7 @@
 ---
 titulo: "Cabeceras y contador de apertura de Finados Mushuc Runa 2026"
 responsable: "tecnología/diseño"
-estado: aprobado
+estado: publicado
 ultima_actualizacion: 2026-09-17
 fuente: "Solicitud expresa de Alex del 17 de septiembre de 2026"
 confidencialidad: interno
@@ -36,4 +36,8 @@ Relacionado: [[2026-09-16_implementacion-presentacion-finados-web_v01]], [[2026-
 - El primer intento encontró `/tmp` de Linux lleno (`ENOSPC`, tmpfs de 7,8 GiB). Se trasladaron exclusivamente las tres carpetas temporales creadas por las nuevas pruebas a una ubicación recuperable del disco Linux, liberando 22 MiB para PHP. No se borraron archivos ni se rebajaron controles. El check completo pasó con una carpeta temporal privada en disco; el publisher estándar usará la misma ubicación.
 - Comparación SHA-256 antes/después: los 20 HTML y recursos seleccionados de Voceros, incluidos CSS/JS compartidos, permanecen idénticos.
 - Revisión de navegador local: portada principal en escritorio y móvil, home institucional, cabecera compacta de SHOWS e Invitaciones tras desempaquetado; el reloj presenta valores reales y los formularios se conservan. No se enviaron registros de prueba a producción.
-- Publicación aún pendiente de completar prevuelo, respaldo, transferencia y comparación HTTPS independiente. No debe considerarse publicada hasta registrar esos resultados.
+- Commit técnico `03736e7` subido a `origin/main`. Configuración privada, prevuelo y despliegue estándar completos aprobados con exit code 0. Ambos modos del publisher repitieron la validación completa, sin omitir suites ni relajar controles.
+- Respaldo remoto recuperable creado antes de transferir. Credencial de Google Sheets conservada, sin eliminar archivos exclusivos del servidor y sin nueva release de backend. Las tres notas locales se restauraron con hashes idénticos y solo se retiró el stash propio.
+- Verificación HTTPS independiente aprobada con exit code 0: 41 respuestas HTTP 200 con SHA-256 idéntico al build, siete comprobaciones de la cabecera de apertura y dos de auspiciantes. Total 50 comprobaciones, cero fallos. Incluye las siete páginas, URLs sin consulta y versionadas, home y Finados con `www`, contador, cuatro fuentes, logos oficiales y todos los 20 HTML/recursos protegidos de Voceros.
+- Los 20 archivos de Voceros coinciden además con la instantánea previa a la tarea. Sus portadas, tipografías y documentos no se modificaron; las confirmaciones y formularios específicos de las demás páginas se conservan.
+- Publicación cerrada sin bloqueos. El navegador se revisó mediante la habilidad de control del navegador; se restableció el tamaño normal y se cerró la pestaña temporal de QA. No se enviaron registros de prueba a los servicios de producción.
