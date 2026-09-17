@@ -1004,3 +1004,9 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 
 - Se publicó el commit `ee8e085` en `https://complejomushucruna.com`, con la franja fucsia reubicada y la carga paralela de recursos decorativos.
 - El despliegue creó respaldo remoto, conservó archivos exclusivos y no modificó backend, DNS, Acreditación de Medios, Google Sheets ni otros proyectos.
+
+### 2026-09-17 — Videos plegables y consentimientos persistentes
+
+- Se movió `Contenido de la comunidad` al final de la vista privada, dentro de un panel `<details>` colapsado por defecto cuando los cinco espacios están bloqueados; se abre automáticamente al habilitarse un video.
+- Al cargar el perfil se restauran los tres checks de consentimiento a partir de la evidencia guardada por el backend. No se modificaron reglas de consentimiento, backend, fotografías ni otras landings.
+- QA local: build y `check-dist` válidos; pruebas específicas del portal ejecutadas. Pendiente desplegar frontend después de commit.

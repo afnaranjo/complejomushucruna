@@ -229,3 +229,8 @@ El 28 de agosto quedó confirmado `¡LEGADO QUE NOS UNE!` como eslogan gráfico 
 ### 2026-09-17 — Publicación de la corrección del gafete
 
 - La corrección visual y de carga se publicó en `complejomushucruna.com` desde `ee8e085`, con respaldo remoto y verificación del despliegue.
+
+### 2026-09-17 — Videos plegables y checks de consentimiento
+
+- La sección de cinco videos ahora aparece al final de la vista privada y plegada mientras está bloqueada; los consentimientos aceptados se muestran marcados al volver a entrar.
+- Build y `check-dist` válidos; pendiente publicación del frontend.

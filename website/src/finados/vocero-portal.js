@@ -424,6 +424,11 @@ export async function initializeVoceroPortal(root = document, location = globalT
     profileForm.querySelector('fieldset').disabled = !state.editable;
     for (const button of profileForm.querySelectorAll('button[type="submit"]')) button.hidden = !state.editable;
     root.querySelector('[data-save-help]').textContent = state.editable ? 'Tus cambios se guardan automáticamente cuando el formulario está completo.' : 'Tu registro está en revisión o ya tiene una decisión. Puedes consultar tus datos; para cambios, contacta a la coordinación.';
+    const consentTypes = { consentimiento_politicas: 'politicas', autorizacion_imagen: 'imagen', consentimiento_datos: 'datos' };
+    for (const [field, type] of Object.entries(consentTypes)) {
+      const input = profileForm.elements.namedItem(field);
+      if (input) input.checked = (profile.consents ?? []).some(consent => consent.consent_type === type && Number(consent.accepted) === 1);
+    }
     root.querySelector('.vocero-consents').hidden = !state.editable;
     updateMinor();
     updateProgress(profile);
@@ -442,6 +447,9 @@ export async function initializeVoceroPortal(root = document, location = globalT
     const level = Number(progress.level) || 0;
     for (const card of progressPanel.querySelectorAll('[data-vocero-level]')) card.classList.toggle('is-current', Number(card.dataset.voceroLevel) === level);
     const videos = progress.videos ?? [];
+    const videoPanel = root.querySelector('[data-vocero-videos]');
+    const enabledCount = videos.filter(video => Boolean(video.unlocked)).length;
+    if (videoPanel) videoPanel.open = enabledCount > 0 || Number(progress.videos_unlocked) > 0;
     for (const slotElement of root.querySelectorAll('[data-video-slot]')) {
       const slot = Number(slotElement.dataset.videoSlot); const video = videos.find(item => Number(item.slot) === slot) ?? { slot, unlocked: false, url: '', status: 'empty' };
       const unlocked = Boolean(video.unlocked) && state.editable;

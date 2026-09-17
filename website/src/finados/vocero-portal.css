@@ -454,6 +454,15 @@ input[type=file]::file-selector-button {
 .vocero-badge-panel .vocero-quiet { color:#fff; border-color:#fff }
 .vocero-badge-panel .vocero-quiet:hover { background:#3b2362 }
 .vocero-video-counter { color:var(--accent); font-size:.85rem; font-weight:700; white-space:nowrap }
+.vocero-videos-panel summary { display:flex; justify-content:space-between; align-items:flex-start; gap:1.5rem; cursor:pointer; list-style:none }
+.vocero-videos-panel summary::-webkit-details-marker { display:none }
+.vocero-videos-panel summary > span:first-child { display:grid; gap:.35rem }
+.vocero-videos-panel summary .vocero-eyebrow { margin:0 }
+.vocero-videos-panel summary strong { font-size:1.25rem; color:var(--ink) }
+.vocero-videos-panel summary small { color:var(--muted); max-width:60ch; font-size:.9rem; line-height:1.45 }
+.vocero-videos-panel summary::after { content:'+'; color:var(--accent); font-size:1.5rem; font-weight:800; line-height:1; }
+.vocero-videos-panel[open] summary::after { content:'−' }
+.vocero-videos-panel[open] .vocero-video-grid { margin-top:1rem }
 .vocero-video-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1rem; margin-top:1rem }
 .vocero-video-slot { border:1px solid var(--line); padding:1rem; background:#fff; display:grid; gap:.25rem }
 .vocero-video-slot[data-locked=true] { background:#eee9e2 }
