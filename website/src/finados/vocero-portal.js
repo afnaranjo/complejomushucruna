@@ -295,9 +295,9 @@ async function badgeBlob(profile, photoBlob) {
   // Encabezado separado del título para que ningún texto se solape.
   context.textAlign = 'center'; context.fillStyle = '#f4eada'; context.font = '700 24px Inter, Arial, sans-serif'; context.fillText('COMUNIDAD DE VOCEROS', 540, 318);
   context.fillStyle = '#ffc42e'; context.font = '700 30px Inter, Arial, sans-serif'; context.fillText('FINADOS 2026', 540, 360);
-  context.textAlign = 'left'; context.fillStyle = '#ffffff'; context.font = '900 104px Anton, Arial Narrow, sans-serif'; context.fillText('VOCERO', 70, 490);
-  context.fillStyle = '#ffc42e'; context.fillText('2026', 70, 605);
-  context.fillStyle = '#00d2d6'; context.fillRect(74, 644, 360, 12);
+  context.textAlign = 'left'; context.fillStyle = '#ffffff'; context.font = '900 84px Anton, Arial Narrow, sans-serif'; context.fillText('VOCERO 2026', 70, 505);
+  context.fillStyle = '#ff2e8a'; context.font = '800 38px Inter, Arial, sans-serif'; context.fillText('INVITADO ESPECIAL', 74, 570);
+  context.fillStyle = '#00d2d6'; context.fillRect(74, 610, 360, 12);
 
   // Validate the stable public identifier before creating a temporary photo URL.
   const qrText = badgeVerificationUrl(String(profile.public_id ?? ''));
