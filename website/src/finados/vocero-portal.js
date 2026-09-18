@@ -450,20 +450,21 @@ export async function initializeVoceroPortal(root = document, location = globalT
     const label = progressPanel.querySelector('[data-vocero-level-label]'); if (label) label.textContent = progress.level_label ?? 'En preparación';
     const followers = progressPanel.querySelector('[data-vocero-followers]'); if (followers) followers.textContent = new Intl.NumberFormat('es-EC').format(Number(progress.followers_count) || 0);
     const kit = progressPanel.querySelector('[data-vocero-kit-status]'); if (kit) kit.textContent = progress.kit_status === 'retirado' ? 'Retirado' : 'Pendiente de retiro';
-    for (const count of root.querySelectorAll('[data-vocero-videos-count]')) count.textContent = String(Math.max(0, Math.min(5, Number(progress.videos_unlocked) || 0)));
     const level = Number(progress.level) || 0;
     for (const card of progressPanel.querySelectorAll('[data-vocero-level]')) card.classList.toggle('is-current', Number(card.dataset.voceroLevel) === level);
     const videos = progress.videos ?? [];
     const videoPanel = root.querySelector('[data-vocero-videos]');
     const enabledCount = videos.filter(video => Boolean(video.unlocked)).length;
+    for (const count of root.querySelectorAll('[data-vocero-videos-count]')) count.textContent = String(enabledCount);
     if (videoPanel) videoPanel.open = enabledCount > 0 || Number(progress.videos_unlocked) > 0;
     for (const slotElement of root.querySelectorAll('[data-video-slot]')) {
       const slot = Number(slotElement.dataset.videoSlot); const video = videos.find(item => Number(item.slot) === slot) ?? { slot, unlocked: false, url: '', status: 'empty' };
-      const unlocked = Boolean(video.unlocked) && state.editable;
+      const submitted = video.status === 'submitted' && String(video.url ?? '').trim() !== '';
+      const unlocked = Boolean(video.unlocked) && state.editable && !submitted;
       const input = slotElement.querySelector('[data-video-url]'); const button = slotElement.querySelector('[data-video-save]'); const status = slotElement.querySelector('[data-video-status]');
-      if (input) { input.disabled = !unlocked; input.value = video.url ?? ''; }
+      if (input) { input.disabled = !unlocked; input.value = video.url ?? ''; input.readOnly = submitted; }
       if (button) button.disabled = !unlocked;
-      if (status) status.textContent = !video.unlocked ? 'Bloqueado por coordinación' : video.status === 'submitted' ? `Enlace recibido · Disponible desde ${videoEnabledDate(video.enabled_at) || 'la fecha indicada'}` : `Habilitado para enviar · Disponible desde ${videoEnabledDate(video.enabled_at) || 'la fecha indicada'}`;
+      if (status) status.textContent = !video.unlocked ? `Bloqueado hasta ${videoEnabledDate(video.enabled_at) || 'que coordinación lo habilite'}` : submitted ? `Enlace recibido y bloqueado · Disponible desde ${videoEnabledDate(video.enabled_at) || 'la fecha indicada'}` : `Habilitado para enviar · Disponible desde ${videoEnabledDate(video.enabled_at) || 'la fecha indicada'}`;
       slotElement.dataset.locked = String(!unlocked);
     }
   }

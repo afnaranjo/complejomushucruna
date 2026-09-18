@@ -460,6 +460,7 @@ final class VocerosRepository
                 $configured = (int) ($progressRow['video_slots_configured'] ?? 0) === 1;
                 $enabledAt = $progressRow['enabled_at'] ?? null;
                 if ($configured && (!is_string($enabledAt) || $enabledAt === '')) throw new OutOfBoundsException('Video slot locked.');
+                if ($configured && !$this->isVideoSlotAvailable($enabledAt)) throw new OutOfBoundsException('Video slot locked.');
                 if (!$configured) {
                     $query = $this->pdo->prepare('SELECT videos_unlocked FROM vocero_progress WHERE vocero_id = ?'); $query->execute([$voceroId]);
                     if ($slot > (int) $query->fetchColumn()) throw new OutOfBoundsException('Video slot locked.');
@@ -467,6 +468,12 @@ final class VocerosRepository
             } else {
                 $query = $this->pdo->prepare('SELECT videos_unlocked FROM vocero_progress WHERE vocero_id = ?'); $query->execute([$voceroId]);
                 if ($slot > (int) $query->fetchColumn()) throw new OutOfBoundsException('Video slot locked.');
+            }
+            $query = $this->pdo->prepare('SELECT url, status FROM vocero_videos WHERE vocero_id = ? AND slot = ?');
+            $query->execute([$voceroId, $slot]);
+            $existing = $query->fetch();
+            if ($existing !== false && trim((string) ($existing['url'] ?? '')) !== '' && (string) ($existing['status'] ?? '') === 'submitted') {
+                throw new InvalidArgumentException('Video already submitted.');
             }
             $now = gmdate('Y-m-d H:i:s');
             if ($this->hasVideoEnablementSchema()) {
@@ -642,9 +649,17 @@ final class VocerosRepository
         foreach ($rows as $row) {
             $slot = (int) $row['slot'];
             $enabledAt = $row['enabled_at'] ?? null;
-            $bySlot[$slot] = ['slot' => $slot, 'unlocked' => $configured ? is_string($enabledAt) && $enabledAt !== '' : $slot <= $unlocked, 'enabled_at' => $enabledAt, 'url' => (string) ($row['url'] ?? ''), 'status' => (string) ($row['status'] ?? 'empty'), 'submitted_at' => $row['submitted_at'] ?? null, 'updated_at' => $row['updated_at'] ?? null];
+            $bySlot[$slot] = ['slot' => $slot, 'unlocked' => $configured ? $this->isVideoSlotAvailable($enabledAt) : $slot <= $unlocked, 'enabled_at' => $enabledAt, 'url' => (string) ($row['url'] ?? ''), 'status' => (string) ($row['status'] ?? 'empty'), 'submitted_at' => $row['submitted_at'] ?? null, 'updated_at' => $row['updated_at'] ?? null];
         }
         return array_map(static fn (int $slot): array => $bySlot[$slot] ?? ['slot' => $slot, 'unlocked' => $configured ? false : $slot <= $unlocked, 'enabled_at' => null, 'url' => '', 'status' => 'empty', 'submitted_at' => null, 'updated_at' => null], range(1, 5));
+    }
+
+    private function isVideoSlotAvailable(mixed $enabledAt): bool
+    {
+        if (!is_string($enabledAt) || preg_match('/^(\d{4})-(\d{2})-(\d{2})$/D', $enabledAt, $parts) !== 1) return false;
+        if (!checkdate((int) $parts[2], (int) $parts[3], (int) $parts[1])) return false;
+        $today = new \DateTimeImmutable('now', new \DateTimeZone('America/Guayaquil'));
+        return $enabledAt <= $today->format('Y-m-d');
     }
 
     private function filterText(array $filters, string $field, int $limit): string

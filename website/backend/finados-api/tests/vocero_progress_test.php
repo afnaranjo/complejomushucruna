@@ -46,9 +46,9 @@ $voceroId = (int) $pdo->query('SELECT id FROM voceros WHERE public_id = ' . $pdo
 $repo->updateProgress($publicId, [
     'followers_count' => 1000, 'level' => 2, 'traffic_light' => 'yellow', 'kit_status' => 'pendiente',
     'video_slots' => [
-        ['slot' => 1, 'enabled' => true, 'enabled_at' => '2026-09-16'],
+        ['slot' => 1, 'enabled' => true, 'enabled_at' => '2020-01-01'],
         ['slot' => 2, 'enabled' => false, 'enabled_at' => null],
-        ['slot' => 3, 'enabled' => true, 'enabled_at' => '2026-09-20'],
+        ['slot' => 3, 'enabled' => true, 'enabled_at' => '2099-01-01'],
         ['slot' => 4, 'enabled' => false, 'enabled_at' => null],
         ['slot' => 5, 'enabled' => false, 'enabled_at' => null],
     ],
@@ -56,11 +56,14 @@ $repo->updateProgress($publicId, [
 $progress = $repo->progressForVocero($voceroId);
 same(2, $progress['videos_unlocked']);
 same(true, $progress['videos'][0]['unlocked']);
-same('2026-09-16', $progress['videos'][0]['enabled_at']);
+same('2020-01-01', $progress['videos'][0]['enabled_at']);
 same(false, $progress['videos'][1]['unlocked']);
 same(null, $progress['videos'][1]['enabled_at']);
-same('2026-09-20', $progress['videos'][2]['enabled_at']);
+same(false, $progress['videos'][2]['unlocked']);
+same('2099-01-01', $progress['videos'][2]['enabled_at']);
 
 throws(fn () => $repo->saveVideoByVoceroId($voceroId, 2, 'https://example.invalid/video-2', '192.0.2.22'), OutOfBoundsException::class);
+throws(fn () => $repo->saveVideoByVoceroId($voceroId, 3, 'https://example.invalid/video-3', '192.0.2.22'), OutOfBoundsException::class);
 $repo->saveVideoByVoceroId($voceroId, 1, 'https://example.invalid/video-1', '192.0.2.22');
 same('https://example.invalid/video-1', $repo->progressForVocero($voceroId)['videos'][0]['url']);
+throws(fn () => $repo->saveVideoByVoceroId($voceroId, 1, 'https://example.invalid/video-1-cambiado', '192.0.2.22'), InvalidArgumentException::class);

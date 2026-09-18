@@ -1065,3 +1065,10 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Se añadió una prueba API que reproduce `PATCH /api/voceros/{id}/progress` con `followers_count` y cinco espacios de video enviados por JSON.
 - QA: `npm run test:php`, `npm run test:node` y `git diff --check` en verde. No se modificó base de datos, registros, fotos, DNS, Google Sheets ni otros proyectos.
 - Publicación externa: backend desplegado con `npm run backend:deploy`; el script ejecutó `check` completo, respaldo y activación controlada. La verificación HTTP directa desde esta red quedó limitada por resolución/conectividad DNS local, pero el despliegue terminó correctamente con `Operación backend completada`.
+
+### 2026-09-18 — Bloqueo de enlaces de video por fecha y envío
+
+- Se ajustó el flujo de videos de Voceros para que una fecha futura configurada por admin no habilite todavía la subida; el vocero solo puede pegar el enlace desde la fecha habilitada según hora de Ecuador.
+- Cuando un vocero guarda un enlace de video, el backend rechaza cambios posteriores sobre ese mismo espacio y el portal muestra el campo bloqueado como enlace recibido.
+- QA: `npm run test:php` y `npm run test:node` en verde. No se modificó base de datos, registros existentes, fotos, DNS, Google Sheets ni otros proyectos.
+- Publicación externa: pendiente de commit, push y despliegue backend + frontend.
