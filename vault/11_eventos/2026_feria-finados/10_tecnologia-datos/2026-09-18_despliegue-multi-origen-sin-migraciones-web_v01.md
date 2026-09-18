@@ -1,7 +1,7 @@
 ---
 titulo: "Publicación multi-origen sin migraciones"
 responsable: "tecnología"
-estado: en-revision
+estado: aprobado
 ultima_actualizacion: 2026-09-18
 fuente: "solicitud expresa de Alex y verificaciones SSH/HTTPS"
 confidencialidad: interno
@@ -32,9 +32,19 @@ Antes de publicar frontend se detectó un defecto de empaquetado: el commit agre
 
 Alex autorizó expresamente «Sí, corrige y publica el frontend». Se añadió al build la copia exacta de `runtime-origins.mjs` y se renovó únicamente la versión de los scripts de administración, portal y validación a `20260918-multi-origin-1`; CSS, formularios, información y lógica de datos intactos.
 
-La nueva prueba de regresión falló primero con «Dependencia pública ausente: assets/finados/runtime-origins.mjs» y pasó después de la corrección. Comprueba la igualdad del módulo publicado con su fuente, recorre los imports ESM relativos de los tres clientes y exige las nuevas versiones en las cinco vistas afectadas. Check completo después de la corrección: exit code 0, 144 pruebas Node, 20 suites PHP, 10 de integración; build de 130 archivos, 32 HTML y 1066 referencias válidas. Pendiente: publicar el frontend con respaldo y verificar integridad de assets/caché en ambos dominios y CORS/health otra vez.
+La nueva prueba de regresión falló primero con «Dependencia pública ausente: assets/finados/runtime-origins.mjs» y pasó después de la corrección. Comprueba la igualdad del módulo publicado con su fuente, recorre los imports ESM relativos de los tres clientes y exige las nuevas versiones en las cinco vistas afectadas. Check completo después de la corrección: exit code 0, 144 pruebas Node, 20 suites PHP, 10 de integración; build de 130 archivos, 32 HTML y 1066 referencias válidas. El prevuelo productivo repitió íntegramente ese check y verificó SSH, PHP y el backend instalado antes de modificar archivos.
 
-La revisión automática rechazó inicialmente un commit/push adicional de documentación; no se ejecutaron esos comandos. Las notas locales previas y las entrantes se restauraron mediante una unión trazable; todas sus líneas añadidas fueron verificadas y el stash propio permanece como respaldo recuperable. La corrección de código posteriormente autorizada se mantendrá separada de esas tres notas locales ajenas, que no se incorporarán al commit.
+La revisión automática rechazó inicialmente un commit/push adicional de documentación; no se ejecutaron esos comandos. Tras la autorización de la corrección, el commit técnico `dd321b8ab3d47da3c1a557093dfdf381598fe452` se publicó mediante push normal a `origin/main`: cinco archivos de implementación/prueba y esta evidencia técnica, sin incluir las tres notas locales ajenas. Las notas locales previas y las entrantes se restauraron mediante una unión trazable; todas sus líneas añadidas fueron verificadas y el stash inicial permanece como respaldo recuperable.
+
+## Publicación completa y cierre
+
+- Backend publicado primero: `10527a9`, release `20260918-multi-origin-10527a9-1fbdb5e2`.
+- Frontend corregido publicado después: `dd321b8`, con respaldo privado `20260918-multi-origin-10527a9-b9196950-frontend` y archivo SHA-256 comprobado antes de la transferencia. Se utilizó el publisher estándar después del prevuelo completo, sin el flujo que reescribe configuración legal/Sheets. No se borraron archivos exclusivos del hosting.
+- Gate final confirmó el mismo hash del JSON privado del backend, las mismas columnas/constraints y el mismo historial de migraciones antes/después del frontend. Otros JSON privados intactos; solo se permite actualizar el manifiesto de propiedad del endpoint administrado como artefacto del instalador.
+- Veinte verificaciones HTTPS pasaron en ambos sitios: los cinco módulos de administración/portal/validación y sus dependencias respondieron 200, con MIME JavaScript e igualdad SHA-256 con el build; las cinco vistas respondieron 200, con caché `20260918-multi-origin-1` y CSP de ambas APIs. El módulo antes omitido ya está disponible en ambos dominios.
+- Se repitieron las diez comprobaciones CORS/health tras el frontend: GET 200, OPTIONS 204 para ambos dominios contra ambas APIs; origen coincidente, credenciales y `Vary: Origin` correctos; origen extraño 403 sin autorización CORS.
+- Las tres notas guardadas para la publicación se restauraron con sus SHA-256 exactamente iguales a los registrados antes del stash, incluida normalización de fin de línea verificada. Ambos stashes propios se conservan recuperables; las actualizaciones de cierre en las notas compartidas permanecen locales y separadas del commit técnico.
+- Sin migraciones ni escrituras de registros en producción. No se enviaron formularios de personas, ni se cambiaron DNS, credenciales, Google Sheets o proyectos externos. No queda bloqueo del despliegue.
 
 ## Relacionados
 
