@@ -12,7 +12,7 @@ tags:
 
 # Pendientes ejecutivos
 
-- [ ] Finalizar la publicación autorizada tras pull `ee02951`: check completo, Git/push, backend → frontend con respaldo y sin migraciones/escrituras de registros ni reescritura de JSON privados; verificar caché, CORS y health en ambos dominios. Responsable: tecnología. Evidencia: [[2026-09-18_sincronizacion-menu-progreso-voceros-web_v01]].
+- [x] Finalizar la publicación autorizada tras pull `ee02951`: `6838d4b` en Git y producción; backend → frontend con respaldo y sin migraciones/escrituras de registros ni reescritura de JSON privados. Check completo repetido: 145 Node, 20 suites PHP, 10 integración. Verificación final: 52 comprobaciones HTTPS 200/SHA-256 idéntico y diez CORS/health correctas en ambos dominios. Responsable: tecnología. Completado: 2026-09-18. Evidencia: [[2026-09-18_sincronizacion-menu-progreso-voceros-web_v01]].
 
 - [x] Hacer pull y publicar la bienvenida/contador de apertura (30 de octubre de 2026, 10:30 Ecuador) en las siete portadas de Finados y home, excluyendo Voceros. Responsable: tecnología/diseño. Completado: 2026-09-17. Git `03736e7`, controles completos, respaldo y 50 comprobaciones HTTPS sin errores; 20 HTML/recursos de Voceros idénticos. Evidencia: [[2026-09-17_cabeceras-contador-apertura-finados-web_v01]].
 

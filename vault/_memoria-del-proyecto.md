@@ -12,11 +12,12 @@ tags:
 
 # Memoria del proyecto
 
-## 2026-09-18 — Pull y preparación de publicación de navegación/progreso
+## 2026-09-18 — Pull y publicación de navegación/progreso
 
 - Por solicitud de Alex, `main` avanzó de `3956616` a `ee02951` mediante dos pulls fast-forward, incorporando siete commits. Notas previas y entrantes preservadas; documentación local sanitizada y enlaces revisados para el push autorizado. El segundo pull conserva el bloqueo de videos por fecha/envío recién incorporado.
 - Caché renovada únicamente para navegación compartida, cliente administrativo y portal modificado por los commits entrantes. Información, fuentes, registro, legal y Google Sheets conservados. Auditoría remota de solo lectura confirmó orígenes y esquema compatibles; no se ejecutarán migraciones ni escrituras de registros en producción.
-- Publicación backend → frontend en preparación, sujeta a check completo, respaldo y verificaciones finales. Evidencia: [[2026-09-18_sincronizacion-menu-progreso-voceros-web_v01]].
+- `6838d4b` publicado en Git y producción: backend primero, frontend después, con respaldos recuperables y check completo repetido (145 Node, 20 suites PHP, 10 integración; 130 archivos, 32 HTML, 1066 referencias). JSON privados, columnas/constraints e historial iguales antes/después; etapa de migraciones sustituida por SELECTs de solo lectura, sin enviar su programa.
+- Verificación final: 52 comprobaciones HTTPS de páginas/recursos en ambos dominios con 200/SHA-256 idéntico, más diez comprobaciones CORS/health correctas después del frontend (GET 200, OPTIONS 204, origen extraño 403). Sin formularios ni registros de personas enviados en producción; sin bloqueo pendiente. Evidencia: [[2026-09-18_sincronizacion-menu-progreso-voceros-web_v01]].
 
 ## 2026-09-17 — Cabeceras y contador de apertura de feria publicados
 

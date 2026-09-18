@@ -1256,3 +1256,11 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Cuando un vocero guarda un enlace de video, el backend rechaza cambios posteriores sobre ese mismo espacio y el portal muestra el campo bloqueado como enlace recibido.
 - QA: `npm run test:php` y `npm run test:node` en verde. No se modificó base de datos, registros existentes, fotos, DNS, Google Sheets ni otros proyectos.
 - Publicación externa: backend desplegado con `npm run backend:deploy` y frontend con `npm run deploy`; el despliegue del sitio quedó verificado en `https://complejomushucruna.com`.
+
+### 2026-09-18 — Publicación sincronizada y verificada de main
+
+- Siete commits incorporados mediante dos pulls fast-forward hasta `ee02951`; revisión en rama corta y renovación de caché de cinco recursos, sin cambios de información o fuentes. `6838d4b` integrado por avance rápido y publicado mediante push normal a `origin/main`; documentación local anterior revisada y preservada, sin secretos ni pérdida de líneas.
+- Check completo final y repetición en prevuelo de frontend aprobados: 145 pruebas Node, 20 suites PHP, 10 integración; 130 archivos/32 HTML/1066 referencias. Backend publicado primero, release `20260918-menu-progress-003cfde6`; frontend después, respaldo privado `20260918-menu-progress-d3dcdcc1-frontend` con SHA-256 comprobado. Inventario, lint, respaldos, activación e instalación administrada conservados; archivos exclusivos no borrados.
+- No se ejecutó ni envió el programa de migraciones: solo SELECTs de esquema en transacción de lectura. JSON privado del backend, columnas/constraints, historial y otros JSON privados ajenos iguales antes/después. Sin DDL, DML, altas, retiros, importaciones o formularios de personas en producción; legal/Sheets no reescritos.
+- Verificación final independiente: 52 comprobaciones HTTPS de recursos/páginas correctas en ambos dominios, todos 200/SHA-256 idéntico y MIME/caché correctos; diez CORS/health repetidas después del frontend, GET 200, OPTIONS 204 para ambos orígenes y rechazo 403 de origen extraño. Sin bloqueo de publicación pendiente; no se modificaron DNS, credenciales, Sheets o proyectos ajenos.
+- Evidencia: [[2026-09-18_sincronizacion-menu-progreso-voceros-web_v01]]. Stashes propios retenidos recuperables. Cierre documental no cambia el árbol de `website/` publicado.
