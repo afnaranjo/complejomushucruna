@@ -1270,4 +1270,5 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Se añadió una configuración global de cinco fechas de video en el panel admin; esas fechas aplican a todos los voceros y reemplazan la habilitación por detalle individual.
 - Se agregó la migración `006_vocero_video_schedule` con una tabla pequeña de calendario global, sin modificar ni borrar enlaces ya enviados por voceros.
 - El detalle del vocero conserva seguidores, nivel, semáforo y kit como progreso individual, y muestra los videos según el calendario global.
-- QA: `npm run test:php`, `npm run test:node`, `npm run build` y `git diff --check` en verde. Publicación externa pendiente.
+- QA: `npm run test:php`, `npm run test:node`, `npm run build` y `git diff --check` en verde; el despliegue backend volvió a correr check completo, integración y build antes de activar.
+- Publicación externa: backend desplegado con `npm run backend:deploy` y frontend con `npm run deploy`; el despliegue del sitio quedó verificado en `https://complejomushucruna.com`.
