@@ -1278,6 +1278,6 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Se añadió al panel administrativo de Voceros un ranking `Top 20 por seguidores`, alimentado desde el dashboard con una consulta de solo lectura a `vocero_progress`. No se modifican registros, fotos, consentimientos, cuentas ni fechas de video.
 - La sección `Cuentas pendientes de ficha` se movió al final de la página y quedó colapsada por defecto para no interrumpir la revisión principal; conserva la tabla y la acción segura de retiro.
 - El dashboard se refresca también después de guardar progreso para que el ranking refleje cambios de seguidores sin recargar la página.
-- QA: `npm run test:node -- website/tests/admin.test.mjs`, `npm run test:php`, `npm run build` y `git diff --check` en verde.
-- Commit: este commit (`Agregar top de seguidores al admin de voceros`).
-- Publicación externa: ninguna; queda pendiente autorización explícita para desplegar backend/frontend.
+- QA: `npm run test:node -- website/tests/admin.test.mjs`, `npm run test:php`, `npm run build` y `git diff --check` en verde antes del commit; despliegue backend volvió a ejecutar `check` completo con 148 Node, PHP, integración, build y `check-dist` en verde.
+- Commit: `302ba27` (`Agregar top de seguidores al admin de voceros`).
+- Publicación externa: backend publicado con `npm run backend:deploy` y frontend con `npm run deploy`; el despliegue reportó verificación en `https://complejomushucruna.com`. Verificación adicional por espejo Netlife confirmó en `https://finados.expoferiamushucruna.com/admin/voceros/` el script `admin-followers-1`, el bloque `Top 20 por seguidores` y `Cuentas pendientes de ficha` al final como sección colapsada.
