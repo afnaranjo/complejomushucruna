@@ -1051,3 +1051,10 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - La verificación pública del sitio también puede comprobar rutas por `finados.expoferiamushucruna.com` si `complejomushucruna.com` no resuelve localmente, sin cambiar el destino de publicación.
 - QA: `npm run test:node` en verde (144 pruebas). No se modificó backend, base de datos, DNS, Google Sheets ni otros proyectos.
 - Publicación externa: pendiente; este cambio solo desbloquea el preflight desde redes con bloqueo DNS del dominio principal.
+
+### 2026-09-18 — Autoguardado de progreso en admin de Voceros
+
+- Se ajustó el detalle administrativo de Voceros para preparar el payload de progreso de forma explícita y autoguardar cambios de seguidores, nivel, semáforo, kit y habilitación de videos tras una pausa breve.
+- Si un video está habilitado sin fecha, el admin recibe el aviso puntual y el campo de fecha toma foco; no se envía un progreso incompleto.
+- QA: `npm run test:node` en verde (145 pruebas) y `npm run build` en verde (130 archivos). No se modificó backend, base de datos, registros, DNS, Google Sheets ni otros proyectos.
+- Publicación externa: pendiente de autorización expresa para desplegar frontend.

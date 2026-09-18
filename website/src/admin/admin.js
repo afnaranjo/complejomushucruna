@@ -153,6 +153,27 @@ function dateOnly(value) {
   return new Intl.DateTimeFormat('es-EC', { dateStyle: 'medium', timeZone: 'UTC' }).format(new Date(Date.UTC(year, month - 1, day)));
 }
 
+export function collectProgressPayload(progressForm, videoInput) {
+  const videoSlots = [];
+  for (const slot of [1, 2, 3, 4, 5]) {
+    const enabled = Boolean(videoInput(slot, 'enabled')?.checked);
+    const enabledAt = videoInput(slot, 'enabled_at')?.value || null;
+    if (enabled && !enabledAt) {
+      return { error: `Indica la fecha de habilitación del video ${slot}.`, focus: () => videoInput(slot, 'enabled_at')?.focus() };
+    }
+    videoSlots.push({ slot, enabled, enabled_at: enabled ? enabledAt : null });
+  }
+  return {
+    body: {
+      followers_count: Number(progressForm.elements.followers_count.value),
+      level: Number(progressForm.elements.level.value),
+      traffic_light: progressForm.elements.traffic_light.value,
+      video_slots: videoSlots,
+      kit_status: progressForm.elements.kit_status.value,
+    },
+  };
+}
+
 export function initializeAdminNavigation(root = document, compact = globalThis.matchMedia?.('(max-width: 1120px)').matches ?? false) {
   const navigation = root.querySelector('[data-admin-navigation]');
   if (!navigation) return;
@@ -254,6 +275,8 @@ export async function initializeAdmin() {
   let detailGeneration = 0;
   let currentId = null;
   let opener = null;
+  let progressAutosaveTimer = 0;
+  let lastProgressPayload = '';
   const detailAccess = new AdminDetailAccess(client, URL, runtime.siteOrigin);
   const photoImage = query('[data-admin-photo-image]');
   const photoDownload = query('[data-admin-photo-download]');
@@ -264,6 +287,8 @@ export async function initializeAdmin() {
   const resetFeedback = query('[data-reset-feedback]');
   const deleteButton = query('[data-admin-delete]');
   function clearMedia() {
+    globalThis.clearTimeout(progressAutosaveTimer);
+    lastProgressPayload = '';
     detailAccess.close();
     photoImage.removeAttribute('src'); photoImage.hidden = true;
     photoDownload.removeAttribute('href'); photoDownload.removeAttribute('download'); photoDownload.hidden = true;
@@ -501,14 +526,15 @@ export async function initializeAdmin() {
     query('[data-detail-content]').replaceChildren(); query('[data-notes]').replaceChildren(); noteForm.reset();
     (opener?.isConnected ? opener : query('#records-title')).focus();
   });
-  async function mutate(event, kind) {
-    event.preventDefault();
+  async function mutate(event, kind, bodyOverride = undefined, successOverride = undefined) {
+    event?.preventDefault();
     const id = currentId; const generation = detailGeneration;
     if (!id) return;
-    const body = kind === 'status' ? { status: statusForm.elements.status.value } : kind === 'progress' ? JSON.parse(progressForm.dataset.pendingBody ?? '{}') : { body: noteForm.elements.body.value.trim() };
+    const body = bodyOverride ?? (kind === 'status' ? { status: statusForm.elements.status.value } : kind === 'progress' ? JSON.parse(progressForm.dataset.pendingBody ?? '{}') : { body: noteForm.elements.body.value.trim() });
     if (kind === 'note' && !body.body) { feedback(detailFeedback, 'Escribe una nota antes de guardar.', 'error'); return; }
     statusForm.querySelector('fieldset').disabled = noteForm.querySelector('fieldset').disabled = progressForm.querySelector('fieldset').disabled = true;
-    feedback(detailFeedback, 'Guardando…');
+    const targetFeedback = kind === 'progress' ? progressFeedback : detailFeedback;
+    feedback(targetFeedback, 'Guardando…');
     let saved = false;
     try {
       const path = '/voceros/' + encodeURIComponent(id) + (kind === 'note' ? '/notes' : kind === 'progress' ? '/progress' : '');
@@ -524,11 +550,12 @@ export async function initializeAdmin() {
       if (kind === 'note') noteForm.reset();
       await loadDetail(id, generation);
       if (generation !== detailGeneration) return;
-      feedback(detailFeedback, kind === 'note' ? 'Nota guardada.' : kind === 'progress' ? 'Progreso actualizado.' : 'Estado actualizado.', 'success');
+      if (kind === 'progress') lastProgressPayload = JSON.stringify(body);
+      feedback(targetFeedback, successOverride ?? (kind === 'note' ? 'Nota guardada.' : kind === 'progress' ? 'Progreso actualizado.' : 'Estado actualizado.'), 'success');
     } catch (error) {
       if (generation === detailGeneration) {
-        if (saved && error.status !== 401) feedback(detailFeedback, 'El cambio se guardó, pero no se pudo actualizar el detalle. Cierra y vuelve a abrir el registro.', 'error');
-        else fail(error, detailFeedback);
+        if (saved && error.status !== 401) feedback(targetFeedback, 'El cambio se guardó, pero no se pudo actualizar el detalle. Cierra y vuelve a abrir el registro.', 'error');
+        else fail(error, targetFeedback);
       }
     } finally {
       if (generation === detailGeneration) statusForm.querySelector('fieldset').disabled = noteForm.querySelector('fieldset').disabled = progressForm.querySelector('fieldset').disabled = false;
@@ -537,24 +564,27 @@ export async function initializeAdmin() {
   statusForm.addEventListener('submit', event => mutate(event, 'status'));
   progressForm.addEventListener('submit', event => {
     event.preventDefault();
-    const videoSlots = [];
-    for (const slot of [1, 2, 3, 4, 5]) {
-      const enabled = Boolean(videoInput(slot, 'enabled')?.checked);
-      const enabledAt = videoInput(slot, 'enabled_at')?.value || null;
-      if (enabled && !enabledAt) {
-        feedback(progressFeedback, `Indica la fecha de habilitación del video ${slot}.`, 'error');
-        videoInput(slot, 'enabled_at')?.focus();
-        return;
-      }
-      videoSlots.push({ slot, enabled, enabled_at: enabled ? enabledAt : null });
-    }
-    const body = {
-      followers_count: Number(progressForm.elements.followers_count.value), level: Number(progressForm.elements.level.value),
-      traffic_light: progressForm.elements.traffic_light.value, video_slots: videoSlots, kit_status: progressForm.elements.kit_status.value,
-    };
-    progressForm.dataset.pendingBody = JSON.stringify(body);
-    mutate(event, 'progress');
+    const result = collectProgressPayload(progressForm, videoInput);
+    if (result.error) { feedback(progressFeedback, result.error, 'error'); result.focus?.(); return; }
+    progressForm.dataset.pendingBody = JSON.stringify(result.body);
+    mutate(event, 'progress', result.body);
   });
+  const scheduleProgressAutosave = () => {
+    if (!currentId || progressForm.querySelector('fieldset').disabled) return;
+    globalThis.clearTimeout(progressAutosaveTimer);
+    progressAutosaveTimer = globalThis.setTimeout(() => {
+      if (!currentId || progressForm.querySelector('fieldset').disabled) return;
+      const result = collectProgressPayload(progressForm, videoInput);
+      if (result.error) { feedback(progressFeedback, result.error, 'error'); return; }
+      const payload = JSON.stringify(result.body);
+      if (payload === lastProgressPayload) return;
+      lastProgressPayload = payload;
+      progressForm.dataset.pendingBody = payload;
+      mutate(null, 'progress', result.body, 'Progreso autoguardado.');
+    }, 900);
+  };
+  progressForm.addEventListener('input', scheduleProgressAutosave);
+  progressForm.addEventListener('change', scheduleProgressAutosave);
   noteForm.addEventListener('submit', event => mutate(event, 'note'));
   form.addEventListener('submit', event => {
     event.preventDefault();
