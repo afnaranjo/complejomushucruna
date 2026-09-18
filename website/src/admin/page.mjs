@@ -46,7 +46,7 @@ function layout(page, content) {
 <meta name="admin-api-base" content="${api}">
 <link rel="icon" href="/assets/finados/favicon-finados.png">
 <link rel="stylesheet" href="/assets/admin/admin.css?v=20260915-2">
-<script type="module" src="/assets/admin/admin.js?v=20260915-2"></script>
+<script type="module" src="/assets/admin/admin.js?v=20260918-multi-origin-1"></script>
 </head><body class="admin-page">
 <a class="skip-link" href="#contenido">Ir al contenido</a>
 <header class="admin-header"><a href="/finados/voceros/" aria-label="Volver a Voceros"><img src="/assets/finados/logo-finados.svg" width="132" height="60" alt="Finados Mushuc Runa"></a><span class="header-context">Administración${page.route === '/admin/voceros/' ? ' <span aria-hidden="true">/</span> Formularios' : ''}</span></header>

@@ -25,7 +25,7 @@ export function renderVoceroVerificationPage(page) {
   <link rel="canonical" href="${esc(canonical)}">
   <link rel="icon" href="/assets/finados/favicon-finados.png" type="image/png" sizes="256x256">
   <link rel="stylesheet" href="/assets/finados/vocero-portal.css?v=20260916-1">
-  <script type="module" src="/assets/finados/vocero-verification.js?v=20260916-1"></script>
+  <script type="module" src="/assets/finados/vocero-verification.js?v=20260918-multi-origin-1"></script>
 </head>
 <body class="vocero-portal vocero-verification-page" data-vocero-verification>
   <a class="skip-link" href="#contenido">Ir al contenido</a>
