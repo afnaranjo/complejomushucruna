@@ -1071,4 +1071,4 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Se ajustó el flujo de videos de Voceros para que una fecha futura configurada por admin no habilite todavía la subida; el vocero solo puede pegar el enlace desde la fecha habilitada según hora de Ecuador.
 - Cuando un vocero guarda un enlace de video, el backend rechaza cambios posteriores sobre ese mismo espacio y el portal muestra el campo bloqueado como enlace recibido.
 - QA: `npm run test:php` y `npm run test:node` en verde. No se modificó base de datos, registros existentes, fotos, DNS, Google Sheets ni otros proyectos.
-- Publicación externa: pendiente de commit, push y despliegue backend + frontend.
+- Publicación externa: backend desplegado con `npm run backend:deploy` y frontend con `npm run deploy`; el despliegue del sitio quedó verificado en `https://complejomushucruna.com`.
