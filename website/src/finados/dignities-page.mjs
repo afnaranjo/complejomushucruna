@@ -6,7 +6,8 @@ import { renderFairOpeningHeader, renderOpeningAssets } from './opening-header.m
 
 const campaignAssetVersion = '20260914-1';
 const campaignRuntimeVersion = '20260916-7';
-const navigationAssetVersion = '20260916-8';
+const campaignScriptVersion = '20260918-navigation-progress-1';
+const navigationAssetVersion = '20260918-navigation-progress-1';
 
 export function renderFinadosDignitiesPage(page) {
   const canonical = `${site.baseUrl}${page.route}`;
@@ -26,7 +27,7 @@ export function renderFinadosDignitiesPage(page) {
   <link rel="stylesheet" href="/assets/finados/finados.css?v=${campaignRuntimeVersion}">
   <link rel="stylesheet" href="/assets/finados/navigation.css?v=${navigationAssetVersion}">
   ${renderOpeningAssets()}
-  <script type="module" src="/assets/finados/finados.js?v=${campaignRuntimeVersion}"></script>
+  <script type="module" src="/assets/finados/finados.js?v=${campaignScriptVersion}"></script>
 </head>
 <body class="dignities-page font-sans text-night antialiased selection:bg-winay selection:text-night">
   <a class="skip-link" href="#contenido">Ir al contenido</a>

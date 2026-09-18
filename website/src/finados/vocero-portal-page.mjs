@@ -26,7 +26,7 @@ export function renderVoceroPortalPage(page) {
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' blob:; font-src 'self'; connect-src ${connectSources}; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="vocero-api-base" content="${esc(api)}"><meta name="theme-color" content="#241146">
 <link rel="canonical" href="https://complejomushucruna.com${esc(page.route)}"><link rel="icon" href="/assets/finados/favicon-finados.png">
-<link rel="stylesheet" href="/assets/finados/vocero-portal.css?v=20260915-1"><script type="module" src="/assets/finados/vocero-portal.js?v=20260918-multi-origin-1"></script>
+<link rel="stylesheet" href="/assets/finados/vocero-portal.css?v=20260915-1"><script type="module" src="/assets/finados/vocero-portal.js?v=20260918-navigation-progress-1"></script>
 </head><body class="vocero-portal" data-vocero-view="${mode}">
 <a class="skip-link" href="#contenido">Ir al contenido</a><div class="vocero-chumbi" aria-hidden="true"></div>
 <header class="vocero-header"><a href="/finados/" aria-label="Finados Mushuc Runa"><img src="/assets/finados/logo-finados.svg" width="766" height="449" alt="Finados 2026, legado que nos une"></a><a href="/finados/voceros/">← Volver a Voceros</a></header>

@@ -9,7 +9,8 @@ const legalVersions = { privacy: consents.data.version, image: consents.image.ve
 
 const campaignAssetVersion = '20260914-1';
 const campaignRuntimeVersion = '20260916-7';
-const navigationAssetVersion = '20260916-8';
+const campaignScriptVersion = '20260918-navigation-progress-1';
+const navigationAssetVersion = '20260918-navigation-progress-1';
 
 const controller = Object.freeze({
   name: 'Eventos Finados 2026',
@@ -140,7 +141,7 @@ export function renderVocerosLegalPage(page) {
   <link rel="stylesheet" href="/assets/finados/finados.css?v=${campaignRuntimeVersion}">
   <link rel="stylesheet" href="/assets/finados/voceros.css?v=${campaignRuntimeVersion}">
   <link rel="stylesheet" href="/assets/finados/navigation.css?v=${navigationAssetVersion}">
-  <script type="module" src="/assets/finados/finados.js?v=${campaignRuntimeVersion}"></script>
+  <script type="module" src="/assets/finados/finados.js?v=${campaignScriptVersion}"></script>
 </head>
 <body class="voceros-page voceros-legal-page">
   <a class="skip-link" href="#contenido">Ir al contenido</a>

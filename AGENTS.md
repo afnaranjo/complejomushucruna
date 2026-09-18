@@ -1028,6 +1028,167 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Prevuelo y verificación completos; producción quedó publicada en `https://complejomushucruna.com`.
 - Se creó respaldo remoto recuperable, se conservaron Google Sheets y archivos exclusivos del servidor; no se modificaron DNS, Acreditación de Medios ni otros proyectos.
 - La cuenta de prueba `naranjoalex199391@gmail.com` no se modificó: permanece archivada con su ficha vinculada.
+- Pendiente operativo: iniciar sesión con esa cuenta, completar los campos obligatorios, fotografía, tres consentimientos y al menos una red social; después de guardar/autoguardar, el perfil quedará vinculado y aparecerá en administración.
+
+### 2026-09-08 — Tour virtual en la navegación institucional
+
+- Alex solicitó añadir `TOUR VIRTUAL` al menú de `complejomushucruna.com`, inmediatamente antes de `Granja`, con destino `https://guiap.com/360/mr2023-2024/`.
+- La navegación compartida incorpora el acceso con apertura en pestaña nueva y atributos `noopener noreferrer`; `Experiencias` y `Eventos` continúan ocultos según la decisión anterior. Las pruebas fijan el nombre, el destino, el orden y la seguridad del enlace.
+- QA: 29/29 pruebas, build de 75 archivos, 16 HTML, 387 referencias válidas y `git diff --check` sin errores. El commit técnico `74f387a` (`Agregar tour virtual a la navegación`) fue enviado a `origin/main`.
+- Publicación externa: despliegue autorizado únicamente en `complejomushucruna.com`. El flujo creó una copia remota recuperable, transfirió sin borrar archivos exclusivos, normalizó permisos y verificó HTTPS. La comprobación independiente obtuvo HTTP 200 en la portada y el destino del tour, y confirmó el enlace exacto antes de `Granja`.
+- Seguridad: la llave privada y la configuración real permanecieron fuera de Git. La passphrase fue escrita nuevamente como comando y enviada al chat; debe considerarse expuesta y rotarse. No se modificaron otros dominios, DNS, Mushuc Ticket, Meta, Bitrix o Notion.
+
+### 2026-09-08 — Refactorización de la portada institucional
+
+- Alex solicitó mejorar la visualización completa del body de `complejomushucruna.com` sin alterar su información. La portada se reorganizó como un relato editorial andino en seis capítulos: actualidad, identidad, experiencias, cita, archivo y visita.
+- Se conservaron los textos, imágenes, enlaces, datos y secciones existentes. La implementación añade jerarquías, composiciones asimétricas, tarjetas, acentos del sistema gráfico y adaptaciones específicas para escritorio, tableta y móvil.
+- QA: 29/29 pruebas, build de 75 archivos, 16 HTML, 387 referencias válidas y `git diff --check` sin errores. El commit técnico `9bb6b23` (`Refactorizar cuerpo de portada institucional`) fue enviado a `origin/main`.
+- Publicación externa: despliegue autorizado únicamente en `complejomushucruna.com`. El flujo creó una copia remota recuperable, transfirió sin borrar archivos exclusivos, normalizó permisos y verificó HTTPS. La comprobación independiente confirmó HTTP 200, la nueva estructura, el acceso `TOUR VIRTUAL` y los estilos responsivos.
+- Seguridad: la llave privada y la configuración real permanecieron fuera de Git. La bitácora interna se mantuvo local y no se publicó en el repositorio público. Continúa pendiente rotar la passphrase previamente expuesta.
+
+### 2026-09-08 — Menú prioritario para Finados y venta de stands
+
+- Alex solicitó ordenar el menú como `INICIO`, `VENTA DE STANDS`, `FINADOS 2026`, `TOUR VIRTUAL`, `GRANJA`, `HISTORIA`, `VISITAMOS`; venta abre `https://www.mushucticket.com/` y Finados abre `/finados/`.
+- Los dos accesos comerciales se diferenciaron como botones con la línea gráfica de Finados, el logo de inicio aumentó de 78 a 112 px en escritorio y el menú mantiene orden, legibilidad y adaptación móvil.
+- QA: 29/29 pruebas, build de 75 archivos, 16 HTML, 439 referencias válidas y `git diff --check` sin errores. El commit técnico `77e7f33` (`Priorizar Finados y venta de stands en el menú`) fue enviado a `origin/main`.
+- Publicación externa: despliegue autorizado únicamente en `complejomushucruna.com`, con copia remota recuperable, transferencia sin borrado y verificación HTTPS. La comprobación independiente confirmó HTTP 200, los siete rótulos en orden, los tres enlaces prioritarios, el logo ampliado y el CSS responsivo.
+- Seguridad: la llave privada, su passphrase y la configuración real permanecieron fuera de Git. La bitácora se conserva solo localmente por tratarse de información interna en un repositorio público.
+
+### 2026-09-11 — Políticas y mapa de accesos para expositores
+
+- Alex entregó y autorizó publicar las políticas generales y el mapa oficial de accesos en `/acceso-compra-stands/`, inmediatamente después de `Sé parte de nuestra historia`.
+- La página incorpora compra, garantía y reembolsos, fechas clave, vehículos, reglas durante la feria y sanciones; el mapa SVG aparece después en un marco amplio y responsive. Todos los enlaces visibles y botones de esta ruta abren de forma segura en una pestaña nueva; el salto de accesibilidad permanece en la misma página.
+- QA: 36/36 pruebas, build de 86 archivos y 18 HTML, 495 referencias válidas y verificación de contenido, orden, seguridad del SVG, responsive y enlaces. El SVG publicado conservó el contenido del archivo entregado.
+- Commit técnico: `17d29b5` (`Agregar políticas y mapa de accesos a stands`), enviado a `origin/main`.
+- Publicación externa: despliegue autorizado únicamente en `complejomushucruna.com`, con copia remota recuperable, transferencia sin borrado y verificación HTTPS. Página, mapa y CSS devolvieron HTTP 200; el HTML público contiene políticas, sanciones, mapa y seis aperturas seguras en pestaña nueva.
+- Riesgos y pendientes: mantener sincronizadas las políticas, horarios, valores de garantía y mapa si Operaciones publica una revisión; `/acceso-compra-stands/` conserva `noindex`.
+
+### 2026-09-11 — Contraste y acceso directo a políticas de stands
+
+- Alex solicitó ampliar el aviso de venta exclusivamente online, añadir un botón interno hacia `Políticas y mapa` y corregir el contraste del título de políticas y del bloque 06 de sanciones.
+- El aviso usa ahora una escala tipográfica destacada; el nuevo botón se adapta a móvil y desplaza suavemente hasta `#politicas-generales` sin abrir otra pestaña. `Políticas generales` y todo el contenido del bloque de sanciones se muestran en color claro sobre el fondo ciruela.
+- QA: 36/36 pruebas, build de 86 archivos, 18 HTML, 496 referencias válidas y `git diff --check` sin errores. El runtime de la ruta se versionó como `20260911-2` para invalidar caché.
+- Commit técnico: `bbd686f` (`Mejorar acceso y contraste de políticas de stands`), enviado a `origin/main`.
+- Publicación externa: despliegue autorizado únicamente en `complejomushucruna.com`, con copia remota recuperable, transferencia sin borrado y verificación HTTPS. Página y CSS devolvieron HTTP 200 y confirmaron el aviso, el ancla y los contrastes nuevos.
+- Riesgos y pendientes: conservar el ancla interna en la misma pestaña y mantener el contraste si cambia la paleta o el contenido de las políticas.
+
+### 2026-09-11 — Verificación de propiedad para Google
+
+- Alex entregó el código de verificación de Google y autorizó colocarlo en producción.
+- Se añadió una única etiqueta `google-site-verification` al `head` de las páginas institucionales; la portada pública entrega el valor exacto solicitado.
+- QA: 36/36 pruebas, build de 86 archivos, 18 HTML, 496 referencias válidas y verificación pública HTTP 200 con una sola aparición de la etiqueta.
+- Commit técnico: `489f07d` (`Agregar verificación de Google al sitio`), enviado a `origin/main`.
+- Publicación externa: despliegue autorizado únicamente en `complejomushucruna.com`, con respaldo remoto, transferencia sin borrado y verificación HTTPS.
+- Riesgos y pendientes: esta implementación corresponde al método de etiqueta HTML; si Google exige una propiedad de dominio mediante DNS, deberá añadirse por separado el registro TXT en el proveedor DNS.
+
+### 2026-09-16 — Identidad de Finados independiente del Complejo
+
+- Alex confirmó restaurar el aspecto desarrollado de Finados, conservando el menú y las funciones actuales, y mantener la identidad institucional del Complejo aparte. Se retiró `assets/styles.css` de la campaña, venta de stands, Dignidades, Voceros y sus cinco documentos; el menú conserva marcado y comportamiento compartidos, pero recibe únicamente su CSS de cabecera propio, sin resets ni tokens globales institucionales.
+- Acreditación de Medios usa explícitamente el sistema Finados, con logo, favicon, Inter y DM Serif Display; se conservan la información, fecha de cierre, formulario, POST, respaldo y recepción. Las cuentas de Voceros, Invitaciones y las páginas institucionales conservan sus flujos y estilos independientes.
+- Commit técnico: `c916610` (`fix: isolate Finados visual identity from institutional styles`), sincronizado en `origin/main`. Los tres documentos que ya tenían cambios locales se conservan fuera del commit técnico.
+- QA: 40 pruebas enfocadas en frontend/contenido/recepción y aislamiento en verde; build de 114 archivos, 30 HTML y 955 referencias válidas. La suite Node completa tuvo 89 aprobadas y 19 fallidas por ausencia de PHP y restricciones de symlinks en esta computadora Windows; no se modificó ni debilitó esa validación.
+- Publicación externa: solo GitHub; no hubo despliegue ni modificación del backend, Google Sheets, hosting, DNS o canal de compra. Vista previa local disponible. Pendiente: autorización expresa de producción y ejecutar el prevuelo completo en un entorno con PHP y requisitos de filesystem compatibles antes de publicar.
+
+### 2026-09-16 — Intento autorizado de publicación de la identidad Finados
+
+- Alex autorizó subir a Git y producción. `c916610` sigue sincronizado con `origin/main`; se preservaron los cambios documentales previos sin mezclarlos en un commit técnico.
+- El acceso SSH con la llave dedicada funciona. El backend público devuelve HTTP 200, contrato `vocero-accounts-v1` y migración `003_vocero_accounts` lista.
+- El despliegue estándar se detuvo antes de cualquier escritura: `Falta FINADOS_APP_ROOT.` La configuración privada local carece de los seis campos `FINADOS_*` requeridos por el procedimiento nuevo. Además, la suite completa requiere PHP y un filesystem compatible, no disponibles actualmente en esta computadora Windows.
+- Producción conserva el CSS institucional en Finados y aún no carga `navigation.css`; no se afirmó una publicación exitosa ni se omitieron validaciones. Pendiente: completar la configuración privada y el entorno de validación antes de reintentar el despliegue con respaldo.
+
+### 2026-09-16 — Pull y comprobación local solicitados
+
+- Alex solicitó `checkout main`, `fetch origin`, `pull --ff-only origin main`, `npm ci` y `npm run check`. La copia existente avanzó de `c916610` a `c4c88f8` mediante fast-forward; quedó sincronizada `0 0` con `origin/main`.
+- Los tres documentos que ya tenían cambios locales se guardaron temporalmente y se restauraron; se conservaron ambas versiones de las notas en los conflictos. Una comprobación confirmó todas las líneas locales añadidas, sin pérdida y sin marcadores pendientes. No se mezclaron esas modificaciones ajenas en un commit.
+- Se usó npm 10.9.4 temporal porque npm no estaba instalado: `npm ci` añadió 33 paquetes y auditó 34 sin vulnerabilidades. `npm run check` ejecutó 109 pruebas Node: 90 aprobadas y 19 fallidas por PHP ausente y restricciones de symlinks en Windows; no alcanzó las etapas PHP e integración ni se debilitó el control.
+- Build y `check-dist` ejecutados por separado: 114 archivos, 30 HTML y 955 referencias válidas; vista previa reconstruida. Estos controles parciales no equivalen a `check` completo aprobado.
+- Publicación externa en esta sesión: ninguna. Se descargó la fuente y sus dependencias; no hubo push ni despliegue, modificación del backend, Sheets, DNS o producción. Pendiente: entorno compatible para las pruebas completas.
+
+### 2026-09-16 — Creación local de SHOWS Finados 2026
+
+- Se creó `/finados/shows/`, antes de `VENTA DE STANDS` en el desplegable. El afiche FINAL entregado se conserva en su jerarquía original, con programación HTML, atractivos y QR completos; la banda original de auspiciantes queda dentro del footer. Header conceptual de personas disfrutando de conciertos, generado con la herramienta integrada y guardado en los activos del proyecto. No se alteró la identidad institucional.
+- QA: 49 pruebas enfocadas en verde, incluidas 8 nuevas; build de 121 archivos/31 HTML y 1024 referencias válidas. Revisión visual en escritorio y 390 × 844 sin superposición de cabecera, texto o desbordes de página; logos con scroll horizontal propio.
+- Commit técnico local: `15fea09` (`feat: add Finados shows page preserving official poster hierarchy`), solo código, activos, pruebas y nota técnica de esta tarea. Los cambios documentales previos se mantienen fuera del commit; no se ha hecho push.
+- Publicación externa: ninguna. Pendiente autorización expresa de la difusión íntegra del afiche en GitHub público y producción, dada la limitación histórica del cartel no anunciado. No se modificaron backend, Sheets, DNS ni hosting. Check completo y prevuelo siguen requiriendo PHP y filesystem compatible; las pruebas parciales no sustituyen esos gates.
+
+### 2026-09-16 — Push autorizado de SHOWS y prevuelo bloqueado en Windows
+
+- Alex autorizó GitHub y producción del afiche completo. Los commits `15fea09` y `04e32a3` se enviaron a `origin/main`, sincronización `0 0` al iniciar el prevuelo. Se conserva el alcance de SHOWS y los recursos entregados, sin anuncios adicionales.
+- Se recuperaron los seis campos `FINADOS_*` desde el controlador del backend ya instalado y directorios existentes canónicos, sin leer credenciales privadas ni modificar el servidor. La configuración local ignorada quedó completa y `deploy:validate` pasó.
+- `npm run check` sigue sin aprobar por ausencia de PHP local y symlinks `EPERM`; la comprobación fuera del sandbox confirma la restricción. Docker y WSL no están instalados. El prevuelo estándar, con `main` limpia y sincronizada, se detuvo con `No se pudo ejecutar npm.cmd.` antes de cualquier respaldo o escritura. No se omitieron validaciones.
+- Se restauraron las tres notas locales con hashes idénticos y se retiró únicamente el stash temporal propio. Verificación SSH posterior: SHOWS y su hero no están instalados; PHP remoto y el backend sí existen. Health público: HTTP 200 y contrato `vocero-accounts-v1`.
+- Publicación externa: solo GitHub; producción, backend, Sheets, DNS y canal de compra no se modificaron. Pendiente: entorno compatible con PHP y enlaces simbólicos y prevuelo completo; instalar componentes de sistema requiere autorización adicional. La nota técnica de SHOWS registra el intento sin rutas reales ni secretos.
+
+### 2026-09-16 — Preparación autorizada de WSL; Windows requiere reinicio
+
+- Alex autorizó preparar Linux/PHP. El instalador oficial de Microsoft, elevado mediante confirmación de administrador, terminó con exit code 0: WSL 2.7.14.0 instalado y plataforma de máquina virtual habilitada. No hubo reinicio automático ni cambios de firmware.
+- Windows confirma reinicio pendiente y WSL2 aún no puede iniciar por virtualización no disponible. Todavía no se instalaron distribución ni PHP, y no se ejecutó un nuevo despliegue ni se omitieron validaciones. La instalación local no demuestra que SHOWS esté en producción.
+- Git: implementación SHOWS `15fea09` ya enviada, historial sincronizado al comprobarlo. La nota técnica vigente documenta la preparación y el bloqueo; los cambios documentales previos continúan separados del commit de esta tarea.
+- Publicación externa: no hubo escrituras en producción, backend, Sheets o DNS. Pendiente: Alex guarda el trabajo y reinicia voluntariamente; tecnología verifica WSL2 y prepara los requisitos sobre el checkout existente antes del prevuelo completo y despliegue con respaldo.
+
+### 2026-09-16 — SHOWS publicada después de resolver el entorno Linux
+
+- Alex confirmó el reinicio con `listo`. WSL2 inicia; Ubuntu oficial, PHP 8.5.4 CLI/CGI y Node 24.19.0 comprobado contra SHA-256 oficial quedaron preparados sobre el único checkout existente, sin clones. Usuario Linux local sin contraseña habilitada; permisos de montaje y `npm ci` resueltos, cero vulnerabilidades informadas.
+- Configuración de despliegue, llave existente y huellas conocidas preparadas en almacenamiento privado Linux con permisos restrictivos, sin secretos ni rutas reales del servidor en Git. No se cambiaron credenciales.
+- Fallos detectados y corregidos solo en fixtures: datos privados fuera del docroot público canónico, contenido histórico fijado a un blob aprobado y pseudoterminal Linux mantenido abierto hasta comprobar el estado restaurado. Nueva prueba negativa rechaza datos privados dentro del docroot. No se suprimieron errores ni se relajaron controles del instalador o del comando sensible real. Commit `299ab83` enviado a `origin/main`.
+- Validación completa aprobada: 118 Node, 18 suites PHP, 10 integración, build de 121 archivos y 31 HTML/1024 referencias válidas. Prevuelo estándar y despliegue estándar repetidos desde `main` limpia y sincronizada, ambos exitosos; respaldo recuperable previo, credencial Sheets conservada, transferencia estática sin eliminar archivos exclusivos del servidor.
+- Producción verificada: `/finados/shows/` responde HTTP 200; 17 archivos verificados por HTTPS coinciden por SHA-256 con el build, incluidos página, artes, CSS, fuentes y páginas principales. Las tres notas locales anteriores se restauraron con hashes idénticos y se retiró únicamente el stash propio.
+- Resultado externo: SHOWS en GitHub y producción. No se cambió DNS, no se desplegó una nueva release del backend ni se enviaron registros de personas a Sheets. Se actualizaron la nota técnica de SHOWS, memoria y pendientes; los bloqueos de entorno anteriores quedan resueltos y los cambios documentales previos continúan separados del commit técnico.
+
+### 2026-09-16 — Pull de diez commits con notas locales preservadas
+
+- Alex solicitó `haz pull`. La única copia existente avanzó por fast-forward de `657c8d1` a `064ec59`, incorporando diez commits y 21 archivos; `main` quedó sincronizada `0 0` con `origin/main`. Se releyeron las instrucciones completas después de sincronizar.
+- Se guardaron temporalmente únicamente las tres notas locales. Al restaurarlas se resolvieron dos conflictos documentales conservando ambas versiones; una comprobación verificó todas las líneas añadidas locales y entrantes de las tres notas, sin marcadores de conflicto ni entradas sin resolver. `git diff --check` aprobado. Las notas siguen locales y sin staging; no se mezclan en un commit ajeno.
+- Publicación externa en esta sesión: ninguna; no hubo push ni despliegue, cambios de backend remoto, registros en Sheets o DNS. No se ejecutaron `npm ci`, build o pruebas: la solicitud fue sincronizar Git. Una validación futura debe usar el entorno Linux/PHP preparado, no presumir que los checks anteriores validan estos diez commits nuevos.
+
+### 2026-09-16 — Auspiciantes oficiales y Plaza de la Luna ampliada en SHOWS
+
+- Alex autorizó el ajuste, Git y producción. Se incorporó sin modificar el SVG completo de auspiciantes, con su cenefa, organizador, jerarquía y logos —incluida Textilana—. Plaza de la Luna muestra su logo oficial extraído mecánicamente del afiche y dos tarjetas ampliadas de Hueveando y Las Ñañas. Fechas y programación preservadas; CSS/activos versionados `20260916-shows-2`.
+- Commit técnico `b52a5eb` enviado a `origin/main`. Nueve pruebas específicas y check completo aprobados: 121 Node, 18 suites PHP, 10 integración, build de 123 archivos, 31 HTML y 1027 referencias. Revisión visual de escritorio y celular sin desbordes. No se alteraron controles, fixtures ni formularios.
+- Prevuelo y despliegue estándar aprobados desde `main` limpia y sincronizada; respaldo recuperable previo, credencial Sheets conservada y transferencia sin eliminar archivos exclusivos. Verificación independiente de 19 archivos HTTP 200 con SHA-256 idéntico al build; navegador de producción recargado y cambios visibles.
+- Las tres notas locales previas se preservaron con hashes idénticos; se retiró solo el stash propio después de verificar la restauración. Se actualizaron la nota técnica de esta tarea, memoria y pendientes, sin mezclar modificaciones documentales ajenas en el commit.
+- Publicación externa: GitHub y frontend autorizado. Sin nueva release del backend, DNS ni envío de registros de personas a Sheets. Riesgo/seguimiento: en móvil la composición completa puede ampliarse en otra pestaña; un maestro vectorial independiente del logo de Plaza permitiría mejorar su resolución en una revisión futura. No hay bloqueo de publicación pendiente.
+
+### 2026-09-16 — Header de presentación Finados en Git y vista previa
+
+- Alex confirmó expresamente el jueves 17 de septiembre de 2026 a las 10:30, hora de Ecuador, resolviendo la diferencia con noviembre en la solicitud original. Nuevo header de presentación en `/finados/`, lugar, ubicación aprobada en pestaña nueva y contador que muestra «Bienvenidos a Finados Mushuc Runa 2026.» al inicio, incluso al abrir después o regresar de una pestaña suspendida.
+- Header anterior de venta de stands trasladado al body y convertido a H2; información, fechas, reservas, orden artístico, navegación, footer, formularios y páginas del Complejo preservados. Tipografías y colores de Finados conservados; CSS y JS propios versionados y aislados. HTML inicial determinista, con fecha real alternativa mientras se activa el reloj.
+- La validación descubrió diferencias de segundos entre builds: corregidas en fuente, sin modificar la prueba. Un timeout del checkpoint local de colisión pasó aislado y en el siguiente check completo, con controles y límites originales. Resultado final exit code 0: 127 Node, 18 suites PHP, 10 integración, 125 archivos y 31 HTML/1030 referencias válidas.
+- Commit `ff078f0` enviado a `origin/main`, sincronización `0 0`. Solo siete archivos propios de implementación/pruebas/nota técnica incluidos; las tres notas locales anteriores se conservaron fuera del commit, sin stash ni operaciones destructivas. Memoria, pendientes y nota técnica de presentación actualizados.
+- Vista previa local HTTP 200 y apertura solicitada en Codex; no se realizó QA visual automatizada no solicitada, conforme a la guía utilizada. Publicación externa: solo GitHub; **el nuevo header no está todavía en producción**. Pendiente: confirmación expresa de Alex y procedimiento estándar con respaldo/verificación HTTPS. No hubo cambios de backend, DNS, credenciales ni registros de personas en Sheets.
+
+### 2026-09-16 — Presentación Finados publicada por solicitud expresa
+
+- Alex autorizó «sube a git y producción». Se publicó la implementación `ff078f0` de `/finados/` mediante el alojamiento/procedimiento existente, sin migraciones de proveedor o dominio. Contador para el jueves 17 de septiembre de 2026 a las 10:30 `America/Guayaquil`, bienvenida automática, mapa y venta de stands en el body conservados.
+- Configuración privada, prevuelo completo y despliegue estándar aprobados desde `main` limpia/sincronizada; checks completos repetidos sin omisiones. Respaldo recuperable antes de transferir, credencial Sheets conservada y archivos exclusivos sin eliminar. Configuración legal y puente privado comprobados por el procedimiento habitual del frontend, sin nueva release de la API ni migraciones.
+- Verificación independiente: 18 comprobaciones HTTPS, todas HTTP 200 y SHA-256 igual al build; incluye `/finados/` sin consulta y renovada, CSS/JS del contador, recursos compartidos, logo, icono, expositor, cuatro fuentes y páginas principales. La publicación pendiente de la entrega inicial queda resuelta.
+- Las tres notas locales anteriores se restauraron con hashes idénticos y solo se retiró el stash propio después de verificarlo. Nota técnica publicada, memoria y pendientes actualizados; el cierre documental se limita a la nota de esta tarea para no mezclar cambios anteriores no revisados. Publicación externa: GitHub y frontend autorizado; sin cambios DNS, credenciales o registros de personas en Sheets.
+
+### 2026-09-17 — Auspiciantes actualizados y compartidos en Finados y SHOWS
+
+- Alex autorizó pull, actualización de logos y publicación en Git y producción. La copia única avanzó por fast-forward de `253f1e3` a `53342d9`, 24 commits incorporados. Las tres notas locales y entrantes se preservaron completas; un conflicto de bitácora se resolvió conservando ambas versiones, sin marcadores pendientes ni staging documental ajeno.
+- SVG nuevo oficial de 301.230 bytes incorporado byte por byte, incluyendo Credi Fácil y Óptica Interandina. Composición completa, cenefa, organizador, orden y proporciones intactos; PNG pequeño incrustado verificado con firma y digest exacto aprobado. Render/CSS compartidos en SHOWS y al final de Finados, responsive y ampliables; caché `20260917-sponsors-1`.
+- Commit técnico `5966f87` enviado a `origin/main`. Check completo en Linux/PHP aprobado: 137 Node, 20 suites PHP, 10 integración, 129 archivos y 32 HTML/1047 referencias. Se conservó la prueba de igualdad del footer común y se corrigió la ubicación del bloque en fuente, sin relajar validaciones. Contador, programación, Plaza de la Luna, formularios e identidad institucional no se modificaron.
+- Prevuelo y despliegue estándar completos aprobados; respaldo recuperable previo, credencial Sheets conservada y archivos exclusivos sin eliminar. Verificación independiente de 26 comprobaciones sin fallos: 24 respuestas HTTP 200/SHA-256 idéntico al build más dos comprobaciones del bloque compartido, incluidas ambas URLs sin parámetros, SVG, estilos y cuatro fuentes.
+- Las tres notas locales se restauraron con hashes idénticos después de publicar y solo se retiró el stash propio. Nota técnica publicada, memoria y pendientes actualizados; documentación previa no revisada conservada fuera del commit. Publicación externa: GitHub y frontend autorizado, sin nueva release de backend, DNS, credenciales ni registros de personas en Sheets.
+- Riesgos y seguimiento: en móvil el arte conserva su única fila original y puede ampliarse para leer los logos pequeños. Sin bloqueo de publicación pendiente.
+
+### 2026-09-17 — Segunda versión de auspiciantes visibles publicada
+
+- Alex solicitó pull, otro cambio de logos en todas las páginas donde aparecen y publicación. `main` ya estaba actualizada en `417c1c0`; no entraron cambios ni se modificaron las instrucciones. Tres notas locales anteriores preservadas fuera del commit técnico.
+- Nuevo maestro SVG de 321.395 bytes, digest aprobado `1f0efb9415cbddd2a9c5535160b183346e2bc66f98498e41f5770cd4e05af2dc`, copiado exactamente. Incluye Mutualista Ambato y conserva cenefa, organizador y once logos en su fila original. Renderer/activo compartidos actualizan Finados y SHOWS, únicos bloques de auspiciantes de 2026; Dignidades 2025 conserva su edición histórica. Caché `20260917-sponsors-2`.
+- Commit técnico `953bad7` subido a `origin/main`. Check completo aprobado: 137 Node, 20 suites PHP y 10 integración; 129 archivos, 32 HTML y 1047 referencias. Contador, programación, footer común, formularios, fuentes e identidad institucional intactos; no se relajaron validaciones.
+- Prevuelo y despliegue estándar aprobados, respaldo recuperable previo, credencial Sheets conservada y archivos exclusivos sin eliminar. Verificación independiente de 27 comprobaciones sin fallos: 25 respuestas HTTP 200/SHA-256 igual al build y dos comprobaciones del bloque compartido, incluidas URLs sin parámetros, SVG nuevo, cuatro fuentes y Dignidades 2025.
+- Notas locales restauradas con hashes idénticos y solo stash propio retirado. Nota v02 publicada, memoria y pendientes actualizados; documentación previa no revisada permanece fuera del commit. Publicación externa: GitHub y frontend autorizado; sin nueva release de backend, DNS, credenciales ni registros de personas enviados a Sheets. Sin bloqueo de publicación pendiente.
+
+### 2026-09-17 — Bienvenida y contador de apertura publicados
+
+- Alex autorizó pull, cabeceras de Finados y Complejo, exclusión de Voceros y publicación en Git/producción. Pull de `main` sin cambios entrantes desde `ebaa24a`. Apertura aprobada: viernes 30 de octubre de 2026, 10:30 `America/Guayaquil` (`2026-10-30T15:30:00Z`).
+- Bienvenida «Bienvenidos a Finados Mushuc Runa 2026» y contador absoluto compartidos en siete portadas: home, Finados, SHOWS, stands, medios, Dignidades e Invitaciones. Variantes principal/compacta con Anton/Inter locales aisladas y caché `20260917-fair-start-1`; información y fechas específicas de los cuerpos conservadas, sin confundir la edición 2025 ni el brunch con la apertura de feria.
+- Voceros excluido íntegramente: 20 HTML y recursos protegidos coinciden por SHA-256 antes/después y en HTTPS. Backend, registros, consentimientos, navegación institucional, footer común, programación y composición oficial de auspiciantes se conservan. Invitaciones traslada la nueva cabecera al documento desempaquetado sin modificar su bundle RSVP.
+- Commit técnico `03736e7` subido a Git. Check completo aprobado: 140 Node, 20 suites PHP, 10 integración; 129 archivos, 32 HTML y 1066 referencias. Revisión visual de escritorio/móvil con navegador. No se omitieron suites ni se relajaron controles.
+- `/tmp` de WSL lleno bloqueó inicialmente pruebas; se trasladaron únicamente tres carpetas generadas por esta tarea a una ubicación recuperable, sin borrar datos, y se usó TMPDIR privado en disco. El publisher conserva todos los controles estándar, respaldo previo, credencial Sheets y archivos exclusivos. Prevuelo/despliegue aprobados con exit code 0; 50 comprobaciones HTTPS independientes sin fallos, incluidas URLs normales y `www`.
+- Tres notas locales restauradas idénticas, stash propio retirado; documentación publicada en [[2026-09-17_cabeceras-contador-apertura-finados-web_v01]], memoria/pendientes actualizados sin agregar notas previas ajenas al commit. Publicación externa autorizada: GitHub y frontend; sin nueva release de backend ni registros de personas en Sheets. Sin bloqueo pendiente.
 
 ### 2026-09-18 — Puente multi-origen para espejo Netlife
 
@@ -1036,6 +1197,21 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - No se tocaron tablas, migraciones, registros, fotos, Google Sheets, DNS, infraestructura ni otros proyectos. La configuración remota todavía debe actualizarse de forma controlada con ambos orígenes antes de desplegar; el preflight de despliegue la rechazará mientras solo exista `allowedOrigin`.
 - QA: `npm run check` completo en verde (143 pruebas Node, PHP, integración, build y `check-dist`), además de `git diff --check`. Publicación externa: ninguna en esta sesión.
 - Commit: pendiente. Riesgo/pendiente: actualizar únicamente el JSON privado del backend y ejecutar backend → frontend solo con autorización expresa; luego verificar CORS desde ambos dominios sin modificar la base de datos.
+
+### 2026-09-18 — Backend multi-origen publicado sin migraciones; frontend retenido
+
+- Alex solicitó pull de `main` al commit `10527a9` y backend → frontend con cambio exclusivo de orígenes en el JSON privado y prohibición expresa de migraciones/escrituras en base. Pull fast-forward confirmado; tres notas locales anteriores restauradas conservando todas las líneas locales y entrantes, sin staging ni pérdida. El stash propio se conserva como respaldo.
+- Backend `10527a9` publicado con respaldo recuperable, parser/configuración candidata verificados, integridad de inventario, lint y health. Solo se cambió `allowedOrigin` a `allowedOrigins` con los dos dominios exactos autorizados; otros campos y otros JSON privados iguales. El programa de migraciones no se ejecutó ni se envió a SSH: únicamente se comprobó el esquema requerido ya existente con SELECTs en transacción de solo lectura. Esquema e historial de migraciones intactos; sin altas, retiros, importaciones, DDL o DML.
+- QA completo aprobado: 143 Node, 20 PHP, 10 integración; build 129 archivos/32 HTML/1066 referencias. Diez comprobaciones HTTPS CORS/health sin fallos en ambas APIs: GET 200, OPTIONS 204 desde ambos dominios, origen exacto, credenciales y Vary; origen no permitido 403.
+- Frontend no publicado: el build omite `runtime-origins.mjs`, importado por los scripts nuevos; 404 confirmado en ambos frontends. Se pidió autorización para la corrección mínima de empaquetado/caché antes de publicar, sin alterar por inferencia el commit solicitado. Nota canónica: [[2026-09-18_despliegue-multi-origen-sin-migraciones-web_v01]].
+- Publicación externa: backend y JSON autorizado; sin cambios de base, DNS, Sheets, credenciales o proyectos ajenos. La revisión automática rechazó el commit/push documental por no existir autorización explícita para publicar documentación adicional en main; no se ejecutaron. Riesgo/pendiente: aprobar corrección/documentación, probar imports publicados y completar frontend con respaldo; no declarar terminada la publicación completa.
+
+### 2026-09-18 — Corrección aprobada y frontend multi-origen publicado
+
+- Alex autorizó expresamente corregir y publicar el frontend. Se añadió la copia exacta de `runtime-origins.mjs` al build y se renovó solo la caché de los scripts de administración, portal y validación (`20260918-multi-origin-1`). La prueba de regresión reprodujo primero la dependencia ausente y pasó después, recorriendo los imports locales publicados; sin cambios de CSS, contenido o lógica de registros.
+- `dd321b8` publicado mediante push normal a `origin/main`. Check completo y repetición en prevuelo aprobados: 144 Node, 20 PHP, 10 integración; 130 archivos/32 HTML/1066 referencias. Backend `10527a9` primero, frontend corregido después, con respaldo privado SHA-256 comprobado y publisher estándar; sin migraciones, DDL, DML, altas, retiros o pruebas de personas en producción.
+- Veinte comprobaciones HTTPS de módulos/vistas/caché correctas en ambos dominios, MIME JavaScript y SHA-256 exacto; diez comprobaciones CORS/health repetidas sin fallos en ambas APIs, GET 200 y OPTIONS 204 desde ambos orígenes, rechazo 403 de origen ajeno. JSON privado del backend, esquema, historial y otros JSON privados ajenos intactos; legal/Sheets no reescritos.
+- Tres notas compartidas restauradas con SHA-256 idéntico al previo al stash; notas locales anteriores excluidas del commit. Stashes propios retenidos como recuperación. Cierre canónico: [[2026-09-18_despliegue-multi-origen-sin-migraciones-web_v01]]. Sin bloqueo de publicación pendiente.
 
 ### 2026-09-18 — Hover estable en submenús de Finados
 
@@ -1065,6 +1241,14 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Se añadió una prueba API que reproduce `PATCH /api/voceros/{id}/progress` con `followers_count` y cinco espacios de video enviados por JSON.
 - QA: `npm run test:php`, `npm run test:node` y `git diff --check` en verde. No se modificó base de datos, registros, fotos, DNS, Google Sheets ni otros proyectos.
 - Publicación externa: backend desplegado con `npm run backend:deploy`; el script ejecutó `check` completo, respaldo y activación controlada. La verificación HTTP directa desde esta red quedó limitada por resolución/conectividad DNS local, pero el despliegue terminó correctamente con `Operación backend completada`.
+
+### 2026-09-18 — Pull y preparación de publicación integral
+
+- Alex solicitó pull y subir todo a Git/producción. La copia única de `main` avanzó por fast-forward de `3956616` a `0a566a9`, incorporando cinco commits de navegación, progreso administrativo, corrección JSON y verificación por espejos. Las notas locales previas se preservaron y restauraron sin perder líneas; se revisaron sus adiciones sanitizadas y 25 wikilinks válidos antes de incluirlas en el push solicitado.
+- Se renueva únicamente la caché de `site.js`, `finados.js`, `navigation.css`, `admin.js` y `vocero-portal.js` a `20260918-navigation-progress-1`. La prueba de regresión reprodujo primero la versión anterior y se extendió a todos los HTML generados, conservando las comprobaciones ESM. No se altera información, tipografías, formularios, programación, auspiciantes o estilos ajenos.
+- Se conserva la prohibición de migraciones/escrituras en producción y de reescritura de JSON privados. Auditoría remota SELECT confirmó orígenes compatibles, columnas/constraints e historial idénticos al despliegue anterior. Check completo aprobado: 145 Node, 20 suites PHP y 10 integración; 130 archivos/32 HTML/1066 referencias. Publicación backend → frontend todavía pendiente de commit/push, respaldos y comprobaciones HTTPS.
+- Evidencia y cierre: [[2026-09-18_sincronizacion-menu-progreso-voceros-web_v01]]. Sin modificación de DNS, Google Sheets o servicios ajenos.
+- Dos commits entraron durante el check; segundo pull fast-forward hasta `ee02951`, siete commits incorporados en total. Se conserva el bloqueo de videos por fecha/envío de la versión nueva y el check completo final pasó nuevamente con los mismos totales y exit code 0. Cambios revisados en rama corta por trabajo concurrente, para integrar después a main sin reescribir historial.
 
 ### 2026-09-18 — Bloqueo de enlaces de video por fecha y envío
 

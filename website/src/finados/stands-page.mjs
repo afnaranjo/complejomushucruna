@@ -7,7 +7,8 @@ import { renderFairOpeningHeader, renderOpeningAssets } from './opening-header.m
 const purchaseUrl = 'https://mushucticket.com/';
 const campaignAssetVersion = '20260903';
 const campaignRuntimeVersion = '20260916-7';
-const navigationAssetVersion = '20260916-8';
+const campaignScriptVersion = '20260918-navigation-progress-1';
+const navigationAssetVersion = '20260918-navigation-progress-1';
 const newTabAttributes = ' target="_blank" rel="noopener noreferrer"';
 
 export function renderStandsAccessPage(page) {
@@ -29,7 +30,7 @@ export function renderStandsAccessPage(page) {
   <link rel="stylesheet" href="/assets/finados/finados.css?v=${campaignRuntimeVersion}">
   <link rel="stylesheet" href="/assets/finados/navigation.css?v=${navigationAssetVersion}">
   ${renderOpeningAssets()}
-  <script type="module" src="/assets/finados/finados.js?v=${campaignRuntimeVersion}"></script>
+  <script type="module" src="/assets/finados/finados.js?v=${campaignScriptVersion}"></script>
 </head>
 <body class="stands-access-page bg-night font-sans text-lienzo antialiased selection:bg-winay selection:text-night">
   <a class="skip-link" href="#contenido">Ir al contenido</a>

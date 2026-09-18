@@ -30,11 +30,11 @@ export function renderFinadosShowsPage(page) {
   <link rel="icon" href="/assets/finados/favicon-finados.png" type="image/png" sizes="256x256">
   <link rel="apple-touch-icon" href="/assets/finados/favicon-finados.png">
   <link rel="stylesheet" href="/assets/finados/finados.css?v=20260916-7">
-  <link rel="stylesheet" href="/assets/finados/navigation.css?v=20260916-8">
+  <link rel="stylesheet" href="/assets/finados/navigation.css?v=20260918-navigation-progress-1">
   <link rel="stylesheet" href="/assets/finados/shows.css?v=20260917-shows-3">
   <link rel="stylesheet" href="/assets/finados/sponsors.css?v=${sponsorAssetVersion}">
   ${renderOpeningAssets()}
-  <script type="module" src="/assets/finados/finados.js?v=20260916-7"></script>
+  <script type="module" src="/assets/finados/finados.js?v=20260918-navigation-progress-1"></script>
 </head>
 <body class="shows-page font-sans text-night antialiased selection:bg-winay selection:text-night">
   <a class="skip-link" href="#contenido">Ir al contenido</a>

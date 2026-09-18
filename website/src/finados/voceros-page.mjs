@@ -5,7 +5,8 @@ import { renderFinadosNavigation } from './navigation.mjs';
 
 const campaignAssetVersion = '20260914-1';
 const campaignRuntimeVersion = '20260916-7';
-const navigationAssetVersion = '20260916-8';
+const campaignScriptVersion = '20260918-navigation-progress-1';
+const navigationAssetVersion = '20260918-navigation-progress-1';
 
 const levels = Object.freeze([
   {
@@ -85,7 +86,7 @@ export function renderVocerosPage(page) {
   <link rel="stylesheet" href="/assets/finados/finados.css?v=${campaignRuntimeVersion}">
   <link rel="stylesheet" href="/assets/finados/voceros.css?v=${campaignRuntimeVersion}">
   <link rel="stylesheet" href="/assets/finados/navigation.css?v=${navigationAssetVersion}">
-  <script type="module" src="/assets/finados/finados.js?v=${campaignRuntimeVersion}"></script>
+  <script type="module" src="/assets/finados/finados.js?v=${campaignScriptVersion}"></script>
 </head>
 <body class="voceros-page">
   <a class="skip-link" href="#contenido">Ir al contenido</a>
