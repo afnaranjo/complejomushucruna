@@ -302,6 +302,18 @@ foreach (['page=0', 'pageSize=101', 'status=Inventado', 'search[]=x', 'date_from
 }
 $detail = api_request('GET', '/api/voceros/' . $apiId, cookie: $cookie);
 same($apiRecord['email'], $detail['json']['email']); same(3, count($detail['json']['consents']));
+$progressJson = api_request('PATCH', '/api/voceros/' . $apiId . '/progress', [
+    'followers_count' => 24567, 'level' => 3, 'traffic_light' => 'yellow', 'kit_status' => 'pendiente',
+    'video_slots' => [
+        ['slot' => 1, 'enabled' => true, 'enabled_at' => '2026-09-18'],
+        ['slot' => 2, 'enabled' => false, 'enabled_at' => null],
+        ['slot' => 3, 'enabled' => false, 'enabled_at' => null],
+        ['slot' => 4, 'enabled' => false, 'enabled_at' => null],
+        ['slot' => 5, 'enabled' => false, 'enabled_at' => null],
+    ],
+], $cookie, $csrf);
+same(200, $progressJson['status']);
+same(24567, $apiRepository->progressForVocero($apiInternalId)['followers_count']);
 $viewAudits = $apiPdo->query("SELECT * FROM audit_log WHERE event_type = 'vocero.viewed'")->fetchAll();
 same(1, count($viewAudits));
 same(1, (int) $viewAudits[0]['actor_id']);

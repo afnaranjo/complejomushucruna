@@ -620,6 +620,7 @@ final class VocerosRepository
         if (!is_array($input) || count($input) !== 5) throw new InvalidArgumentException('Invalid video slots.');
         $slots = [];
         foreach ($input as $entry) {
+            if ($entry instanceof \stdClass) $entry = (array) $entry;
             if (!is_array($entry) || !isset($entry['slot']) || filter_var($entry['slot'], FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => 5]]) === false || !is_bool($entry['enabled'])) throw new InvalidArgumentException('Invalid video slots.');
             $slot = (int) $entry['slot'];
             if (isset($slots[$slot])) throw new InvalidArgumentException('Invalid video slots.');

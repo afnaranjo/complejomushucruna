@@ -1058,3 +1058,10 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Si un video está habilitado sin fecha, el admin recibe el aviso puntual y el campo de fecha toma foco; no se envía un progreso incompleto.
 - QA: `npm run test:node` en verde (145 pruebas) y `npm run build` en verde (130 archivos). No se modificó backend, base de datos, registros, DNS, Google Sheets ni otros proyectos.
 - Publicación externa: pendiente de autorización expresa para desplegar frontend.
+
+### 2026-09-18 — Corrección de 422 al guardar progreso admin
+
+- Se corrigió el backend de Voceros para aceptar `video_slots` recibidos como objetos JSON desde el panel administrativo; esto evita el 422 al autoguardar seguidores junto con el estado de videos.
+- Se añadió una prueba API que reproduce `PATCH /api/voceros/{id}/progress` con `followers_count` y cinco espacios de video enviados por JSON.
+- QA: `npm run test:php`, `npm run test:node` y `git diff --check` en verde. No se modificó base de datos, registros, fotos, DNS, Google Sheets ni otros proyectos.
+- Publicación externa: pendiente de commit, push y despliegue backend controlado.
