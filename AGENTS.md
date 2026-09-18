@@ -1028,3 +1028,11 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Prevuelo y verificación completos; producción quedó publicada en `https://complejomushucruna.com`.
 - Se creó respaldo remoto recuperable, se conservaron Google Sheets y archivos exclusivos del servidor; no se modificaron DNS, Acreditación de Medios ni otros proyectos.
 - La cuenta de prueba `naranjoalex199391@gmail.com` no se modificó: permanece archivada con su ficha vinculada.
+
+### 2026-09-18 — Puente multi-origen para espejo Netlife
+
+- Se implementó en frontend y backend el soporte aditivo para `finados.expoferiamushucruna.com` + `api.expoferiamushucruna.com`, conservando como orígenes principales `complejomushucruna.com` + `finados.complejomushucruna.com`.
+- El frontend elige API, base de enlaces, QR de validación y enlaces de recuperación según el host validado; CSP permite ambos API. El backend acepta `allowedOrigins`, responde CORS con el origen coincidente y `Vary: Origin`, valida `Origin`/`Referer` y construye restablecimientos con el origen de la petición.
+- No se tocaron tablas, migraciones, registros, fotos, Google Sheets, DNS, infraestructura ni otros proyectos. La configuración remota todavía debe actualizarse de forma controlada con ambos orígenes antes de desplegar; el preflight de despliegue la rechazará mientras solo exista `allowedOrigin`.
+- QA: `npm run check` completo en verde (143 pruebas Node, PHP, integración, build y `check-dist`), además de `git diff --check`. Publicación externa: ninguna en esta sesión.
+- Commit: pendiente. Riesgo/pendiente: actualizar únicamente el JSON privado del backend y ejecutar backend → frontend solo con autorización expresa; luego verificar CORS desde ambos dominios sin modificar la base de datos.

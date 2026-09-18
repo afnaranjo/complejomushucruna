@@ -243,3 +243,9 @@ El 28 de agosto quedó confirmado `¡LEGADO QUE NOS UNE!` como eslogan gráfico 
 
 - El perfil autenticado ahora recibe únicamente el estado y versión de sus consentimientos para que las casillas permanezcan marcadas después de guardar y volver a entrar; la evidencia privada no se expone.
 - QA local en verde; pendiente desplegar backend y frontend.
+
+### 2026-09-18 — Soporte de dominio espejo para Voceros
+
+- Se dejó implementado en local el puente multi-origen para `finados.expoferiamushucruna.com` y `api.expoferiamushucruna.com`, manteniendo los dominios principales sin cambios de comportamiento.
+- Frontend y backend validan el origen de la petición para API, CSP, enlaces de recuperación y QR; no se tocaron base de datos, migraciones, DNS, Google Sheets ni infraestructura.
+- QA completo en verde; publicación externa pendiente de actualizar el JSON privado del backend con ambos orígenes y de autorización expresa para desplegar y verificar CORS desde fuera.

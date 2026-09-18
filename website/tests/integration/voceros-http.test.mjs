@@ -199,7 +199,7 @@ test('real HTTP isolates Voceros and admin, stores multipart photos, resets acce
 
   const reset = await json(await request('/voceros/' + id + '/password-reset', { method: 'POST', body: {} }), 201);
   const resetUrl = new URL(reset.resetUrl);
-  assert.equal(resetUrl.origin, 'https://complejomushucruna.com');
+  assert.equal(resetUrl.origin, stack.publicOrigin);
   const token = resetUrl.searchParams.get('token'), newPassword = randomBytes(24).toString('base64url');
   assert.match(token, /^[a-f0-9]{64}$/);
   await recovery.request('/vocero/auth/session');

@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { escapeHtml as esc } from '../render/html.mjs';
 import { renderVoceroForm, renderVoceroProgressPanels, renderVoceroVideosPanel } from './vocero-form.mjs';
+import { apiBasesForCsp, LOCAL_API_BASE, PRIMARY_API_BASE } from './runtime-origins.mjs';
 
 // Server-owned text is incorporated at build time and escaped as HTML, never fetched by the browser.
 const consents = JSON.parse(readFileSync(new URL('../../backend/finados-api/resources/vocero-consents.json', import.meta.url), 'utf8'));
@@ -9,7 +10,8 @@ const password = (id, label, autocomplete) => `<label class="vocero-field" for="
 
 export function renderVoceroPortalPage(page) {
   const mode = page.route.endsWith('/mi-registro/') ? 'profile' : page.route.endsWith('/restablecer/') ? 'reset' : 'access';
-  const api = page.adminEnvironment === 'development' ? (page.adminApiBase ?? 'http://127.0.0.1:4174/api') : 'https://finados.complejomushucruna.com/api';
+  const api = page.adminEnvironment === 'development' ? (page.adminApiBase ?? LOCAL_API_BASE) : PRIMARY_API_BASE;
+  const connectSources = apiBasesForCsp(api);
   const title = { access: 'Tu cuenta de Vocero', profile: 'Mi registro', reset: 'Restablecer contraseña' }[mode];
   const content = mode === 'profile' ? `<div class="vocero-workspace-heading"><div><p class="vocero-eyebrow">Comunidad de Voceros</p><h1>${title}</h1><p data-profile-status>Comprobando tu registro…</p></div><button class="vocero-quiet" type="button" data-vocero-logout disabled>Cerrar sesión</button></div>${renderVoceroProgressPanels()}${renderVoceroForm(consents)}${renderVoceroVideosPanel()}`
     : mode === 'reset' ? `<div class="vocero-access-intro"><p class="vocero-eyebrow">Recupera tu acceso</p><h1>${title}</h1><p>Elige una contraseña de 10 a 128 caracteres.</p></div><form data-vocero-reset novalidate><fieldset disabled>${password('reset-password', 'Nueva contraseña', 'new-password')}${password('reset-confirmation', 'Confirma tu contraseña', 'new-password')}<button class="vocero-primary" type="submit">Guardar contraseña</button></fieldset></form><a href="/finados/voceros/acceso/?modo=login">Volver a iniciar sesión</a>`
@@ -21,7 +23,7 @@ export function renderVoceroPortalPage(page) {
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${esc(title)} | Voceros Finados 2026</title><meta name="description" content="Acceso privado y registro de Voceros de Finados Mushuc Runa.">
 <meta name="robots" content="noindex, nofollow, noarchive"><meta name="referrer" content="no-referrer">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' blob:; font-src 'self'; connect-src ${esc(api)}/; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' blob:; font-src 'self'; connect-src ${connectSources}; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="vocero-api-base" content="${esc(api)}"><meta name="theme-color" content="#241146">
 <link rel="canonical" href="https://complejomushucruna.com${esc(page.route)}"><link rel="icon" href="/assets/finados/favicon-finados.png">
 <link rel="stylesheet" href="/assets/finados/vocero-portal.css?v=20260915-1"><script type="module" src="/assets/finados/vocero-portal.js?v=20260915-1"></script>

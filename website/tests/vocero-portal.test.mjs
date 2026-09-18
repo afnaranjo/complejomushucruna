@@ -80,6 +80,14 @@ test('gafete: el QR de validación es único por vocero y no admite identificado
   assert.equal(formatBadgeCedula(''), 'No disponible');
 });
 
+test('gafete: el QR usa el origen espejo cuando el portal se abre desde el espejo', async () => {
+  const { badgeVerificationUrl, resolveVoceroOrigins } = await clientModule();
+  const origins = resolveVoceroOrigins({ hostname: 'finados.expoferiamushucruna.com', origin: 'https://finados.expoferiamushucruna.com' });
+  assert.equal(origins.apiBase, 'https://api.expoferiamushucruna.com/api');
+  assert.equal(origins.siteOrigin, 'https://finados.expoferiamushucruna.com');
+  assert.equal(badgeVerificationUrl('a'.repeat(32), origins.siteOrigin), 'https://finados.expoferiamushucruna.com/finados/voceros/verificar/?id=' + 'a'.repeat(32));
+});
+
 test('gafete: conserva la composición vertical y el título actualizado', async () => {
   const source = await readFile(new URL('../src/finados/vocero-portal.js', import.meta.url), 'utf8');
   assert.match(source, /fillText\('VOCERO 2026', 70, 505\)/);
@@ -107,6 +115,7 @@ test('validación: consulta solo el identificador público y no envía cookies',
   assert.deepEqual(result, { name: 'Persona de prueba', level: 'Gorra', light: { short: 'Verde', long: 'Listo' } });
   await assert.rejects(fetchBadgeVerification('https://finados.complejomushucruna.com/api', 'not-an-id', async () => new Response()), /inválido/);
   assert.throws(() => verificationApiUrl('https://other.example/api', publicId), /inválido/);
+  assert.equal(verificationApiUrl('https://api.expoferiamushucruna.com/api', publicId), 'https://api.expoferiamushucruna.com/api/voceros/verify/' + publicId);
 });
 
 test('registro: los enlaces sociales se presentan como opcionales', async () => {
@@ -141,6 +150,7 @@ test('portal: rutas privadas, catálogo exacto y landing con acceso separado', a
     assert.match(page, /noindex, nofollow, noarchive/);
     assert.match(page, /name="referrer" content="no-referrer"/);
     assert.match(page, /default-src 'none'/);
+    assert.match(page, /api\.expoferiamushucruna\.com\/api/);
     assert.doesNotMatch(page, /unsafe-inline|127\.0\.0\.1|data-cookie-consent|href="\/admin/);
     assert.equal((page.match(/<h1\b/g) ?? []).length, 1);
     if (slug === 'acceso') {

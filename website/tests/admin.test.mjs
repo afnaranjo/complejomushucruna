@@ -65,6 +65,26 @@ test('admin renderiza foto privada y recuperación con campo de solo lectura', a
   assert.match(html, /img-src 'self' blob:/);
 });
 
+test('admin selecciona la API espejo según el host visible y no usa el meta fijo', async () => {
+  const { resolveAdminOrigins, createAdminClient } = await load();
+  const mirror = resolveAdminOrigins({ hostname: 'finados.expoferiamushucruna.com', origin: 'https://finados.expoferiamushucruna.com' });
+  assert.deepEqual(mirror, {
+    apiBase: 'https://api.expoferiamushucruna.com/api',
+    siteOrigin: 'https://finados.expoferiamushucruna.com',
+  });
+  assert.doesNotThrow(() => createAdminClient(mirror.apiBase));
+  const primary = resolveAdminOrigins({ hostname: 'complejomushucruna.com', origin: 'https://complejomushucruna.com' });
+  assert.equal(primary.apiBase, 'https://finados.complejomushucruna.com/api');
+});
+
+test('admin acepta enlaces de recuperación del origen espejo y rechaza otros destinos', async () => {
+  const { AdminDetailAccess } = await load();
+  const token = 'd'.repeat(64);
+  const access = new AdminDetailAccess({ request: async () => ({ resetUrl: `https://finados.expoferiamushucruna.com/finados/voceros/restablecer/?token=${token}` }) }, undefined, 'https://finados.expoferiamushucruna.com');
+  access.open('a'.repeat(32));
+  assert.equal(await access.generateReset(), `https://finados.expoferiamushucruna.com/finados/voceros/restablecer/?token=${token}`);
+});
+
 test('admin presenta cinco habilitaciones independientes con fecha por video', async () => {
   const { renderAdminVocerosPage } = await import('../src/admin/page.mjs');
   const html = renderAdminVocerosPage({ title: 'Voceros', route: '/admin/voceros/' });
@@ -91,6 +111,7 @@ test('admin genera acceso aislado, recursos y configuración segura de producci�
     const html = await readFile(join(out, path), 'utf8');
     assert.match(html, /name="robots" content="noindex, nofollow, noarchive"/);
     assert.match(html, /Content-Security-Policy/);
+    assert.match(html, /api\.expoferiamushucruna\.com\/api/);
     assert.match(html, /name="admin-api-base" content="https:\/\/finados.complejomushucruna.com\/api"/);
     assert.doesNotMatch(html, /127\.0\.0\.1|localhost|cookie-consent/);
   }

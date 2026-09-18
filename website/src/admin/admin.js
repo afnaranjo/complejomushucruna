@@ -1,7 +1,10 @@
+import { isAllowedSiteOrigin, MIRROR_API_BASE, PRIMARY_API_BASE, PRIMARY_SITE_ORIGIN, resolveRuntimeOrigins } from '../finados/runtime-origins.mjs';
+
 export const STATUSES = Object.freeze(['Nuevo', 'En revisión', 'Aprobado', 'Rechazado', 'Pendiente de autorización']);
 export const PREVIOUS_PARTICIPATION = Object.freeze(['No, es mi primera vez', 'Sí, en Finados 2025', 'Sí, en Carnaval 2026', 'Sí, en otra edición']);
-const API = 'https://finados.complejomushucruna.com/api';
+const API = PRIMARY_API_BASE;
 const LOCAL_API = 'http://127.0.0.1:4174/api';
+export function resolveAdminOrigins(location = globalThis.location) { return resolveRuntimeOrigins(location); }
 const FILTERS = ['search', 'status', 'city', 'main_network', 'previous_participation', 'date_from', 'date_to'];
 export function maskId(value) {
   const text = String(value ?? '');
@@ -39,7 +42,7 @@ export class AdminError extends Error {
   }
 }
 export function createAdminClient(baseUrl = API, fetchImplementation = fetch) {
-  if (![API, LOCAL_API].filter(Boolean).includes(baseUrl)) throw new Error('Origen de API no permitido.');
+  if (![API, MIRROR_API_BASE, LOCAL_API].filter(Boolean).includes(baseUrl)) throw new Error('Origen de API no permitido.');
   let csrf = '';
   async function request(path, options = {}) {
     if (!/^\/(?:auth\/(?:session|login|logout)|dashboard|vocero-accounts|voceros(?:\/[a-zA-Z0-9-]+(?:\/(?:notes|progress))?)?)(?:\?[^#]*)?$/.test(path)
@@ -87,7 +90,7 @@ export function createAdminClient(baseUrl = API, fetchImplementation = fetch) {
 /** Owns sensitive detail state; closing invalidates pending work before it reaches the DOM. */
 export class AdminDetailAccess {
   #generation = 0;
-  constructor(client, urls = URL) { this.client = client; this.urls = urls; this.id = ''; this.photoUrl = ''; this.resetUrl = ''; }
+  constructor(client, urls = URL, siteOrigin = PRIMARY_SITE_ORIGIN) { this.client = client; this.urls = urls; this.siteOrigin = siteOrigin; this.id = ''; this.photoUrl = ''; this.resetUrl = ''; }
   open(id) {
     this.close();
     if (!/^[a-f0-9]{32}$/.test(id)) throw new Error('Identificador no válido.');
@@ -114,7 +117,9 @@ export class AdminDetailAccess {
     this.resetUrl = '';
     const data = await this.client.request(`/voceros/${this.id}/password-reset`, { method: 'POST', body: {} });
     if (generation !== this.#generation) return '';
-    if (typeof data.resetUrl !== 'string' || !/^https:\/\/complejomushucruna\.com\/finados\/voceros\/restablecer\/\?token=[a-f0-9]{64}$/.test(data.resetUrl)) throw new AdminError(502);
+    let reset;
+    try { reset = new URL(data.resetUrl); } catch { throw new AdminError(502); }
+    if (!isAllowedSiteOrigin(reset.origin) || reset.origin !== this.siteOrigin || reset.pathname !== '/finados/voceros/restablecer/' || !/^\?token=[a-f0-9]{64}$/.test(reset.search)) throw new AdminError(502);
     this.resetUrl = data.resetUrl;
     return this.resetUrl;
   }
@@ -166,7 +171,9 @@ export async function initializeAdmin() {
   }
   const status = document.querySelector('[data-admin-feedback]');
   const retry = document.querySelector('[data-session-retry]');
-  const base = document.querySelector('meta[name="admin-api-base"]')?.content;
+  const configuredBase = document.querySelector('meta[name="admin-api-base"]')?.content;
+  const runtime = resolveAdminOrigins(location);
+  const base = location.hostname === 'finados.expoferiamushucruna.com' ? runtime.apiBase : configuredBase || runtime.apiBase;
   if (LOCAL_API && base === LOCAL_API && location.hostname !== new URL(LOCAL_API).hostname) {
     feedback(status, 'La configuración de acceso no es válida.', 'error'); return;
   }
@@ -247,7 +254,7 @@ export async function initializeAdmin() {
   let detailGeneration = 0;
   let currentId = null;
   let opener = null;
-  const detailAccess = new AdminDetailAccess(client);
+  const detailAccess = new AdminDetailAccess(client, URL, runtime.siteOrigin);
   const photoImage = query('[data-admin-photo-image]');
   const photoDownload = query('[data-admin-photo-download]');
   const photoMessage = query('[data-admin-photo-message]');

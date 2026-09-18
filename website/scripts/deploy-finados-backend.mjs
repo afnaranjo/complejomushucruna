@@ -141,7 +141,9 @@ if (is_link($api) || (file_exists($api) && !is_dir($api)) || is_link($api . '/in
 if (is_link(${literal(config.FINADOS_APP_ROOT + '/releases')}) || is_link(${literal(config.DEPLOY_REMOTE_ROOT + '/api')})
   || is_link(${literal(config.DEPLOY_REMOTE_ROOT + '/api/voceros')})) exit(1);
 $config = Config::fromProductionEnvironment();
-if ($config->allowedOrigin() !== 'https://complejomushucruna.com' || !str_starts_with($config->databaseDsn(), 'mysql:')) exit(1);
+if (!in_array('https://complejomushucruna.com', $config->allowedOrigins(), true)
+  || !in_array('https://finados.expoferiamushucruna.com', $config->allowedOrigins(), true)
+  || !str_starts_with($config->databaseDsn(), 'mysql:')) exit(1);
 $pdo = Database::connect($config);
 $probe = (string) $pdo->query('SELECT 1')->fetchColumn();
 echo json_encode(['phpVersion'=>PHP_VERSION, 'phpModules'=>get_loaded_extensions(), 'paths'=>true, 'databaseProbe'=>$probe, 'media'=>$mediaProbe]);

@@ -1,4 +1,5 @@
 import { escapeHtml as esc } from '../render/html.mjs';
+import { apiBasesForCsp, PRIMARY_API_BASE } from './runtime-origins.mjs';
 
 /**
  * The QR destination is intentionally a small, public, noindex document. It
@@ -6,7 +7,8 @@ import { escapeHtml as esc } from '../render/html.mjs';
  * returns only the projection needed to confirm a vocero's current standing.
  */
 export function renderVoceroVerificationPage(page) {
-  const api = 'https://finados.complejomushucruna.com/api';
+  const api = PRIMARY_API_BASE;
+  const connectSources = apiBasesForCsp(api);
   const canonical = `https://complejomushucruna.com${page.route}`;
   return `<!doctype html>
 <html lang="es">
@@ -18,7 +20,7 @@ export function renderVoceroVerificationPage(page) {
   <meta name="robots" content="noindex, nofollow, noarchive">
   <meta name="referrer" content="no-referrer">
   <meta name="theme-color" content="#241146">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src ${esc(api)}/; base-uri 'none'; form-action 'none'; object-src 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src ${connectSources}; base-uri 'none'; form-action 'none'; object-src 'none'">
   <meta name="vocero-verify-api-base" content="${esc(api)}">
   <link rel="canonical" href="${esc(canonical)}">
   <link rel="icon" href="/assets/finados/favicon-finados.png" type="image/png" sizes="256x256">

@@ -28,6 +28,17 @@ same(str_repeat('e', 32), $config->encryptionKey());
 same(str_repeat('h', 32), $config->hmacKey());
 same(false, $config->isProduction());
 
+$multiOriginValues = [
+    'environment' => 'test', 'databaseDsn' => 'sqlite::memory:', 'databaseUser' => '', 'databasePassword' => '',
+    'allowedOrigins' => ['https://complejomushucruna.com', 'https://finados.expoferiamushucruna.com'],
+    'encryptionKey' => base64_encode(str_repeat('e', 32)), 'hmacKey' => base64_encode(str_repeat('h', 32)),
+];
+$multiOrigin = Config::fromFile(temp_file(json_encode($multiOriginValues, JSON_THROW_ON_ERROR)));
+same(['https://complejomushucruna.com', 'https://finados.expoferiamushucruna.com'], $multiOrigin->allowedOrigins());
+same(true, $multiOrigin->isAllowedOrigin('https://complejomushucruna.com'));
+same(true, $multiOrigin->isAllowedOrigin('https://finados.expoferiamushucruna.com'));
+same(false, $multiOrigin->isAllowedOrigin('https://evil.example'));
+
 throws(fn () => Config::fromFile(temp_file('{}')), RuntimeException::class);
 throws(fn () => Config::fromFile(valid_config(['unexpected' => 'value'])), RuntimeException::class);
 throws(fn () => Config::fromFile(valid_config(['databaseDsn' => 'pgsql:dbname=finados'])), RuntimeException::class);

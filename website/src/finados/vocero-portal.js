@@ -1,11 +1,12 @@
 import { qrcode } from './qrcode-generator.mjs';
+import { isAllowedSiteOrigin, MIRROR_API_BASE, PRIMARY_API_BASE, PRIMARY_SITE_ORIGIN, resolveRuntimeOrigins } from './runtime-origins.mjs';
 
-const API = 'https://finados.complejomushucruna.com/api';
+const API = PRIMARY_API_BASE;
 const LOCAL_API = 'http://127.0.0.1:4174/api';
 const ACCESS = '/finados/voceros/acceso/?modo=login';
 const PROFILE = '/finados/voceros/mi-registro/';
 
-const BADGE_VERIFICATION_ORIGIN = 'https://complejomushucruna.com';
+const BADGE_VERIFICATION_ORIGIN = PRIMARY_SITE_ORIGIN;
 const BADGE_TRAFFIC_LIGHTS = Object.freeze({
   red: Object.freeze({ short: 'Rojo', long: 'En preparación', color: '#e01b24' }),
   yellow: Object.freeze({ short: 'Amarillo', long: 'En avance', color: '#ffc42e' }),
@@ -13,9 +14,12 @@ const BADGE_TRAFFIC_LIGHTS = Object.freeze({
 });
 
 /** Builds the only public value encoded in a vocero badge QR. */
-export function badgeVerificationUrl(publicId) {
+export function resolveVoceroOrigins(location = globalThis.location) { return resolveRuntimeOrigins(location); }
+
+export function badgeVerificationUrl(publicId, siteOrigin = BADGE_VERIFICATION_ORIGIN) {
   if (typeof publicId !== 'string' || !/^[a-f0-9]{32}$/.test(publicId)) throw new TypeError('Identificador público inválido.');
-  return `${BADGE_VERIFICATION_ORIGIN}/finados/voceros/verificar/?id=${publicId}`;
+  if (!isAllowedSiteOrigin(siteOrigin)) throw new TypeError('Origen de validación inválido.');
+  return `${siteOrigin}/finados/voceros/verificar/?id=${publicId}`;
 }
 
 export function trafficLightLabel(light) {
@@ -61,7 +65,7 @@ export class VoceroError extends Error {
 export class VoceroApiClient {
   #csrf = '';
   constructor(baseUrl = API, fetchImplementation = globalThis.fetch) {
-    if (![API, LOCAL_API].filter(Boolean).includes(baseUrl)) throw new Error('Origen de API no permitido.');
+    if (![API, MIRROR_API_BASE, LOCAL_API].filter(Boolean).includes(baseUrl)) throw new Error('Origen de API no permitido.');
     this.baseUrl = baseUrl;
     this.fetch = fetchImplementation;
   }
@@ -249,7 +253,7 @@ async function loadBadgeImage(source) {
   });
 }
 
-async function badgeBlob(profile, photoBlob) {
+async function badgeBlob(profile, photoBlob, siteOrigin = BADGE_VERIFICATION_ORIGIN) {
   if (!globalThis.document?.createElement || !photoBlob) return null;
   const canvas = document.createElement('canvas');
   canvas.width = 1080; canvas.height = 1920;
@@ -306,7 +310,7 @@ async function badgeBlob(profile, photoBlob) {
   context.fillStyle = '#00d2d6'; context.fillRect(74, 610, 360, 12);
 
   // Validate the stable public identifier before creating a temporary photo URL.
-  const qrText = badgeVerificationUrl(String(profile.public_id ?? ''));
+  const qrText = badgeVerificationUrl(String(profile.public_id ?? ''), siteOrigin);
   const matrix = createBadgeQrMatrix(qrText);
 
   let photoUrl = '';
@@ -364,7 +368,10 @@ async function badgeBlob(profile, photoBlob) {
 export async function initializeVoceroPortal(root = document, location = globalThis.location) {
   const view = root.body?.dataset.voceroView;
   if (!view) return;
-  const api = new VoceroApiClient(root.querySelector('meta[name="vocero-api-base"]').content);
+  const runtime = resolveVoceroOrigins(location);
+  const configuredApi = root.querySelector('meta[name="vocero-api-base"]')?.content;
+  const apiBase = location.hostname === 'finados.expoferiamushucruna.com' ? runtime.apiBase : configuredApi || runtime.apiBase;
+  const api = new VoceroApiClient(apiBase);
   const feedback = root.querySelector('[data-vocero-feedback]');
   const retry = root.querySelector('[data-session-retry]');
   const relogin = root.querySelector('[data-session-login]');
@@ -468,7 +475,7 @@ export async function initializeVoceroPortal(root = document, location = globalT
     badgePanel.hidden = false; badgeStatus.textContent = 'Preparando tu gafete…';
     try {
       const blob = photoBlob ?? await api.photo();
-      const badge = await badgeBlob(profile, blob);
+      const badge = await badgeBlob(profile, blob, runtime.siteOrigin);
       if (!badge) throw new Error('No se pudo generar la imagen.');
       if (badgeUrl) URL.revokeObjectURL(badgeUrl);
       badgeUrl = URL.createObjectURL(badge); badgePreview.src = badgeUrl; badgeStatus.textContent = 'Listo para compartir en tus redes.';

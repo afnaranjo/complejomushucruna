@@ -13,7 +13,6 @@ final class Config
         'databaseDsn',
         'databaseUser',
         'databasePassword',
-        'allowedOrigin',
         'encryptionKey',
         'hmacKey',
     ];
@@ -23,7 +22,7 @@ final class Config
         private readonly string $databaseDsn,
         private readonly string $databaseUser,
         private readonly string $databasePassword,
-        private readonly string $allowedOrigin,
+        private readonly array $allowedOrigins,
         private readonly string $encryptionKey,
         private readonly string $hmacKey,
         private readonly string $privateDirectory,
@@ -68,32 +67,15 @@ final class Config
             throw new RuntimeException('Finados backend configuration is invalid.');
         }
 
-        $allowedOrigin = $values['allowedOrigin'];
-        $origin = parse_url($allowedOrigin);
-        if (
-            $origin === false
-            || !isset($origin['scheme'], $origin['host'])
-            || isset($origin['user'])
-            || isset($origin['pass'])
-            || isset($origin['path'])
-            || isset($origin['query'])
-            || isset($origin['fragment'])
-        ) {
-            throw new RuntimeException('Finados backend configuration is invalid.');
-        }
-
-        if ($environment === 'production') {
-            if ($origin['scheme'] !== 'https' || self::isInsidePublicHtml($resolvedPath)) {
-                throw new RuntimeException('Finados backend configuration is invalid.');
-            }
-        }
+        $allowedOrigins = self::origins($values, $environment);
+        if ($environment === 'production' && self::isInsidePublicHtml($resolvedPath)) throw new RuntimeException('Finados backend configuration is invalid.');
 
         return new self(
             $environment,
             $databaseDsn,
             $values['databaseUser'],
             $values['databasePassword'],
-            $allowedOrigin,
+            $allowedOrigins,
             self::decodeKey($values['encryptionKey']),
             self::decodeKey($values['hmacKey']),
             dirname($resolvedPath),
@@ -138,7 +120,17 @@ final class Config
 
     public function allowedOrigin(): string
     {
-        return $this->allowedOrigin;
+        return $this->allowedOrigins[0];
+    }
+
+    public function allowedOrigins(): array
+    {
+        return $this->allowedOrigins;
+    }
+
+    public function isAllowedOrigin(?string $origin): bool
+    {
+        return is_string($origin) && in_array($origin, $this->allowedOrigins, true);
     }
 
     public function encryptionKey(): string
@@ -167,8 +159,28 @@ final class Config
         sort($actual);
         $required = self::REQUIRED_KEYS;
         sort($required);
+        foreach (['allowedOrigin', 'allowedOrigins'] as $originKey) {
+            $expected = [...$required, $originKey];
+            sort($expected);
+            if ($actual === $expected) return true;
+        }
+        return false;
+    }
 
-        return $actual === $required;
+    private static function origins(array $values, string $environment): array
+    {
+        $raw = array_key_exists('allowedOrigins', $values) ? $values['allowedOrigins'] : [$values['allowedOrigin'] ?? null];
+        if (!is_array($raw) || $raw === [] || array_is_list($raw) === false) throw new RuntimeException('Finados backend configuration is invalid.');
+        $origins = [];
+        foreach ($raw as $value) {
+            if (!is_string($value) || $value === '' || in_array($value, $origins, true)) throw new RuntimeException('Finados backend configuration is invalid.');
+            $origin = parse_url($value);
+            if ($origin === false || !isset($origin['scheme'], $origin['host']) || array_intersect(array_keys($origin), ['user', 'pass', 'path', 'query', 'fragment']) !== [] || !in_array($origin['scheme'], ['http', 'https'], true)) throw new RuntimeException('Finados backend configuration is invalid.');
+            if ($environment === 'production' && $origin['scheme'] !== 'https') throw new RuntimeException('Finados backend configuration is invalid.');
+            if ($environment === 'test' && $origin['scheme'] === 'http' && !preg_match('/^(?:127\.0\.0\.1|localhost)$/D', $origin['host'])) throw new RuntimeException('Finados backend configuration is invalid.');
+            $origins[] = $value;
+        }
+        return $origins;
     }
 
     private static function decodeKey(string $value): string

@@ -58,9 +58,11 @@ final class Router
         ];
         try {
             $origin = $server['HTTP_ORIGIN'] ?? null;
-            if ($origin !== null && $origin !== $this->config->allowedOrigin()) throw new Forbidden();
+            if ($origin !== null && !$this->config->isAllowedOrigin($origin)) throw new Forbidden();
+            $refererOrigin = $this->refererOrigin($server);
+            if ($refererOrigin !== null && !$this->config->isAllowedOrigin($refererOrigin)) throw new Forbidden();
             if ($origin !== null) {
-                $headers['Access-Control-Allow-Origin'] = $this->config->allowedOrigin();
+                $headers['Access-Control-Allow-Origin'] = $origin;
                 $headers['Access-Control-Allow-Credentials'] = 'true';
             }
             if ($method === 'OPTIONS') {
@@ -111,7 +113,7 @@ final class Router
             }
             // Vocero authentication is deliberately isolated from the administrative guard and session.
             if ($path === '/api/vocero/auth/reset' && $method === 'POST') {
-                if ($origin !== $this->config->allowedOrigin() || !is_string($ip) || inet_pton($ip) === false) throw new Forbidden();
+                if (!$this->config->isAllowedOrigin($origin) || !is_string($ip) || inet_pton($ip) === false) throw new Forbidden();
                 $this->voceroAuth->verifyCsrf($token);
                 if ($query !== []) throw new InvalidArgumentException();
                 $body = $this->body($server, $rawBody, ['token', 'password']);
@@ -125,7 +127,7 @@ final class Router
                 return $this->json(200, ['authenticated' => $user !== null, 'user' => $user, 'csrf' => $this->voceroAuth->csrfToken()], $headers);
             }
             if (in_array($path, ['/api/vocero/auth/register', '/api/vocero/auth/login', '/api/vocero/auth/logout'], true) && $method === 'POST') {
-                if (($server['HTTP_ORIGIN'] ?? null) !== $this->config->allowedOrigin()) throw new Forbidden();
+                if (!$this->config->isAllowedOrigin($origin)) throw new Forbidden();
                 if (!is_string($ip) || inet_pton($ip) === false) throw new Forbidden();
                 $this->voceroAuth->verifyCsrf($token);
                 if ($path === '/api/vocero/auth/register') {
@@ -158,7 +160,7 @@ final class Router
                 }
                 if ($query !== []) throw new InvalidArgumentException();
                 if ($method === 'POST') {
-                    if ($origin !== $this->config->allowedOrigin() || !is_string($ip) || inet_pton($ip) === false) throw new Forbidden();
+                    if (!$this->config->isAllowedOrigin($origin) || !is_string($ip) || inet_pton($ip) === false) throw new Forbidden();
                     $this->voceroAuth->verifyCsrf($token);
                     $length = $server['CONTENT_LENGTH'] ?? null;
                     if ($length !== null && ((!is_string($length) && !is_int($length)) || preg_match('/^\d+$/D', (string) $length) !== 1)) throw new InvalidArgumentException();
@@ -193,7 +195,7 @@ final class Router
             if (preg_match('~^/api/vocero/videos/([1-5])$~D', $path, $parts)) {
                 $user = $this->voceroAuth->requireUser();
                 if ($method !== 'POST') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
-                if ($origin !== $this->config->allowedOrigin() || !is_string($ip) || inet_pton($ip) === false || $query !== []) throw new Forbidden();
+                if (!$this->config->isAllowedOrigin($origin) || !is_string($ip) || inet_pton($ip) === false || $query !== []) throw new Forbidden();
                 $this->voceroAuth->verifyCsrf($token);
                 $body = $this->body($server, $rawBody, ['url']);
                 if (!is_string($body['url'] ?? null)) throw new InvalidArgumentException();
@@ -255,10 +257,11 @@ final class Router
                 if (preg_match('/^[a-f0-9]{32}$/D', $id) !== 1 || $query !== []) throw new InvalidArgumentException();
                 if (!is_string($ip) || inet_pton($ip) === false) throw new Forbidden();
                 if ($action === 'password-reset' && $method === 'POST') {
-                    if ($origin !== $this->config->allowedOrigin()) throw new Forbidden();
+                    if (!$this->config->isAllowedOrigin($origin)) throw new Forbidden();
                     $this->body($server, $rawBody, []);
                     $raw = (new VoceroPasswordReset($this->pdo, $this->config))->create($id, $user['id'], $ip);
-                    return $this->json(201, ['resetUrl' => 'https://complejomushucruna.com/finados/voceros/restablecer/?token=' . $raw], $headers);
+                    $resetOrigin = $origin ?? $refererOrigin ?? $this->config->allowedOrigin();
+                    return $this->json(201, ['resetUrl' => $resetOrigin . '/finados/voceros/restablecer/?token=' . $raw], $headers);
                 }
                 if ($action === 'photo' && $method === 'GET') {
                     $lock = VoceroMediaLock::acquire($this->pdo, $this->config);
@@ -459,6 +462,20 @@ final class Router
         $quantity = (int) $parts[1];
         if ($quantity > intdiv(PHP_INT_MAX, $multiplier)) return null;
         return $quantity * $multiplier;
+    }
+
+    private function refererOrigin(array $server): ?string
+    {
+        $referer = $server['HTTP_REFERER'] ?? null;
+        if ($referer === null) return null;
+        if (!is_string($referer) || $referer === '') throw new Forbidden();
+        $parts = parse_url($referer);
+        if ($parts === false || !isset($parts['scheme'], $parts['host']) || !in_array($parts['scheme'], ['http', 'https'], true)
+            || isset($parts['user'], $parts['pass']) || ($parts['scheme'] === 'https' && isset($parts['port']) && (int) $parts['port'] !== 443)
+            || ($parts['scheme'] === 'http' && isset($parts['port']) && (int) $parts['port'] !== 80)) throw new Forbidden();
+        $origin = $parts['scheme'] . '://' . $parts['host'];
+        if (isset($parts['port'])) $origin .= ':' . (int) $parts['port'];
+        return $origin;
     }
 
     private function body(array $server, string $raw, array $allowed): array

@@ -1,3 +1,5 @@
+import { MIRROR_API_BASE, PRIMARY_API_BASE, resolveRuntimeOrigins } from './runtime-origins.mjs';
+
 const PUBLIC_ID_PATTERN = /^[a-f0-9]{32}$/;
 const LIGHTS = Object.freeze({
   red: { short: 'Rojo', long: 'En preparación' },
@@ -10,7 +12,7 @@ export function validBadgeId(value) {
 }
 
 export function verificationApiUrl(apiBase, publicId) {
-  if (typeof apiBase !== 'string' || !/^https:\/\/finados\.complejomushucruna\.com\/api$/.test(apiBase)) throw new TypeError('Origen de validación inválido.');
+  if (typeof apiBase !== 'string' || ![PRIMARY_API_BASE, MIRROR_API_BASE].includes(apiBase)) throw new TypeError('Origen de validación inválido.');
   if (!validBadgeId(publicId)) throw new TypeError('Identificador de gafete inválido.');
   return `${apiBase}/voceros/verify/${publicId}`;
 }
@@ -54,7 +56,8 @@ export function renderVerification(root, verification) {
 
 export async function initializeVoceroVerification(root = globalThis.document, location = globalThis.location, fetchImplementation = globalThis.fetch) {
   if (!root?.querySelector?.('[data-vocero-verification]') && !root?.body?.hasAttribute?.('data-vocero-verification')) return;
-  const apiBase = root.querySelector('meta[name="vocero-verify-api-base"]')?.content ?? '';
+  const configuredApi = root.querySelector('meta[name="vocero-verify-api-base"]')?.content ?? '';
+  const apiBase = location?.hostname === 'finados.expoferiamushucruna.com' ? resolveRuntimeOrigins(location).apiBase : configuredApi || resolveRuntimeOrigins(location).apiBase;
   const id = new URLSearchParams(location?.search ?? '').get('id') ?? '';
   try {
     const verification = await fetchBadgeVerification(apiBase, id, fetchImplementation);

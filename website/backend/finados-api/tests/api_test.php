@@ -22,7 +22,7 @@ register_shutdown_function(static function () use ($apiPrivateRoot): void {
 $apiConfigPath = $apiPrivateRoot . '/config.json';
 file_put_contents($apiConfigPath, json_encode([
     'environment' => 'test', 'databaseDsn' => 'sqlite:' . $apiDb,
-    'databaseUser' => '', 'databasePassword' => '', 'allowedOrigin' => 'https://complejomushucruna.com',
+    'databaseUser' => '', 'databasePassword' => '', 'allowedOrigins' => ['https://complejomushucruna.com', 'https://finados.expoferiamushucruna.com'],
     'encryptionKey' => base64_encode(str_repeat('e', 32)), 'hmacKey' => base64_encode(str_repeat('h', 32)),
 ], JSON_THROW_ON_ERROR));
 $apiConfig = Finados\Config::fromFile($apiConfigPath);
@@ -233,6 +233,11 @@ same('', $response['body']);
 same('https://complejomushucruna.com', $response['headers']['access-control-allow-origin']);
 same('true', $response['headers']['access-control-allow-credentials']);
 same('GET, POST, PATCH, OPTIONS', $response['headers']['access-control-allow-methods']);
+$mirrorPreflight = api_request('OPTIONS', '/api/auth/session', origin: 'https://finados.expoferiamushucruna.com', server: ['HTTP_ACCESS_CONTROL_REQUEST_METHOD' => 'GET', 'HTTP_ACCESS_CONTROL_REQUEST_HEADERS' => 'Content-Type, X-CSRF-Token']);
+same(204, $mirrorPreflight['status']);
+same('https://finados.expoferiamushucruna.com', $mirrorPreflight['headers']['access-control-allow-origin']);
+same('Origin', $mirrorPreflight['headers']['vary']);
+same(200, api_request('GET', '/api/auth/session', origin: 'https://finados.expoferiamushucruna.com')['status']);
 same(403, api_request('OPTIONS', '/api/voceros', server: ['HTTP_ACCESS_CONTROL_REQUEST_METHOD' => 'DELETE'])['status']);
 same(403, api_request('OPTIONS', '/api/voceros', server: ['HTTP_ACCESS_CONTROL_REQUEST_HEADERS' => 'X-Evil'])['status']);
 
