@@ -1064,4 +1064,4 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Se corrigió el backend de Voceros para aceptar `video_slots` recibidos como objetos JSON desde el panel administrativo; esto evita el 422 al autoguardar seguidores junto con el estado de videos.
 - Se añadió una prueba API que reproduce `PATCH /api/voceros/{id}/progress` con `followers_count` y cinco espacios de video enviados por JSON.
 - QA: `npm run test:php`, `npm run test:node` y `git diff --check` en verde. No se modificó base de datos, registros, fotos, DNS, Google Sheets ni otros proyectos.
-- Publicación externa: pendiente de commit, push y despliegue backend controlado.
+- Publicación externa: backend desplegado con `npm run backend:deploy`; el script ejecutó `check` completo, respaldo y activación controlada. La verificación HTTP directa desde esta red quedó limitada por resolución/conectividad DNS local, pero el despliegue terminó correctamente con `Operación backend completada`.
