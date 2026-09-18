@@ -18,6 +18,7 @@ function setupPrimaryNavigation() {
   const navigation = document.querySelector('#navegacion-principal');
   if (!button || !navigation) return;
   const submenus = [...navigation.querySelectorAll('[data-submenu]')];
+  const supportsHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
   const closeSubmenus = () => {
     for (const item of submenus) {
@@ -44,6 +45,23 @@ function setupPrimaryNavigation() {
     const toggle = item.querySelector('[data-submenu-toggle]');
     if (!toggle) continue;
     const parentLink = item.querySelector(':scope > a');
+    let closeTimer;
+
+    if (supportsHover) {
+      item.addEventListener('pointerenter', () => {
+        window.clearTimeout(closeTimer);
+        openSubmenu(item, toggle);
+      });
+      item.addEventListener('pointerleave', () => {
+        closeTimer = window.setTimeout(() => {
+          if (!item.matches(':hover')) {
+            item.dataset.open = 'false';
+            toggle.setAttribute('aria-expanded', 'false');
+          }
+        }, 180);
+      });
+    }
+
     parentLink?.addEventListener('click', (event) => {
       if (item.dataset.open === 'true') return;
       event.preventDefault();

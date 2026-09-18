@@ -49,6 +49,7 @@ export function setSubmenuState(item, toggle, open) {
 export function setupSubmenus(root = document) {
   const items = [...root.querySelectorAll('[data-submenu]')];
   if (!items.length) return;
+  const supportsHover = globalThis.matchMedia?.('(hover: hover) and (pointer: fine)').matches ?? false;
 
   const closeSubmenus = () => {
     for (const item of items) {
@@ -61,6 +62,20 @@ export function setupSubmenus(root = document) {
     const toggle = item.querySelector('[data-submenu-toggle]');
     if (!toggle) continue;
     const parentLink = item.querySelector(':scope > a');
+    let closeTimer;
+
+    if (supportsHover) {
+      item.addEventListener('pointerenter', () => {
+        globalThis.clearTimeout(closeTimer);
+        closeSubmenus();
+        setSubmenuState(item, toggle, true);
+      });
+      item.addEventListener('pointerleave', () => {
+        closeTimer = globalThis.setTimeout(() => {
+          if (!item.matches(':hover')) setSubmenuState(item, toggle, false);
+        }, 180);
+      });
+    }
 
     parentLink?.addEventListener('click', (event) => {
       if (item.dataset.open === 'true') return;

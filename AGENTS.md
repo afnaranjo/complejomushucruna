@@ -1036,3 +1036,11 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - No se tocaron tablas, migraciones, registros, fotos, Google Sheets, DNS, infraestructura ni otros proyectos. La configuración remota todavía debe actualizarse de forma controlada con ambos orígenes antes de desplegar; el preflight de despliegue la rechazará mientras solo exista `allowedOrigin`.
 - QA: `npm run check` completo en verde (143 pruebas Node, PHP, integración, build y `check-dist`), además de `git diff --check`. Publicación externa: ninguna en esta sesión.
 - Commit: pendiente. Riesgo/pendiente: actualizar únicamente el JSON privado del backend y ejecutar backend → frontend solo con autorización expresa; luego verificar CORS desde ambos dominios sin modificar la base de datos.
+
+### 2026-09-18 — Hover estable en submenús de Finados
+
+- Se ajustó la navegación de campaña para que los submenús se abran al pasar el mouse y permanezcan abiertos mientras se baja desde el botón hacia las opciones.
+- Se añadió un puente invisible entre el item principal y el panel, más un retardo breve de cierre en escritorio; móvil conserva el comportamiento por toque.
+- QA: `npm run test:node` en verde (144 pruebas) y `npm run build` en verde (130 archivos). No se modificó backend, base de datos, DNS, Google Sheets ni otros proyectos.
+- Commit: este commit (`Mantener abierto submenu de Finados al pasar el mouse`).
+- Publicación externa: pendiente de autorización expresa para desplegar frontend.
