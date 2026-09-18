@@ -308,6 +308,11 @@ $progressJson = api_request('PATCH', '/api/voceros/' . $apiId . '/progress', [
 ], $cookie, $csrf);
 same(200, $progressJson['status']);
 same(24567, $apiRepository->progressForVocero($apiInternalId)['followers_count']);
+$dashboardWithFollowers = api_request('GET', '/api/dashboard', cookie: $cookie);
+same(200, $dashboardWithFollowers['status']);
+same($apiId, $dashboardWithFollowers['json']['topFollowers'][0]['public_id']);
+same($apiRecord['full_name'], $dashboardWithFollowers['json']['topFollowers'][0]['full_name']);
+same(24567, $dashboardWithFollowers['json']['topFollowers'][0]['followers_count']);
 $scheduleJson = api_request('PATCH', '/api/vocero-video-schedule', [
     'video_slots' => [
         ['slot' => 1, 'enabled' => true, 'enabled_at' => '2026-09-18'],

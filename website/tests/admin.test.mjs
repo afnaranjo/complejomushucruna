@@ -95,6 +95,39 @@ test('admin presenta cinco habilitaciones independientes con fecha por video', a
   assert.doesNotMatch(html, /name="videos_unlocked"/);
 });
 
+test('admin ubica el top de seguidores antes de registros y pendientes al final colapsado', async () => {
+  const { renderAdminVocerosPage } = await import('../src/admin/page.mjs');
+  const html = renderAdminVocerosPage({ title: 'Voceros', route: '/admin/voceros/' });
+  const topIndex = html.indexOf('data-followers-leaderboard');
+  const recordsIndex = html.indexOf('data-records-region');
+  const pendingIndex = html.indexOf('data-pending-accounts');
+
+  assert.ok(topIndex > -1, 'el ranking de seguidores debe existir');
+  assert.ok(recordsIndex > topIndex, 'registros debe quedar después del ranking');
+  assert.ok(pendingIndex > recordsIndex, 'cuentas pendientes debe quedar al final de la página');
+  assert.match(html, /<details class="pending-accounts"[^>]*data-pending-panel/);
+  assert.doesNotMatch(html, /<details class="pending-accounts"[^>]*open/);
+});
+
+test('admin ordena y limita el top de seguidores para lectura rápida', async () => {
+  const { topFollowers } = await load();
+  const items = Array.from({ length: 18 }, (_, index) => ({
+    full_name: `Vocero ${index}`,
+    city: index % 2 ? 'Ambato' : '',
+    main_network: index % 3 ? 'TikTok' : '',
+    followers_count: index * 100,
+  }));
+  items.push({ full_name: 'Sin dato', followers_count: 'no-numérico' });
+
+  const ranking = topFollowers(items, 15);
+
+  assert.equal(ranking.length, 15);
+  assert.equal(ranking[0].full_name, 'Vocero 17');
+  assert.equal(ranking[0].followers_count, 1700);
+  assert.equal(ranking.at(-1).full_name, 'Vocero 3');
+  assert.equal(ranking.some(item => item.full_name === 'Sin dato'), false);
+});
+
 test('admin prepara y valida calendario global de videos', async () => {
   const { collectVideoSchedulePayload } = await load();
   const videos = new Map([

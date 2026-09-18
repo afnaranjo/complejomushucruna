@@ -35,6 +35,13 @@ export function renderSummary(data) {
     { label: 'Últimos 7 días', value: data.lastSevenDays ?? 0 },
   ];
 }
+export function topFollowers(items = [], limit = 20) {
+  return (Array.isArray(items) ? items : [])
+    .map(item => ({ ...item, followers_count: Math.max(0, Number.parseInt(item?.followers_count, 10) || 0) }))
+    .filter(item => item.followers_count > 0 && typeof item.full_name === 'string' && item.full_name.trim() !== '')
+    .sort((left, right) => right.followers_count - left.followers_count || left.full_name.localeCompare(right.full_name, 'es'))
+    .slice(0, Math.max(0, Number.parseInt(limit, 10) || 0));
+}
 export class AdminError extends Error {
   constructor(status) {
     super(({ 0: 'No se pudo conectar. Revisa tu conexión e intenta de nuevo.', 401: 'La sesión venció. Inicia sesión nuevamente.', 403: 'No se autorizó la solicitud. Actualiza la página e intenta de nuevo.', 404: 'El registro no está disponible.', 422: 'Revisa los datos ingresados e intenta de nuevo.', 429: 'Hay demasiados intentos. Espera antes de volver a intentar.' })[status] ?? 'No se pudo completar la solicitud. Intenta de nuevo.');
@@ -257,6 +264,8 @@ export async function initializeAdmin() {
   const records = query('[data-records]');
   const region = query('[data-records-region]');
   const dashboard = query('[data-admin-dashboard]');
+  const followersLeaderboard = query('[data-followers-leaderboard]');
+  const followersLeaderboardCount = query('[data-followers-leaderboard-count]');
   const previous = query('[data-previous]');
   const next = query('[data-next]');
   const exportButton = query('[data-admin-export]');
@@ -332,6 +341,31 @@ export async function initializeAdmin() {
     }
     if (!target.children.length) target.append(node('p', 'Sin registros.'));
   }
+  function renderFollowersLeaderboard(items = []) {
+    const ranking = topFollowers(items, 20);
+    followersLeaderboard.replaceChildren();
+    followersLeaderboardCount.textContent = ranking.length ? `${ranking.length} voceros` : 'Sin datos';
+    if (!ranking.length) {
+      followersLeaderboard.append(node('li', 'Todavía no hay seguidores validados.'));
+      return;
+    }
+    for (const [index, record] of ranking.entries()) {
+      const item = node('li');
+      const rank = node('span', String(index + 1).padStart(2, '0'), 'followers-leaderboard__rank');
+      const body = node('div');
+      body.append(node('strong', record.full_name));
+      const meta = [record.city, record.main_network].filter(Boolean).join(' · ');
+      body.append(node('small', meta || 'Sin ciudad o red principal'));
+      const value = node('span', new Intl.NumberFormat('es-EC').format(record.followers_count), 'followers-leaderboard__value');
+      if (/^[a-f0-9]{32}$/.test(record.public_id ?? '')) {
+        const open = node('button', 'Ver detalle', 'button-quiet followers-leaderboard__action');
+        open.type = 'button';
+        open.addEventListener('click', () => openDetail(record.public_id, open));
+        item.append(rank, body, value, open);
+      } else item.append(rank, body, value);
+      followersLeaderboard.append(item);
+    }
+  }
   async function summary() {
     dashboard.setAttribute('aria-busy', 'true');
     try {
@@ -340,8 +374,12 @@ export async function initializeAdmin() {
       for (const metric of renderSummary(data)) {
         const block = node('dl'); block.append(node('dt', metric.label), node('dd', metric.value)); dashboard.append(block);
       }
+      renderFollowersLeaderboard(data.topFollowers);
       renderCounts(query('[data-status-counts]'), data.byStatus);
       renderCounts(query('[data-date-counts]'), data.byDate);
+    } catch (error) {
+      renderFollowersLeaderboard([]);
+      throw error;
     } finally { dashboard.setAttribute('aria-busy', 'false'); }
   }
   const confirmRetirement = message => typeof globalThis.confirm === 'function' && globalThis.confirm(message);
@@ -568,8 +606,8 @@ export async function initializeAdmin() {
       saved = true;
       // A confirmed status change affects the workspace even if its inspector closed.
       // Start both refreshes before checking detail lifetime or reloading the detail.
-      if (kind === 'status') {
-        const results = await Promise.allSettled([list(), summary()]);
+      if (kind === 'status' || kind === 'progress') {
+        const results = await Promise.allSettled(kind === 'status' ? [list(), summary()] : [summary()]);
         for (const result of results) if (result.status === 'rejected') fail(result.reason);
       }
       if (generation !== detailGeneration) return;

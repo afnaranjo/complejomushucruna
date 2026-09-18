@@ -249,7 +249,17 @@ final class Router
                 foreach ($this->pdo->query("SELECT DATE(submitted_at) AS day, COUNT(*) AS count FROM voceros WHERE status <> 'Eliminado' GROUP BY DATE(submitted_at) ORDER BY day") as $row) $dates[$row['day']] = (int) $row['count'];
                 $recent = $this->pdo->prepare("SELECT COUNT(*) FROM voceros WHERE status <> 'Eliminado' AND submitted_at >= ? AND submitted_at <= ?");
                 $recent->execute([gmdate('Y-m-d H:i:s', time() - 7 * 86400), gmdate('Y-m-d H:i:s')]);
-                return $this->json(200, ['total' => array_sum($statuses), 'byStatus' => $statuses, 'byDate' => (object) $dates, 'lastSevenDays' => (int) $recent->fetchColumn()], $headers);
+                $topFollowers = [];
+                foreach ($this->pdo->query("SELECT v.public_id, v.full_name, v.city, v.main_network, COALESCE(p.followers_count, 0) AS followers_count FROM voceros v LEFT JOIN vocero_progress p ON p.vocero_id = v.id WHERE v.status <> 'Eliminado' AND COALESCE(p.followers_count, 0) > 0 ORDER BY COALESCE(p.followers_count, 0) DESC, v.full_name ASC LIMIT 20") as $row) {
+                    $topFollowers[] = [
+                        'public_id' => (string) $row['public_id'],
+                        'full_name' => (string) $row['full_name'],
+                        'city' => (string) ($row['city'] ?? ''),
+                        'main_network' => (string) ($row['main_network'] ?? ''),
+                        'followers_count' => (int) $row['followers_count'],
+                    ];
+                }
+                return $this->json(200, ['total' => array_sum($statuses), 'byStatus' => $statuses, 'byDate' => (object) $dates, 'lastSevenDays' => (int) $recent->fetchColumn(), 'topFollowers' => $topFollowers], $headers);
             }
             if ($path === '/api/voceros/export' && $method === 'POST') {
                 $filters = $this->filters($this->body($server, $rawBody, self::FILTERS));

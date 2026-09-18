@@ -1272,3 +1272,12 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - El detalle del vocero conserva seguidores, nivel, semáforo y kit como progreso individual, y muestra los videos según el calendario global.
 - QA: `npm run test:php`, `npm run test:node`, `npm run build` y `git diff --check` en verde; el despliegue backend volvió a correr check completo, integración y build antes de activar.
 - Publicación externa: backend desplegado con `npm run backend:deploy` y frontend con `npm run deploy`; el despliegue del sitio quedó verificado en `https://complejomushucruna.com`.
+
+### 2026-09-18 — Top de seguidores y pendientes colapsados en admin
+
+- Se añadió al panel administrativo de Voceros un ranking `Top 20 por seguidores`, alimentado desde el dashboard con una consulta de solo lectura a `vocero_progress`. No se modifican registros, fotos, consentimientos, cuentas ni fechas de video.
+- La sección `Cuentas pendientes de ficha` se movió al final de la página y quedó colapsada por defecto para no interrumpir la revisión principal; conserva la tabla y la acción segura de retiro.
+- El dashboard se refresca también después de guardar progreso para que el ranking refleje cambios de seguidores sin recargar la página.
+- QA: `npm run test:node -- website/tests/admin.test.mjs`, `npm run test:php`, `npm run build` y `git diff --check` en verde.
+- Commit: este commit (`Agregar top de seguidores al admin de voceros`).
+- Publicación externa: ninguna; queda pendiente autorización explícita para desplegar backend/frontend.
