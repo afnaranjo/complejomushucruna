@@ -42,6 +42,14 @@ export function topFollowers(items = [], limit = 20) {
     .sort((left, right) => right.followers_count - left.followers_count || left.full_name.localeCompare(right.full_name, 'es'))
     .slice(0, Math.max(0, Number.parseInt(limit, 10) || 0));
 }
+export function videoSubmissionState(record = {}) {
+  const total = 5;
+  const fromCount = Number.parseInt(record.videos_submitted, 10);
+  const submitted = Number.isFinite(fromCount)
+    ? fromCount
+    : (Array.isArray(record.videos) ? record.videos.filter(video => video?.status === 'submitted' && String(video?.url ?? '').trim()).length : 0);
+  return { submitted: Math.min(total, Math.max(0, submitted)), total };
+}
 export class AdminError extends Error {
   constructor(status) {
     super(({ 0: 'No se pudo conectar. Revisa tu conexión e intenta de nuevo.', 401: 'La sesión venció. Inicia sesión nuevamente.', 403: 'No se autorizó la solicitud. Actualiza la página e intenta de nuevo.', 404: 'El registro no está disponible.', 422: 'Revisa los datos ingresados e intenta de nuevo.', 429: 'Hay demasiados intentos. Espera antes de volver a intentar.' })[status] ?? 'No se pudo completar la solicitud. Intenta de nuevo.');
@@ -150,6 +158,20 @@ function feedback(element, message, kind = '') {
   element.textContent = message;
   element.dataset.error = String(kind === 'error');
   element.dataset.success = String(kind === 'success');
+}
+function renderVideoSubmissionChecks(record) {
+  const { submitted, total } = videoSubmissionState(record);
+  const wrapper = node('span', undefined, 'video-checks');
+  wrapper.setAttribute('role', 'img');
+  wrapper.setAttribute('aria-label', `${submitted} de ${total} videos enviados`);
+  for (let index = 1; index <= total; index++) {
+    const mark = node('span', index <= submitted ? '✓' : '', 'video-check');
+    mark.dataset.done = String(index <= submitted);
+    mark.title = `Video ${index}: ${index <= submitted ? 'enviado' : 'pendiente'}`;
+    wrapper.append(mark);
+  }
+  wrapper.append(node('small', `${submitted}/${total}`));
+  return wrapper;
 }
 function dateTime(value) {
   if (!value) return '—';
@@ -461,6 +483,7 @@ export async function initializeAdmin() {
         cell('Contacto', maskPhone(record.whatsapp), 'Cédula ' + maskId(record.cedula));
         cell('Ciudad / red', record.city, record.main_network);
         cell('Registro', dateTime(record.submitted_at));
+        cell('Videos', '').replaceChildren(renderVideoSubmissionChecks(record));
         const badge = node('span', record.status, 'status-badge'); badge.dataset.status = record.status;
         cell('Estado', '').replaceChildren(badge);
         const open = node('button', 'Ver detalle', 'button-quiet'); open.type = 'button';

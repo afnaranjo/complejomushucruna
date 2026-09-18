@@ -46,7 +46,7 @@ function layout(page, content) {
 <meta name="admin-api-base" content="${api}">
 <link rel="icon" href="/assets/finados/favicon-finados.png">
 <link rel="stylesheet" href="/assets/admin/admin.css?v=20260915-2">
-<script type="module" src="/assets/admin/admin.js?v=20260918-admin-followers-1"></script>
+<script type="module" src="/assets/admin/admin.js?v=20260918-admin-video-checks-1"></script>
 </head><body class="admin-page">
 <a class="skip-link" href="#contenido">Ir al contenido</a>
 <header class="admin-header"><a href="/finados/voceros/" aria-label="Volver a Voceros"><img src="/assets/finados/logo-finados.svg" width="132" height="60" alt="Finados Mushuc Runa"></a><span class="header-context">Administración${page.route === '/admin/voceros/' ? ' <span aria-hidden="true">/</span> Formularios' : ''}</span></header>
@@ -92,7 +92,7 @@ ${select('previous_participation', 'Participación anterior', PREVIOUS_PARTICIPA
 </fieldset></form>
 <section class="records" aria-labelledby="records-title" aria-busy="true" data-records-region><div class="records-heading"><h2 id="records-title" tabindex="-1">Registros</h2><p data-record-count>—</p></div>
 <p data-list-message role="status">Cargando registros…</p>
-<table><caption class="sr-only">Voceros registrados. Abre un registro para revisar sus datos y notas.</caption><thead><tr><th scope="col">Vocero</th><th scope="col">Contacto</th><th scope="col">Ciudad / red</th><th scope="col">Registro</th><th scope="col">Estado</th><th scope="col"><span class="sr-only">Acciones</span></th></tr></thead><tbody data-records></tbody></table>
+<table><caption class="sr-only">Voceros registrados. Abre un registro para revisar sus datos y notas.</caption><thead><tr><th scope="col">Vocero</th><th scope="col">Contacto</th><th scope="col">Ciudad / red</th><th scope="col">Registro</th><th scope="col">Videos</th><th scope="col">Estado</th><th scope="col"><span class="sr-only">Acciones</span></th></tr></thead><tbody data-records></tbody></table>
 <nav class="pagination" aria-label="Paginación de registros"><button class="button-quiet" data-previous disabled>← Anterior</button><span data-page-label>Página —</span><button class="button-quiet" data-next disabled>Siguiente →</button></nav></section>
 <details class="pending-accounts" data-pending-panel><summary><span><strong id="pending-accounts-title">Cuentas pendientes de ficha</strong><small>Última sección. Ábrela solo cuando necesites revisar cuentas creadas sin formulario.</small></span><span data-pending-count>—</span></summary><div class="pending-accounts-body" aria-labelledby="pending-accounts-title"><p class="feedback" data-pending-message role="status" aria-live="polite">Cargando cuentas…</p><div class="pending-accounts-table"><table><caption class="sr-only">Cuentas creadas que todavía no completan su ficha</caption><thead><tr><th scope="col">Correo</th><th scope="col">Creada</th><th scope="col">Estado</th><th scope="col"><span class="sr-only">Acciones</span></th></tr></thead><tbody data-pending-accounts></tbody></table></div></div></details>
 <dialog class="detail-dialog" aria-labelledby="detail-title" data-detail><div class="detail-heading"><h2 id="detail-title" tabindex="-1">Detalle del vocero</h2><button type="button" class="button-quiet" data-detail-close aria-label="Cerrar detalle">Cerrar ×</button></div>

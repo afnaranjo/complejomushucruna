@@ -1281,3 +1281,11 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - QA: `npm run test:node -- website/tests/admin.test.mjs`, `npm run test:php`, `npm run build` y `git diff --check` en verde antes del commit; despliegue backend volvió a ejecutar `check` completo con 148 Node, PHP, integración, build y `check-dist` en verde.
 - Commit: `302ba27` (`Agregar top de seguidores al admin de voceros`).
 - Publicación externa: backend publicado con `npm run backend:deploy` y frontend con `npm run deploy`; el despliegue reportó verificación en `https://complejomushucruna.com`. Verificación adicional por espejo Netlife confirmó en `https://finados.expoferiamushucruna.com/admin/voceros/` el script `admin-followers-1`, el bloque `Top 20 por seguidores` y `Cuentas pendientes de ficha` al final como sección colapsada.
+
+### 2026-09-18 — Checks de videos enviados en listado admin de Voceros
+
+- Se añadió una columna `Videos` en la tabla principal de registros del panel admin, con cinco checks visuales por vocero y contador `x/5`; cada check se marca cuando existe un enlace enviado en `vocero_videos` con estado `submitted`.
+- El endpoint de listado ahora devuelve `videos_submitted` y `videos_total` mediante una consulta de solo lectura; si una instalación antigua no tiene todavía la tabla de videos, conserva compatibilidad devolviendo `0/5` sin romper el listado.
+- Se renovó únicamente la caché de `admin.js` a `20260918-admin-video-checks-1`. No se modifican ni borran registros, cuentas, fotos, consentimientos, fechas globales, enlaces enviados, DNS, Google Sheets ni otros proyectos.
+- QA: `npm run test:node -- website/tests/admin.test.mjs` en verde (150/150), `npm run test:php` en verde, `npm run build` en verde, `git diff --check` en verde y `npm run check` completo en verde (150 Node, 20 PHP, 10 integración, build 130 archivos/32 HTML/1066 referencias).
+- Publicación externa: pendiente de commit/push y despliegue explícito después de esta nota.

@@ -317,7 +317,14 @@ final class VocerosRepository
         $query = $this->pdo->prepare('SELECT COUNT(*) FROM voceros' . $clause);
         $query->execute($parameters);
         $total = (int) $query->fetchColumn();
-        $query = $this->pdo->prepare('SELECT public_id, submission_id, status, full_name, city, main_network, previous_participation, submitted_at, created_at, updated_at, cedula_enc, whatsapp_enc FROM voceros' . $clause . ' ORDER BY submitted_at DESC, id DESC LIMIT ? OFFSET ?');
+        $hasProgressSchema = $this->hasProgressSchema();
+        $videoProjection = $hasProgressSchema
+            ? ", COALESCE(video_counts.videos_submitted, 0) AS videos_submitted, 5 AS videos_total"
+            : ", 0 AS videos_submitted, 5 AS videos_total";
+        $videoJoin = $hasProgressSchema
+            ? " LEFT JOIN (SELECT vocero_id, COUNT(*) AS videos_submitted FROM vocero_videos WHERE status = 'submitted' AND TRIM(COALESCE(url, '')) <> '' GROUP BY vocero_id) video_counts ON video_counts.vocero_id = voceros.id"
+            : "";
+        $query = $this->pdo->prepare("SELECT public_id, submission_id, status, full_name, city, main_network, previous_participation, submitted_at, created_at, updated_at, cedula_enc, whatsapp_enc" . $videoProjection . " FROM voceros" . $videoJoin . $clause . ' ORDER BY submitted_at DESC, id DESC LIMIT ? OFFSET ?');
         foreach ($parameters as $index => $value) {
             $query->bindValue($index + 1, $value, PDO::PARAM_STR);
         }

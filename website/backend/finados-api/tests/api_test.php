@@ -324,6 +324,12 @@ $scheduleJson = api_request('PATCH', '/api/vocero-video-schedule', [
 ], $cookie, $csrf);
 same(200, $scheduleJson['status']);
 same('2026-09-18', $scheduleJson['json']['video_slots'][0]['enabled_at']);
+$apiPdo->prepare("INSERT INTO vocero_videos (vocero_id, slot, url, status, submitted_at, updated_at, enabled_at) VALUES (?, 1, 'https://video.example/uno', 'submitted', '2026-09-18 18:00:00', '2026-09-18 18:00:00', '2026-09-18')")->execute([$apiInternalId]);
+$apiPdo->prepare("INSERT INTO vocero_videos (vocero_id, slot, url, status, submitted_at, updated_at, enabled_at) VALUES (?, 2, 'https://video.example/dos', 'submitted', '2026-09-18 18:05:00', '2026-09-18 18:05:00', '2026-09-18')")->execute([$apiInternalId]);
+$listWithVideos = api_request('GET', '/api/voceros?page=1&pageSize=1', cookie: $cookie);
+same(200, $listWithVideos['status']);
+same(2, $listWithVideos['json']['items'][0]['videos_submitted']);
+same(5, $listWithVideos['json']['items'][0]['videos_total']);
 $viewAudits = $apiPdo->query("SELECT * FROM audit_log WHERE event_type = 'vocero.viewed'")->fetchAll();
 same(1, count($viewAudits));
 same(1, (int) $viewAudits[0]['actor_id']);

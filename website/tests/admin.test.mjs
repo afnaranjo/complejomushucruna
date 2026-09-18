@@ -109,6 +109,24 @@ test('admin ubica el top de seguidores antes de registros y pendientes al final 
   assert.doesNotMatch(html, /<details class="pending-accounts"[^>]*open/);
 });
 
+test('admin agrega una columna visual de videos enviados en la tabla de registros', async () => {
+  const { renderAdminVocerosPage } = await import('../src/admin/page.mjs');
+  const html = renderAdminVocerosPage({ title: 'Voceros', route: '/admin/voceros/' });
+
+  assert.match(html, /<th scope="col">Videos<\/th>/);
+  assert.ok(html.indexOf('<th scope="col">Videos</th>') > html.indexOf('<th scope="col">Registro</th>'));
+  assert.ok(html.indexOf('<th scope="col">Estado</th>') > html.indexOf('<th scope="col">Videos</th>'));
+});
+
+test('admin normaliza videos enviados para marcar cinco checks en tabla', async () => {
+  const { videoSubmissionState } = await load();
+
+  assert.deepEqual(videoSubmissionState({ videos_submitted: 2 }), { submitted: 2, total: 5 });
+  assert.deepEqual(videoSubmissionState({ videos: [{ status: 'submitted', url: 'https://video.example/1' }, { status: 'enabled' }] }), { submitted: 1, total: 5 });
+  assert.deepEqual(videoSubmissionState({ videos_submitted: 99 }), { submitted: 5, total: 5 });
+  assert.deepEqual(videoSubmissionState({ videos_submitted: -1 }), { submitted: 0, total: 5 });
+});
+
 test('admin ordena y limita el top de seguidores para lectura rápida', async () => {
   const { topFollowers } = await load();
   const items = Array.from({ length: 18 }, (_, index) => ({
