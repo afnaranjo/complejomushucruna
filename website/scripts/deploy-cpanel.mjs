@@ -8,6 +8,7 @@ const websiteRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const repositoryRoot = resolve(websiteRoot, '..');
 const defaultConfigPath = join(websiteRoot, '.env.deploy');
 const publicHostname = 'complejomushucruna.com';
+const mirrorSiteUrl = 'https://finados.expoferiamushucruna.com';
 const vocerosRegistrationConfig = Object.freeze({
   enabled: true,
   responsable: 'Eventos Finados 2026',
@@ -368,6 +369,7 @@ async function fetchWithTimeout(url) {
 
 async function verifyPublicSite(config) {
   const cacheBust = `deploy=${Date.now()}`;
+  const siteUrls = [config.DEPLOY_SITE_URL, mirrorSiteUrl];
   const checks = [
     ['/', 200],
     ['/finados/', 200],
@@ -395,10 +397,16 @@ async function verifyPublicSite(config) {
 
   for (const [path, expectedStatus] of checks) {
     let response;
-    try {
-      const separator = path.includes('?') ? '&' : '?';
-      response = await fetchWithTimeout(`${config.DEPLOY_SITE_URL}${path}${separator}${cacheBust}`);
-    } catch {
+    const separator = path.includes('?') ? '&' : '?';
+    for (const siteUrl of siteUrls) {
+      try {
+        response = await fetchWithTimeout(`${siteUrl}${path}${separator}${cacheBust}`);
+        break;
+      } catch {
+        response = null;
+      }
+    }
+    if (!response) {
       fail(`No se pudo verificar por HTTPS la ruta pública ${path}.`);
     }
     if (response.status !== expectedStatus) {

@@ -1044,3 +1044,10 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - QA: `npm run test:node` en verde (144 pruebas) y `npm run build` en verde (130 archivos). No se modificó backend, base de datos, DNS, Google Sheets ni otros proyectos.
 - Commit: este commit (`Mantener abierto submenu de Finados al pasar el mouse`).
 - Publicación externa: pendiente de autorización expresa para desplegar frontend.
+
+### 2026-09-18 — Preflight frontend compatible con espejo Netlife
+
+- Se ajustó el script de despliegue frontend para validar la API por el host principal o por el espejo `api.expoferiamushucruna.com` cuando la red no resuelve `finados.complejomushucruna.com`.
+- La verificación pública del sitio también puede comprobar rutas por `finados.expoferiamushucruna.com` si `complejomushucruna.com` no resuelve localmente, sin cambiar el destino de publicación.
+- QA: `npm run test:node` en verde (144 pruebas). No se modificó backend, base de datos, DNS, Google Sheets ni otros proyectos.
+- Publicación externa: pendiente; este cambio solo desbloquea el preflight desde redes con bloqueo DNS del dominio principal.

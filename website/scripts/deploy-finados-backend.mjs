@@ -8,6 +8,8 @@ import { loadConfig } from './deploy-cpanel.mjs';
 const websiteRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const backend = join(websiteRoot, 'backend/finados-api');
 const healthUrl = 'https://finados.complejomushucruna.com/api/health';
+const mirrorHealthUrl = 'https://api.expoferiamushucruna.com/api/health';
+const healthUrls = Object.freeze([healthUrl, mirrorHealthUrl]);
 const php = 'php -d display_errors=0 -d log_errors=0';
 const photoUploadBytes = 5 * 1024 * 1024;
 const profileRequestOverheadBytes = 256 * 1024;
@@ -207,10 +209,13 @@ export function normalizeHealthResponse(status, body) {
 
 export async function checkDeployedBackend(config, transport = createTransport(config)) {
   validateBackendConfig(config);
-  let health;
-  try { health = await transport.health(healthUrl); }
-  catch { fail('No se pudo verificar la API activa por HTTPS.'); }
-  return validateDeployedBackendHealth(health);
+  let lastError;
+  for (const url of healthUrls) {
+    try { return validateDeployedBackendHealth(await transport.health(url)); }
+    catch (error) { lastError = error; }
+  }
+  if (lastError) fail('No se pudo verificar la API activa por HTTPS.');
+  fail('No se pudo verificar la API activa por HTTPS.');
 }
 
 function migrationSource(release) {
