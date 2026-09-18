@@ -1290,3 +1290,12 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - QA: `npm run test:node -- website/tests/admin.test.mjs` en verde (150/150), `npm run test:php` en verde, `npm run build` en verde, `git diff --check` en verde y `npm run check` completo en verde (150 Node, 20 PHP, 10 integración, build 130 archivos/32 HTML/1066 referencias).
 - Commit: `0942aeb` (`Agregar checks de videos al admin de voceros`), publicado en `origin/main`.
 - Publicación externa: backend desplegado con `npm run backend:deploy` y frontend con `npm run deploy`; el backend ejecutó `check` completo antes de activar y el frontend reportó `Despliegue verificado en https://complejomushucruna.com`. Verificación adicional por espejo Netlife devolvió HTTP 200 en `https://finados.expoferiamushucruna.com/admin/voceros/` con el script `admin-video-checks-1` en el HTML. Sin cambios de base de datos fuera de consultas de lectura/compatibilidad ni cambios en DNS, Google Sheets o proyectos ajenos.
+
+### 2026-09-18 — Views por video y Top 10 en admin de Voceros
+
+- Se añadió al detalle administrativo un campo de `Views validadas` junto a cada Video 1–5; el autoguardado/guardar progreso envía esos valores sin cambiar los enlaces ya enviados por los voceros.
+- Se agregó una migración aditiva `007_vocero_video_views` que añade `views_count` a `vocero_videos` con valor inicial 0 e índice de lectura. No borra ni transforma registros existentes.
+- El dashboard del admin devuelve `topVideos` y la pantalla muestra un `Top 10 por views de videos` arriba del ranking de seguidores, ordenado por views validadas y con acceso rápido al detalle del vocero.
+- La actualización de views solo modifica filas de videos ya existentes; no crea videos vacíos por guardar progreso y conserva compatibilidad si la columna aún no existe.
+- QA: prueba roja verificada y luego `npm run test:node -- website/tests/admin.test.mjs` en verde (151/151), `npm run test:php` en verde, `npm run build` en verde, `git diff --check` en verde y `npm run check` completo en verde (151 Node, 20 PHP, 10 integración, build 130 archivos/32 HTML/1066 referencias).
+- Publicación externa: pendiente de commit/push y despliegue explícito.

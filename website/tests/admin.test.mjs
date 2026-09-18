@@ -185,7 +185,37 @@ test('admin prepara el autoguardado de progreso con seguidores sin fechas de vid
     level: 3,
     traffic_light: 'yellow',
     kit_status: 'pendiente',
+    video_views: [
+      { slot: 1, views_count: 0 },
+      { slot: 2, views_count: 0 },
+      { slot: 3, views_count: 0 },
+      { slot: 4, views_count: 0 },
+      { slot: 5, views_count: 0 },
+    ],
   });
+});
+
+test('admin incluye vistas validadas por cada video en progreso', async () => {
+  const { collectProgressPayload } = await load();
+  const elements = {
+    followers_count: { value: '15750' },
+    level: { value: '3' },
+    traffic_light: { value: 'yellow' },
+    kit_status: { value: 'pendiente' },
+    video_views_1: { value: '1000' },
+    video_views_2: { value: '' },
+    video_views_3: { value: '250' },
+    video_views_4: { value: '0' },
+    video_views_5: { value: '12' },
+  };
+
+  assert.deepEqual(collectProgressPayload({ elements }).body.video_views, [
+    { slot: 1, views_count: 1000 },
+    { slot: 2, views_count: 0 },
+    { slot: 3, views_count: 250 },
+    { slot: 4, views_count: 0 },
+    { slot: 5, views_count: 12 },
+  ]);
 });
 
 test('admin muestra cuentas pendientes y acción de retiro protegida', async () => {

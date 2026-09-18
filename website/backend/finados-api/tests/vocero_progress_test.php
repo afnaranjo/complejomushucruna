@@ -21,7 +21,7 @@ $configPath = temp_file(json_encode([
 ], JSON_THROW_ON_ERROR));
 $config = Config::fromFile($configPath);
 $pdo = Database::connect($config);
-foreach (['001_initial', '002_sheets_outbox', '003_vocero_accounts', '004_vocero_progress', '005_vocero_video_enablement', '006_vocero_video_schedule'] as $migration) {
+foreach (['001_initial', '002_sheets_outbox', '003_vocero_accounts', '004_vocero_progress', '005_vocero_video_enablement', '006_vocero_video_schedule', '007_vocero_video_views'] as $migration) {
     $pdo->exec(file_get_contents(__DIR__ . '/../migrations/' . $migration . '_sqlite.sql'));
 }
 $crypto = new Crypto($config);
@@ -69,3 +69,14 @@ throws(fn () => $repo->saveVideoByVoceroId($voceroId, 3, 'https://example.invali
 $repo->saveVideoByVoceroId($voceroId, 1, 'https://example.invalid/video-1', '192.0.2.22');
 same('https://example.invalid/video-1', $repo->progressForVocero($voceroId)['videos'][0]['url']);
 throws(fn () => $repo->saveVideoByVoceroId($voceroId, 1, 'https://example.invalid/video-1-cambiado', '192.0.2.22'), InvalidArgumentException::class);
+$repo->updateProgress($publicId, [
+    'followers_count' => 1000, 'level' => 2, 'traffic_light' => 'yellow', 'kit_status' => 'pendiente',
+    'video_views' => [
+        ['slot' => 1, 'views_count' => 4321],
+        ['slot' => 2, 'views_count' => 0],
+        ['slot' => 3, 'views_count' => 0],
+        ['slot' => 4, 'views_count' => 0],
+        ['slot' => 5, 'views_count' => 0],
+    ],
+], 1, '192.0.2.21');
+same(4321, $repo->progressForVocero($voceroId)['videos'][0]['views_count']);

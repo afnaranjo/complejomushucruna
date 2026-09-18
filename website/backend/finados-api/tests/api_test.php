@@ -33,6 +33,7 @@ $apiPdo->exec(file_get_contents(__DIR__ . '/../migrations/003_vocero_accounts_sq
 $apiPdo->exec(file_get_contents(__DIR__ . '/../migrations/004_vocero_progress_sqlite.sql'));
 $apiPdo->exec(file_get_contents(__DIR__ . '/../migrations/005_vocero_video_enablement_sqlite.sql'));
 $apiPdo->exec(file_get_contents(__DIR__ . '/../migrations/006_vocero_video_schedule_sqlite.sql'));
+$apiPdo->exec(file_get_contents(__DIR__ . '/../migrations/007_vocero_video_views_sqlite.sql'));
 $apiPdo->exec('PRAGMA journal_mode = WAL');
 $apiSecret = bin2hex(random_bytes(24));
 $apiHash = Finados\Auth::hashPassword($apiSecret);
@@ -326,6 +327,24 @@ same(200, $scheduleJson['status']);
 same('2026-09-18', $scheduleJson['json']['video_slots'][0]['enabled_at']);
 $apiPdo->prepare("INSERT INTO vocero_videos (vocero_id, slot, url, status, submitted_at, updated_at, enabled_at) VALUES (?, 1, 'https://video.example/uno', 'submitted', '2026-09-18 18:00:00', '2026-09-18 18:00:00', '2026-09-18')")->execute([$apiInternalId]);
 $apiPdo->prepare("INSERT INTO vocero_videos (vocero_id, slot, url, status, submitted_at, updated_at, enabled_at) VALUES (?, 2, 'https://video.example/dos', 'submitted', '2026-09-18 18:05:00', '2026-09-18 18:05:00', '2026-09-18')")->execute([$apiInternalId]);
+$viewsJson = api_request('PATCH', '/api/voceros/' . $apiId . '/progress', [
+    'followers_count' => 24567, 'level' => 3, 'traffic_light' => 'yellow', 'kit_status' => 'pendiente',
+    'video_views' => [
+        ['slot' => 1, 'views_count' => 1600],
+        ['slot' => 2, 'views_count' => 2300],
+        ['slot' => 3, 'views_count' => 0],
+        ['slot' => 4, 'views_count' => 0],
+        ['slot' => 5, 'views_count' => 0],
+    ],
+], $cookie, $csrf);
+same(200, $viewsJson['status']);
+$progressWithViews = $apiRepository->progressForVocero($apiInternalId);
+same(1600, $progressWithViews['videos'][0]['views_count']);
+same(2300, $progressWithViews['videos'][1]['views_count']);
+$dashboardWithVideos = api_request('GET', '/api/dashboard', cookie: $cookie);
+same($apiId, $dashboardWithVideos['json']['topVideos'][0]['public_id']);
+same(2, $dashboardWithVideos['json']['topVideos'][0]['slot']);
+same(2300, $dashboardWithVideos['json']['topVideos'][0]['views_count']);
 $listWithVideos = api_request('GET', '/api/voceros?page=1&pageSize=1', cookie: $cookie);
 same(200, $listWithVideos['status']);
 same(2, $listWithVideos['json']['items'][0]['videos_submitted']);

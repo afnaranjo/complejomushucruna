@@ -42,6 +42,13 @@ export function topFollowers(items = [], limit = 20) {
     .sort((left, right) => right.followers_count - left.followers_count || left.full_name.localeCompare(right.full_name, 'es'))
     .slice(0, Math.max(0, Number.parseInt(limit, 10) || 0));
 }
+export function topVideoViews(items = [], limit = 10) {
+  return (Array.isArray(items) ? items : [])
+    .map(item => ({ ...item, views_count: Math.max(0, Number.parseInt(item?.views_count, 10) || 0), slot: Math.max(1, Math.min(5, Number.parseInt(item?.slot, 10) || 1)) }))
+    .filter(item => item.views_count > 0 && typeof item.full_name === 'string' && item.full_name.trim() !== '')
+    .sort((left, right) => right.views_count - left.views_count || left.full_name.localeCompare(right.full_name, 'es') || left.slot - right.slot)
+    .slice(0, Math.max(0, Number.parseInt(limit, 10) || 0));
+}
 export function videoSubmissionState(record = {}) {
   const total = 5;
   const fromCount = Number.parseInt(record.videos_submitted, 10);
@@ -198,12 +205,19 @@ export function collectVideoSchedulePayload(videoInput) {
 }
 
 export function collectProgressPayload(progressForm) {
+  const videoViews = [];
+  for (const slot of [1, 2, 3, 4, 5]) {
+    const input = progressForm.elements.namedItem?.(`video_views_${slot}`) ?? progressForm.elements[`video_views_${slot}`];
+    const value = Math.max(0, Number.parseInt(input?.value, 10) || 0);
+    videoViews.push({ slot, views_count: Math.min(1000000000, value) });
+  }
   return {
     body: {
       followers_count: Number(progressForm.elements.followers_count.value),
       level: Number(progressForm.elements.level.value),
       traffic_light: progressForm.elements.traffic_light.value,
       kit_status: progressForm.elements.kit_status.value,
+      video_views: videoViews,
     },
   };
 }
@@ -288,6 +302,8 @@ export async function initializeAdmin() {
   const dashboard = query('[data-admin-dashboard]');
   const followersLeaderboard = query('[data-followers-leaderboard]');
   const followersLeaderboardCount = query('[data-followers-leaderboard-count]');
+  const videoViewsLeaderboard = query('[data-video-views-leaderboard]');
+  const videoViewsLeaderboardCount = query('[data-video-views-leaderboard-count]');
   const previous = query('[data-previous]');
   const next = query('[data-next]');
   const exportButton = query('[data-admin-export]');
@@ -388,6 +404,31 @@ export async function initializeAdmin() {
       followersLeaderboard.append(item);
     }
   }
+  function renderVideoViewsLeaderboard(items = []) {
+    const ranking = topVideoViews(items, 10);
+    videoViewsLeaderboard.replaceChildren();
+    videoViewsLeaderboardCount.textContent = ranking.length ? `${ranking.length} videos` : 'Sin datos';
+    if (!ranking.length) {
+      videoViewsLeaderboard.append(node('li', 'Todavía no hay videos con views registradas.'));
+      return;
+    }
+    for (const [index, record] of ranking.entries()) {
+      const item = node('li');
+      const rank = node('span', String(index + 1).padStart(2, '0'), 'followers-leaderboard__rank');
+      const body = node('div');
+      body.append(node('strong', `${record.full_name} · Video ${record.slot}`));
+      const meta = [record.city, record.main_network].filter(Boolean).join(' · ');
+      body.append(node('small', meta || 'Sin ciudad o red principal'));
+      const value = node('span', new Intl.NumberFormat('es-EC').format(record.views_count), 'followers-leaderboard__value');
+      if (/^[a-f0-9]{32}$/.test(record.public_id ?? '')) {
+        const open = node('button', 'Ver detalle', 'button-quiet followers-leaderboard__action');
+        open.type = 'button';
+        open.addEventListener('click', () => openDetail(record.public_id, open));
+        item.append(rank, body, value, open);
+      } else item.append(rank, body, value);
+      videoViewsLeaderboard.append(item);
+    }
+  }
   async function summary() {
     dashboard.setAttribute('aria-busy', 'true');
     try {
@@ -397,10 +438,12 @@ export async function initializeAdmin() {
         const block = node('dl'); block.append(node('dt', metric.label), node('dd', metric.value)); dashboard.append(block);
       }
       renderFollowersLeaderboard(data.topFollowers);
+      renderVideoViewsLeaderboard(data.topVideos);
       renderCounts(query('[data-status-counts]'), data.byStatus);
       renderCounts(query('[data-date-counts]'), data.byDate);
     } catch (error) {
       renderFollowersLeaderboard([]);
+      renderVideoViewsLeaderboard([]);
       throw error;
     } finally { dashboard.setAttribute('aria-busy', 'false'); }
   }
@@ -549,6 +592,9 @@ export async function initializeAdmin() {
       item.append(node('strong', `Video ${video.slot}`), node('span', video.unlocked ? (video.status === 'submitted' ? 'Enlace recibido' : 'Habilitado') : 'Bloqueado'));
       if (video.enabled_at) item.append(node('small', 'Disponible desde ' + dateOnly(String(video.enabled_at).slice(0, 10))));
       if (video.url) { const link = node('a', video.url); link.href = video.url; link.target = '_blank'; link.rel = 'noopener noreferrer'; item.append(link); }
+      const views = node('label', undefined, 'admin-video-views');
+      views.append(node('span', 'Views validadas'), Object.assign(document.createElement('input'), { type: 'number', name: `video_views_${video.slot}`, min: '0', max: '1000000000', step: '1', value: String(Number(video.views_count) || 0), inputMode: 'numeric', disabled: !video.url }));
+      item.append(views);
       adminVideos.append(item);
     }
     if (!adminVideos.children.length) adminVideos.append(node('p', 'Los cinco espacios aparecerán al actualizar el progreso.'));
