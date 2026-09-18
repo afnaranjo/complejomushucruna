@@ -45,7 +45,7 @@ export function createAdminClient(baseUrl = API, fetchImplementation = fetch) {
   if (![API, MIRROR_API_BASE, LOCAL_API].filter(Boolean).includes(baseUrl)) throw new Error('Origen de API no permitido.');
   let csrf = '';
   async function request(path, options = {}) {
-    if (!/^\/(?:auth\/(?:session|login|logout)|dashboard|vocero-accounts|voceros(?:\/[a-zA-Z0-9-]+(?:\/(?:notes|progress))?)?)(?:\?[^#]*)?$/.test(path)
+    if (!/^\/(?:auth\/(?:session|login|logout)|dashboard|vocero-accounts|vocero-video-schedule|voceros(?:\/[a-zA-Z0-9-]+(?:\/(?:notes|progress))?)?)(?:\?[^#]*)?$/.test(path)
       && !/^\/(?:vocero-accounts|voceros)\/[a-f0-9]{32}\/(?:delete|photo|password-reset|progress)$/.test(path)) throw new Error('Ruta de API no permitida.');
     const method = (options.method ?? 'GET').toUpperCase();
     if (!['GET', 'POST', 'PATCH'].includes(method)) throw new Error('Método no permitido.');
@@ -78,6 +78,8 @@ export function createAdminClient(baseUrl = API, fetchImplementation = fetch) {
     login: (username, password) => request('/auth/login', { method: 'POST', body: { username, password } }),
     logout: () => request('/auth/logout', { method: 'POST' }),
     pendingAccounts: () => request('/vocero-accounts'),
+    videoSchedule: () => request('/vocero-video-schedule'),
+    updateVideoSchedule: body => request('/vocero-video-schedule', { method: 'PATCH', body }),
     deletePendingAccount: id => request(`/vocero-accounts/${id}/delete`, { method: 'POST', body: {} }),
     deleteProfile: id => request(`/voceros/${id}/delete`, { method: 'POST', body: {} }),
     export: filters => {
@@ -153,7 +155,7 @@ function dateOnly(value) {
   return new Intl.DateTimeFormat('es-EC', { dateStyle: 'medium', timeZone: 'UTC' }).format(new Date(Date.UTC(year, month - 1, day)));
 }
 
-export function collectProgressPayload(progressForm, videoInput) {
+export function collectVideoSchedulePayload(videoInput) {
   const videoSlots = [];
   for (const slot of [1, 2, 3, 4, 5]) {
     const enabled = Boolean(videoInput(slot, 'enabled')?.checked);
@@ -163,12 +165,15 @@ export function collectProgressPayload(progressForm, videoInput) {
     }
     videoSlots.push({ slot, enabled, enabled_at: enabled ? enabledAt : null });
   }
+  return { body: { video_slots: videoSlots } };
+}
+
+export function collectProgressPayload(progressForm) {
   return {
     body: {
       followers_count: Number(progressForm.elements.followers_count.value),
       level: Number(progressForm.elements.level.value),
       traffic_light: progressForm.elements.traffic_light.value,
-      video_slots: videoSlots,
       kit_status: progressForm.elements.kit_status.value,
     },
   };
@@ -258,6 +263,9 @@ export async function initializeAdmin() {
   const pendingAccounts = query('[data-pending-accounts]');
   const pendingCount = query('[data-pending-count]');
   const pendingMessage = query('[data-pending-message]');
+  const globalVideoForm = query('[data-global-video-form]');
+  const globalVideoFeedback = query('[data-global-video-feedback]');
+  const globalVideoSummary = query('[data-global-video-summary]');
   const logout = document.querySelector('[data-admin-logout]');
   const sidebarUser = document.querySelector('[data-admin-sidebar-user]');
   const dialog = query('[data-detail]');
@@ -267,7 +275,7 @@ export async function initializeAdmin() {
   const progressFeedback = query('[data-progress-feedback]');
   const progressSummary = query('[data-admin-progress-summary]');
   const adminVideos = query('[data-admin-videos]');
-  const videoInput = (slot, suffix) => progressForm.elements.namedItem(`video_${slot}_${suffix}`);
+  const scheduleVideoInput = (slot, suffix) => globalVideoForm.elements.namedItem(`schedule_video_${slot}_${suffix}`);
   const noteForm = query('[data-note-form]');
   let filters = normalizeFilters();
   let pagination = { page: 1, pages: 0 };
@@ -370,6 +378,30 @@ export async function initializeAdmin() {
       pendingAccounts.replaceChildren(); pendingCount.textContent = 'No disponible'; fail(error, pendingMessage);
     }
   }
+  function renderVideoSchedule(slots = []) {
+    const enabled = slots.filter(slot => Boolean(slot.enabled_at));
+    globalVideoSummary.textContent = `${enabled.length} de 5 configurados`;
+    for (const slot of [1, 2, 3, 4, 5]) {
+      const item = slots.find(entry => Number(entry.slot) === slot) ?? { slot, enabled_at: null };
+      const checkbox = scheduleVideoInput(slot, 'enabled');
+      const date = scheduleVideoInput(slot, 'enabled_at');
+      const isEnabled = typeof item.enabled_at === 'string' && item.enabled_at !== '';
+      if (checkbox) checkbox.checked = isEnabled;
+      if (date) { date.value = isEnabled ? item.enabled_at.slice(0, 10) : ''; date.required = isEnabled; }
+    }
+  }
+  async function loadVideoSchedule() {
+    try {
+      const data = await client.videoSchedule();
+      renderVideoSchedule(Array.isArray(data.video_slots) ? data.video_slots : []);
+      globalVideoForm.querySelector('fieldset').disabled = false;
+      feedback(globalVideoFeedback, 'Configura una fecha por video para habilitarlo a todos los voceros.');
+    } catch (error) {
+      globalVideoForm.querySelector('fieldset').disabled = true;
+      globalVideoSummary.textContent = 'No disponible';
+      fail(error, globalVideoFeedback);
+    }
+  }
   async function list() {
     const generation = ++listGeneration;
     region.setAttribute('aria-busy', 'true');
@@ -449,12 +481,6 @@ export async function initializeAdmin() {
     const videos = Array.isArray(value.videos) ? value.videos : [];
     const enabledCount = videos.filter(video => Boolean(video.unlocked)).length;
     progressSummary.textContent = `${value.level_label ?? 'En preparación'} · ${Number(value.followers_count) || 0} seguidores validados · ${enabledCount} de 5 videos habilitados · ${value.kit_status === 'retirado' ? 'Kit retirado' : 'Kit pendiente'}`;
-    for (const slot of [1, 2, 3, 4, 5]) {
-      const video = videos.find(item => Number(item.slot) === slot) ?? { slot, unlocked: false, enabled_at: null };
-      const checkbox = videoInput(slot, 'enabled'); const date = videoInput(slot, 'enabled_at');
-      if (checkbox) checkbox.checked = Boolean(video.unlocked);
-      if (date) { date.value = typeof video.enabled_at === 'string' ? video.enabled_at.slice(0, 10) : ''; date.required = Boolean(video.unlocked); }
-    }
     adminVideos.replaceChildren();
     for (const video of videos) {
       const stateClass = video.unlocked ? (video.status === 'submitted' ? ' admin-video-item--submitted' : ' admin-video-item--enabled') : '';
@@ -467,7 +493,7 @@ export async function initializeAdmin() {
     if (!adminVideos.children.length) adminVideos.append(node('p', 'Los cinco espacios aparecerán al actualizar el progreso.'));
   }
   for (const slot of [1, 2, 3, 4, 5]) {
-    const checkbox = videoInput(slot, 'enabled'); const date = videoInput(slot, 'enabled_at');
+    const checkbox = scheduleVideoInput(slot, 'enabled'); const date = scheduleVideoInput(slot, 'enabled_at');
     checkbox?.addEventListener('change', () => { if (date) { date.required = checkbox.checked; if (!checkbox.checked) date.value = ''; } });
   }
   async function loadDetail(id, generation, media = false) {
@@ -564,7 +590,7 @@ export async function initializeAdmin() {
   statusForm.addEventListener('submit', event => mutate(event, 'status'));
   progressForm.addEventListener('submit', event => {
     event.preventDefault();
-    const result = collectProgressPayload(progressForm, videoInput);
+    const result = collectProgressPayload(progressForm);
     if (result.error) { feedback(progressFeedback, result.error, 'error'); result.focus?.(); return; }
     progressForm.dataset.pendingBody = JSON.stringify(result.body);
     mutate(event, 'progress', result.body);
@@ -574,7 +600,7 @@ export async function initializeAdmin() {
     globalThis.clearTimeout(progressAutosaveTimer);
     progressAutosaveTimer = globalThis.setTimeout(() => {
       if (!currentId || progressForm.querySelector('fieldset').disabled) return;
-      const result = collectProgressPayload(progressForm, videoInput);
+      const result = collectProgressPayload(progressForm);
       if (result.error) { feedback(progressFeedback, result.error, 'error'); return; }
       const payload = JSON.stringify(result.body);
       if (payload === lastProgressPayload) return;
@@ -585,6 +611,20 @@ export async function initializeAdmin() {
   };
   progressForm.addEventListener('input', scheduleProgressAutosave);
   progressForm.addEventListener('change', scheduleProgressAutosave);
+  globalVideoForm.addEventListener('submit', async event => {
+    event.preventDefault();
+    const result = collectVideoSchedulePayload(scheduleVideoInput);
+    if (result.error) { feedback(globalVideoFeedback, result.error, 'error'); result.focus?.(); return; }
+    globalVideoForm.querySelector('fieldset').disabled = true;
+    feedback(globalVideoFeedback, 'Guardando fechas globales…');
+    try {
+      const data = await client.updateVideoSchedule(result.body);
+      renderVideoSchedule(Array.isArray(data.video_slots) ? data.video_slots : []);
+      await Promise.allSettled([list(), currentId ? loadDetail(currentId, detailGeneration) : Promise.resolve()]);
+      feedback(globalVideoFeedback, 'Fechas globales guardadas para todos los voceros.', 'success');
+    } catch (error) { fail(error, globalVideoFeedback); }
+    finally { globalVideoForm.querySelector('fieldset').disabled = false; }
+  });
   noteForm.addEventListener('submit', event => mutate(event, 'note'));
   form.addEventListener('submit', event => {
     event.preventDefault();
@@ -613,7 +653,7 @@ export async function initializeAdmin() {
     query('[data-admin-user]').textContent = `Sesión: ${username} · Registros del formulario de Voceros`;
     if (sidebarUser) sidebarUser.textContent = username;
     form.querySelector('fieldset').disabled = false; exportButton.disabled = false; logout.disabled = false;
-    const results = await Promise.allSettled([summary(), list(), loadPendingAccounts()]);
+    const results = await Promise.allSettled([summary(), list(), loadPendingAccounts(), loadVideoSchedule()]);
     for (const result of results) if (result.status === 'rejected') { fail(result.reason); retry.hidden = false; }
   };
   await session();

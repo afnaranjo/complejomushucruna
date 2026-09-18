@@ -32,6 +32,7 @@ $apiPdo->exec(file_get_contents(__DIR__ . '/../migrations/002_sheets_outbox_sqli
 $apiPdo->exec(file_get_contents(__DIR__ . '/../migrations/003_vocero_accounts_sqlite.sql'));
 $apiPdo->exec(file_get_contents(__DIR__ . '/../migrations/004_vocero_progress_sqlite.sql'));
 $apiPdo->exec(file_get_contents(__DIR__ . '/../migrations/005_vocero_video_enablement_sqlite.sql'));
+$apiPdo->exec(file_get_contents(__DIR__ . '/../migrations/006_vocero_video_schedule_sqlite.sql'));
 $apiPdo->exec('PRAGMA journal_mode = WAL');
 $apiSecret = bin2hex(random_bytes(24));
 $apiHash = Finados\Auth::hashPassword($apiSecret);
@@ -304,6 +305,10 @@ $detail = api_request('GET', '/api/voceros/' . $apiId, cookie: $cookie);
 same($apiRecord['email'], $detail['json']['email']); same(3, count($detail['json']['consents']));
 $progressJson = api_request('PATCH', '/api/voceros/' . $apiId . '/progress', [
     'followers_count' => 24567, 'level' => 3, 'traffic_light' => 'yellow', 'kit_status' => 'pendiente',
+], $cookie, $csrf);
+same(200, $progressJson['status']);
+same(24567, $apiRepository->progressForVocero($apiInternalId)['followers_count']);
+$scheduleJson = api_request('PATCH', '/api/vocero-video-schedule', [
     'video_slots' => [
         ['slot' => 1, 'enabled' => true, 'enabled_at' => '2026-09-18'],
         ['slot' => 2, 'enabled' => false, 'enabled_at' => null],
@@ -312,8 +317,8 @@ $progressJson = api_request('PATCH', '/api/voceros/' . $apiId . '/progress', [
         ['slot' => 5, 'enabled' => false, 'enabled_at' => null],
     ],
 ], $cookie, $csrf);
-same(200, $progressJson['status']);
-same(24567, $apiRepository->progressForVocero($apiInternalId)['followers_count']);
+same(200, $scheduleJson['status']);
+same('2026-09-18', $scheduleJson['json']['video_slots'][0]['enabled_at']);
 $viewAudits = $apiPdo->query("SELECT * FROM audit_log WHERE event_type = 'vocero.viewed'")->fetchAll();
 same(1, count($viewAudits));
 same(1, (int) $viewAudits[0]['actor_id']);

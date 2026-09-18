@@ -1264,3 +1264,10 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - No se ejecutó ni envió el programa de migraciones: solo SELECTs de esquema en transacción de lectura. JSON privado del backend, columnas/constraints, historial y otros JSON privados ajenos iguales antes/después. Sin DDL, DML, altas, retiros, importaciones o formularios de personas en producción; legal/Sheets no reescritos.
 - Verificación final independiente: 52 comprobaciones HTTPS de recursos/páginas correctas en ambos dominios, todos 200/SHA-256 idéntico y MIME/caché correctos; diez CORS/health repetidas después del frontend, GET 200, OPTIONS 204 para ambos orígenes y rechazo 403 de origen extraño. Sin bloqueo de publicación pendiente; no se modificaron DNS, credenciales, Sheets o proyectos ajenos.
 - Evidencia: [[2026-09-18_sincronizacion-menu-progreso-voceros-web_v01]]. Stashes propios retenidos recuperables. Cierre documental no cambia el árbol de `website/` publicado.
+
+### 2026-09-18 — Calendario global de videos para Voceros
+
+- Se añadió una configuración global de cinco fechas de video en el panel admin; esas fechas aplican a todos los voceros y reemplazan la habilitación por detalle individual.
+- Se agregó la migración `006_vocero_video_schedule` con una tabla pequeña de calendario global, sin modificar ni borrar enlaces ya enviados por voceros.
+- El detalle del vocero conserva seguidores, nivel, semáforo y kit como progreso individual, y muestra los videos según el calendario global.
+- QA: `npm run test:php`, `npm run test:node`, `npm run build` y `git diff --check` en verde. Publicación externa pendiente.

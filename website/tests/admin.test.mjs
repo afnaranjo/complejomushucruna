@@ -88,31 +88,22 @@ test('admin acepta enlaces de recuperación del origen espejo y rechaza otros de
 test('admin presenta cinco habilitaciones independientes con fecha por video', async () => {
   const { renderAdminVocerosPage } = await import('../src/admin/page.mjs');
   const html = renderAdminVocerosPage({ title: 'Voceros', route: '/admin/voceros/' });
-  assert.equal((html.match(/name="video_[1-5]_enabled"/g) ?? []).length, 5);
-  assert.equal((html.match(/name="video_[1-5]_enabled_at"/g) ?? []).length, 5);
-  assert.match(html, /data-admin-video-controls/);
-  assert.match(html, /Marca cada video y registra la fecha/);
+  assert.equal((html.match(/name="schedule_video_[1-5]_enabled"/g) ?? []).length, 5);
+  assert.equal((html.match(/name="schedule_video_[1-5]_enabled_at"/g) ?? []).length, 5);
+  assert.match(html, /data-global-video-form/);
+  assert.match(html, /Estas fechas aplican para todos los voceros/);
   assert.doesNotMatch(html, /name="videos_unlocked"/);
 });
 
-test('admin prepara y valida el autoguardado de progreso con seguidores', async () => {
-  const { collectProgressPayload } = await load();
-  const elements = {
-    followers_count: { value: '15750' },
-    level: { value: '3' },
-    traffic_light: { value: 'yellow' },
-    kit_status: { value: 'pendiente' },
-  };
+test('admin prepara y valida calendario global de videos', async () => {
+  const { collectVideoSchedulePayload } = await load();
   const videos = new Map([
     ['1_enabled', { checked: true }],
     ['1_enabled_at', { value: '2026-09-20', focused: false, focus() { this.focused = true; } }],
   ]);
   const videoInput = (slot, suffix) => videos.get(`${slot}_${suffix}`) ?? (suffix === 'enabled' ? { checked: false } : { value: '', focus() {} });
 
-  assert.deepEqual(collectProgressPayload({ elements }, videoInput).body, {
-    followers_count: 15750,
-    level: 3,
-    traffic_light: 'yellow',
+  assert.deepEqual(collectVideoSchedulePayload(videoInput).body, {
     video_slots: [
       { slot: 1, enabled: true, enabled_at: '2026-09-20' },
       { slot: 2, enabled: false, enabled_at: null },
@@ -120,14 +111,30 @@ test('admin prepara y valida el autoguardado de progreso con seguidores', async 
       { slot: 4, enabled: false, enabled_at: null },
       { slot: 5, enabled: false, enabled_at: null },
     ],
-    kit_status: 'pendiente',
   });
 
   videos.get('1_enabled_at').value = '';
-  const invalid = collectProgressPayload({ elements }, videoInput);
+  const invalid = collectVideoSchedulePayload(videoInput);
   assert.equal(invalid.error, 'Indica la fecha de habilitación del video 1.');
   invalid.focus();
   assert.equal(videos.get('1_enabled_at').focused, true);
+});
+
+test('admin prepara el autoguardado de progreso con seguidores sin fechas de video', async () => {
+  const { collectProgressPayload } = await load();
+  const elements = {
+    followers_count: { value: '15750' },
+    level: { value: '3' },
+    traffic_light: { value: 'yellow' },
+    kit_status: { value: 'pendiente' },
+  };
+
+  assert.deepEqual(collectProgressPayload({ elements }).body, {
+    followers_count: 15750,
+    level: 3,
+    traffic_light: 'yellow',
+    kit_status: 'pendiente',
+  });
 });
 
 test('admin muestra cuentas pendientes y acción de retiro protegida', async () => {

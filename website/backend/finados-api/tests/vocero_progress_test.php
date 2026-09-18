@@ -21,7 +21,7 @@ $configPath = temp_file(json_encode([
 ], JSON_THROW_ON_ERROR));
 $config = Config::fromFile($configPath);
 $pdo = Database::connect($config);
-foreach (['001_initial', '002_sheets_outbox', '003_vocero_accounts', '004_vocero_progress', '005_vocero_video_enablement'] as $migration) {
+foreach (['001_initial', '002_sheets_outbox', '003_vocero_accounts', '004_vocero_progress', '005_vocero_video_enablement', '006_vocero_video_schedule'] as $migration) {
     $pdo->exec(file_get_contents(__DIR__ . '/../migrations/' . $migration . '_sqlite.sql'));
 }
 $crypto = new Crypto($config);
@@ -45,6 +45,8 @@ $voceroId = (int) $pdo->query('SELECT id FROM voceros WHERE public_id = ' . $pdo
 
 $repo->updateProgress($publicId, [
     'followers_count' => 1000, 'level' => 2, 'traffic_light' => 'yellow', 'kit_status' => 'pendiente',
+], 1, '192.0.2.21');
+$repo->updateVideoSchedule([
     'video_slots' => [
         ['slot' => 1, 'enabled' => true, 'enabled_at' => '2020-01-01'],
         ['slot' => 2, 'enabled' => false, 'enabled_at' => null],
@@ -54,7 +56,7 @@ $repo->updateProgress($publicId, [
     ],
 ], 1, '192.0.2.21');
 $progress = $repo->progressForVocero($voceroId);
-same(2, $progress['videos_unlocked']);
+same(1, $progress['videos_unlocked']);
 same(true, $progress['videos'][0]['unlocked']);
 same('2020-01-01', $progress['videos'][0]['enabled_at']);
 same(false, $progress['videos'][1]['unlocked']);

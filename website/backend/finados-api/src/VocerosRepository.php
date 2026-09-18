@@ -31,6 +31,7 @@ final class VocerosRepository
     private readonly Audit $audit;
     private ?bool $progressSchema = null;
     private ?bool $videoEnablementSchema = null;
+    private ?bool $videoScheduleSchema = null;
 
     public function __construct(private readonly PDO $pdo, private readonly Crypto $crypto, ?Audit $audit = null)
     {
@@ -381,8 +382,56 @@ final class VocerosRepository
         $videoColumns = $this->hasVideoEnablementSchema() ? ', enabled_at' : '';
         $query = $this->pdo->prepare('SELECT slot, url, status, submitted_at, updated_at' . $videoColumns . ' FROM vocero_videos WHERE vocero_id = ? ORDER BY slot');
         $query->execute([$voceroId]);
-        $progress['videos'] = $this->videoSlots($query->fetchAll(), $progress['videos_unlocked'], $progress['video_slots_configured']);
+        if ($this->hasVideoScheduleSchema()) {
+            $schedule = $this->videoSchedule();
+            $progress['videos'] = $this->videoSlots($query->fetchAll(), 0, true, $schedule);
+            $progress['videos_unlocked'] = count(array_filter($progress['videos'], static fn (array $video): bool => (bool) $video['unlocked']));
+            $progress['video_slots_configured'] = true;
+        } else {
+            $progress['videos'] = $this->videoSlots($query->fetchAll(), $progress['videos_unlocked'], $progress['video_slots_configured']);
+        }
         return $progress;
+    }
+
+    public function videoSchedule(): array
+    {
+        if (!$this->hasVideoScheduleSchema()) return $this->videoSlots([], 0, true);
+        $query = $this->pdo->query('SELECT slot, enabled_at, updated_at FROM vocero_video_schedule ORDER BY slot');
+        $rows = [];
+        foreach ($query->fetchAll() as $row) {
+            $enabledAt = $row['enabled_at'] ?? null;
+            $rows[(int) $row['slot']] = [
+                'slot' => (int) $row['slot'],
+                'enabled_at' => is_string($enabledAt) && $enabledAt !== '' ? substr($enabledAt, 0, 10) : null,
+                'updated_at' => $row['updated_at'] ?? null,
+            ];
+        }
+        return array_map(static fn (int $slot): array => $rows[$slot] ?? ['slot' => $slot, 'enabled_at' => null, 'updated_at' => null], range(1, 5));
+    }
+
+    public function updateVideoSchedule(array $input, int $actorId, string $ip = ''): void
+    {
+        if (!$this->hasVideoScheduleSchema()) throw new RuntimeException('Video schedule schema unavailable.');
+        $slots = $this->normalizeVideoSlots($input['video_slots'] ?? null);
+        $this->pdo->beginTransaction();
+        try {
+            $actor = $this->pdo->prepare('SELECT id FROM admin_users WHERE id = ? AND active = 1');
+            $actor->execute([$actorId]);
+            if ($actor->fetchColumn() === false) throw new InvalidArgumentException('Invalid audit actor.');
+            $now = gmdate('Y-m-d H:i:s');
+            $mysql = $this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql';
+            $sql = $mysql
+                ? 'INSERT INTO vocero_video_schedule (slot, enabled_at, updated_at) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE enabled_at = VALUES(enabled_at), updated_at = VALUES(updated_at)'
+                : 'INSERT INTO vocero_video_schedule (slot, enabled_at, updated_at) VALUES (?, ?, ?) ON CONFLICT(slot) DO UPDATE SET enabled_at = excluded.enabled_at, updated_at = excluded.updated_at';
+            $query = $this->pdo->prepare($sql);
+            foreach ($slots as $slot) $query->execute([$slot['slot'], $slot['enabled_at'], $now]);
+            $this->audit->log('vocero.video_schedule_updated', $actorId, 'vocero_video_schedule', null, ['count' => count(array_filter($slots, static fn (array $slot): bool => $slot['enabled']))], $ip);
+            $this->pdo->commit();
+        } catch (Throwable $exception) {
+            $this->pdo->rollBack();
+            if ($exception instanceof PDOException) throw new RuntimeException('Unable to update video schedule.');
+            throw $exception;
+        }
     }
 
     /**
@@ -415,7 +464,7 @@ final class VocerosRepository
         $level = filter_var($input['level'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 0, 'max_range' => 6]]);
         $hasVideoSlots = array_key_exists('video_slots', $input);
         $videoSlots = $hasVideoSlots ? $this->normalizeVideoSlots($input['video_slots']) : null;
-        $unlocked = $hasVideoSlots ? count(array_filter($videoSlots, static fn (array $slot): bool => $slot['enabled'])) : filter_var($input['videos_unlocked'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 0, 'max_range' => 5]]);
+        $unlocked = $hasVideoSlots ? count(array_filter($videoSlots, static fn (array $slot): bool => $slot['enabled'])) : filter_var($input['videos_unlocked'] ?? 0, FILTER_VALIDATE_INT, ['options' => ['min_range' => 0, 'max_range' => 5]]);
         $light = $input['traffic_light'] ?? null;
         $kit = $input['kit_status'] ?? null;
         if ($followers === false || $level === false || $unlocked === false || !is_string($light) || !in_array($light, self::TRAFFIC_LIGHTS, true) || !is_string($kit) || !in_array($kit, self::KIT_STATUSES, true)) {
@@ -453,7 +502,12 @@ final class VocerosRepository
             $query = $this->pdo->prepare('SELECT public_id FROM voceros WHERE id = ?'); $query->execute([$voceroId]); $publicId = $query->fetchColumn();
             if (!is_string($publicId)) throw new OutOfBoundsException('Registration not found.');
             $enabledAt = null;
-            if ($this->hasVideoEnablementSchema()) {
+            if ($this->hasVideoScheduleSchema()) {
+                $query = $this->pdo->prepare('SELECT enabled_at FROM vocero_video_schedule WHERE slot = ?');
+                $query->execute([$slot]);
+                $enabledAt = $query->fetchColumn();
+                if (!is_string($enabledAt) || !$this->isVideoSlotAvailable($enabledAt)) throw new OutOfBoundsException('Video slot locked.');
+            } elseif ($this->hasVideoEnablementSchema()) {
                 $query = $this->pdo->prepare('SELECT p.video_slots_configured, v.enabled_at FROM vocero_progress p LEFT JOIN vocero_videos v ON v.vocero_id = p.vocero_id AND v.slot = ? WHERE p.vocero_id = ?');
                 $query->execute([$slot, $voceroId]);
                 $progressRow = $query->fetch() ?: [];
@@ -612,6 +666,24 @@ final class VocerosRepository
         }
     }
 
+    private function hasVideoScheduleSchema(): bool
+    {
+        if ($this->videoScheduleSchema !== null) return $this->videoScheduleSchema;
+        if ($this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite') {
+            $query = $this->pdo->prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'vocero_video_schedule'");
+            $query->execute();
+            return $this->videoScheduleSchema = $query->fetchColumn() !== false;
+        }
+        try {
+            $query = $this->pdo->prepare("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'vocero_video_schedule'");
+            $query->execute();
+            return $this->videoScheduleSchema = (int) $query->fetchColumn() === 1;
+        } catch (PDOException $exception) {
+            if (!preg_match('/no such table:\s*information_schema\.tables/i', $exception->getMessage())) throw $exception;
+            return $this->videoScheduleSchema = false;
+        }
+    }
+
     private function syncVideoSlots(int $voceroId, array $slots, string $now): void
     {
         $mysql = $this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql';
@@ -643,15 +715,21 @@ final class VocerosRepository
         return array_values($slots);
     }
 
-    private function videoSlots(array $rows, int $unlocked = 0, bool $configured = false): array
+    private function videoSlots(array $rows, int $unlocked = 0, bool $configured = false, ?array $schedule = null): array
     {
         $bySlot = [];
+        $scheduleBySlot = [];
+        foreach ($schedule ?? [] as $entry) $scheduleBySlot[(int) ($entry['slot'] ?? 0)] = $entry;
         foreach ($rows as $row) {
             $slot = (int) $row['slot'];
-            $enabledAt = $row['enabled_at'] ?? null;
+            $enabledAt = $scheduleBySlot[$slot]['enabled_at'] ?? ($row['enabled_at'] ?? null);
             $bySlot[$slot] = ['slot' => $slot, 'unlocked' => $configured ? $this->isVideoSlotAvailable($enabledAt) : $slot <= $unlocked, 'enabled_at' => $enabledAt, 'url' => (string) ($row['url'] ?? ''), 'status' => (string) ($row['status'] ?? 'empty'), 'submitted_at' => $row['submitted_at'] ?? null, 'updated_at' => $row['updated_at'] ?? null];
         }
-        return array_map(static fn (int $slot): array => $bySlot[$slot] ?? ['slot' => $slot, 'unlocked' => $configured ? false : $slot <= $unlocked, 'enabled_at' => null, 'url' => '', 'status' => 'empty', 'submitted_at' => null, 'updated_at' => null], range(1, 5));
+        return array_map(function (int $slot) use ($bySlot, $configured, $unlocked, $scheduleBySlot): array {
+            if (isset($bySlot[$slot])) return $bySlot[$slot];
+            $enabledAt = $scheduleBySlot[$slot]['enabled_at'] ?? null;
+            return ['slot' => $slot, 'unlocked' => $configured ? $this->isVideoSlotAvailable($enabledAt) : $slot <= $unlocked, 'enabled_at' => $enabledAt, 'url' => '', 'status' => 'empty', 'submitted_at' => null, 'updated_at' => null];
+        }, range(1, 5));
     }
 
     private function isVideoSlotAvailable(mixed $enabledAt): bool

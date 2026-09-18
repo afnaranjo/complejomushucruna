@@ -226,6 +226,16 @@ final class Router
                 return $this->json(200, ['items' => $this->repository->pendingAccounts()], $headers);
             }
             if ($path === '/api/vocero-accounts') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+            if ($path === '/api/vocero-video-schedule') {
+                if ($query !== []) throw new InvalidArgumentException();
+                if ($method === 'GET') return $this->json(200, ['video_slots' => $this->repository->videoSchedule()], $headers);
+                if ($method === 'PATCH') {
+                    $body = $this->body($server, $rawBody, ['video_slots']);
+                    $this->repository->updateVideoSchedule($body, $user['id'], $ip);
+                    return $this->json(200, ['ok' => true, 'video_slots' => $this->repository->videoSchedule()], $headers);
+                }
+                return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+            }
             if (preg_match('~^/api/vocero-accounts/([a-f0-9]{32})/delete$~D', $path, $parts)) {
                 if ($method !== 'POST' || $query !== []) return $this->error($method === 'POST' ? 422 : 405, $method === 'POST' ? 'validation_error' : 'method_not_allowed', $method === 'POST' ? 'Revisa los datos de la solicitud.' : 'Método no permitido.', $headers);
                 $this->body($server, $rawBody, []);
@@ -310,7 +320,7 @@ final class Router
                 }
                 return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
             }
-            if (in_array($path, ['/api/health', '/api/auth/login', '/api/auth/logout', '/api/auth/session', '/api/voceros', '/api/dashboard', '/api/vocero/auth/session', '/api/vocero/auth/register', '/api/vocero/auth/login', '/api/vocero/auth/logout'], true)
+            if (in_array($path, ['/api/health', '/api/auth/login', '/api/auth/logout', '/api/auth/session', '/api/voceros', '/api/dashboard', '/api/vocero-accounts', '/api/vocero-video-schedule', '/api/vocero/auth/session', '/api/vocero/auth/register', '/api/vocero/auth/login', '/api/vocero/auth/logout'], true)
                 || preg_match('~^/api/voceros/verify/[a-f0-9]{32}$~D', $path) === 1) {
                 return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
             }
