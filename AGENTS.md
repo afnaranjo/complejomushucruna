@@ -1300,3 +1300,11 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - QA: prueba roja verificada y luego `npm run test:node -- website/tests/admin.test.mjs` en verde (151/151), `npm run test:php` en verde, `npm run build` en verde, `git diff --check` en verde y `npm run check` completo en verde (151 Node, 20 PHP, 10 integración, build 130 archivos/32 HTML/1066 referencias).
 - Commit: `8938252` (`Agregar views de videos al admin de voceros`), publicado en `origin/main`.
 - Publicación externa: backend desplegado con `npm run backend:deploy` y frontend con `npm run deploy`; el backend ejecutó `check` completo antes de activar, aplicó la migración aditiva con respaldo y terminó con `Operación backend completada`. El frontend reportó `Despliegue verificado en https://complejomushucruna.com`. Verificación adicional por espejo Netlife devolvió HTTP 200 en `https://finados.expoferiamushucruna.com/admin/voceros/` con el script `admin-video-views-1` en el HTML. Sin borrados de base de datos, registros, fotos, consentimientos, DNS, Google Sheets o proyectos ajenos.
+
+### 2026-09-19 — Auditoría de campañas activas de ExpoFeria en Meta Ads
+
+- Se revisó el Administrador de anuncios de `ExpoFeria Mushuc Runa` desde la interfaz, sin API ni token. Al corte hay cinco campañas activas con entrega, F29 desactivada tras registrar entrega, F26 completada y dos cambios en borrador sin publicar.
+- Se separaron gasto, reproducciones, interacciones, visitas, conversaciones, comentarios y compartidos. En el intervalo 12–18 de septiembre (hora del Pacífico), las cinco activas gastaron USD 268,92; F28 sumó 10.151 interacciones pero solo 22 comentarios. Detalle: [[2026-09-19_revision-campanas-meta-finados-2026_v01]].
+- Se actualizaron memoria, pendientes y bitácora. Commit: incluido en `Documentar revision de campanas Meta Finados 2026`.
+- Publicación externa: solo documentación en Git; ninguna campaña, anuncio, público, presupuesto, borrador, cuenta o sitio fue modificado. En Meta solo se ajustó la vista de reporte para el diagnóstico.
+- Riesgos y pendientes: calidad de conversaciones, registros/ventas reales, motivo de pausa de F29, conciliación de presupuestos y tokens expuestos cuya revocación sigue pendiente.

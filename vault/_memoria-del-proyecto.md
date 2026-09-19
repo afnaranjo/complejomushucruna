@@ -362,3 +362,9 @@ El 28 de agosto quedó confirmado `¡LEGADO QUE NOS UNE!` como eslogan gráfico 
 - Alex autorizó la corrección mínima de empaquetado/caché y su publicación. `dd321b8` en GitHub y frontend productivo, después del backend `10527a9`; módulo runtime antes ausente publicado y protegido por regresión de imports. Dos checks completos aprobados (144 Node/20 PHP/10 integración, 130 archivos).
 - Respaldo recuperable con SHA-256; veinte verificaciones de archivos/vistas/caché en ambos sitios y diez de CORS/health en ambas APIs aprobadas. GET 200, preflight 204, origen ajeno 403. No se ejecutaron migraciones ni se escribieron registros de producción; JSON privado, esquema/historial y configuración legal/Sheets intactos durante frontend.
 - Notas previas restauradas con hashes idénticos y excluidas del commit técnico; stashes propios retenidos recuperables. Sin bloqueo del despliegue. Evidencia: [[11_eventos/2026_feria-finados/10_tecnologia-datos/2026-09-18_despliegue-multi-origen-sin-migraciones-web_v01|Publicación multi-origen sin migraciones]].
+
+### 2026-09-19 — Revisión de campañas Meta Ads de ExpoFeria
+
+- El [[11_eventos/2026_feria-finados/05_marketing-comunicacion/03_pauta/2026-09-19_revision-campanas-meta-finados-2026_v01|corte del 19 de septiembre]] verificó cinco campañas activas con entrega, una desactivada con entrega reciente y una completada. La vista mostró dos cambios en borrador sin publicar; no se tocaron.
+- Del 12 al 18 de septiembre, según la zona horaria Pacífico del Administrador, las cinco activas gastaron USD 268,92. Sumaron 72 comentarios y 382 compartidos; F28 obtuvo 10.151 interacciones, pero solo 22 comentarios. No equivalen a registros o ventas.
+- Se revisó solo la interfaz de reporte; no se utilizó token/API ni se modificaron anuncios, campañas, presupuestos, públicos o borradores. Siguen pendientes la calidad de conversaciones de expositores, registros de Voceros, conciliación de ventas y causa de la pausa de F29.
