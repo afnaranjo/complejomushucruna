@@ -2,7 +2,7 @@
 titulo: "Memoria del proyecto"
 responsable: "dirección integral de la feria"
 estado: en-revision
-ultima_actualizacion: 2026-09-18
+ultima_actualizacion: 2026-09-19
 fuente: interna
 confidencialidad: interno
 tags:
@@ -11,6 +11,14 @@ tags:
 ---
 
 # Memoria del proyecto
+
+## 2026-09-19 — Campaña de entradas por WhatsApp configurada por API
+
+- La [[11_eventos/2026_feria-finados/05_marketing-comunicacion/03_pauta/2026-09-19_prevalidacion-campana-entradas-whatsapp_v01|campaña de entradas del 1 de noviembre]] se renombró y quedó con dos conjuntos/anuncios activos: `Reguetón` y personas que interactuaron con la página de Finados en 365 días. Cada conjunto tiene presupuesto nominal de USD 2,50/día, con total combinado de USD 5/día, segmentación Ambato + 60 km y cierre el 1 de noviembre a las 23:59 Ecuador. Ambos reutilizan la publicación existente, abren WhatsApp y optimizan conversaciones iniciadas, no compras verificadas. La lectura final de Meta no mostró incidencias en los anuncios.
+- El público `Reguetón` sí existe como audiencia personalizada de interacción; no era un público guardado del selector revisado inicialmente. El segundo público es cálido por interacción, no una lista comprobada de compradores. La atribución del primer conjunto es de 7 días y la del nuevo de 1 día; Meta no permite modificar la ventana antigua tras crear el conjunto. Al comparar resultados deben usarse ventanas de informe homogéneas y ventas conciliadas.
+- Alex confirmó que su CRM externo ya envía eventos a Meta. No se inspeccionó ni modificó CRM/CAPI; tampoco se enviaron eventos desde este proyecto. La credencial no se guardó en Git. La campaña se configuró por Graph API, sin usar la publicación global de Ads Manager.
+- Persisten los borradores previos de Ads Manager (dos iniciales y una indicación de tercero surgida al abrir el editor). No se publicaron ni descartaron; antes de usar esa interfaz se deben comparar individualmente. No hubo respuestas de límite `429` ni errores `5xx` durante esta operación.
+
 
 ## 2026-09-18 — Pull y publicación de navegación/progreso
 

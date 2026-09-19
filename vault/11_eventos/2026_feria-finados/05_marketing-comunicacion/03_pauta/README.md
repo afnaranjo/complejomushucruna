@@ -15,5 +15,6 @@ Plan de medios, campañas, públicos, inversión, creatividades, UTMs, optimizac
 
 - [[2026-08-24_plan-pauta-social-usd4000-finados-2026_v01|Plan de pauta social USD 4.000]]
 - [[2026-09-05_estado-pauta-activa-y-audiencias-finados-2026_v01|Estado de la pauta activa y audiencias · corte 2026-09-05]]
+- [[2026-09-19_prevalidacion-campana-entradas-whatsapp_v01|Prevalidación de campaña de entradas hacia WhatsApp · 2026-09-19]]
 
 [[../README|Volver a marketing y comunicación]]

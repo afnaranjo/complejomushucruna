@@ -2,7 +2,7 @@
 titulo: "Pendientes ejecutivos"
 responsable: "dirección integral de la feria"
 estado: en-revision
-ultima_actualizacion: 2026-09-18
+ultima_actualizacion: 2026-09-19
 fuente: interna
 confidencialidad: interno
 tags:
@@ -11,6 +11,11 @@ tags:
 ---
 
 # Pendientes ejecutivos
+
+- [x] Configurar la [[11_eventos/2026_feria-finados/05_marketing-comunicacion/03_pauta/2026-09-19_prevalidacion-campana-entradas-whatsapp_v01|campaña de entradas por WhatsApp]] por API: dos públicos locales, mismo anuncio, USD 5/día nominal combinado y cierre al final del 1 de noviembre. Verificado en Meta el 2026-09-19; no se usó la publicación global de Ads Manager.
+- [ ] Monitorizar durante las próximas 24–48 horas la entrega, conversaciones calificadas y ventas reales por conjunto; el reparto de USD 2,50/día por público puede producir poco aprendizaje. Comparar resultados con ventana de atribución homogénea porque el conjunto antiguo conserva 7 días y el nuevo 1 día. Responsable: pauta/ventas. Fecha: 2026-09-20–21.
+- [ ] Revisar individualmente los tres borradores que Ads Manager indicó antes de publicar cualquier cambio futuro desde esa interfaz; no usar la publicación global. Responsable: Alex/pauta. Fecha: antes de editar en Ads Manager.
+- [ ] Como revisión independiente posterior, si Alex la solicita, conciliar la atribución y los eventos de venta que su CRM externo ya envía a Meta. La adecuación actual de la campaña no incluye inspeccionar ni cambiar el CRM, CAPI o dataset. Responsable: Alex/CRM/datos. Fecha: por definir.
 
 - [x] Finalizar la publicación autorizada tras pull `ee02951`: `6838d4b` en Git y producción; backend → frontend con respaldo y sin migraciones/escrituras de registros ni reescritura de JSON privados. Check completo repetido: 145 Node, 20 suites PHP, 10 integración. Verificación final: 52 comprobaciones HTTPS 200/SHA-256 idéntico y diez CORS/health correctas en ambos dominios. Responsable: tecnología. Completado: 2026-09-18. Evidencia: [[2026-09-18_sincronizacion-menu-progreso-voceros-web_v01]].
 
