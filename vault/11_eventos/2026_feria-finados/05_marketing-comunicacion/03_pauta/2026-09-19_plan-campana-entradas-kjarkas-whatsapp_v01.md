@@ -12,6 +12,9 @@ tags: [feria-finados-2026, meta-ads, whatsapp, kjarkas, plan]
 
 Complementa [[2026-09-19_prevalidacion-campana-entradas-whatsapp_v01|la ejecución Guaynaa]] y el [[2026-08-24_plan-pauta-social-usd4000-finados-2026_v01|plan de pauta social]]. **Es una propuesta previa a la aprobación de Alex. No se creó, editó ni activó ninguna campaña, anuncio o audiencia de Meta durante este análisis.** No registrar aquí credenciales, identificadores internos, número de WhatsApp ni datos de clientes: el repositorio es público.
 
+> [!note] Corte posterior del 19 de septiembre
+> Alex lanzó una campaña con el nombre `Finados 2026 - Entradas 31 octubre - WhatsApp`. Su estado real, distinto de esta propuesta, está en la [[2026-09-19_auditoria-campana-entradas-31-oct-whatsapp_v01|auditoría de la campaña activa]]. El piloto de USD 10/día de esta nota sigue sin autorización expresa; no debe interpretarse como presupuesto vigente.
+
 ## Hechos verificados y límites de la revisión
 
 - La página `Finados Mushuc Runa` publicó el 19 de septiembre de 2026 una pieza de álbum con **Kjarkas y William Luna**, sábado **31 de octubre**, show desde las **18:00**, en el Complejo Mushuc Runa. La publicación con texto es [esta pieza pública de Facebook](https://www.facebook.com/122142325251017479/posts/122144469993017479); una entrada posterior sin texto apunta al mismo álbum y no es una segunda oferta distinta. El programa del sitio coincide con ambos artistas y la fecha.

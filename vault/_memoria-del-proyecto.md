@@ -12,6 +12,11 @@ tags:
 
 # Memoria del proyecto
 
+## 2026-09-19 — Auditoría de la campaña activa del 31 de octubre
+
+- Alex informó que lanzó `Finados 2026 - Entradas 31 octubre - WhatsApp`. La [[11_eventos/2026_feria-finados/05_marketing-comunicacion/03_pauta/2026-09-19_auditoria-campana-entradas-31-oct-whatsapp_v01|lectura de Meta]] confirmó una campaña activa con un solo conjunto/anuncio activos: `Folklore` cálido, USD 2,50/día, Ambato + 60 km, adultos, WhatsApp y optimización a conversaciones. El anuncio usa la publicación existente de Kjarkas y William Luna; el conjunto no tiene `end_time` visible.
+- Se preparó un segundo conjunto de descubrimiento que excluye `Folklore` y un anuncio con la misma publicación, ambos **en pausa**. La primera validación rechazó atribución de siete días; la de un día y la del anuncio pasaron. La lectura final confirmó que solo el conjunto original permanece activo a USD 2,50/día y que el nuevo no aumenta el gasto activo; su anuncio estaba pendiente de revisión. La propuesta de USD 10/día no está aprobada. Falta confirmar el tope diario para activarlo, la hora de cierre de ventas del 31 de octubre, la elegibilidad de la pieza en Instagram y la conciliación de boletos pagados. No se cambiaron CRM, publicación, oferta ni borradores globales.
+
 ## 2026-09-19 — Campaña de entradas por WhatsApp configurada por API
 
 - La [[11_eventos/2026_feria-finados/05_marketing-comunicacion/03_pauta/2026-09-19_prevalidacion-campana-entradas-whatsapp_v01|campaña de entradas del 1 de noviembre]] se renombró y quedó con dos conjuntos/anuncios activos: `Reguetón` y personas que interactuaron con la página de Finados en 365 días. Cada conjunto tiene presupuesto nominal de USD 2,50/día, con total combinado de USD 5/día, segmentación Ambato + 60 km y cierre el 1 de noviembre a las 23:59 Ecuador. Ambos reutilizan la publicación existente, abren WhatsApp y optimizan conversaciones iniciadas, no compras verificadas. La lectura final de Meta no mostró incidencias en los anuncios.
