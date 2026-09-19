@@ -28,6 +28,34 @@ export function injectCookieConsent(html) {
     );
 }
 
+const metaPixelScript = `  <!-- Meta Pixel Code -->
+  <script>
+  !function(f,b,e,v,n,t,s)
+  {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+  n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+  if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+  n.queue=[];t=b.createElement(e);t.async=!0;
+  t.src=v;s=b.getElementsByTagName(e)[0];
+  s.parentNode.insertBefore(t,s)}(window, document,'script',
+  'https://connect.facebook.net/en_US/fbevents.js');
+  fbq('init', '1494610251215623');
+  fbq('track', 'PageView');
+  </script>
+  <!-- End Meta Pixel Code -->`;
+
+const metaPixelNoScript = `<noscript><img height="1" width="1" style="display:none"
+  src="https://www.facebook.com/tr?id=1494610251215623&amp;ev=PageView&amp;noscript=1"
+  alt=""></noscript>`;
+
+export function injectMetaPixel(html) {
+  if (html.includes('1494610251215623')) return html;
+  if (!/<\/head>/i.test(html) || !/<body\b[^>]*>/i.test(html)) return html;
+
+  return html
+    .replace(/<\/head>/i, `${metaPixelScript}\n</head>`)
+    .replace(/<body\b([^>]*)>/i, `<body$1>\n  ${metaPixelNoScript}`);
+}
+
 async function listFiles(directory, root = directory) {
   const entries = await readdir(directory, { withFileTypes: true });
   const files = [];
@@ -121,11 +149,14 @@ export async function buildSite(outputDirectory = join(websiteRoot, 'dist'), { a
 
   const htmlFiles = (await listFiles(output)).filter((file) => file.endsWith('.html'));
   for (const htmlFile of htmlFiles) {
-    if (htmlFile.startsWith('admin/') || /^finados\/voceros\/(acceso|mi-registro|restablecer)\//.test(htmlFile)) continue;
+    const accountPage = htmlFile.startsWith('admin/') || /^finados\/voceros\/(acceso|mi-registro|restablecer)\//.test(htmlFile);
+    if (accountPage) continue;
     const path = join(output, htmlFile);
     const html = await readFile(path, 'utf8');
     const route = `/${htmlFile.replace(/index\.html$/, '')}`;
-    await writeFile(path, injectCookieConsent(injectInvitationOpeningHeader(html, route)), 'utf8');
+    let updatedHtml = injectCookieConsent(injectInvitationOpeningHeader(html, route));
+    if (!/^finados\/voceros\/verificar\//.test(htmlFile)) updatedHtml = injectMetaPixel(updatedHtml);
+    await writeFile(path, updatedHtml, 'utf8');
   }
 
   return (await listFiles(output)).sort();

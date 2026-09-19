@@ -1318,3 +1318,11 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - En Ads Manager había dos borradores previos y una indicación de un tercero al abrir el editor sin cambios deliberados. No se publicaron ni descartaron; deben revisarse individualmente antes de cualquier publicación futura desde esa interfaz.
 - Documento: [[2026-09-19_prevalidacion-campana-entradas-whatsapp_v01]]. Commit: `Configurar campaña WhatsApp de entradas Finados 2026`. Publicación externa: únicamente los ajustes de Meta Ads expresamente solicitados por Alex y el push documental; ningún sitio, página orgánica o CRM fue modificado.
 - Riesgos y pendientes: presupuesto muy pequeño para dividir aprendizaje, ventanas de atribución distintas, verificar conversaciones y ventas reales, vigilar el cierre y revisar los borradores de Ads Manager antes de usarlos.
+
+### 2026-09-19 — Meta Pixel en páginas públicas del sitio
+
+- Se añadió el Meta Pixel `1494610251215623` al proceso de build del sitio, usando las URL reales de Meta y no el formato Markdown del mensaje original.
+- El Pixel se inyecta solo en páginas públicas de marketing. Quedan excluidas las áreas privadas y sensibles: `/admin/`, acceso/portal/restablecimiento de Voceros y la validación pública del gafete.
+- Se agregó una prueba de regresión que verifica que el Pixel se inicialice una sola vez en páginas públicas, que use `connect.facebook.net/en_US/fbevents.js`, que incluya el fallback `noscript` y que no aparezca en áreas privadas.
+- QA local: `npm run test:node -- tests/build.test.mjs` y `npm run check` en verde; el check completo pasó Node, PHP, integración, build y validación de dist. No se modificó backend, base de datos, registros, fotos, DNS, Google Sheets ni otros proyectos.
+- Publicación externa: pendiente de commit, push y despliegue frontend al momento de esta nota.

@@ -28,6 +28,27 @@ test('agrega un aviso de cookies compacto en páginas públicas y excluye admin'
   }
 });
 
+test('agrega Meta Pixel en páginas públicas y excluye áreas privadas', async () => {
+  const output = await mkdtemp(join(tmpdir(), 'mushuc-meta-pixel-'));
+  const files = await buildSite(output);
+  const htmlFiles = files.filter((file) => file.endsWith('.html'));
+
+  for (const htmlFile of htmlFiles) {
+    const html = await readFile(join(output, htmlFile), 'utf8');
+    const privateArea = htmlFile.startsWith('admin/')
+      || /^finados\/voceros\/(acceso|mi-registro|restablecer|verificar)\//.test(htmlFile);
+    if (privateArea) {
+      assert.doesNotMatch(html, /1494610251215623/, `${htmlFile} no debe incluir Meta Pixel`);
+      assert.doesNotMatch(html, /connect\.facebook\.net/, `${htmlFile} no debe cargar scripts de Meta`);
+      continue;
+    }
+    assert.equal((html.match(/fbq\('init', '1494610251215623'\)/g) ?? []).length, 1, `${htmlFile} debe inicializar el pixel una vez`);
+    assert.match(html, /https:\/\/connect\.facebook\.net\/en_US\/fbevents\.js/, `${htmlFile} debe usar URL real de Meta`);
+    assert.match(html, /https:\/\/www\.facebook\.com\/tr\?id=1494610251215623&amp;ev=PageView&amp;noscript=1/, `${htmlFile} debe incluir fallback noscript escapado`);
+    assert.doesNotMatch(html, /\[https:\/\/connect\.facebook\.net/, `${htmlFile} no debe conservar formato Markdown`);
+  }
+});
+
 test('escapa contenido que no debe convertirse en HTML activo', () => {
   assert.equal(
     escapeHtml('<script>alert("Mushuc")</script>'),
