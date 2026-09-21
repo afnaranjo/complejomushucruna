@@ -1,5 +1,6 @@
 import { MIRROR_API_BASE, PRIMARY_API_BASE, resolveRuntimeOrigins } from '../finados/runtime-origins.mjs';
 
+export const TRAFFIC_LIGHT_LABELS = Object.freeze({ red: 'Rojo · En preparación', yellow: 'Amarillo · En avance', green: 'Verde · Listo' });
 export const MEDIA_STATUSES = Object.freeze(['Nuevo', 'En revisión', 'Aprobado', 'Rechazado']);
 const API = PRIMARY_API_BASE;
 const LOCAL_API = 'http://127.0.0.1:4174/api';
@@ -110,7 +111,7 @@ export function createMediaAdminClient(baseUrl = API, fetchImplementation = fetc
     list: filters => request('/medios?' + new URLSearchParams(filters)),
     detail: id => request(`/medios/${id}`),
     photo: id => request(`/medios/${id}/photo`, { blob: true }),
-    changeStatus: (id, status) => request(`/medios/${id}`, { method: 'PATCH', body: { status } }),
+    changeStatus: (id, status, trafficLight) => request(`/medios/${id}`, { method: 'PATCH', body: trafficLight === undefined ? { status } : { status, traffic_light: trafficLight } }),
     addNote: (id, body) => request(`/medios/${id}/notes`, { method: 'POST', body: { body } }),
     updateVideoViews: (id, views) => request(`/medios/${id}/video-views`, { method: 'PATCH', body: { video_views: views } }),
     archive: id => request(`/medios/${id}/delete`, { method: 'POST', body: {} }),
@@ -311,7 +312,9 @@ export async function initializeMediaAdmin() {
         cell('Videos', record.videos_count === 1 ? '1 video' : `${record.videos_count ?? 0} videos`, `${new Intl.NumberFormat('es-EC').format(record.views_total ?? 0)} views`);
         cell('Registro', dateTime(record.submitted_at));
         const badge = node('span', record.status, 'status-badge'); badge.dataset.status = record.status;
-        cell('Estado', '').replaceChildren(badge);
+        const lightKey = Object.hasOwn(TRAFFIC_LIGHT_LABELS, record.traffic_light) ? record.traffic_light : 'red';
+        const lightMark = node('span', TRAFFIC_LIGHT_LABELS[lightKey], 'admin-media-light'); lightMark.dataset.light = lightKey;
+        cell('Estado y semáforo', '').replaceChildren(badge, lightMark);
         const open = node('button', 'Ver detalle', 'button-quiet'); open.type = 'button';
         open.setAttribute('aria-label', 'Ver detalle de ' + record.media_name);
         open.addEventListener('click', () => openDetail(record.public_id, open));
@@ -440,6 +443,7 @@ export async function initializeMediaAdmin() {
     } else photo.append(node('p', 'El representante todavía no ha subido su foto.'));
     detailContent.replaceChildren(submitted, photo, dl, videos);
     statusForm.elements.status.value = data.status;
+    statusForm.elements.traffic_light.value = Object.hasOwn(TRAFFIC_LIGHT_LABELS, data.traffic_light) ? data.traffic_light : 'red';
     notes.replaceChildren();
     for (const note of data.notes ?? []) {
       const item = node('li'); item.append(node('p', note.body), node('small', `${note.author} · ${dateTime(note.created_at)}`)); notes.append(item);
@@ -480,7 +484,7 @@ export async function initializeMediaAdmin() {
     } catch (error) { if (generation === detailGeneration) fail(error, detailFeedback); }
     finally { if (generation === detailGeneration) statusForm.querySelector('fieldset').disabled = noteForm.querySelector('fieldset').disabled = false; }
   }
-  statusForm.addEventListener('submit', event => mutate(event, id => client.changeStatus(id, statusForm.elements.status.value), 'Estado actualizado.', true));
+  statusForm.addEventListener('submit', event => mutate(event, id => client.changeStatus(id, statusForm.elements.status.value, statusForm.elements.traffic_light.value), 'Estado y semáforo actualizados.', true));
   noteForm.addEventListener('submit', event => {
     const body = noteForm.elements.body.value.trim();
     if (!body) { event.preventDefault(); feedback(detailFeedback, 'Escribe una nota antes de guardar.', 'error'); return; }

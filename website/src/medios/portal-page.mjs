@@ -6,7 +6,7 @@ import { apiBasesForCsp, LOCAL_API_BASE, PRIMARY_API_BASE } from '../finados/run
 
 // Server-owned text is incorporated at build time and escaped as HTML, never fetched by the browser.
 const consents = JSON.parse(readFileSync(new URL('../../backend/finados-api/resources/media-consents.json', import.meta.url), 'utf8'));
-export const mediaPortalScriptVersion = '20260921-medios-8';
+export const mediaPortalScriptVersion = '20260921-medios-9';
 
 const email = id => `<label class="vocero-field" for="${id}"><span>Correo electrónico</span><input id="${id}" name="email" type="email" autocomplete="username" maxlength="254" autocapitalize="none" spellcheck="false" required></label>`;
 const password = (id, label, autocomplete) => `<label class="vocero-field" for="${id}"><span>${label}</span><input id="${id}" name="${id.includes('confirmation') ? 'confirmation' : 'password'}" type="password" autocomplete="${autocomplete}" minlength="${autocomplete === 'current-password' ? '1' : '10'}" maxlength="128" required></label>`;
@@ -19,7 +19,17 @@ const consent = (name, key, { optional = false } = {}) => `<label class="vocero-
 const field = (name, label, attrs) => `<label class="vocero-field" for="${name}"><span>${label}${required}</span><input id="${name}" name="${name}" ${attrs} required></label>`;
 
 function renderMediaForm() {
-  return `<section class="media-status-panel" aria-labelledby="media-status-title"><p class="vocero-eyebrow">Estado del registro</p><h2 id="media-status-title" data-media-status>—</h2><p data-media-status-help>Completa y guarda el registro de tu medio.</p></section>
+  return `<section class="media-dashboard" data-media-dashboard hidden aria-label="Tu medio">
+<button class="media-avatar" type="button" data-media-profile-toggle aria-expanded="false" aria-controls="media-profile-panel"><span class="media-avatar__image"><img data-media-avatar alt="" hidden><span data-media-initials aria-hidden="true">M</span></span><span class="media-avatar__text"><strong data-media-name>Tu medio</strong><small data-media-toggle-label>Ver mi perfil</small></span></button>
+</section>
+<section class="media-status-panel" aria-labelledby="media-status-title"><p class="vocero-eyebrow">Estado del registro</p><h2 id="media-status-title" data-media-status>—</h2><p data-media-status-help>Completa y guarda el registro de tu medio.</p><p class="media-light" data-media-light hidden><span class="media-light__dot" aria-hidden="true"></span><span data-media-light-text></span></p></section>
+<section class="media-videos" aria-labelledby="media-videos-title" data-media-videos hidden>
+<p class="vocero-eyebrow">Tus publicaciones</p><h2 id="media-videos-title">Videos publicados</h2>
+<p>Cada vez que tu medio publique un video sobre Finados Mushuc Runa 2026, pega aquí su link y pulsa «Agregar video». No hay un máximo de cinco: agrega uno por uno todos los que publiques.</p>
+<form data-media-video-form novalidate><fieldset disabled><label class="vocero-field" for="video_url"><span>Link del video${required}</span><input id="video_url" name="url" type="text" inputmode="url" maxlength="500" autocapitalize="none" spellcheck="false" placeholder="Ej.: https://www.tiktok.com/@tumedio/video/…" required></label><button class="vocero-primary" type="submit">Agregar video</button></fieldset></form>
+<p class="media-videos__count" data-media-video-count>Aún no has agregado videos.</p>
+<ol class="media-videos__list" data-media-video-list></ol>
+</section><div id="media-profile-panel" data-media-profile-panel>
 <form data-media-profile class="vocero-profile-form media-profile-form" novalidate>
 <fieldset data-profile-fields disabled>
 <legend class="sr-only">Registro del medio</legend>
@@ -72,13 +82,7 @@ ${consent('image_accepted', 'image', { optional: true })}
 <div class="media-photo__layout"><div class="vocero-photo-frame media-photo__frame"><img data-media-photo-preview alt="Foto de perfil del representante" hidden><span data-media-photo-placeholder>Sin foto</span></div>
 <form data-media-photo-form novalidate><fieldset disabled><label class="vocero-field" for="media_photo"><span>Seleccionar fotografía</span><input id="media_photo" name="photo" type="file" accept="image/jpeg,image/png,image/webp" required aria-describedby="media-photo-help"></label><button class="vocero-primary" type="submit">Subir foto</button></fieldset></form></div>
 </section>
-<section class="media-videos" aria-labelledby="media-videos-title" data-media-videos hidden>
-<p class="vocero-eyebrow">05 · Tus publicaciones</p><h2 id="media-videos-title">Videos publicados</h2>
-<p>Cada vez que tu medio publique un video sobre Finados Mushuc Runa 2026, pega aquí su link y pulsa «Agregar video». No hay un máximo de cinco: agrega uno por uno todos los que publiques.</p>
-<form data-media-video-form novalidate><fieldset disabled><label class="vocero-field" for="video_url"><span>Link del video${required}</span><input id="video_url" name="url" type="text" inputmode="url" maxlength="500" autocapitalize="none" spellcheck="false" placeholder="Ej.: https://www.tiktok.com/@tumedio/video/…" required></label><button class="vocero-primary" type="submit">Agregar video</button></fieldset></form>
-<p class="media-videos__count" data-media-video-count>Aún no has agregado videos.</p>
-<ol class="media-videos__list" data-media-video-list></ol>
-</section>`;
+</div>`;
 }
 
 export function renderMediaPortalPage(page) {

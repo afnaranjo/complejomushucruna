@@ -7,8 +7,8 @@ import { join } from 'node:path';
 import { readdir } from 'node:fs/promises';
 import { buildSite } from '../scripts/build.mjs';
 import { primaryNavigation } from '../src/data/site.mjs';
-import { channelsPayload, MediaApiClient, MediaError, MEDIA_CONSENTS, MEDIA_FIELDS, normalizeLink, platformPayload, profilePayload, validatePhoto } from '../src/finados/media-portal.js';
-import { collectVideoViews, createMediaAdminClient, describeField, MEDIA_STATUSES, normalizeMediaFilters, renderMediaSummary, safeLink, topMediaFollowers, topMediaViews } from '../src/admin/admin-medios.js';
+import { channelsPayload, mediaInitials, TRAFFIC_LIGHTS, MediaApiClient, MediaError, MEDIA_CONSENTS, MEDIA_FIELDS, normalizeLink, platformPayload, profilePayload, validatePhoto } from '../src/finados/media-portal.js';
+import { collectVideoViews, createMediaAdminClient, describeField, MEDIA_STATUSES, normalizeMediaFilters, renderMediaSummary, safeLink, topMediaFollowers, topMediaViews, TRAFFIC_LIGHT_LABELS } from '../src/admin/admin-medios.js';
 import { topVideoViews } from '../src/admin/admin.js';
 
 const json = (status, body) => ({ ok: status >= 200 && status < 300, status, json: async () => body });
@@ -72,6 +72,11 @@ test('el build publica la landing, las cuentas de medios y su panel sin tocar la
   }
   assert.match(access, /href="\/finados\/medios\/politica-de-privacidad\/"/);
   assert.match(profile, /data-media-video-form/);
+  // Registered media land on their videos: avatar header first, then videos, and the profile behind the avatar.
+  const positions = ['data-media-dashboard', 'data-media-video-form', 'data-media-profile-panel', 'data-media-photo-form'].map(marker => profile.indexOf(marker));
+  assert.ok(positions.every(position => position > 0) && positions.every((position, index) => index === 0 || position > positions[index - 1]), JSON.stringify(positions));
+  assert.match(profile, /data-media-profile-toggle aria-expanded="false" aria-controls="media-profile-panel"/);
+  assert.match(profile, /data-media-light hidden/);
   assert.match(profile, /Agregar video/);
 
   const admin = await readFile(join(output, 'admin/medios/index.html'), 'utf8');
@@ -204,6 +209,13 @@ test('el panel de medios normaliza filtros, resume estados y restringe sus rutas
   await assert.rejects(client.changeStatus('a'.repeat(32), 'Aprobado'), error => error.status === 403);
   await client.session();
   await client.changeStatus('a'.repeat(32), 'Aprobado');
+  assert.deepEqual(JSON.parse(calls.at(-1)[1].body), { status: 'Aprobado' });
+  await client.changeStatus('a'.repeat(32), 'Aprobado', 'green');
+  assert.deepEqual(JSON.parse(calls.at(-1)[1].body), { status: 'Aprobado', traffic_light: 'green' });
+  assert.deepEqual(Object.keys(TRAFFIC_LIGHT_LABELS), ['red', 'yellow', 'green']);
+  assert.deepEqual(Object.keys(TRAFFIC_LIGHTS), ['red', 'yellow', 'green']);
+  assert.equal(mediaInitials('  radio  prueba ambato '), 'RP');
+  assert.equal(mediaInitials(''), 'M');
   assert.equal(calls.at(-1)[0], `https://finados.complejomushucruna.com/api/medios/${'a'.repeat(32)}`);
   assert.equal(calls.at(-1)[1].method, 'PATCH');
   assert.equal(calls.at(-1)[1].headers['X-CSRF-Token'], 'admin-token');

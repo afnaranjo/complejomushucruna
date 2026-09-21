@@ -66,3 +66,7 @@
 .admin-media-channel-list { list-style: none; margin: 0; padding: 0; display: grid; gap: .3rem; }
 .admin-media-channel-list a { overflow-wrap: anywhere; }
 [data-admin-medios] .admin-photo img { width: 160px; height: 160px; object-fit: cover; border-radius: 50%; border: 1px solid #c3b6c7; }
+.admin-media-light { display: flex; align-items: center; gap: .4rem; margin-top: .35rem; font-size: .75rem; font-weight: 700; }
+.admin-media-light::before { content: ""; width: .7rem; height: .7rem; border-radius: 50%; background: #e01b24; border: 1px solid rgba(36, 17, 70, .4); }
+.admin-media-light[data-light="yellow"]::before { background: #ffc42e; }
+.admin-media-light[data-light="green"]::before { background: #35c277; }

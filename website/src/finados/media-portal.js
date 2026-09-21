@@ -19,6 +19,14 @@ export const STATUS_HELP = Object.freeze({
   Rechazado: 'Tu solicitud no fue aprobada. Comunícate con el equipo de comunicación para más información.',
 });
 
+export const TRAFFIC_LIGHTS = Object.freeze({ red: 'Semáforo rojo · En preparación', yellow: 'Semáforo amarillo · En avance', green: 'Semáforo verde · Listo' });
+
+/** Initials for the avatar shown until the representative uploads a photo. */
+export function mediaInitials(name) {
+  const words = String(name ?? '').trim().split(/\s+/).filter(Boolean);
+  return (words.slice(0, 2).map(word => [...word][0]).join('') || 'M').toUpperCase();
+}
+
 export function resolveMediaOrigins(location = globalThis.location) { return resolveRuntimeOrigins(location); }
 
 export class MediaError extends Error {
@@ -305,11 +313,25 @@ export async function initializeMediaPortal(root = document) {
   const photoPreview = root.querySelector('[data-media-photo-preview]');
   const photoPlaceholder = root.querySelector('[data-media-photo-placeholder]');
   let photoUrl = '';
-  const clearPhoto = () => { if (photoUrl) URL.revokeObjectURL(photoUrl); photoUrl = ''; photoPreview?.removeAttribute('src'); if (photoPreview) photoPreview.hidden = true; if (photoPlaceholder) photoPlaceholder.hidden = false; };
+  const dashboard = root.querySelector('[data-media-dashboard]');
+  const profilePanel = root.querySelector('[data-media-profile-panel]');
+  const profileToggle = root.querySelector('[data-media-profile-toggle]');
+  const avatar = root.querySelector('[data-media-avatar]');
+  const initials = root.querySelector('[data-media-initials]');
+  const light = root.querySelector('[data-media-light]');
+  /** Registered media land on their videos; the profile opens from the avatar. */
+  const showProfile = (open) => {
+    profilePanel.hidden = !open;
+    profileToggle.setAttribute('aria-expanded', String(open));
+    root.querySelector('[data-media-toggle-label]').textContent = open ? 'Ocultar mi perfil' : 'Ver mi perfil';
+  };
+  profileToggle?.addEventListener('click', () => { const open = profilePanel.hidden; showProfile(open); if (open) profilePanel.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+  const clearPhoto = () => { if (photoUrl) URL.revokeObjectURL(photoUrl); photoUrl = ''; photoPreview?.removeAttribute('src'); if (photoPreview) photoPreview.hidden = true; if (photoPlaceholder) photoPlaceholder.hidden = false; avatar?.removeAttribute('src'); if (avatar) avatar.hidden = true; if (initials) initials.hidden = false; };
   async function showSavedPhoto() {
     clearPhoto();
     const blob = await api.photo();
     photoUrl = URL.createObjectURL(blob); photoPreview.src = photoUrl; photoPreview.hidden = false; photoPlaceholder.hidden = true;
+    avatar.src = photoUrl; avatar.hidden = false; initials.hidden = true;
   }
   globalThis.addEventListener?.('pagehide', clearPhoto);
 
@@ -355,6 +377,16 @@ export async function initializeMediaPortal(root = document) {
     videoForm.querySelector('fieldset').disabled = !canAddVideos;
     if (profile.registered) renderVideos(profile.videos);
     photoPanel.hidden = !profile.registered;
+    // First visit shows the form; once the record exists the videos become the main screen.
+    const wasRegistered = dashboard.hidden === false;
+    dashboard.hidden = !profile.registered;
+    if (profile.registered) {
+      root.querySelector('[data-media-name]').textContent = profile.media_name || 'Tu medio';
+      initials.textContent = mediaInitials(profile.media_name);
+      light.hidden = false; light.dataset.light = TRAFFIC_LIGHTS[profile.traffic_light] ? profile.traffic_light : 'red';
+      root.querySelector('[data-media-light-text]').textContent = TRAFFIC_LIGHTS[light.dataset.light];
+      if (!wasRegistered) showProfile(false);
+    } else { light.hidden = true; showProfile(true); }
     photoForm.querySelector('fieldset').disabled = !canAddVideos;
   }
 
@@ -395,6 +427,7 @@ export async function initializeMediaPortal(root = document) {
     const saved = await api.saveProfile(profilePayload(data, readStations(), readTvChannels(), readChannels()));
     populate({ ...saved, email: profileForm.querySelector('[data-account-email]').value });
     message('Registro guardado. Ahora puedes agregar los links de los videos que publiques.');
+    videosPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
   submit(photoForm, async data => {
     const file = data.get('photo');

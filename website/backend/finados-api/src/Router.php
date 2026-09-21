@@ -519,9 +519,11 @@ final class Router
                 return $this->json(200, $detail, $headers);
             }
             if ($action === '' && $method === 'PATCH') {
-                $body = $this->body($server, $rawBody, ['status']);
-                if (!is_string($body['status'] ?? null)) throw new InvalidArgumentException();
-                $this->media()->changeStatus($id, $body['status'], $user['id'], $ip);
+                $body = $this->body($server, $rawBody, ['status', 'traffic_light']);
+                if ($body === []) throw new InvalidArgumentException();
+                foreach ($body as $value) if (!is_string($value)) throw new InvalidArgumentException();
+                if (isset($body['status'])) $this->media()->changeStatus($id, $body['status'], $user['id'], $ip);
+                if (isset($body['traffic_light'])) $this->media()->changeTrafficLight($id, $body['traffic_light'], $user['id'], $ip);
                 return $this->json(200, ['ok' => true], $headers);
             }
             if ($action !== '' && $method !== 'POST') return $notAllowed();
@@ -559,7 +561,7 @@ final class Router
 
     private function mediaExport(array $filters, int $actorId, string $ip, array $headers): Response
     {
-        $columns = ['public_id', 'status', 'submitted_at', 'media_name', 'media_types_label', 'radio_stations_label', 'audience_count', 'radio_genre', 'tv_channels_label', 'contact_name', 'phone', 'contact_email', 'account_email', 'province', 'city', 'channels_label', 'followers_total', 'has_photo', 'image_authorized', 'videos_count', 'views_total', 'video_links'];
+        $columns = ['public_id', 'status', 'traffic_light', 'submitted_at', 'media_name', 'media_types_label', 'radio_stations_label', 'audience_count', 'radio_genre', 'tv_channels_label', 'contact_name', 'phone', 'contact_email', 'account_email', 'province', 'city', 'channels_label', 'followers_total', 'has_photo', 'image_authorized', 'videos_count', 'views_total', 'video_links'];
         $stream = fopen('php://temp/maxmemory:2097152', 'w+');
         if ($stream === false) throw new \RuntimeException();
         try {

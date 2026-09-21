@@ -47,7 +47,7 @@ function media_json(array $payload): string { return json_encode($payload, JSON_
 media_close_session();
 $config = media_config();
 $pdo = Database::connect($config);
-foreach (['001_initial', '002_sheets_outbox', '003_vocero_accounts', '008_media_accounts', '009_media_videos', '010_media_video_views', '011_media_contact_channels', '012_media_consents', '013_media_types_radio', '014_media_channels_photo'] as $migration) {
+foreach (['001_initial', '002_sheets_outbox', '003_vocero_accounts', '008_media_accounts', '009_media_videos', '010_media_video_views', '011_media_contact_channels', '012_media_consents', '013_media_types_radio', '014_media_channels_photo', '015_media_traffic_light'] as $migration) {
     $pdo->exec(file_get_contents(__DIR__ . '/../migrations/' . $migration . '_sqlite.sql'));
 }
 same('008_media_accounts', $pdo->query("SELECT version FROM schema_migrations WHERE version = '008_media_accounts'")->fetchColumn());
@@ -115,6 +115,8 @@ same(422, $router->handle('POST', '/api/media/profile', $json($login['csrf']), m
 same(422, $router->handle('POST', '/api/media/profile', $json($login['csrf']), media_json([...$record, 'people_count' => 2]))->status);
 same(422, $router->handle('POST', '/api/media/profile', $json($login['csrf']), media_json([...$record, 'conditions_accepted' => false]))->status);
 same(422, $router->handle('POST', '/api/media/profile', $json($login['csrf']), media_json([...$record, 'status' => 'Aprobado']))->status);
+// A medium can never set its own traffic light.
+same(422, $router->handle('POST', '/api/media/profile', $json($login['csrf']), media_json([...$record, 'traffic_light' => 'green']))->status);
 same(403, $router->handle('POST', '/api/media/profile', $json('token-incorrecto'), media_json($record))->status);
 // Videos need a saved record first.
 $login = ['csrf' => media_body($router->handle('GET', '/api/media/auth/session', $origin))['csrf']] + $login;
@@ -233,6 +235,15 @@ same(2300, $ranked['topViews'][0]['views_total']);
 same(1500, $ranked['topViews'][0]['best_video_views']);
 same(2300, $ranked['items'][0]['views_total']);
 same(2300, $ranked['summary']['views']);
+// The traffic light is set only by administration and starts red.
+same('red', $ranked['items'][0]['traffic_light']);
+same(422, $router->handle('PATCH', '/api/medios/' . $publicId, $admin, media_json(['traffic_light' => 'blue']))->status);
+same(422, $router->handle('PATCH', '/api/medios/' . $publicId, $admin, '{}')->status);
+same(['ok' => true], media_body($router->handle('PATCH', '/api/medios/' . $publicId, $admin, media_json(['traffic_light' => 'yellow']))));
+same('yellow', media_body($router->handle('GET', '/api/medios/' . $publicId, $origin))['traffic_light']);
+same(['ok' => true], media_body($router->handle('PATCH', '/api/medios/' . $publicId, $admin, media_json(['status' => 'En revisión', 'traffic_light' => 'green']))));
+same('green', media_body($router->handle('GET', '/api/medios', $origin))['items'][0]['traffic_light']);
+same(2, (int) $pdo->query("SELECT COUNT(*) FROM audit_log WHERE event_type = 'media.traffic_light_changed'")->fetchColumn());
 same(422, $router->handle('PATCH', '/api/medios/' . $publicId, $admin, media_json(['status' => 'Eliminado']))->status);
 same(['ok' => true], media_body($router->handle('PATCH', '/api/medios/' . $publicId, $admin, media_json(['status' => 'Aprobado']))));
 same(201, $router->handle('POST', '/api/medios/' . $publicId . '/notes', $admin, media_json(['body' => 'Credenciales listas.']))->status);
@@ -265,6 +276,7 @@ same(401, $router->handle('POST', '/api/media/auth/login', $json($mediaSession['
 $relogin = media_body($router->handle('POST', '/api/media/auth/login', $json($mediaSession['csrf']), media_json(['email' => 'radio@example.invalid', 'password' => $newSecret])));
 $own = media_body($router->handle('GET', '/api/media/profile', $origin));
 same('Aprobado', $own['status']);
+same('green', $own['traffic_light']);
 same(false, $own['editable']);
 same(false, array_key_exists('notes', $own));
 same(false, array_key_exists('views_count', $own['videos'][0]));
