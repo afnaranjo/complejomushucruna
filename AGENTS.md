@@ -1399,3 +1399,12 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Commit: incluido en `Agregar Top 20 por visualizaciones a Medios y Voceros`.
 - Publicación externa: solo GitHub. **No está desplegado**; requiere autorización de Alex para backend → frontend con la migración 010.
 - Pendiente: autorización de despliegue; confirmar si en Voceros se prefiere el ranking por video (actual) o por total de cada vocero.
+
+### 2026-09-21 — Publicación del Top 20 por visualizaciones
+
+- Alex autorizó con `sube` publicar `9e8e163` (`Agregar Top 20 por visualizaciones a Medios y Voceros`). Antes de desplegar se confirmó `main` limpia y sincronizada, llave cargada desde el Llavero de macOS y artefacto del backend con 48 archivos, incluidos `010_media_video_views_mysql.sql` y ambos catálogos de `resources/`.
+- Despliegue backend → frontend con respaldo remoto previo y sin interrupción del servicio. La migración aditiva `010_media_video_views` quedó aplicada: columna `views_count` presente en `media_videos`.
+- Verificación HTTPS: `health` 200 con contrato `vocero-accounts-v1` en ambos dominios de API; sesiones de Vocero, administración y medios 200; `/api/medios`, `/api/medios/{id}/video-views` y `/api/dashboard` sin sesión administrativa 401; seis rutas 200; `/admin/medios/` entrega `Top 20 por visualizaciones` y `/admin/voceros/` entrega `Top 20 por visualizaciones de videos` y `Top 20 por seguidores`, sin ningún `Top 10`; nueve archivos con SHA-256 idéntico al build, incluidos `vocero-portal.js` y `/finados/voceros/mi-registro/` sin cambios.
+- Datos (solo conteos): 122 fichas, 173 cuentas y 99 videos de Voceros intactos; 1 cuenta de medio de prueba sin ficha y 0 videos de medios. No se crearon cuentas, registros ni views de prueba en producción.
+- Publicación externa: GitHub, backend y frontend autorizados. No se modificaron registros, fotos, cuentas o views de Voceros, DNS, Google Sheets, Meta ni otros proyectos.
+- Pendiente: prueba de Alex en producción (guardar ficha de medio, agregar un video, registrar views y ver el Top 20); decidir si el ranking de Voceros debe sumar por vocero en lugar de ordenar por video; pendientes anteriores de textos legales, enlace `ACREDITACIÓN DE MEDIOS` y rotación de la passphrase de la llave.
