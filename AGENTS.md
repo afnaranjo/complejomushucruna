@@ -1380,3 +1380,12 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Commit: incluido en `Simplificar ficha de Medios y recibir links de video`.
 - Publicación externa: solo GitHub. **No está desplegado**: producción conserva la ficha anterior hasta que Alex autorice backend → frontend; en producción no existe todavía ningún registro de medio guardado, por lo que el cambio no afecta datos.
 - Pendiente: autorización de despliegue y prueba con un medio real; confirmar si se requiere algún dato de contacto adicional del medio.
+
+### 2026-09-21 — Publicación de la ficha simplificada de Medios y sus videos
+
+- Alex autorizó con `sube` publicar `7e3992c` (`Simplificar ficha de Medios y recibir links de video`) y la mejora del panel `ff5603a`, e insistió en que el cambio aplicara solo a Medios. Antes de desplegar se comprobó con Git que ningún archivo de Voceros cambió desde `c67e93a` (formulario, portal, gafete, `admin.js`, clases PHP de Voceros y migraciones 001–007) y que el artefacto del backend incluía los 46 archivos esperados, entre ellos `009_media_videos_mysql.sql` y ambos catálogos de `resources/`.
+- Despliegue backend → frontend desde `main` limpia y sincronizada, con la llave cargada desde el Llavero de macOS, respaldo remoto previo y sin interrupción del servicio. La migración aditiva `009_media_videos` quedó aplicada: tabla `media_videos` y columna `social_link` presentes.
+- Verificación HTTPS: `health` 200 con contrato `vocero-accounts-v1` en ambos dominios de API; sesiones de Vocero, administración y medios 200; `/api/medios` y `/api/media/videos` sin sesión 401; ocho rutas 200; la ficha pública entrega solo `media_name`, `frequency_channel`, `social_link`, `conditions_accepted` y el campo del link de video; diez archivos con SHA-256 idéntico al build, incluidos `admin.js`, `vocero-portal.js`, `/finados/voceros/mi-registro/` y `/admin/voceros/` sin cambios.
+- Datos (solo conteos): 122 fichas y 173 cuentas de Voceros intactas; 1 cuenta de medio de prueba sin ficha; 0 videos. No se crearon cuentas ni registros de prueba en producción.
+- Publicación externa: GitHub, backend y frontend autorizados. No se modificaron registros, fotos o cuentas de Voceros, DNS, Google Sheets, Meta ni otros proyectos.
+- Pendiente: prueba de Alex con su cuenta de medio (guardar ficha y agregar un video) y revisión en `/admin/medios/`; definir textos de condiciones/privacidad y el responsable de recuperaciones de acceso; decidir el destino de `ACREDITACIÓN DE MEDIOS`; mover la llave fuera de `Downloads` y rotar su passphrase.

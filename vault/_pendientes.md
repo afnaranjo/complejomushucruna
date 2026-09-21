@@ -217,7 +217,7 @@ tags:
 - [ ] Probar en producción con un medio real o autorizado el registro de `MEDIOS` (landing, crear cuenta, iniciar sesión, `Mi registro`, `/admin/medios/`) y aprobar o corregir textos, campos y estados. Responsable: Alex/comunicación. Fecha: por definir.
 - [x] Publicar el sistema `MEDIOS` con autorización de Alex: commits `fcf04a2` y `1c4a275`, backend → frontend, migración aditiva `008_media_accounts`, incidente 503 del artefacto corregido y verificación HTTPS aprobada. Responsable: tecnología/dirección. Completado: 2026-09-21.
 - [ ] Definir el texto de condiciones de acreditación y el aviso de privacidad aplicables a medios, el responsable que atenderá las solicitudes de recuperación de acceso y si `ACREDITACIÓN DE MEDIOS` (cerrada desde el 15 de septiembre) debe enlazar o ceder su lugar al nuevo registro. Responsable: comunicación/dirección/legal. Fecha: por definir.
-- [ ] Desplegar backend → frontend la ficha simplificada de `MEDIOS` (nombre, frecuencia, link de redes) y los links de video acumulables, con la migración aditiva `009_media_videos`, cuando Alex lo autorice; probar después con un medio real. Responsable: tecnología/dirección. Fecha: por definir.
+- [x] Desplegar backend → frontend la ficha simplificada de `MEDIOS` (nombre, frecuencia, link de redes) y los links de video acumulables, con la migración aditiva `009_media_videos`; verificación HTTPS aprobada y Voceros sin cambios. Responsable: tecnología/dirección. Completado: 2026-09-21.
 
 ## Regla
 
