@@ -12,10 +12,23 @@ use Finados\Router;
 
 function media_config(): Config
 {
-    return Config::fromFile(temp_file(json_encode([
-        'environment' => 'test', 'databaseDsn' => 'sqlite::memory:', 'databaseUser' => '', 'databasePassword' => '',
-        'allowedOrigin' => 'https://example.invalid', 'encryptionKey' => base64_encode(str_repeat('e', 32)), 'hmacKey' => base64_encode(str_repeat('h', 32)),
-    ], JSON_THROW_ON_ERROR)));
+    // One private root per run, removed on shutdown, so encrypted test photos never linger in the system temp directory.
+    static $path = null;
+    if ($path === null) {
+        $root = tempnam(sys_get_temp_dir(), 'finados-media-');
+        if ($root === false || !unlink($root) || !mkdir($root, 0700)) throw new RuntimeException('Unable to create media test root.');
+        register_shutdown_function(static function () use ($root): void {
+            $entries = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root, FilesystemIterator::SKIP_DOTS), RecursiveIteratorIterator::CHILD_FIRST);
+            foreach ($entries as $entry) $entry->isDir() && !$entry->isLink() ? rmdir($entry->getPathname()) : unlink($entry->getPathname());
+            rmdir($root);
+        });
+        $path = $root . '/config.json';
+        file_put_contents($path, json_encode([
+            'environment' => 'test', 'databaseDsn' => 'sqlite::memory:', 'databaseUser' => '', 'databasePassword' => '',
+            'allowedOrigin' => 'https://example.invalid', 'encryptionKey' => base64_encode(str_repeat('e', 32)), 'hmacKey' => base64_encode(str_repeat('h', 32)),
+        ], JSON_THROW_ON_ERROR));
+    }
+    return Config::fromFile($path);
 }
 function media_body($response): array
 {
@@ -34,7 +47,7 @@ function media_json(array $payload): string { return json_encode($payload, JSON_
 media_close_session();
 $config = media_config();
 $pdo = Database::connect($config);
-foreach (['001_initial', '002_sheets_outbox', '003_vocero_accounts', '008_media_accounts', '009_media_videos', '010_media_video_views', '011_media_contact_channels', '012_media_consents', '013_media_types_radio'] as $migration) {
+foreach (['001_initial', '002_sheets_outbox', '003_vocero_accounts', '008_media_accounts', '009_media_videos', '010_media_video_views', '011_media_contact_channels', '012_media_consents', '013_media_types_radio', '014_media_channels_photo'] as $migration) {
     $pdo->exec(file_get_contents(__DIR__ . '/../migrations/' . $migration . '_sqlite.sql'));
 }
 same('008_media_accounts', $pdo->query("SELECT version FROM schema_migrations WHERE version = '008_media_accounts'")->fetchColumn());
@@ -71,13 +84,22 @@ $empty = media_body($router->handle('GET', '/api/media/profile', $origin));
 same(false, $empty['registered']);
 same('radio@example.invalid', $empty['email']);
 $record = ['media_name' => 'Radio Prueba', 'media_types' => ['radio', 'digital'], 'radio_stations' => [['name' => 'Radio Prueba Ambato', 'frequency' => '99.9 FM'], ['name' => 'Radio Prueba Riobamba', 'frequency' => '101.5 FM']],
-    'audience_count' => 25000, 'radio_genre' => 'Popular y tropical', 'tv_channel' => '', 'contact_name' => 'Persona Responsable', 'phone' => '0990000000',
-    'contact_email' => 'Prensa@Example.invalid', 'province' => 'Tungurahua', 'city' => 'Ambato', 'facebook' => 'facebook.com/radioprueba',
-    'instagram' => '', 'tiktok' => 'https://www.tiktok.com/@radioprueba', 'youtube' => '', 'website' => 'radioprueba.example', 'other_link' => '', 'conditions_accepted' => true, 'privacy_accepted' => true, 'image_accepted' => true];
+    'audience_count' => 25000, 'radio_genre' => 'Popular y tropical', 'tv_channels' => [], 'contact_name' => 'Persona Responsable', 'phone' => '0990000000',
+    'contact_email' => 'Prensa@Example.invalid', 'province' => 'Tungurahua', 'city' => 'Ambato',
+    'channels' => [['type' => 'facebook', 'url' => 'facebook.com/radioprueba', 'followers' => 12000], ['type' => 'facebook', 'url' => 'https://www.facebook.com/radiopruebariobamba', 'followers' => 3000], ['type' => 'tiktok', 'url' => 'https://www.tiktok.com/@radioprueba', 'followers' => null], ['type' => 'website', 'url' => 'radioprueba.example', 'followers' => null]],
+    'conditions_accepted' => true, 'privacy_accepted' => true, 'image_accepted' => true];
 same(422, $router->handle('POST', '/api/media/profile', $json($login['csrf']), media_json([...$record, 'privacy_accepted' => false]))->status);
 same(422, $router->handle('POST', '/api/media/profile', $json($login['csrf']), media_json([...$record, 'image_accepted' => 'sí']))->status);
-same(422, $router->handle('POST', '/api/media/profile', $json($login['csrf']), media_json([...$record, 'facebook' => 'javascript:alert(1)']))->status);
-same(422, $router->handle('POST', '/api/media/profile', $json($login['csrf']), media_json([...$record, 'facebook' => '', 'tiktok' => '', 'website' => '']))->status);
+same(422, $router->handle('POST', '/api/media/profile', $json($login['csrf']), media_json([...$record, 'channels' => [['type' => 'facebook', 'url' => 'javascript:alert(1)', 'followers' => null]]]))->status);
+same(422, $router->handle('POST', '/api/media/profile', $json($login['csrf']), media_json([...$record, 'channels' => []]))->status);
+same(422, $router->handle('POST', '/api/media/profile', $json($login['csrf']), media_json([...$record, 'channels' => [['type' => 'mastodon', 'url' => 'https://example.social/@radio', 'followers' => null]]]))->status);
+same(422, $router->handle('POST', '/api/media/profile', $json($login['csrf']), media_json([...$record, 'channels' => [['type' => 'facebook', 'url' => 'facebook.com/radioprueba', 'followers' => 1], ['type' => 'otro', 'url' => 'https://FACEBOOK.com/radioprueba', 'followers' => 1]]]))->status);
+same(422, $router->handle('POST', '/api/media/profile', $json($login['csrf']), media_json([...$record, 'facebook' => 'facebook.com/radioprueba']))->status);
+// Followers are whole numbers declared per account; a web page has none.
+same(422, $router->handle('POST', '/api/media/profile', $json($login['csrf']), media_json([...$record, 'channels' => [['type' => 'facebook', 'url' => 'facebook.com/radioprueba', 'followers' => '12000']]]))->status);
+same(422, $router->handle('POST', '/api/media/profile', $json($login['csrf']), media_json([...$record, 'channels' => [['type' => 'facebook', 'url' => 'facebook.com/radioprueba', 'followers' => -5]]]))->status);
+same(422, $router->handle('POST', '/api/media/profile', $json($login['csrf']), media_json([...$record, 'channels' => [['type' => 'website', 'url' => 'radioprueba.example', 'followers' => 10]]]))->status);
+same(422, $router->handle('POST', '/api/media/profile', $json($login['csrf']), media_json([...$record, 'channels' => [['type' => 'facebook', 'url' => 'facebook.com/radioprueba']]]))->status);
 same(422, $router->handle('POST', '/api/media/profile', $json($login['csrf']), media_json([...$record, 'phone' => 'sin numero']))->status);
 // At least one platform; radio details are mandatory with Radio and forbidden without it.
 same(422, $router->handle('POST', '/api/media/profile', $json($login['csrf']), media_json([...$record, 'media_types' => []]))->status);
@@ -104,6 +126,10 @@ same(true, $saved['editable']);
 same('https://facebook.com/radioprueba', $saved['social_link']);
 same('https://radioprueba.example', $saved['website']);
 same('', $saved['instagram']);
+same(4, count($saved['channels']));
+same(['type' => 'facebook', 'url' => 'https://www.facebook.com/radiopruebariobamba', 'followers' => 3000], $saved['channels'][1]);
+same(15000, $saved['followers_total']);
+same(['available' => false], $saved['photo']);
 same('Persona Responsable', $saved['contact_name']);
 same(['conditions', 'privacy', 'image'], array_keys($saved['consents']));
 same(true, $saved['consents']['image']['accepted']);
@@ -116,9 +142,10 @@ same(false, str_contains(implode('|', $stored), '0990000000'));
 same(false, str_contains(strtolower(implode('|', $stored)), 'prensa@'));
 same([], $saved['videos']);
 same(false, array_key_exists('people_count', $saved));
-$updated = media_body($router->handle('POST', '/api/media/profile', $json($login['csrf']), media_json([...$record, 'media_types' => ['tv', 'radio'], 'tv_channel' => 'Canal 25'])));
+$updated = media_body($router->handle('POST', '/api/media/profile', $json($login['csrf']), media_json([...$record, 'media_types' => ['tv', 'radio'], 'tv_channels' => ['Canal 25', 'Canal 40 UHF']])));
 same(['radio', 'tv'], $updated['media_types']);
-same('99.9 FM · 101.5 FM · Canal 25', $updated['frequency_channel']);
+same(['Canal 25', 'Canal 40 UHF'], $updated['tv_channels']);
+same('99.9 FM · 101.5 FM · Canal 25 · Canal 40 UHF', $updated['frequency_channel']);
 same(25000, $updated['audience_count']);
 same('Radio Prueba Riobamba', $updated['radio_stations'][1]['name']);
 // Saving again without changes adds no evidence rows; withdrawing image use is allowed and recorded.
@@ -155,7 +182,11 @@ same(['radio', 'digital'], $list['items'][0]['media_types']);
 same(25000, $list['items'][0]['audience_count']);
 same(1, media_body($router->handle('GET', '/api/medios?media_type=radio', $origin))['pagination']['total']);
 same(0, media_body($router->handle('GET', '/api/medios?media_type=prensa', $origin))['pagination']['total']);
-same('https://www.tiktok.com/@radioprueba', $list['items'][0]['tiktok']);
+same('tiktok', $list['items'][0]['channels'][2]['type']);
+same(15000, $list['items'][0]['followers_total']);
+same(1, count($list['topFollowers']));
+same(15000, $list['topFollowers'][0]['followers_total']);
+same('facebook', $list['topFollowers'][0]['top_channel']);
 same(false, array_key_exists('contact_name', $list['items'][0]));
 same(1, media_body($router->handle('GET', '/api/medios?province=Tungurahua&search=ambato', $origin))['pagination']['total']);
 same(0, media_body($router->handle('GET', '/api/medios?province=Azuay', $origin))['pagination']['total']);
@@ -199,7 +230,7 @@ same('Credenciales listas.', $detail['notes'][0]['body']);
 $export = $router->handle('POST', '/api/medios/export', $admin, media_json(['status' => 'Aprobado']));
 same(200, $export->status);
 same(true, str_contains($export->body, 'Radio Prueba'));
-same(true, str_contains($export->body, 'Persona Responsable') && str_contains($export->body, 'https://radioprueba.example') && str_contains($export->body, 'Tungurahua'));
+same(true, str_contains($export->body, 'Persona Responsable') && str_contains($export->body, 'Facebook: https://facebook.com/radioprueba (12000 seguidores) | Facebook: https://www.facebook.com/radiopruebariobamba (3000 seguidores)') && str_contains($export->body, ',15000,') && str_contains($export->body, 'Tungurahua'));
 same(true, str_contains($export->body, 'Radio Prueba Ambato (99.9 FM) | Radio Prueba Riobamba (101.5 FM)') && str_contains($export->body, 'Radio | Medio digital') && str_contains($export->body, ',25000,'));
 same(true, str_contains($export->body, 'https://www.tiktok.com/@radio/video/1 (1500 views)'));
 same(true, str_contains($export->body, ',2300,'));
@@ -231,6 +262,35 @@ same(403, $router->handle('POST', '/api/media/profile', $json($relogin['csrf']),
 $relogin = ['csrf' => media_body($router->handle('GET', '/api/media/auth/session', $origin))['csrf']] + $relogin;
 same(201, $router->handle('POST', '/api/media/videos', $json($relogin['csrf']), media_json(['url' => 'https://www.instagram.com/reel/xyz/']))->status);
 media_close_session();
+
+// The representative's photo is normalized, encrypted and stored apart from the Voceros photo store.
+$photoRoot = dirname($config->privateDirectory() . '/x');
+$image = imagecreatetruecolor(320, 240);
+imagefill($image, 0, 0, imagecolorallocate($image, 110, 44, 224));
+$upload = tempnam(sys_get_temp_dir(), 'media-photo-');
+imagejpeg($image, $upload, 90);
+$mediaRepository = new MediaRepository($pdo, new Finados\Crypto($config));
+$photoStorage = new Finados\MediaPhotoStorage($config, new Finados\Crypto($config));
+$accountId = (int) $pdo->query('SELECT account_id FROM media_profiles LIMIT 1')->fetchColumn();
+$meta = $mediaRepository->savePhotoForAccount($accountId, $photoStorage, $upload, filesize($upload), '192.0.2.60');
+same(true, $meta['available']);
+same(320, $meta['width']);
+$jpeg = $mediaRepository->photoForAccount($accountId, $photoStorage);
+same("\xFF\xD8", substr($jpeg, 0, 2));
+same(true, is_dir($photoRoot . '/media-photos/files'));
+same(1, count(array_diff(scandir($photoRoot . '/media-photos/files'), ['.', '..'])));
+same(false, is_dir($photoRoot . '/voceros-photos/files') && count(array_diff(scandir($photoRoot . '/voceros-photos/files'), ['.', '..'])) > 0);
+$stored = file_get_contents($photoRoot . '/media-photos/files/' . $pdo->query('SELECT storage_key FROM media_photos')->fetchColumn());
+same(false, str_contains($stored, "\xFF\xD8\xFF"));
+// Replacing keeps a single file and a single row.
+$mediaRepository->savePhotoForAccount($accountId, $photoStorage, $upload, filesize($upload), '192.0.2.60');
+same(1, (int) $pdo->query('SELECT COUNT(*) FROM media_photos')->fetchColumn());
+same(1, count(array_diff(scandir($photoRoot . '/media-photos/files'), ['.', '..'])));
+$notImage = tempnam(sys_get_temp_dir(), 'media-photo-');
+file_put_contents($notImage, 'esto no es una imagen');
+throws(fn () => $mediaRepository->savePhotoForAccount($accountId, $photoStorage, $notImage, filesize($notImage), '192.0.2.60'), InvalidArgumentException::class);
+same(true, str_starts_with($mediaRepository->photoForAdmin($publicId, $photoStorage, 1, '192.0.2.61'), "\xFF\xD8"));
+unlink($upload); unlink($notImage);
 
 // Safe retirement hides the record, disables the account and keeps the evidence.
 $repository = new MediaRepository($pdo, new Finados\Crypto($config));

@@ -13,6 +13,7 @@ use Throwable;
 require_once __DIR__ . '/Http.php';
 require_once __DIR__ . '/Crypto.php';
 require_once __DIR__ . '/Audit.php';
+require_once __DIR__ . '/MediaPhotoStorage.php';
 
 /** Media accreditation records: owned by a media account, reviewed by administrators. */
 final class MediaRepository
@@ -23,14 +24,18 @@ final class MediaRepository
         'Imbabura', 'Loja', 'Los Ríos', 'Manabí', 'Morona Santiago', 'Napo', 'Orellana', 'Pastaza', 'Pichincha',
         'Santa Elena', 'Santo Domingo de los Tsáchilas', 'Sucumbíos', 'Tungurahua', 'Zamora Chinchipe',
     ];
-    /** Public channels of a medium; every one is optional but at least one is required. */
-    public const CHANNELS = ['facebook', 'instagram', 'tiktok', 'youtube', 'website', 'other_link'];
+    /** Kinds of public channel. A medium may declare several of the same kind; at least one channel is required. */
+    public const CHANNEL_TYPES = ['facebook' => 'Facebook', 'instagram' => 'Instagram', 'tiktok' => 'TikTok', 'youtube' => 'YouTube', 'x' => 'X', 'website' => 'Página web', 'otro' => 'Otro canal'];
+    public const MAX_CHANNELS = 20;
+    public const MAX_TV_CHANNELS = 10;
+    // Columns from 011 keep the first link of each kind so earlier exports stay meaningful.
+    private const CHANNEL_COLUMNS = ['facebook' => 'facebook', 'instagram' => 'instagram', 'tiktok' => 'tiktok', 'youtube' => 'youtube', 'website' => 'website', 'otro' => 'other_link', 'x' => 'other_link'];
     /** A medium may operate on several platforms at once; at least one is required. */
     public const MEDIA_TYPES = ['radio' => 'Radio', 'tv' => 'Televisión', 'prensa' => 'Prensa escrita', 'digital' => 'Medio digital', 'redes' => 'Redes sociales'];
     public const RADIO_GENRES = ['Noticias e información', 'Musical variada', 'Popular y tropical', 'Folclórica y andina', 'Juvenil y pop', 'Romántica', 'Religiosa', 'Deportiva', 'Comunitaria', 'Otro'];
     public const MAX_STATIONS = 10;
-    public const FIELDS = ['media_name', 'media_types', 'radio_stations', 'audience_count', 'radio_genre', 'tv_channel', 'contact_name', 'phone', 'contact_email', 'province', 'city',
-        'facebook', 'instagram', 'tiktok', 'youtube', 'website', 'other_link', 'conditions_accepted', 'privacy_accepted', 'image_accepted'];
+    public const FIELDS = ['media_name', 'media_types', 'radio_stations', 'audience_count', 'radio_genre', 'tv_channels', 'contact_name', 'phone', 'contact_email', 'province', 'city',
+        'channels', 'conditions_accepted', 'privacy_accepted', 'image_accepted'];
     /** Required consents block the save when rejected; image use is separate and optional. */
     public const CONSENTS = ['conditions' => true, 'privacy' => true, 'image' => false];
     public const MAX_VIDEOS = 100;
@@ -38,7 +43,7 @@ final class MediaRepository
     private const EDITABLE = ['Nuevo', 'En revisión'];
     // social_link keeps the first declared channel so lists and searches have one primary link.
     // frequency_channel is derived from the declared stations and TV channel so lists keep one readable column.
-    private const PLAIN = ['media_name', 'media_types', 'radio_stations', 'audience_count', 'radio_genre', 'tv_channel', 'frequency_channel', 'province', 'city', 'social_link', 'facebook', 'instagram', 'tiktok', 'youtube', 'website', 'other_link'];
+    private const PLAIN = ['media_name', 'media_types', 'radio_stations', 'audience_count', 'radio_genre', 'tv_channel', 'tv_channels', 'frequency_channel', 'province', 'city', 'social_link', 'channels', 'facebook', 'instagram', 'tiktok', 'youtube', 'website', 'other_link'];
     private const ENCRYPTED = ['contact_name', 'phone', 'contact_email'];
     // Columns from the first accreditation form (008). They stay in the schema, unused, so no data is ever dropped.
     private const LEGACY_PLAIN = ['media_type' => '', 'program_name' => '', 'program_type' => '', 'contract' => '', 'people_count' => 0];
@@ -74,7 +79,7 @@ final class MediaRepository
         $row = $statement->fetch();
         if ($row === false || $row['status'] === self::ARCHIVED) return null;
         return [...$this->present($row), 'editable' => in_array($row['status'], self::EDITABLE, true), 'videos' => $this->videos((int) $row['id']),
-            'can_add_videos' => $row['status'] !== 'Rechazado', 'consents' => $this->consents((int) $row['id'])];
+            'can_add_videos' => $row['status'] !== 'Rechazado', 'consents' => $this->consents((int) $row['id']), 'photo' => $this->photoMeta((int) $row['id'])];
     }
 
     public function saveForAccount(int $accountId, array $input, string $ip): array
@@ -153,9 +158,9 @@ final class MediaRepository
         $count = $this->pdo->prepare('SELECT COUNT(*) FROM media_profiles WHERE ' . $condition);
         $count->execute($parameters);
         $total = (int) $count->fetchColumn();
-        $rows = $this->pdo->prepare('SELECT public_id, status, media_name, media_types, frequency_channel, audience_count, radio_genre, province, city, social_link, facebook, instagram, tiktok, youtube, website, other_link, submitted_at, (SELECT COUNT(*) FROM media_videos v WHERE v.profile_id = media_profiles.id) AS videos_count, (SELECT COALESCE(SUM(v.views_count), 0) FROM media_videos v WHERE v.profile_id = media_profiles.id) AS views_total FROM media_profiles WHERE ' . $condition . ' ORDER BY submitted_at DESC, id DESC LIMIT ' . $perPage . ' OFFSET ' . (($page - 1) * $perPage));
+        $rows = $this->pdo->prepare('SELECT public_id, status, media_name, media_types, frequency_channel, audience_count, radio_genre, province, city, social_link, channels, submitted_at, (SELECT COUNT(*) FROM media_videos v WHERE v.profile_id = media_profiles.id) AS videos_count, (SELECT COALESCE(SUM(v.views_count), 0) FROM media_videos v WHERE v.profile_id = media_profiles.id) AS views_total FROM media_profiles WHERE ' . $condition . ' ORDER BY submitted_at DESC, id DESC LIMIT ' . $perPage . ' OFFSET ' . (($page - 1) * $perPage));
         $rows->execute($parameters);
-        $items = array_map(static fn (array $row): array => [...$row, 'media_types' => self::typeKeys((string) $row['media_types']), 'audience_count' => $row['audience_count'] === null ? null : (int) $row['audience_count'], 'videos_count' => (int) $row['videos_count'], 'views_total' => (int) $row['views_total']], $rows->fetchAll(PDO::FETCH_ASSOC));
+        $items = array_map(static function (array $row): array { $decoded = []; return [...$row, 'channels' => $decoded = json_decode((string) ($row['channels'] ?? '') ?: '[]', true, 8) ?: [], 'followers_total' => self::followersTotal($decoded), 'media_types' => self::typeKeys((string) $row['media_types']), 'audience_count' => $row['audience_count'] === null ? null : (int) $row['audience_count'], 'videos_count' => (int) $row['videos_count'], 'views_total' => (int) $row['views_total']]; }, $rows->fetchAll(PDO::FETCH_ASSOC));
         return ['items' => $items, 'page' => $page, 'per_page' => $perPage, 'total' => $total];
     }
 
@@ -170,6 +175,29 @@ final class MediaRepository
         $views = $this->pdo->prepare('SELECT COALESCE(SUM(v.views_count), 0) FROM media_videos v JOIN media_profiles m ON m.id = v.profile_id WHERE m.status <> ?');
         $views->execute([self::ARCHIVED]);
         return ['total' => array_sum($statuses), 'byStatus' => $statuses, 'videos' => (int) $videos->fetchColumn(), 'views' => (int) $views->fetchColumn()];
+    }
+
+    /** Media ranked by the followers they declared across all their channels. */
+    public function topByFollowers(int $limit = 20): array
+    {
+        $query = $this->pdo->prepare('SELECT public_id, media_name, frequency_channel, channels FROM media_profiles WHERE status <> ?');
+        $query->execute([self::ARCHIVED]);
+        $ranking = [];
+        foreach ($query->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            $channels = json_decode((string) ($row['channels'] ?? '') ?: '[]', true, 8) ?: [];
+            $total = self::followersTotal($channels);
+            if ($total <= 0) continue;
+            $best = array_reduce($channels, static fn (?array $carry, array $channel): ?array => ($channel['followers'] ?? 0) > ($carry['followers'] ?? 0) ? $channel : $carry);
+            $ranking[] = ['public_id' => (string) $row['public_id'], 'media_name' => (string) $row['media_name'], 'frequency_channel' => (string) $row['frequency_channel'],
+                'followers_total' => $total, 'channels_count' => count($channels), 'top_channel' => (string) ($best['type'] ?? '')];
+        }
+        usort($ranking, static fn (array $left, array $right): int => [$right['followers_total'], $left['media_name']] <=> [$left['followers_total'], $right['media_name']]);
+        return array_slice($ranking, 0, max(1, min(50, $limit)));
+    }
+
+    private static function followersTotal(array $channels): int
+    {
+        return (int) array_sum(array_map(static fn (mixed $channel): int => is_array($channel) && is_int($channel['followers'] ?? null) ? $channel['followers'] : 0, $channels));
     }
 
     /** Media ranked by the validated views of all their reported videos. */
@@ -200,6 +228,7 @@ final class MediaRepository
             'last_login_at' => $owner['last_login_at'] ?? null,
             'videos' => $this->videos((int) $row['id'], true),
             'consents' => $this->consents((int) $row['id']),
+            'photo' => $this->photoMeta((int) $row['id']),
             'notes' => array_map(static fn (array $note): array => [...$note, 'id' => (int) $note['id']], $notes->fetchAll(PDO::FETCH_ASSOC)),
         ];
     }
@@ -318,9 +347,14 @@ final class MediaRepository
         } elseif ($input['radio_stations'] !== [] || $input['audience_count'] !== null || $input['radio_genre'] !== '') {
             throw new InvalidArgumentException();
         }
-        if (in_array('tv', $types, true)) $tvChannel = $text($input['tv_channel'], 120);
-        elseif ($input['tv_channel'] !== '') throw new InvalidArgumentException();
-        $summary = implode(' · ', array_filter([...array_map(static fn (array $station): string => $station['frequency'], $stations), $tvChannel]));
+        $tvChannels = [];
+        if (!is_array($input['tv_channels']) || !array_is_list($input['tv_channels'])) throw new InvalidArgumentException();
+        if (in_array('tv', $types, true)) {
+            if ($input['tv_channels'] === [] || count($input['tv_channels']) > self::MAX_TV_CHANNELS) throw new InvalidArgumentException();
+            foreach ($input['tv_channels'] as $channel) $tvChannels[] = $text($channel, 120);
+        } elseif ($input['tv_channels'] !== []) throw new InvalidArgumentException();
+        $tvChannel = $tvChannels[0] ?? '';
+        $summary = implode(' · ', [...array_map(static fn (array $station): string => $station['frequency'], $stations), ...$tvChannels]);
         $record = [
             'media_name' => $text($input['media_name'], 140),
             'media_types' => ',' . implode(',', $types) . ',',
@@ -328,6 +362,7 @@ final class MediaRepository
             'audience_count' => $audience,
             'radio_genre' => $genre,
             'tv_channel' => $tvChannel,
+            'tv_channels' => json_encode($tvChannels, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),
             'frequency_channel' => substr($summary, 0, 120),
             'contact_name' => $text($input['contact_name'], 160),
             'phone' => $phone,
@@ -335,13 +370,27 @@ final class MediaRepository
             'province' => $input['province'],
             'city' => $text($input['city'], 100),
         ];
-        foreach (self::CHANNELS as $channel) {
-            if (!is_string($input[$channel])) throw new InvalidArgumentException();
-            $record[$channel] = trim($input[$channel]) === '' ? '' : self::link($input[$channel], 300);
+        if (!is_array($input['channels']) || !array_is_list($input['channels']) || $input['channels'] === [] || count($input['channels']) > self::MAX_CHANNELS) throw new InvalidArgumentException();
+        $channels = []; $seen = [];
+        foreach ($input['channels'] as $channel) {
+            if ($channel instanceof \stdClass) $channel = (array) $channel;
+            if (!is_array($channel) || array_diff(array_keys($channel), ['type', 'url', 'followers']) !== [] || count($channel) !== 3
+                || !is_string($channel['type'] ?? null) || !isset(self::CHANNEL_TYPES[$channel['type']])) throw new InvalidArgumentException();
+            // Followers are self-reported per account and optional; a web page has none.
+            $followers = $channel['followers'];
+            if ($followers !== null && (!is_int($followers) || $followers < 0 || $followers > 1000000000 || $channel['type'] === 'website')) throw new InvalidArgumentException();
+            $url = self::link($channel['url'] ?? null, 300);
+            if (isset($seen[strtolower($url)])) throw new InvalidArgumentException();
+            $seen[strtolower($url)] = true;
+            $channels[] = ['type' => $channel['type'], 'url' => $url, 'followers' => $followers];
         }
-        $declared = array_values(array_filter(array_map(static fn (string $channel): string => $record[$channel], self::CHANNELS)));
-        if ($declared === []) throw new InvalidArgumentException();
-        $record['social_link'] = $declared[0];
+        $record['channels'] = json_encode($channels, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        foreach (array_unique(self::CHANNEL_COLUMNS) as $column) $record[$column] = '';
+        foreach ($channels as $channel) {
+            $column = self::CHANNEL_COLUMNS[$channel['type']];
+            if ($record[$column] === '') $record[$column] = $channel['url'];
+        }
+        $record['social_link'] = $channels[0]['url'];
         return $record;
     }
 
@@ -412,6 +461,66 @@ final class MediaRepository
         });
     }
 
+    /** Replaces the representative's profile photo. It is normalized, encrypted and kept outside the Voceros store. */
+    public function savePhotoForAccount(int $accountId, MediaPhotoStorage $storage, string $temporaryPath, int $declaredSize, string $ip): array
+    {
+        $statement = $this->pdo->prepare('SELECT id, public_id, status FROM media_profiles WHERE account_id = ?');
+        $statement->execute([$accountId]);
+        $profile = $statement->fetch();
+        if ($profile === false || in_array($profile['status'], [self::ARCHIVED, 'Rechazado'], true)) throw new Forbidden();
+        try { $photo = $storage->stage($temporaryPath, $declaredSize); }
+        catch (RuntimeException) { throw new InvalidArgumentException(); }
+        $promoted = false;
+        try {
+            $storage->promote($photo); $promoted = true;
+            $this->begin();
+            $previous = $this->pdo->prepare('SELECT storage_key FROM media_photos WHERE profile_id = ?');
+            $previous->execute([$profile['id']]);
+            $oldKey = $previous->fetchColumn();
+            $values = [$photo['storage_key'], $photo['mime_type'], $photo['bytes'], $photo['sha256'], $photo['width'], $photo['height'], gmdate('Y-m-d H:i:s'), $profile['id']];
+            if ($oldKey === false) $this->pdo->prepare('INSERT INTO media_photos (storage_key, content_type, bytes, sha256, width, height, created_at, profile_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')->execute($values);
+            else $this->pdo->prepare('UPDATE media_photos SET storage_key = ?, content_type = ?, bytes = ?, sha256 = ?, width = ?, height = ?, created_at = ? WHERE profile_id = ?')->execute($values);
+            $this->audit->log('media.photo_saved', null, 'media_profile', $profile['public_id'], [], $ip);
+            $this->commit();
+        } catch (Throwable $error) {
+            $this->rollBack();
+            try { $promoted ? $storage->delete($photo['storage_key']) : $storage->discard($photo); } catch (Throwable) { /* keep the original failure */ }
+            throw $error;
+        }
+        if (is_string($oldKey)) { try { $storage->delete($oldKey); } catch (Throwable) { /* an orphaned ciphertext is harmless */ } }
+        return $this->photoMeta((int) $profile['id']);
+    }
+
+    public function photoForAccount(int $accountId, MediaPhotoStorage $storage): string
+    {
+        $statement = $this->pdo->prepare('SELECT p.storage_key FROM media_photos p JOIN media_profiles m ON m.id = p.profile_id WHERE m.account_id = ? AND m.status <> ?');
+        $statement->execute([$accountId, self::ARCHIVED]);
+        $key = $statement->fetchColumn();
+        if ($key === false) throw new OutOfBoundsException();
+        return $storage->read($key);
+    }
+
+    public function photoForAdmin(string $publicId, MediaPhotoStorage $storage, int $actorId, string $ip): string
+    {
+        $row = $this->row($publicId);
+        if ($row === null) throw new OutOfBoundsException();
+        $statement = $this->pdo->prepare('SELECT storage_key FROM media_photos WHERE profile_id = ?');
+        $statement->execute([$row['id']]);
+        $key = $statement->fetchColumn();
+        if ($key === false) throw new OutOfBoundsException();
+        $jpeg = $storage->read($key);
+        $this->audit->log('media.photo_viewed', $actorId, 'media_profile', $publicId, [], $ip);
+        return $jpeg;
+    }
+
+    private function photoMeta(int $profileId): array
+    {
+        $statement = $this->pdo->prepare('SELECT width, height, created_at FROM media_photos WHERE profile_id = ?');
+        $statement->execute([$profileId]);
+        $row = $statement->fetch();
+        return $row === false ? ['available' => false] : ['available' => true, 'width' => (int) $row['width'], 'height' => (int) $row['height'], 'created_at' => (string) $row['created_at']];
+    }
+
     /** Append-only evidence: a new row is written only when the answer or the accepted text changes. */
     private function recordConsents(int $profileId, array $input, string $ip, string $now): void
     {
@@ -454,6 +563,9 @@ final class MediaRepository
         foreach (self::PLAIN as $field) $result[$field] = (string) $row[$field];
         $result['media_types'] = self::typeKeys((string) ($row['media_types'] ?? ''));
         $result['radio_stations'] = json_decode((string) ($row['radio_stations'] ?? '') ?: '[]', true, 8) ?: [];
+        $result['tv_channels'] = json_decode((string) ($row['tv_channels'] ?? '') ?: '[]', true, 8) ?: [];
+        $result['channels'] = json_decode((string) ($row['channels'] ?? '') ?: '[]', true, 8) ?: [];
+        $result['followers_total'] = self::followersTotal($result['channels']);
         $result['audience_count'] = ($row['audience_count'] ?? null) === null ? null : (int) $row['audience_count'];
         foreach (self::ENCRYPTED as $field) $result[$field] = ($row[$field . '_enc'] ?? null) === null || $row[$field . '_enc'] === '' ? '' : $this->crypto->decrypt($row[$field . '_enc']);
         return $result;

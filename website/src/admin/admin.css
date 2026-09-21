@@ -63,3 +63,6 @@
 @media (max-width: 640px) { .admin-media-videos li { grid-template-columns: 1fr; } }
 .admin-media-channels { display: flex; flex-wrap: wrap; gap: .25rem .6rem; }
 .admin-media-channels a { font-weight: 700; font-size: .8rem; }
+.admin-media-channel-list { list-style: none; margin: 0; padding: 0; display: grid; gap: .3rem; }
+.admin-media-channel-list a { overflow-wrap: anywhere; }
+[data-admin-medios] .admin-photo img { width: 160px; height: 160px; object-fit: cover; border-radius: 50%; border: 1px solid #c3b6c7; }

@@ -225,6 +225,8 @@ tags:
 - [ ] Revisar en navegador, en producción, que los bloques de Radio y Televisión de la ficha de `MEDIOS` se activen al marcar su casilla y guardar una ficha de prueba completa. Responsable: Alex/comunicación. Fecha: por definir.
 - [ ] Validar con el responsable o su asesoría legal los textos de Buenas prácticas, Política de Privacidad y Uso de imagen para medios, el plazo de conservación de tres años y el uso de casillas premarcadas frente a la LOPDP. Responsable: dirección/legal. Fecha: por definir.
 - [ ] Entregar, si se desea el autocompletado de emisoras por frecuencia, un listado oficial verificado de radios y frecuencias; no se inventó ningún catálogo. Responsable: Alex/comunicación. Fecha: por definir.
+- [ ] Desplegar backend → frontend la ficha de `MEDIOS` con varios canales de TV y digitales, seguidores declarados, foto del representante y Top 20 por seguidores (migración aditiva `014_media_channels_photo`) cuando Alex lo autorice; revisar en navegador las listas «Agregar otro», el campo de seguidores y la subida de la foto. Responsable: tecnología/dirección. Fecha: por definir.
+- [ ] Decidir si se amplía `bin/backup.php` —código compartido con Voceros— para incluir las fotos de representantes de medios (`media-photos/`) en el respaldo verificado; hoy quedan fuera. Responsable: Alex/tecnología. Fecha: por definir.
 
 ## Regla
 

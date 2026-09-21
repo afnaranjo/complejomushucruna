@@ -6,12 +6,11 @@ const LOCAL_API = 'http://127.0.0.1:4174/api';
 export const MEDIA_TYPE_LABELS = Object.freeze({ radio: 'Radio', tv: 'Televisión', prensa: 'Prensa escrita', digital: 'Medio digital', redes: 'Redes sociales' });
 const FILTERS = ['search', 'status', 'province', 'media_type'];
 const DETAIL_FIELDS = Object.freeze([
-  ['media_name', 'Nombre del medio'], ['media_types', 'Tipo de medio'], ['radio_stations', 'Emisoras y frecuencias'], ['audience_count', 'Oyentes (dato del medio)'], ['radio_genre', 'Género de la radio'], ['tv_channel', 'Canal de televisión'], ['province', 'Provincia'], ['city', 'Ciudad'],
+  ['media_name', 'Nombre del medio'], ['media_types', 'Tipo de medio'], ['radio_stations', 'Emisoras y frecuencias'], ['audience_count', 'Oyentes (dato del medio)'], ['radio_genre', 'Género de la radio'], ['tv_channels', 'Canales de televisión'], ['province', 'Provincia'], ['city', 'Ciudad'],
   ['contact_name', 'Persona de contacto'], ['phone', 'Número telefónico'], ['contact_email', 'Correo de contacto'], ['account_email', 'Correo de la cuenta'],
-  ['facebook', 'Facebook'], ['instagram', 'Instagram'], ['tiktok', 'TikTok'], ['youtube', 'YouTube'], ['website', 'Página web'], ['other_link', 'Otro canal'],
 ]);
-export const CHANNEL_LABELS = Object.freeze({ facebook: 'Facebook', instagram: 'Instagram', tiktok: 'TikTok', youtube: 'YouTube', website: 'Web', other_link: 'Otro' });
-const LINK_FIELDS = new Set(Object.keys(CHANNEL_LABELS));
+export const CHANNEL_LABELS = Object.freeze({ facebook: 'Facebook', instagram: 'Instagram', tiktok: 'TikTok', youtube: 'YouTube', x: 'X', website: 'Web', otro: 'Otro' });
+const LINK_FIELDS = new Set();
 
 export function normalizeMediaFilters(input = {}) {
   const result = {};
@@ -46,6 +45,15 @@ export function topMediaViews(items = [], limit = 20) {
     .slice(0, Math.max(0, Number.parseInt(limit, 10) || 0));
 }
 
+/** Media ranked by the followers they declared across all their channels. */
+export function topMediaFollowers(items = [], limit = 20) {
+  return (Array.isArray(items) ? items : [])
+    .map(item => ({ ...item, followers_total: Math.max(0, Number.parseInt(item?.followers_total, 10) || 0) }))
+    .filter(item => item.followers_total > 0 && typeof item.media_name === 'string' && item.media_name.trim() !== '')
+    .sort((left, right) => right.followers_total - left.followers_total || left.media_name.localeCompare(right.media_name, 'es'))
+    .slice(0, Math.max(0, Number.parseInt(limit, 10) || 0));
+}
+
 /** Reads the views typed beside each video; every value must be a whole number from 0 to 1.000.000.000. */
 export function collectVideoViews(inputs) {
   const views = {};
@@ -71,11 +79,11 @@ export function createMediaAdminClient(baseUrl = API, fetchImplementation = fetc
   let csrf = '';
   async function request(path, options = {}) {
     if (!/^\/(?:auth\/(?:session|logout)|media-accounts|medios(?:\/export)?)(?:\?[^#]*)?$/.test(path)
-      && !/^\/medios\/[a-f0-9]{32}(?:\/(?:delete|notes|password-reset|video-views))?$/.test(path)
+      && !/^\/medios\/[a-f0-9]{32}(?:\/(?:delete|notes|password-reset|video-views|photo))?$/.test(path)
       && !/^\/media-accounts\/[a-f0-9]{32}\/delete$/.test(path)) throw new Error('Ruta de API no permitida.');
     const method = (options.method ?? 'GET').toUpperCase();
     if (!['GET', 'POST', 'PATCH'].includes(method)) throw new Error('Método no permitido.');
-    const headers = { Accept: options.blob ? 'text/csv' : 'application/json' };
+    const headers = { Accept: !options.blob ? 'application/json' : path.endsWith('/photo') ? 'image/jpeg' : 'text/csv' };
     if (method !== 'GET') {
       if (!csrf) throw new MediaAdminError(403);
       headers['X-CSRF-Token'] = csrf;
@@ -101,6 +109,7 @@ export function createMediaAdminClient(baseUrl = API, fetchImplementation = fetc
     logout: () => request('/auth/logout', { method: 'POST' }),
     list: filters => request('/medios?' + new URLSearchParams(filters)),
     detail: id => request(`/medios/${id}`),
+    photo: id => request(`/medios/${id}/photo`, { blob: true }),
     changeStatus: (id, status) => request(`/medios/${id}`, { method: 'PATCH', body: { status } }),
     addNote: (id, body) => request(`/medios/${id}/notes`, { method: 'POST', body: { body } }),
     updateVideoViews: (id, views) => request(`/medios/${id}/video-views`, { method: 'PATCH', body: { video_views: views } }),
@@ -130,6 +139,7 @@ function feedback(element, message, kind = '') {
 export function describeField(key, value) {
   if (key === 'media_types') return (Array.isArray(value) ? value : []).map(type => MEDIA_TYPE_LABELS[type] ?? type).join(' · ');
   if (key === 'radio_stations') return (Array.isArray(value) ? value : []).map(station => `${station.name} — ${station.frequency}`).join('\n');
+  if (key === 'tv_channels') return (Array.isArray(value) ? value : []).join('\n');
   if (key === 'audience_count') return value == null ? '' : new Intl.NumberFormat('es-EC').format(value);
   return value == null ? '' : String(value);
 }
@@ -175,6 +185,8 @@ export async function initializeMediaAdmin() {
   const dashboard = query('[data-admin-dashboard]');
   const viewsLeaderboard = query('[data-media-views-leaderboard]');
   const viewsLeaderboardCount = query('[data-media-views-leaderboard-count]');
+  const followersLeaderboard = query('[data-media-followers-leaderboard]');
+  const followersLeaderboardCount = query('[data-media-followers-leaderboard-count]');
   const previous = query('[data-previous]');
   const next = query('[data-next]');
   const exportButton = query('[data-admin-export]');
@@ -200,9 +212,11 @@ export async function initializeMediaAdmin() {
   let detailGeneration = 0;
   let currentId = null;
   let opener = null;
+  let photoUrl = '';
 
   const clearDetail = () => {
     currentId = null; detailGeneration++;
+    if (photoUrl) { URL.revokeObjectURL(photoUrl); photoUrl = ''; }
     detailContent.replaceChildren(); notes.replaceChildren(); noteForm.reset();
     resetInput.value = ''; resetOutput.hidden = true; resetButton.disabled = true; deleteButton.disabled = true;
     feedback(resetFeedback, ''); feedback(detailFeedback, '');
@@ -213,6 +227,27 @@ export async function initializeMediaAdmin() {
   };
   globalThis.addEventListener?.('pagehide', clearDetail);
   globalThis.addEventListener?.('pageshow', event => { if (event.persisted) location.reload(); });
+
+  function renderFollowersLeaderboard(items = []) {
+    const ranking = topMediaFollowers(items, 20);
+    followersLeaderboard.replaceChildren();
+    followersLeaderboardCount.textContent = ranking.length ? `${ranking.length} medios` : 'Sin datos';
+    if (!ranking.length) { followersLeaderboard.append(node('li', 'Todavía no hay medios con seguidores declarados.')); return; }
+    const format = new Intl.NumberFormat('es-EC');
+    for (const [index, record] of ranking.entries()) {
+      const item = node('li'); const body = node('div');
+      body.append(node('strong', record.media_name));
+      body.append(node('small', [record.channels_count === 1 ? '1 canal' : `${record.channels_count ?? 0} canales`, CHANNEL_LABELS[record.top_channel] ? `mayor: ${CHANNEL_LABELS[record.top_channel]}` : ''].filter(Boolean).join(' · ')));
+      item.append(node('span', String(index + 1).padStart(2, '0'), 'followers-leaderboard__rank'), body, node('span', format.format(record.followers_total), 'followers-leaderboard__value'));
+      if (/^[a-f0-9]{32}$/.test(record.public_id ?? '')) {
+        const open = node('button', 'Ver', 'button-quiet'); open.type = 'button';
+        open.setAttribute('aria-label', 'Ver detalle de ' + record.media_name);
+        open.addEventListener('click', () => openDetail(record.public_id, open));
+        item.append(open);
+      }
+      followersLeaderboard.append(item);
+    }
+  }
 
   function renderViewsLeaderboard(items = []) {
     const ranking = topMediaViews(items, 20);
@@ -252,6 +287,7 @@ export async function initializeMediaAdmin() {
       }
       dashboard.setAttribute('aria-busy', 'false');
       renderViewsLeaderboard(data.topViews);
+      renderFollowersLeaderboard(data.topFollowers);
       records.replaceChildren();
       for (const record of data.items) {
         const row = node('tr');
@@ -263,14 +299,15 @@ export async function initializeMediaAdmin() {
         cell('Frecuencia', record.frequency_channel || '—', record.audience_count == null ? '' : `${describeField('audience_count', record.audience_count)} oyentes · ${record.radio_genre}`);
         cell('Ubicación', record.city || '—', record.province);
         const channels = node('span', undefined, 'admin-media-channels');
-        for (const [key, label] of Object.entries(CHANNEL_LABELS)) {
-          const href = safeLink(record[key]);
+        for (const channel of Array.isArray(record.channels) ? record.channels : []) {
+          const href = safeLink(channel?.url);
           if (!href) continue;
-          const anchor = node('a', label); anchor.href = href; anchor.target = '_blank'; anchor.rel = 'noopener noreferrer';
+          const anchor = node('a', CHANNEL_LABELS[channel.type] ?? 'Canal'); anchor.href = href; anchor.target = '_blank'; anchor.rel = 'noopener noreferrer'; anchor.title = href;
           channels.append(anchor);
         }
         if (!channels.childElementCount) channels.textContent = '—';
         cell('Canales', '').replaceChildren(channels);
+        if (record.followers_total > 0) channels.append(node('small', `${new Intl.NumberFormat('es-EC').format(record.followers_total)} seguidores declarados`));
         cell('Videos', record.videos_count === 1 ? '1 video' : `${record.videos_count ?? 0} videos`, `${new Intl.NumberFormat('es-EC').format(record.views_total ?? 0)} views`);
         cell('Registro', dateTime(record.submitted_at));
         const badge = node('span', record.status, 'status-badge'); badge.dataset.status = record.status;
@@ -334,9 +371,18 @@ export async function initializeMediaAdmin() {
     const dl = node('dl', undefined, 'detail-fields');
     for (const [key, label] of DETAIL_FIELDS) {
       const field = node('div'); const value = node('dd');
-      if (LINK_FIELDS.has(key)) value.append(linkNode(data[key])); else { value.textContent = describeField(key, data[key]) || '—'; if (key === 'radio_stations') value.style.whiteSpace = 'pre-line'; }
+      if (LINK_FIELDS.has(key)) value.append(linkNode(data[key])); else { value.textContent = describeField(key, data[key]) || '—'; if (['radio_stations', 'tv_channels'].includes(key)) value.style.whiteSpace = 'pre-line'; }
       field.append(node('dt', label), value); dl.append(field);
     }
+    const channelField = node('div'); const channelValue = node('dd');
+    const channelList = node('ul', undefined, 'admin-media-channel-list');
+    for (const channel of Array.isArray(data.channels) ? data.channels : []) {
+      const item = node('li'); item.append(node('strong', `${CHANNEL_LABELS[channel.type] ?? 'Canal'}: `), linkNode(channel.url));
+      if (Number.isInteger(channel.followers)) item.append(node('small', ` · ${new Intl.NumberFormat('es-EC').format(channel.followers)} seguidores`));
+      channelList.append(item);
+    }
+    channelValue.append(channelList.childElementCount ? channelList : node('span', '—'));
+    channelField.append(node('dt', 'Redes sociales y páginas web'), channelValue); dl.append(channelField);
     const consentLabels = { conditions: 'Buenas prácticas y condiciones', privacy: 'Política de Privacidad', image: 'Uso de imagen y contenido' };
     for (const [key, label] of Object.entries(consentLabels)) {
       const answer = data.consents?.[key];
@@ -381,7 +427,18 @@ export async function initializeMediaAdmin() {
       });
       videos.append(save, saved);
     }
-    detailContent.replaceChildren(submitted, dl, videos);
+    const photo = node('section', undefined, 'admin-photo');
+    photo.append(node('h3', 'Foto de perfil del representante'));
+    if (data.photo?.available) {
+      const image = node('img'); image.alt = 'Foto de perfil del representante'; image.hidden = true;
+      const state = node('p', 'Cargando fotografía…');
+      photo.append(state, image);
+      client.photo(id).then((blob) => {
+        if (generation !== detailGeneration) return;
+        photoUrl = URL.createObjectURL(blob); image.src = photoUrl; image.hidden = false; state.textContent = `Subida: ${dateTime(data.photo.created_at)}`;
+      }).catch(() => { state.textContent = 'No se pudo cargar la fotografía.'; });
+    } else photo.append(node('p', 'El representante todavía no ha subido su foto.'));
+    detailContent.replaceChildren(submitted, photo, dl, videos);
     statusForm.elements.status.value = data.status;
     notes.replaceChildren();
     for (const note of data.notes ?? []) {

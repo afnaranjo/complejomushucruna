@@ -6,16 +6,16 @@ import { apiBasesForCsp, LOCAL_API_BASE, PRIMARY_API_BASE } from '../finados/run
 
 // Server-owned text is incorporated at build time and escaped as HTML, never fetched by the browser.
 const consents = JSON.parse(readFileSync(new URL('../../backend/finados-api/resources/media-consents.json', import.meta.url), 'utf8'));
-export const mediaPortalScriptVersion = '20260921-medios-6';
+export const mediaPortalScriptVersion = '20260921-medios-8';
 
 const email = id => `<label class="vocero-field" for="${id}"><span>Correo electrónico</span><input id="${id}" name="email" type="email" autocomplete="username" maxlength="254" autocapitalize="none" spellcheck="false" required></label>`;
 const password = (id, label, autocomplete) => `<label class="vocero-field" for="${id}"><span>${label}</span><input id="${id}" name="${id.includes('confirmation') ? 'confirmation' : 'password'}" type="password" autocomplete="${autocomplete}" minlength="${autocomplete === 'current-password' ? '1' : '10'}" maxlength="128" required></label>`;
 const required = ' <span aria-hidden="true">*</span>';
 export const MEDIA_TYPES = Object.freeze({ radio: 'Radio', tv: 'Televisión', prensa: 'Prensa escrita', digital: 'Medio digital', redes: 'Redes sociales' });
+export const CHANNEL_TYPES = Object.freeze({ facebook: 'Facebook', instagram: 'Instagram', tiktok: 'TikTok', youtube: 'YouTube', x: 'X', website: 'Página web', otro: 'Otro canal' });
 export const RADIO_GENRES = Object.freeze(['Noticias e información', 'Musical variada', 'Popular y tropical', 'Folclórica y andina', 'Juvenil y pop', 'Romántica', 'Religiosa', 'Deportiva', 'Comunitaria', 'Otro']);
 const legalLink = (key, label) => `<a href="${mediaLegalRoutes[key]}" target="_blank" rel="noopener noreferrer">${label}</a>`;
 const consent = (name, key, { optional = false } = {}) => `<label class="vocero-check"><input name="${name}" type="checkbox"${optional ? '' : ' required'} checked><span>${esc(consents[key].text)}${optional ? ' <small>Opcional</small>' : required}</span></label>`;
-const channel = (name, label, placeholder) => `<label class="vocero-field" for="${name}"><span>${label} <small>Opcional</small></span><input id="${name}" name="${name}" type="text" inputmode="url" maxlength="300" autocapitalize="none" spellcheck="false" placeholder="${placeholder}" data-media-channel></label>`;
 const field = (name, label, attrs) => `<label class="vocero-field" for="${name}"><span>${label}${required}</span><input id="${name}" name="${name}" ${attrs} required></label>`;
 
 function renderMediaForm() {
@@ -40,8 +40,11 @@ ${field('city', 'Ciudad', 'type="text" maxlength="100" autocomplete="address-lev
 <label class="vocero-field" for="audience_count"><span>Cantidad de oyentes${required}</span><input id="audience_count" name="audience_count" type="number" min="0" max="100000000" step="1" inputmode="numeric" placeholder="Ej.: 25000" required aria-describedby="audience-help"><small id="audience-help">Audiencia estimada que reporta tu medio, solo números.</small></label>
 <label class="vocero-field" for="radio_genre"><span>Género de la radio${required}</span><select id="radio_genre" name="radio_genre" required><option value="">Selecciona una opción</option>${RADIO_GENRES.map(value => `<option value="${esc(value)}">${esc(value)}</option>`).join('')}</select></label>
 </div></section>
-<section aria-labelledby="media-tv-title" data-media-section="tv" hidden><p class="vocero-eyebrow">Televisión</p><h2 id="media-tv-title">Canal de televisión</h2>
-<div class="vocero-fields"><label class="vocero-field" for="tv_channel"><span>Canal o señal${required}</span><input id="tv_channel" name="tv_channel" type="text" maxlength="120" placeholder="Ej.: Canal 25 UHF o señal por cable" required></label></div></section>
+<section aria-labelledby="media-tv-title" data-media-section="tv" hidden><p class="vocero-eyebrow">Televisión</p><h2 id="media-tv-title">Canales de televisión</h2>
+<p>Agrega cada canal o señal. Si tu medio tiene más de uno, usa «Agregar otro canal».</p>
+<div class="media-stations" data-media-tv-list></div>
+<template data-media-tv-template><div class="media-station media-station--single" data-media-tv-row><label class="vocero-field"><span>Canal o señal${required}</span><input type="text" data-tv-channel maxlength="120" placeholder="Ej.: Canal 25 UHF o señal por cable" required></label><button class="vocero-quiet" type="button" data-row-remove>Quitar</button></div></template>
+<button class="vocero-quiet" type="button" data-tv-add>+ Agregar otro canal</button></section>
 <section aria-labelledby="media-contact-title"><p class="vocero-eyebrow">02 · Contacto</p><h2 id="media-contact-title">Persona de contacto</h2>
 <div class="vocero-fields">
 ${field('contact_name', 'Nombre y apellido', 'type="text" maxlength="160" autocomplete="name"')}
@@ -49,16 +52,11 @@ ${field('phone', 'Número telefónico / WhatsApp', 'type="tel" maxlength="25" au
 ${field('contact_email', 'Correo de contacto', 'type="email" maxlength="180" autocomplete="email"')}
 <label class="vocero-field" for="account-email"><span>Correo de tu cuenta</span><input id="account-email" type="email" data-account-email readonly aria-describedby="account-email-help"><small id="account-email-help">Este correo está vinculado a la cuenta del medio.</small></label>
 </div></section>
-<section aria-labelledby="media-channels-title"><p class="vocero-eyebrow">03 · Canales del medio</p><h2 id="media-channels-title">Redes sociales y página web</h2>
-<p id="channels-help">Pega el enlace de cada canal que tenga tu medio. Completa al menos uno.</p>
-<div class="vocero-fields" aria-describedby="channels-help">
-${channel('facebook', 'Facebook', 'https://www.facebook.com/tumedio')}
-${channel('instagram', 'Instagram', 'https://www.instagram.com/tumedio')}
-${channel('tiktok', 'TikTok', 'https://www.tiktok.com/@tumedio')}
-${channel('youtube', 'YouTube', 'https://www.youtube.com/@tumedio')}
-${channel('website', 'Página web', 'https://www.tumedio.com')}
-${channel('other_link', 'Otro canal', 'X, Threads, WhatsApp Channel u otro')}
-</div></section>
+<section aria-labelledby="media-channels-title"><p class="vocero-eyebrow">03 · Canales digitales</p><h2 id="media-channels-title">Redes sociales y páginas web</h2>
+<p id="channels-help">Agrega cada red social o página web de tu medio. Puedes tener más de una cuenta en la misma red: usa «Agregar otro canal» las veces que necesites. Al pegar el enlace se habilita el campo para escribir cuántos seguidores tiene esa cuenta. Se requiere al menos uno.</p>
+<div class="media-stations" data-media-channel-list aria-describedby="channels-help"></div>
+<template data-media-channel-template><div class="media-station media-station--channel" data-media-channel-row><label class="vocero-field"><span>Red o canal${required}</span><select data-channel-type required>${Object.entries(CHANNEL_TYPES).map(([key, label]) => `<option value="${key}">${esc(label)}</option>`).join('')}</select></label><label class="vocero-field"><span>Enlace${required}</span><input type="text" data-channel-url inputmode="url" maxlength="300" autocapitalize="none" spellcheck="false" placeholder="https://…" required></label><label class="vocero-field"><span>Seguidores <small>Opcional</small></span><input type="number" data-channel-followers min="0" max="1000000000" step="1" inputmode="numeric" placeholder="Pega primero el enlace" disabled></label><button class="vocero-quiet" type="button" data-row-remove>Quitar</button></div></template>
+<button class="vocero-quiet" type="button" data-channel-add>+ Agregar otro canal</button></section>
 <section aria-labelledby="media-consents-title"><p class="vocero-eyebrow">Aceptaciones</p><h2 id="media-consents-title">Políticas del registro</h2>
 <p>Las casillas ya vienen marcadas para que solo tengas que guardar. Puedes leer cada documento antes de aceptar; el uso de imagen es opcional.</p>
 ${consent('conditions_accepted', 'conditions')}
@@ -68,9 +66,15 @@ ${consent('image_accepted', 'image', { optional: true })}
 </section>
 <div class="vocero-save"><button class="vocero-primary" type="submit">Guardar registro</button></div>
 </fieldset></form>
+<section class="media-videos media-photo" aria-labelledby="media-photo-title" data-media-photo hidden>
+<p class="vocero-eyebrow">04 · Representante</p><h2 id="media-photo-title">Foto de perfil del representante</h2>
+<p id="media-photo-help">Sube una foto reciente, de frente y con el rostro visible, de la persona de contacto. Es opcional y se guarda cifrada; subirla no autoriza por sí sola su publicación. JPG, PNG o WebP; máximo 5 MB.</p>
+<div class="media-photo__layout"><div class="vocero-photo-frame media-photo__frame"><img data-media-photo-preview alt="Foto de perfil del representante" hidden><span data-media-photo-placeholder>Sin foto</span></div>
+<form data-media-photo-form novalidate><fieldset disabled><label class="vocero-field" for="media_photo"><span>Seleccionar fotografía</span><input id="media_photo" name="photo" type="file" accept="image/jpeg,image/png,image/webp" required aria-describedby="media-photo-help"></label><button class="vocero-primary" type="submit">Subir foto</button></fieldset></form></div>
+</section>
 <section class="media-videos" aria-labelledby="media-videos-title" data-media-videos hidden>
-<p class="vocero-eyebrow">04 · Tus publicaciones</p><h2 id="media-videos-title">Videos publicados</h2>
-<p>Cada vez que tu medio publique un video sobre Finados Mushuc Runa 2026, pega aquí su link. Puedes agregar todos los que necesites.</p>
+<p class="vocero-eyebrow">05 · Tus publicaciones</p><h2 id="media-videos-title">Videos publicados</h2>
+<p>Cada vez que tu medio publique un video sobre Finados Mushuc Runa 2026, pega aquí su link y pulsa «Agregar video». No hay un máximo de cinco: agrega uno por uno todos los que publiques.</p>
 <form data-media-video-form novalidate><fieldset disabled><label class="vocero-field" for="video_url"><span>Link del video${required}</span><input id="video_url" name="url" type="text" inputmode="url" maxlength="500" autocapitalize="none" spellcheck="false" placeholder="Ej.: https://www.tiktok.com/@tumedio/video/…" required></label><button class="vocero-primary" type="submit">Agregar video</button></fieldset></form>
 <p class="media-videos__count" data-media-video-count>Aún no has agregado videos.</p>
 <ol class="media-videos__list" data-media-video-list></ol>
@@ -92,7 +96,7 @@ export function renderMediaPortalPage(page) {
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${esc(title)} | Medios Finados 2026</title><meta name="description" content="Acceso privado y registro de medios de Finados Mushuc Runa.">
 <meta name="robots" content="noindex, nofollow, noarchive"><meta name="referrer" content="no-referrer">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src ${connectSources}; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' blob:; font-src 'self'; connect-src ${connectSources}; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="media-api-base" content="${esc(api)}"><meta name="theme-color" content="#241146">
 <link rel="canonical" href="https://complejomushucruna.com${esc(page.route)}"><link rel="icon" href="/assets/finados/favicon-finados.png">
 <link rel="stylesheet" href="/assets/finados/vocero-portal.css?v=20260915-1"><link rel="stylesheet" href="/assets/finados/media-portal.css?v=${mediaPortalScriptVersion}"><script type="module" src="/assets/finados/media-portal.js?v=${mediaPortalScriptVersion}"></script>

@@ -208,7 +208,7 @@ final class Router
             }
             // Media accounts use their own session scope, isolated from Voceros and administration.
             if (str_starts_with($path, '/api/media/')) {
-                $response = $this->mediaAccount($method, $path, $query, $server, $rawBody, $origin, $ip, $token, $headers);
+                $response = $this->mediaAccount($method, $path, $query, $server, $rawBody, $files, $origin, $ip, $token, $headers);
                 if ($response !== null) return $response;
             }
             $user = $this->auth->requireUser();
@@ -377,7 +377,7 @@ final class Router
         return $this->mediaInstance ??= new MediaRepository($this->pdo, $this->crypto, $this->audit);
     }
 
-    private function mediaAccount(string $method, string $path, array $query, array $server, string $rawBody, ?string $origin, mixed $ip, string $token, array $headers): ?Response
+    private function mediaAccount(string $method, string $path, array $query, array $server, string $rawBody, array $files, ?string $origin, mixed $ip, string $token, array $headers): ?Response
     {
         $validIp = is_string($ip) && inet_pton($ip) !== false;
         if ($path === '/api/media/auth/session') {
@@ -433,6 +433,27 @@ final class Router
             $own = $this->media()->forAccount($user['id']);
             return $this->json(200, $own === null ? ['registered' => false, 'email' => $user['email'], 'status' => null, 'editable' => true] : ['registered' => true, 'email' => $user['email'], ...$own], $headers);
         }
+        if ($path === '/api/media/photo') {
+            $user = $this->mediaAuth()->requireUser();
+            if (!in_array($method, ['GET', 'POST'], true)) return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+            if ($query !== []) throw new InvalidArgumentException();
+            $storage = new MediaPhotoStorage($this->config, $this->crypto);
+            if ($method === 'GET') {
+                $headers['Content-Type'] = 'image/jpeg'; $headers['Cache-Control'] = 'private, no-store';
+                return new Response(200, $headers, $this->media()->photoForAccount($user['id'], $storage));
+            }
+            if (!$this->config->isAllowedOrigin($origin) || !$validIp) throw new Forbidden();
+            $this->mediaAuth()->verifyCsrf($token);
+            $length = $server['CONTENT_LENGTH'] ?? null;
+            if ($length !== null && ((!is_string($length) && !is_int($length)) || preg_match('/^\d+$/D', (string) $length) !== 1)) throw new InvalidArgumentException();
+            if ($length !== null && (float) $length > self::PHOTO_UPLOAD_BYTES + self::PROFILE_REQUEST_OVERHEAD_BYTES) throw new RequestBodyError(413, 'payload_too_large');
+            if (strtolower(trim(explode(';', $server['CONTENT_TYPE'] ?? '')[0])) !== 'multipart/form-data') throw new RequestBodyError(415, 'unsupported_media_type');
+            $upload = $files['photo'] ?? null;
+            if (count($files) !== 1 || !is_array($upload) || ($upload['error'] ?? null) !== UPLOAD_ERR_OK || !is_string($upload['tmp_name'] ?? null)
+                || !is_int($upload['size'] ?? null) || !is_uploaded_file($upload['tmp_name'])) throw new InvalidArgumentException();
+            if ($upload['size'] > self::PHOTO_UPLOAD_BYTES) throw new RequestBodyError(413, 'payload_too_large');
+            return $this->json(200, ['ok' => true, 'photo' => $this->media()->savePhotoForAccount($user['id'], $storage, $upload['tmp_name'], $upload['size'], $ip)], $headers);
+        }
         if ($path === '/api/media/videos') {
             $user = $this->mediaAuth()->requireUser();
             if ($method !== 'POST') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
@@ -452,7 +473,7 @@ final class Router
         if ($path === '/api/medios') {
             if ($method !== 'GET') return $notAllowed();
             $result = $this->media()->list($this->mediaFilters($query, true));
-            return $this->json(200, ['items' => $result['items'], 'summary' => $this->media()->summary(), 'topViews' => $this->media()->topByViews(20), 'pagination' => [
+            return $this->json(200, ['items' => $result['items'], 'summary' => $this->media()->summary(), 'topViews' => $this->media()->topByViews(20), 'topFollowers' => $this->media()->topByFollowers(20), 'pagination' => [
                 'page' => $result['page'], 'pageSize' => $result['per_page'], 'total' => $result['total'],
                 'pages' => (int) ceil($result['total'] / $result['per_page']),
             ]], $headers);
@@ -473,6 +494,13 @@ final class Router
             $this->body($server, $rawBody, []);
             $this->media()->archiveAccount($parts[1], $user['id'], $ip);
             return $this->json(200, ['ok' => true], $headers);
+        }
+        if (preg_match('~^/api/medios/([a-f0-9]{32})/photo$~D', $path, $parts)) {
+            if ($method !== 'GET') return $notAllowed();
+            if ($query !== []) throw new InvalidArgumentException();
+            $jpeg = $this->media()->photoForAdmin($parts[1], new MediaPhotoStorage($this->config, $this->crypto), $user['id'], $ip);
+            $headers['Content-Type'] = 'image/jpeg'; $headers['Cache-Control'] = 'private, no-store';
+            return new Response(200, $headers, $jpeg);
         }
         if (preg_match('~^/api/medios/([a-f0-9]{32})/video-views$~D', $path, $parts)) {
             if ($method !== 'PATCH') return $notAllowed();
@@ -531,7 +559,7 @@ final class Router
 
     private function mediaExport(array $filters, int $actorId, string $ip, array $headers): Response
     {
-        $columns = ['public_id', 'status', 'submitted_at', 'media_name', 'media_types_label', 'radio_stations_label', 'audience_count', 'radio_genre', 'tv_channel', 'contact_name', 'phone', 'contact_email', 'account_email', 'province', 'city', 'facebook', 'instagram', 'tiktok', 'youtube', 'website', 'other_link', 'image_authorized', 'videos_count', 'views_total', 'video_links'];
+        $columns = ['public_id', 'status', 'submitted_at', 'media_name', 'media_types_label', 'radio_stations_label', 'audience_count', 'radio_genre', 'tv_channels_label', 'contact_name', 'phone', 'contact_email', 'account_email', 'province', 'city', 'channels_label', 'followers_total', 'has_photo', 'image_authorized', 'videos_count', 'views_total', 'video_links'];
         $stream = fopen('php://temp/maxmemory:2097152', 'w+');
         if ($stream === false) throw new \RuntimeException();
         try {
@@ -541,6 +569,9 @@ final class Router
             foreach ($rows as $detail) {
                 $links = array_column($detail['videos'] ?? [], 'url');
                 $detail['media_types_label'] = implode(' | ', array_map(static fn (string $key): string => MediaRepository::MEDIA_TYPES[$key] ?? $key, $detail['media_types'] ?? []));
+                $detail['tv_channels_label'] = implode(' | ', $detail['tv_channels'] ?? []);
+                $detail['channels_label'] = implode(' | ', array_map(static fn (array $channel): string => (MediaRepository::CHANNEL_TYPES[$channel['type']] ?? $channel['type']) . ': ' . $channel['url'] . (is_int($channel['followers'] ?? null) ? ' (' . $channel['followers'] . ' seguidores)' : ''), $detail['channels'] ?? []));
+                $detail['has_photo'] = ($detail['photo']['available'] ?? false) ? 'Sí' : 'No';
                 $detail['radio_stations_label'] = implode(' | ', array_map(static fn (array $station): string => $station['name'] . ' (' . $station['frequency'] . ')', $detail['radio_stations'] ?? []));
                 $detail = [...$detail, 'image_authorized' => ($detail['consents']['image']['accepted'] ?? false) ? 'Sí' : 'No', 'videos_count' => count($links), 'views_total' => array_sum(array_column($detail['videos'] ?? [], 'views_count')),
                     'video_links' => implode(' | ', array_map(static fn (array $video): string => $video['url'] . ' (' . $video['views_count'] . ' views)', $detail['videos'] ?? []))];

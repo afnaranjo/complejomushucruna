@@ -7,8 +7,8 @@ import { join } from 'node:path';
 import { readdir } from 'node:fs/promises';
 import { buildSite } from '../scripts/build.mjs';
 import { primaryNavigation } from '../src/data/site.mjs';
-import { MediaApiClient, MediaError, MEDIA_CHANNELS, MEDIA_CONSENTS, MEDIA_FIELDS, normalizeLink, platformPayload, profilePayload } from '../src/finados/media-portal.js';
-import { collectVideoViews, createMediaAdminClient, describeField, MEDIA_STATUSES, normalizeMediaFilters, renderMediaSummary, safeLink, topMediaViews } from '../src/admin/admin-medios.js';
+import { channelsPayload, MediaApiClient, MediaError, MEDIA_CONSENTS, MEDIA_FIELDS, normalizeLink, platformPayload, profilePayload, validatePhoto } from '../src/finados/media-portal.js';
+import { collectVideoViews, createMediaAdminClient, describeField, MEDIA_STATUSES, normalizeMediaFilters, renderMediaSummary, safeLink, topMediaFollowers, topMediaViews } from '../src/admin/admin-medios.js';
 import { topVideoViews } from '../src/admin/admin.js';
 
 const json = (status, body) => ({ ok: status >= 200 && status < 300, status, json: async () => body });
@@ -47,15 +47,16 @@ test('el build publica la landing, las cuentas de medios y su panel sin tocar la
 
   const profile = await readFile(join(output, 'finados/medios/mi-registro/index.html'), 'utf8');
   for (const name of [...MEDIA_FIELDS, ...Object.keys(MEDIA_CONSENTS)]) assert.match(profile, new RegExp(`name="${name}"`), name);
-  assert.deepEqual([...MEDIA_FIELDS], ['media_name', 'contact_name', 'phone', 'contact_email', 'province', 'city', 'facebook', 'instagram', 'tiktok', 'youtube', 'website', 'other_link']);
-  for (const channel of MEDIA_CHANNELS) assert.doesNotMatch(new RegExp(`name="${channel}"[^>]*required`).exec(profile)?.[0] ?? '', /required/, channel);
-  assert.match(profile, /Completa al menos uno/);
+  assert.deepEqual([...MEDIA_FIELDS], ['media_name', 'contact_name', 'phone', 'contact_email', 'province', 'city']);
+  assert.match(profile, /Se requiere al menos uno/);
+  for (const marker of ['data-channel-followers', 'data-media-channel-template', 'data-channel-add', 'data-media-tv-template', 'data-tv-add', 'data-media-photo-form', 'No hay un máximo de cinco']) assert.match(profile, new RegExp(marker), marker);
+  assert.match(profile, /img-src 'self' blob:/);
   assert.deepEqual([...profile.matchAll(/name="media_types" value="([a-z]+)"/g)].map(match => match[1]), ['radio', 'tv', 'prensa', 'digital', 'redes']);
   assert.match(profile, /data-media-section="radio" hidden/);
   assert.match(profile, /data-media-section="tv" hidden/);
-  for (const name of ['audience_count', 'radio_genre', 'tv_channel']) assert.match(profile, new RegExp(`name="${name}"`), name);
+  for (const name of ['audience_count', 'radio_genre']) assert.match(profile, new RegExp(`name="${name}"`), name);
   assert.match(profile, /Agregar otra emisora/);
-  for (const retired of ['people_count', 'team', 'media_type', 'program_name', 'contract', 'social_link']) assert.doesNotMatch(profile, new RegExp(`name="${retired}"`), retired);
+  for (const retired of ['people_count', 'team', 'media_type', 'program_name', 'contract', 'social_link', 'facebook', 'tv_channel']) assert.doesNotMatch(profile, new RegExp(`name="${retired}"`), retired);
   assert.match(profile, /name="conditions_accepted" type="checkbox" required checked/);
   assert.match(profile, /name="privacy_accepted" type="checkbox" required checked/);
   // Image use is a separate, optional consent: pre-checked for convenience, never required.
@@ -114,31 +115,42 @@ test('el cliente de medios solo usa rutas permitidas, envía CSRF y no liga this
 
 test('el registro de medios arma el contrato exacto, exige contacto y al menos un canal', () => {
   const data = new FormData();
-  const values = { media_name: ' Radio Prueba ', contact_name: 'Persona Responsable', phone: '0991234567', contact_email: 'prensa@example.invalid',
-    province: 'Tungurahua', city: 'Ambato', facebook: 'facebook.com/radioprueba', instagram: '', tiktok: '', youtube: '', website: 'radioprueba.example', other_link: '' };
+  const values = { media_name: ' Radio Prueba ', contact_name: 'Persona Responsable', phone: '0991234567', contact_email: 'prensa@example.invalid', province: 'Tungurahua', city: 'Ambato' };
   for (const [name, value] of Object.entries(values)) data.set(name, value);
-  assert.throws(() => profilePayload(data), /al menos un tipo de medio/);
+  const channels = [{ type: 'facebook', url: 'facebook.com/radioprueba', followers: ' 12000 ' }, { type: 'facebook', url: 'https://www.facebook.com/radiopruebariobamba', followers: '' }, { type: 'website', url: 'radioprueba.example', followers: '999' }, { type: 'x', url: '  ', followers: '5' }];
+  assert.throws(() => profilePayload(data, [], [], channels), /al menos un tipo de medio/);
   data.append('media_types', 'digital'); data.append('media_types', 'prensa');
-  assert.throws(() => profilePayload(data), /Buenas prácticas y la Política de Privacidad/);
+  assert.throws(() => profilePayload(data, [], [], []), /al menos un canal/);
+  assert.throws(() => profilePayload(data, [], [], channels), /Buenas prácticas y la Política de Privacidad/);
   data.set('conditions_accepted', 'on'); data.set('privacy_accepted', 'on');
-  assert.deepEqual(profilePayload(data), { ...values, media_types: ['prensa', 'digital'], radio_stations: [], audience_count: null, radio_genre: '', tv_channel: '', media_name: 'Radio Prueba', facebook: 'https://facebook.com/radioprueba', website: 'https://radioprueba.example', conditions_accepted: true, privacy_accepted: true, image_accepted: false });
+  assert.deepEqual(profilePayload(data, [], [], channels), { ...values, media_name: 'Radio Prueba', media_types: ['prensa', 'digital'], radio_stations: [], audience_count: null, radio_genre: '', tv_channels: [],
+    channels: [{ type: 'facebook', url: 'https://facebook.com/radioprueba', followers: 12000 }, { type: 'facebook', url: 'https://www.facebook.com/radiopruebariobamba', followers: null }, { type: 'website', url: 'https://radioprueba.example', followers: null }],
+    conditions_accepted: true, privacy_accepted: true, image_accepted: false });
   data.set('image_accepted', 'on');
-  assert.equal(profilePayload(data).image_accepted, true);
+  assert.equal(profilePayload(data, [], [], channels).image_accepted, true);
   assert.equal(normalizeLink('http://www.tiktok.com/@radio/video/1', 500), 'https://www.tiktok.com/@radio/video/1');
   for (const invalid of ['', 'no es un link', 'javascript:alert(1)', 'https://usuario:clave@example.com/', 'https://localhost/video']) assert.throws(() => normalizeLink(invalid), /link válido/, invalid);
-  const broken = (name, value, message) => { const copy = new FormData(); for (const [key, item] of data.entries()) copy.set(key, item); copy.set(name, value); assert.throws(() => profilePayload(copy), message, name); };
-  broken('instagram', 'sin enlace', /link válido/);
+  assert.throws(() => channelsPayload([{ type: 'facebook', url: 'sin enlace' }]), /link válido/);
+  for (const followers of ['12.000', '-1', '1e4', '10000000000']) assert.throws(() => channelsPayload([{ type: 'tiktok', url: 'tiktok.com/@radio', followers }]), /seguidores solo con números/, followers);
+  assert.deepEqual(topMediaFollowers([{ media_name: 'B', followers_total: 10 }, { media_name: 'A', followers_total: 500 }, { media_name: 'Sin dato', followers_total: 0 }]).map(item => item.media_name), ['A', 'B']);
+  assert.equal(topMediaFollowers(Array.from({ length: 30 }, (_, index) => ({ media_name: `Medio ${index}`, followers_total: index + 1 }))).length, 20);
+  assert.throws(() => channelsPayload([{ type: 'mastodon', url: 'https://example.social/@radio' }]), /red de cada canal/);
+  assert.throws(() => channelsPayload([{ type: 'facebook', url: 'facebook.com/radio' }, { type: 'otro', url: 'https://FACEBOOK.com/radio' }]), /repetido/);
+  assert.throws(() => channelsPayload(Array.from({ length: 21 }, (_, index) => ({ type: 'website', url: `medio${index}.example` }))), /hasta 20/);
+  const broken = (name, value, message) => { const copy = new FormData(); for (const [key, item] of data.entries()) copy.append(key, item); copy.set(name, value); assert.throws(() => profilePayload(copy, [], [], channels), message, name); };
   broken('phone', 'abc', /número telefónico/);
   broken('contact_email', 'correo', /correo de contacto/);
   broken('city', ' ', /ubicación/);
-  const noChannels = new FormData(); for (const [key, item] of data.entries()) noChannels.set(key, MEDIA_CHANNELS.includes(key) ? '' : item);
-  assert.throws(() => profilePayload(noChannels), /al menos un canal/);
+  assert.throws(() => validatePhoto(null), /Selecciona una fotografía/);
+  assert.throws(() => validatePhoto({ size: 6 * 1024 * 1024, type: 'image/jpeg' }), error => error.status === 413);
+  assert.throws(() => validatePhoto({ size: 1000, type: 'application/pdf' }), error => error.status === 415);
+  assert.doesNotThrow(() => validatePhoto({ size: 1000, type: 'image/webp' }));
 });
 
 test('tipos de medio: varios a la vez, y Radio exige emisoras, oyentes y género', () => {
   const data = new FormData();
   assert.throws(() => platformPayload([], [], data), /al menos un tipo de medio/);
-  assert.deepEqual(platformPayload(['digital', 'prensa', 'inventado'], [{ name: 'x', frequency: 'y' }], data), { media_types: ['prensa', 'digital'], radio_stations: [], audience_count: null, radio_genre: '', tv_channel: '' });
+  assert.deepEqual(platformPayload(['digital', 'prensa', 'inventado'], [{ name: 'x', frequency: 'y' }], data), { media_types: ['prensa', 'digital'], radio_stations: [], audience_count: null, radio_genre: '', tv_channels: [] });
   const stations = [{ name: ' Radio Uno ', frequency: ' 99.9 FM ' }, { name: 'Radio Dos', frequency: '101.5 FM' }];
   assert.throws(() => platformPayload(['radio'], [], data), /cada emisora/);
   assert.throws(() => platformPayload(['radio'], [{ name: 'Radio Uno', frequency: '' }], data), /cada emisora/);
@@ -148,14 +160,16 @@ test('tipos de medio: varios a la vez, y Radio exige emisoras, oyentes y género
   data.set('audience_count', '25000');
   assert.throws(() => platformPayload(['radio'], stations, data), /género/);
   data.set('radio_genre', 'Popular y tropical');
-  assert.deepEqual(platformPayload(['tv', 'radio'].slice(1), stations, data), { media_types: ['radio'], radio_stations: [{ name: 'Radio Uno', frequency: '99.9 FM' }, { name: 'Radio Dos', frequency: '101.5 FM' }], audience_count: 25000, radio_genre: 'Popular y tropical', tv_channel: '' });
+  assert.deepEqual(platformPayload(['tv', 'radio'].slice(1), stations, data), { media_types: ['radio'], radio_stations: [{ name: 'Radio Uno', frequency: '99.9 FM' }, { name: 'Radio Dos', frequency: '101.5 FM' }], audience_count: 25000, radio_genre: 'Popular y tropical', tv_channels: [] });
   assert.throws(() => platformPayload(['radio', 'tv'], stations, data), /canal o la señal/);
-  data.set('tv_channel', ' Canal 25 ');
-  assert.equal(platformPayload(['radio', 'tv'], stations, data).tv_channel, 'Canal 25');
+  assert.throws(() => platformPayload(['radio', 'tv'], stations, data, ['Canal 25', ' ']), /canal o la señal/);
+  assert.deepEqual(platformPayload(['radio', 'tv'], stations, data, [' Canal 25 ', 'Canal 40 UHF']).tv_channels, ['Canal 25', 'Canal 40 UHF']);
+  assert.deepEqual(platformPayload(['prensa'], stations, data, ['Canal 25']).tv_channels, []);
   assert.throws(() => platformPayload(['radio'], Array.from({ length: 11 }, () => stations[0]), data), /cada emisora/);
   assert.equal(describeField('media_types', ['radio', 'digital']), 'Radio · Medio digital');
   assert.equal(describeField('radio_stations', stations.map(station => ({ name: station.name.trim(), frequency: station.frequency.trim() }))), 'Radio Uno — 99.9 FM\nRadio Dos — 101.5 FM');
   assert.equal(describeField('audience_count', null), '');
+  assert.equal(describeField('tv_channels', ['Canal 25', 'Canal 40 UHF']), 'Canal 25\nCanal 40 UHF');
 });
 
 test('el medio agrega links de video con CSRF por la ruta permitida', async () => {
@@ -238,7 +252,9 @@ test('Top 20 por visualizaciones: Medios suma sus videos y Voceros amplía su ra
 
   const output = await mkdtemp(join(tmpdir(), 'mushuc-top20-'));
   await buildSite(output);
-  assert.match(await readFile(join(output, 'admin/medios/index.html'), 'utf8'), /Top 20 por visualizaciones/);
+  const mediosAdmin = await readFile(join(output, 'admin/medios/index.html'), 'utf8');
+  assert.match(mediosAdmin, /Top 20 por visualizaciones/);
+  assert.match(mediosAdmin, /Top 20 por seguidores/);
   const voceros = await readFile(join(output, 'admin/voceros/index.html'), 'utf8');
   assert.match(voceros, /Top 20 por visualizaciones de videos/);
   assert.match(voceros, /Top 20 por seguidores/);

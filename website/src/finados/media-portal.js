@@ -5,11 +5,13 @@ const LOCAL_API = 'http://127.0.0.1:4174/api';
 const ACCESS = '/finados/medios/acceso/?modo=login';
 const PROFILE = '/finados/medios/mi-registro/';
 
-export const MEDIA_CHANNELS = Object.freeze(['facebook', 'instagram', 'tiktok', 'youtube', 'website', 'other_link']);
+export const CHANNEL_TYPES = Object.freeze(['facebook', 'instagram', 'tiktok', 'youtube', 'x', 'website', 'otro']);
+export const MAX_CHANNELS = 20;
+export const MAX_TV_CHANNELS = 10;
 export const MEDIA_CONSENTS = Object.freeze({ conditions_accepted: true, privacy_accepted: true, image_accepted: false });
 export const MEDIA_TYPES = Object.freeze(['radio', 'tv', 'prensa', 'digital', 'redes']);
 export const MAX_STATIONS = 10;
-export const MEDIA_FIELDS = Object.freeze(['media_name', 'contact_name', 'phone', 'contact_email', 'province', 'city', ...MEDIA_CHANNELS]);
+export const MEDIA_FIELDS = Object.freeze(['media_name', 'contact_name', 'phone', 'contact_email', 'province', 'city']);
 export const STATUS_HELP = Object.freeze({
   Nuevo: 'Recibimos tu registro. Puedes actualizarlo mientras el equipo lo revisa.',
   'En revisión': 'El equipo de Finados Mushuc Runa está revisando tu registro. Aún puedes actualizarlo.',
@@ -26,6 +28,8 @@ export class MediaError extends Error {
       403: 'No se autorizó el cambio. Tu registro puede estar revisado o el acceso debe actualizarse.',
       404: 'La función o el enlace no está disponible. Solicita ayuda al equipo de comunicación.',
       409: 'Ese link ya fue agregado.',
+      413: 'La fotografía supera el tamaño permitido. Selecciona una de máximo 5 MB.',
+      415: 'El formato no es compatible. Selecciona una fotografía JPG, PNG o WebP.',
       422: 'Revisa los datos ingresados. Los links deben ser enlaces válidos (https://…).',
       429: 'Hay demasiados intentos. Espera 15 minutos antes de volver a intentar.' })[status] ?? 'No se pudo completar la solicitud. Intenta de nuevo.');
     this.status = status;
@@ -40,23 +44,25 @@ export class MediaApiClient {
     this.baseUrl = baseUrl;
     this.fetch = fetchImplementation;
   }
-  async request(path, { body } = {}) {
-    if (!/^\/(?:auth\/(?:session|register|login|logout|reset)|profile|videos)$/.test(path)) throw new Error('Ruta de API no permitida.');
+  async request(path, { body, blob = false } = {}) {
+    if (!/^\/(?:auth\/(?:session|register|login|logout|reset)|profile|videos|photo)$/.test(path)) throw new Error('Ruta de API no permitida.');
     if (body !== undefined && !this.#csrf) await this.session();
-    const headers = { Accept: 'application/json' };
+    const headers = { Accept: blob ? 'image/jpeg' : 'application/json' };
+    const multipart = typeof FormData !== 'undefined' && body instanceof FormData;
     if (body !== undefined) {
       if (!this.#csrf) throw new MediaError(403);
       headers['X-CSRF-Token'] = this.#csrf;
-      headers['Content-Type'] = 'application/json';
+      if (!multipart) headers['Content-Type'] = 'application/json';
     }
     let response;
     try {
       const fetchImplementation = this.fetch;
       response = await fetchImplementation(`${this.baseUrl}/media${path}`, {
         method: body === undefined ? 'GET' : 'POST', credentials: 'include', cache: 'no-store', redirect: 'error',
-        referrerPolicy: 'no-referrer', headers, ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+        referrerPolicy: 'no-referrer', headers, ...(body === undefined ? {} : { body: multipart ? body : JSON.stringify(body) }),
       });
     } catch { throw new MediaError(0); }
+    if (blob && response.ok) return response.blob();
     let data;
     try { data = await response.json(); } catch { throw new MediaError(response.ok ? 502 : response.status); }
     if (typeof data?.csrf === 'string') this.#csrf = data.csrf;
@@ -73,6 +79,8 @@ export class MediaApiClient {
   profile() { return this.request('/profile'); }
   saveProfile(body) { return this.request('/profile', { body }); }
   addVideo(url) { return this.request('/videos', { body: { url } }); }
+  photo() { return this.request('/photo', { blob: true }); }
+  uploadPhoto(file) { const body = new FormData(); body.set('photo', file); return this.request('/photo', { body }); }
   async reset(token, password) {
     const result = await this.request('/auth/reset', { body: { token, password } });
     if (result?.ok !== true) throw new MediaError(502, 'reset');
@@ -98,10 +106,10 @@ export function normalizeLink(value, max = 300) {
  * Builds the platform block of the contract. Radio details are mandatory with Radio and
  * sent empty otherwise, mirroring the server rules.
  */
-export function platformPayload(types, stations, data) {
+export function platformPayload(types, stations, data, tvChannels = []) {
   const selected = MEDIA_TYPES.filter(type => types.includes(type));
   if (selected.length === 0) throw new Error('Marca al menos un tipo de medio: radio, televisión, prensa, digital o redes.');
-  const body = { media_types: selected, radio_stations: [], audience_count: null, radio_genre: '', tv_channel: '' };
+  const body = { media_types: selected, radio_stations: [], audience_count: null, radio_genre: '', tv_channels: [] };
   if (selected.includes('radio')) {
     const cleaned = stations.map(station => ({ name: String(station.name ?? '').trim(), frequency: String(station.frequency ?? '').trim() }));
     if (cleaned.length === 0 || cleaned.length > MAX_STATIONS || cleaned.some(station => !station.name || !station.frequency)) throw new Error('Escribe el nombre y la frecuencia de cada emisora.');
@@ -112,20 +120,46 @@ export function platformPayload(types, stations, data) {
     Object.assign(body, { radio_stations: cleaned, audience_count: Number(audience), radio_genre: genre });
   }
   if (selected.includes('tv')) {
-    body.tv_channel = String(data.get('tv_channel') ?? '').trim();
-    if (!body.tv_channel) throw new Error('Escribe el canal o la señal de televisión.');
+    body.tv_channels = tvChannels.map(channel => String(channel ?? '').trim());
+    if (body.tv_channels.length === 0 || body.tv_channels.length > MAX_TV_CHANNELS || body.tv_channels.some(channel => !channel)) throw new Error('Escribe el canal o la señal de cada canal de televisión.');
   }
   return body;
 }
 
-export function profilePayload(data, stations = []) {
-  const body = { media_name: '', ...platformPayload(data.getAll('media_types').map(String), stations, data) };
+/** Every declared channel becomes { type, url }; several accounts of the same network are allowed. */
+export function channelsPayload(channels) {
+  const cleaned = channels.map(channel => ({ type: String(channel.type ?? ''), url: String(channel.url ?? '').trim(), followers: String(channel.followers ?? '').trim() })).filter(channel => channel.url !== '');
+  if (cleaned.length === 0) throw new Error('Agrega al menos un canal: una red social o la página web de tu medio.');
+  if (cleaned.length > MAX_CHANNELS) throw new Error(`Puedes agregar hasta ${MAX_CHANNELS} canales.`);
+  const seen = new Set();
+  return cleaned.map((channel) => {
+    if (!CHANNEL_TYPES.includes(channel.type)) throw new Error('Selecciona la red de cada canal.');
+    const url = normalizeLink(channel.url);
+    if (seen.has(url.toLowerCase())) throw new Error('Hay un canal repetido. Deja cada enlace una sola vez.');
+    seen.add(url.toLowerCase());
+    // Followers are what the medium declares for that account; a web page has none.
+    let followers = null;
+    if (channel.followers !== '' && channel.type !== 'website') {
+      if (!/^[0-9]{1,10}$/.test(channel.followers) || Number(channel.followers) > 1000000000) throw new Error('Escribe los seguidores solo con números, sin puntos ni comas.');
+      followers = Number(channel.followers);
+    }
+    return { type: channel.type, url, followers };
+  });
+}
+
+export function validatePhoto(file) {
+  if (!file || file.size === 0) throw new Error('Selecciona una fotografía.');
+  if (file.size > 5 * 1024 * 1024) throw new MediaError(413);
+  if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) throw new MediaError(415);
+}
+
+export function profilePayload(data, stations = [], tvChannels = [], channels = []) {
+  const body = { media_name: '', ...platformPayload(data.getAll('media_types').map(String), stations, data, tvChannels) };
   for (const name of MEDIA_FIELDS) body[name] = String(data.get(name) ?? '').trim();
   for (const name of ['media_name', 'contact_name', 'province', 'city']) if (!body[name]) throw new Error('Completa los datos del medio, su ubicación y la persona de contacto.');
   if (!/^\+?[0-9][0-9 ()-]{6,23}$/.test(body.phone)) throw new Error('Escribe un número telefónico válido, por ejemplo 0991234567.');
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(body.contact_email)) throw new Error('Escribe un correo de contacto válido.');
-  for (const name of MEDIA_CHANNELS) if (body[name]) body[name] = normalizeLink(body[name]);
-  if (!MEDIA_CHANNELS.some(name => body[name])) throw new Error('Agrega al menos un canal: una red social o la página web de tu medio.');
+  body.channels = channelsPayload(channels);
   for (const [name, mandatory] of Object.entries(MEDIA_CONSENTS)) {
     body[name] = data.get(name) !== null;
     if (mandatory && !body[name]) throw new Error('Para registrarte debes aceptar las Buenas prácticas y la Política de Privacidad. El uso de imagen es opcional.');
@@ -219,6 +253,34 @@ export async function initializeMediaPortal(root = document) {
     stationList.append(row);
     stationAdd.hidden = stationList.childElementCount >= MAX_STATIONS;
   }
+  const repeatable = (listSelector, templateSelector, addSelector, max, fill) => {
+    const list = root.querySelector(listSelector); const template = root.querySelector(templateSelector); const add = root.querySelector(addSelector);
+    const append = (value) => {
+      if (list.childElementCount >= max) return;
+      const row = template.content.firstElementChild.cloneNode(true);
+      fill(row, value ?? {});
+      row.querySelector('[data-row-remove]').addEventListener('click', () => { if (list.childElementCount > 1) row.remove(); add.hidden = false; });
+      list.append(row); add.hidden = list.childElementCount >= max;
+    };
+    add?.addEventListener('click', () => { append(); list.lastElementChild?.querySelector('input, select')?.focus(); });
+    return { list, append, reset: (values) => { list.replaceChildren(); for (const value of values) append(value); } };
+  };
+  const tvRows = profileForm ? repeatable('[data-media-tv-list]', '[data-media-tv-template]', '[data-tv-add]', MAX_TV_CHANNELS, (row, value) => { row.querySelector('[data-tv-channel]').value = typeof value === 'string' ? value : ''; }) : null;
+  const channelRows = profileForm ? repeatable('[data-media-channel-list]', '[data-media-channel-template]', '[data-channel-add]', MAX_CHANNELS, (row, value) => {
+    const type = row.querySelector('[data-channel-type]'); const url = row.querySelector('[data-channel-url]'); const followers = row.querySelector('[data-channel-followers]');
+    type.value = CHANNEL_TYPES.includes(value.type) ? value.type : 'facebook'; url.value = value.url ?? ''; followers.value = value.followers ?? '';
+    // The followers box opens once that account's link exists; a web page has no followers.
+    const sync = () => {
+      const enabled = url.value.trim() !== '' && type.value !== 'website';
+      followers.disabled = !enabled;
+      followers.placeholder = type.value === 'website' ? 'No aplica' : enabled ? 'Ej.: 12000' : 'Pega primero el enlace';
+      if (!enabled) followers.value = '';
+    };
+    url.addEventListener('input', sync); type.addEventListener('change', sync); sync();
+  }) : null;
+  const readTvChannels = () => [...tvRows.list.querySelectorAll('[data-tv-channel]')].map(input => input.value);
+  const readChannels = () => [...channelRows.list.querySelectorAll('[data-media-channel-row]')].map(row => ({ type: row.querySelector('[data-channel-type]').value, url: row.querySelector('[data-channel-url]').value, followers: row.querySelector('[data-channel-followers]').value }));
+
   /** Sections follow the marked platforms; hidden controls are disabled so they neither validate nor submit. */
   function syncSections() {
     const selected = new Set([...profileForm.querySelectorAll('input[name="media_types"]:checked')].map(input => input.value));
@@ -228,6 +290,8 @@ export async function initializeMediaPortal(root = document) {
       for (const control of section.querySelectorAll('input, select, button')) control.disabled = !active;
     }
     if (selected.has('radio') && stationList.childElementCount === 0) addStation();
+    if (selected.has('tv') && tvRows.list.childElementCount === 0) tvRows.append('');
+    if (channelRows.list.childElementCount === 0) channelRows.append({});
     if (selected.size > 0) typeGroup.removeAttribute('data-invalid');
   }
   if (profileForm) {
@@ -235,6 +299,19 @@ export async function initializeMediaPortal(root = document) {
     typeGroup.addEventListener('change', syncSections);
     syncSections();
   }
+
+  const photoPanel = root.querySelector('[data-media-photo]');
+  const photoForm = root.querySelector('[data-media-photo-form]');
+  const photoPreview = root.querySelector('[data-media-photo-preview]');
+  const photoPlaceholder = root.querySelector('[data-media-photo-placeholder]');
+  let photoUrl = '';
+  const clearPhoto = () => { if (photoUrl) URL.revokeObjectURL(photoUrl); photoUrl = ''; photoPreview?.removeAttribute('src'); if (photoPreview) photoPreview.hidden = true; if (photoPlaceholder) photoPlaceholder.hidden = false; };
+  async function showSavedPhoto() {
+    clearPhoto();
+    const blob = await api.photo();
+    photoUrl = URL.createObjectURL(blob); photoPreview.src = photoUrl; photoPreview.hidden = false; photoPlaceholder.hidden = true;
+  }
+  globalThis.addEventListener?.('pagehide', clearPhoto);
 
   function renderVideos(videos = []) {
     videoList.replaceChildren();
@@ -260,7 +337,8 @@ export async function initializeMediaPortal(root = document) {
       for (const station of profile.radio_stations ?? []) addStation(station);
       profileForm.elements.namedItem('audience_count').value = profile.audience_count ?? '';
       profileForm.elements.namedItem('radio_genre').value = profile.radio_genre ?? '';
-      profileForm.elements.namedItem('tv_channel').value = profile.tv_channel ?? '';
+      tvRows.reset(profile.tv_channels ?? []);
+      channelRows.reset(profile.channels ?? []);
       // Restore the saved answers; a withdrawn image authorization must stay unchecked.
       for (const name of Object.keys(MEDIA_CONSENTS)) profileForm.elements.namedItem(name).checked = profile.consents?.[name.replace('_accepted', '')]?.accepted ?? true;
     }
@@ -276,6 +354,8 @@ export async function initializeMediaPortal(root = document) {
     canAddVideos = profile.registered === true && profile.can_add_videos !== false;
     videoForm.querySelector('fieldset').disabled = !canAddVideos;
     if (profile.registered) renderVideos(profile.videos);
+    photoPanel.hidden = !profile.registered;
+    photoForm.querySelector('fieldset').disabled = !canAddVideos;
   }
 
   function submit(form, action) {
@@ -291,7 +371,7 @@ export async function initializeMediaPortal(root = document) {
         fields.disabled = true; form.setAttribute('aria-busy', 'true'); message('Guardando…', false, false);
         await result;
       } catch (error) { reportError(error); }
-      finally { fields.disabled = form === videoForm ? !canAddVideos : view === 'profile' ? !editable : false; form.setAttribute('aria-busy', 'false'); }
+      finally { fields.disabled = form === videoForm || form === photoForm ? !canAddVideos : view === 'profile' ? !editable : false; form.setAttribute('aria-busy', 'false'); }
     });
   }
   submit(register, async data => {
@@ -312,9 +392,17 @@ export async function initializeMediaPortal(root = document) {
   });
   submit(profileForm, async data => {
     if (data.getAll('media_types').length === 0) { typeGroup.dataset.invalid = 'true'; typeGroup.querySelector('input').focus(); }
-    const saved = await api.saveProfile(profilePayload(data, readStations()));
+    const saved = await api.saveProfile(profilePayload(data, readStations(), readTvChannels(), readChannels()));
     populate({ ...saved, email: profileForm.querySelector('[data-account-email]').value });
     message('Registro guardado. Ahora puedes agregar los links de los videos que publiques.');
+  });
+  submit(photoForm, async data => {
+    const file = data.get('photo');
+    validatePhoto(file);
+    await api.uploadPhoto(file);
+    photoForm.reset();
+    await showSavedPhoto();
+    message('Foto guardada.');
   });
   submit(videoForm, async data => {
     const result = await api.addVideo(normalizeLink(data.get('url'), 500));
@@ -324,7 +412,7 @@ export async function initializeMediaPortal(root = document) {
   });
   logout?.addEventListener('click', async () => {
     logout.disabled = true;
-    try { await api.logout(); profileForm.reset(); location.assign(ACCESS); }
+    try { await api.logout(); clearPhoto(); profileForm.reset(); location.assign(ACCESS); }
     catch (error) { reportError(error); logout.disabled = false; }
   });
 
@@ -334,7 +422,9 @@ export async function initializeMediaPortal(root = document) {
       const session = await api.session();
       if (view === 'profile') {
         if (!session.authenticated || session.user?.role !== 'media') { location.replace(ACCESS); return; }
-        populate(await api.profile());
+        const profile = await api.profile();
+        populate(profile);
+        if (profile.photo?.available) { try { await showSavedPhoto(); } catch { /* the record stays usable without its preview */ } }
         logout.disabled = false; ready = true; message('', false, false);
       } else {
         if (view === 'access' && session.authenticated && session.user?.role === 'media') { location.replace(PROFILE); return; }
