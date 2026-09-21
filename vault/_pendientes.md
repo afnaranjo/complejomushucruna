@@ -230,7 +230,8 @@ tags:
 - [ ] Decidir si se amplía `bin/backup.php` —código compartido con Voceros— para incluir las fotos de representantes de medios (`media-photos/`) en el respaldo verificado; hoy quedan fuera. Responsable: Alex/tecnología. Fecha: por definir.
 - [x] Desplegar backend → frontend la pantalla de videos como inicio del medio, el perfil detrás de la foto, el semáforo administrativo de `MEDIOS` (migración aditiva `015_media_traffic_light`) y la regla confirmada por Alex de habilitar los videos solo tras la aprobación (`cff955e`). Responsable: tecnología/dirección. Completado: 2026-09-21.
 - [ ] Revisar en navegador, en producción, la pantalla del medio: avatar arriba, abrir el perfil al tocarlo, semáforo y carga de videos con el registro aprobado. Responsable: Alex/comunicación. Fecha: por definir.
-- [ ] Desplegar backend → frontend la foto obligatoria de la persona responsable en `MEDIOS` cuando Alex lo autorice, y avisar al medio ya aprobado que debe subirla para seguir agregando videos. Responsable: tecnología/comunicación. Fecha: por definir.
+- [x] Desplegar backend → frontend la foto obligatoria de la persona responsable en `MEDIOS`; verificación HTTPS aprobada y Voceros sin cambios. Responsable: tecnología. Completado: 2026-09-21.
+- [ ] Avisar al medio que está `Aprobado` sin foto que debe subir la de su persona responsable para poder agregar videos. Responsable: comunicación. Fecha: por definir.
 
 ## Regla
 

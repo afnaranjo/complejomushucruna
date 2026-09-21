@@ -1502,3 +1502,12 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Commit: incluido en `Hacer obligatoria la foto de la persona responsable en Medios`.
 - Publicación externa: solo GitHub. **No está desplegado**; requiere autorización de Alex para backend → frontend. No hay migraciones nuevas.
 - Riesgo a confirmar antes de publicar: la única ficha real en producción está `Aprobado` y sin foto; al desplegar dejará de poder agregar videos hasta que suba la foto de su persona responsable.
+
+### 2026-09-21 — Publicación de la foto obligatoria de la persona responsable en Medios
+
+- Alex autorizó con `SUBE` publicar `8fe9af7`, informado de que un registro ya aprobado y sin foto dejaría de poder agregar videos hasta subirla. Comprobaciones previas: `main` limpia y sincronizada, llave desde el Llavero de macOS y artefacto del backend con 59 archivos. Sin migraciones nuevas.
+- Despliegue backend → frontend con respaldo remoto previo y sin interrupción.
+- Verificación HTTPS: `health` 200 con contrato `vocero-accounts-v1` en ambos dominios; sesiones de Vocero, administración y medios 200; `/api/medios` y `/api/media/photo` sin sesión 401; siete rutas 200; la ficha publicada muestra `Foto de la persona responsable` antes del resto del perfil, pide que sea de la persona responsable, indica no usar el logotipo y ya no contiene el texto de foto opcional; la Política de Privacidad declara la fotografía obligatoria; doce archivos con SHA-256 idéntico al build, incluidos `admin.js`, `vocero-portal.js`, `/finados/voceros/mi-registro/` y `/admin/voceros/` sin cambios.
+- Datos (solo conteos): 122 fichas, 174 cuentas, 119 fotos y 99 videos de Voceros intactos; 4 cuentas de medios, 2 fichas en `Aprobado`, 1 de ellas con foto, 2 videos de medios reportados. Queda 1 ficha aprobada sin foto, que conserva su estado pero no puede agregar videos hasta subirla. No se crearon cuentas ni registros de prueba en producción.
+- Publicación externa: GitHub, backend y frontend autorizados. No se modificaron datos de Voceros ni de medios, DNS, Google Sheets, Meta ni otros proyectos.
+- Pendiente: avisar al medio aprobado sin foto que suba la de su persona responsable; revisión visual de Alex; decisión sobre el respaldo de `media-photos/`; validación legal de los textos.
