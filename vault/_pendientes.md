@@ -220,7 +220,8 @@ tags:
 - [x] Desplegar backend → frontend la ficha simplificada de `MEDIOS` (nombre, frecuencia, link de redes) y los links de video acumulables, con la migración aditiva `009_media_videos`; verificación HTTPS aprobada y Voceros sin cambios. Responsable: tecnología/dirección. Completado: 2026-09-21.
 - [x] Desplegar backend → frontend el Top 20 por visualizaciones de Medios (migración aditiva `010_media_video_views`, views validadas por video) y la ampliación del ranking de Voceros de Top 10 a Top 20; verificación HTTPS aprobada y datos de Voceros intactos. Responsable: tecnología/dirección. Completado: 2026-09-21.
 - [ ] Decidir si el ranking de views de Voceros debe sumar los cinco videos de cada vocero en lugar de ordenar por video. Responsable: Alex/coordinación de Voceros. Fecha: por definir.
-- [ ] Desplegar backend → frontend la ficha de `MEDIOS` con contacto, ubicación y canales (migración aditiva `011_media_contact_channels`) cuando Alex lo autorice, y confirmar el aviso de privacidad aplicable a los datos de contacto de medios. Responsable: tecnología/dirección/legal. Fecha: por definir.
+- [x] Desplegar backend → frontend la ficha de `MEDIOS` con contacto, ubicación y canales (migración aditiva `011_media_contact_channels`); verificación HTTPS aprobada y datos de Voceros intactos. Responsable: tecnología/dirección. Completado: 2026-09-21.
+- [ ] Confirmar el aviso de privacidad aplicable a los datos de contacto que ahora recoge la ficha de medios antes de difundir el registro. Responsable: comunicación/legal. Fecha: por definir.
 
 ## Regla
 

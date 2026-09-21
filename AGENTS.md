@@ -1419,3 +1419,12 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Commit: incluido en `Pedir contacto, ubicación y canales en la ficha de Medios`.
 - Publicación externa: solo GitHub. **No está desplegado**; requiere autorización de Alex para backend → frontend con la migración 011. En producción aún no existen fichas de medios guardadas, por lo que el cambio no afecta datos.
 - Riesgos y pendientes: la ficha ahora recoge datos personales de contacto; conviene confirmar el aviso de privacidad para medios antes de difundir el registro. Pendiente la autorización de despliegue y la prueba con un medio real.
+
+### 2026-09-21 — Publicación de la ficha de Medios con contacto, ubicación y canales
+
+- Alex autorizó con `sube` publicar `c3207a9` (`Pedir contacto, ubicación y canales en la ficha de Medios`). Comprobaciones previas: `main` limpia y sincronizada, llave cargada desde el Llavero de macOS y artefacto del backend con 50 archivos, incluidos `011_media_contact_channels_mysql.sql` y ambos catálogos de `resources/`.
+- Despliegue backend → frontend con respaldo remoto previo y sin interrupción. La migración aditiva `011_media_contact_channels` quedó aplicada: las siete columnas nuevas están presentes en `media_profiles`.
+- Verificación HTTPS: `health` 200 con contrato `vocero-accounts-v1` en ambos dominios de API; sesiones de Vocero, administración y medios 200; `/api/medios` sin sesión 401; seis rutas 200; la ficha publicada entrega datos del medio, provincia, ciudad, persona de contacto, teléfono, correo y los seis canales, además del campo de link de video; diez archivos con SHA-256 idéntico al build, incluidos `admin.js`, `vocero-portal.js`, `/finados/voceros/mi-registro/` y `/admin/voceros/` sin cambios.
+- Datos (solo conteos): 122 fichas, 173 cuentas y 99 videos de Voceros intactos; 2 cuentas de medios creadas por usuarios y ninguna ficha guardada todavía. No se crearon cuentas ni registros de prueba en producción.
+- Publicación externa: GitHub, backend y frontend autorizados. No se modificaron datos de Voceros, DNS, Google Sheets, Meta ni otros proyectos.
+- Pendiente: prueba de Alex con un medio real; confirmar el aviso de privacidad para los datos de contacto de medios antes de difundir el registro; pendientes anteriores de ranking por vocero, enlace `ACREDITACIÓN DE MEDIOS` y rotación de la passphrase de la llave.
