@@ -204,6 +204,18 @@ same(false, $detail['consents']['image']['accepted']);
 same(false, array_key_exists('ip_hash', $detail['consents']['image']));
 same('https://youtube.com/watch?v=abc', $detail['videos'][0]['url']);
 same('radio@example.invalid', $detail['account_email']);
+// A record saved before 014 has one link per network in its own columns and no list yet: it must stay visible.
+$pdo->exec("UPDATE media_profiles SET channels = NULL, tv_channels = NULL, tv_channel = 'Canal 25'");
+$legacyList = media_body($router->handle('GET', '/api/medios', $origin))['items'][0];
+same(['facebook', 'tiktok', 'website'], array_column($legacyList['channels'], 'type'));
+same('https://facebook.com/radioprueba', $legacyList['channels'][0]['url']);
+same(0, $legacyList['followers_total']);
+$legacyDetail = media_body($router->handle('GET', '/api/medios/' . $publicId, $origin));
+same(3, count($legacyDetail['channels']));
+same(['Canal 25'], $legacyDetail['tv_channels']);
+same(false, in_array('facebook', array_keys($legacyList), true));
+$pdo->prepare('UPDATE media_profiles SET channels = ?, tv_channels = ?, tv_channel = ?')->execute([json_encode($detail['channels']), '[]', '']);
+
 // Administration validates the views beside each reported link; they feed the Top 20.
 same([], $list['topViews']);
 same(false, array_key_exists('views_count', media_body($router->handle('GET', '/api/medios/' . $publicId, $origin))['videos'][0]) === false);

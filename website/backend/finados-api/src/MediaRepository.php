@@ -158,9 +158,9 @@ final class MediaRepository
         $count = $this->pdo->prepare('SELECT COUNT(*) FROM media_profiles WHERE ' . $condition);
         $count->execute($parameters);
         $total = (int) $count->fetchColumn();
-        $rows = $this->pdo->prepare('SELECT public_id, status, media_name, media_types, frequency_channel, audience_count, radio_genre, province, city, social_link, channels, submitted_at, (SELECT COUNT(*) FROM media_videos v WHERE v.profile_id = media_profiles.id) AS videos_count, (SELECT COALESCE(SUM(v.views_count), 0) FROM media_videos v WHERE v.profile_id = media_profiles.id) AS views_total FROM media_profiles WHERE ' . $condition . ' ORDER BY submitted_at DESC, id DESC LIMIT ' . $perPage . ' OFFSET ' . (($page - 1) * $perPage));
+        $rows = $this->pdo->prepare('SELECT public_id, status, media_name, media_types, frequency_channel, audience_count, radio_genre, province, city, social_link, channels, facebook, instagram, tiktok, youtube, website, other_link, submitted_at, (SELECT COUNT(*) FROM media_videos v WHERE v.profile_id = media_profiles.id) AS videos_count, (SELECT COALESCE(SUM(v.views_count), 0) FROM media_videos v WHERE v.profile_id = media_profiles.id) AS views_total FROM media_profiles WHERE ' . $condition . ' ORDER BY submitted_at DESC, id DESC LIMIT ' . $perPage . ' OFFSET ' . (($page - 1) * $perPage));
         $rows->execute($parameters);
-        $items = array_map(static function (array $row): array { $decoded = []; return [...$row, 'channels' => $decoded = json_decode((string) ($row['channels'] ?? '') ?: '[]', true, 8) ?: [], 'followers_total' => self::followersTotal($decoded), 'media_types' => self::typeKeys((string) $row['media_types']), 'audience_count' => $row['audience_count'] === null ? null : (int) $row['audience_count'], 'videos_count' => (int) $row['videos_count'], 'views_total' => (int) $row['views_total']]; }, $rows->fetchAll(PDO::FETCH_ASSOC));
+        $items = array_map(static function (array $row): array { $decoded = []; $legacy = array_flip(['facebook', 'instagram', 'tiktok', 'youtube', 'website', 'other_link']); return [...array_diff_key($row, $legacy), 'channels' => $decoded = self::channelsOf($row), 'followers_total' => self::followersTotal($decoded), 'media_types' => self::typeKeys((string) $row['media_types']), 'audience_count' => $row['audience_count'] === null ? null : (int) $row['audience_count'], 'videos_count' => (int) $row['videos_count'], 'views_total' => (int) $row['views_total']]; }, $rows->fetchAll(PDO::FETCH_ASSOC));
         return ['items' => $items, 'page' => $page, 'per_page' => $perPage, 'total' => $total];
     }
 
@@ -180,11 +180,11 @@ final class MediaRepository
     /** Media ranked by the followers they declared across all their channels. */
     public function topByFollowers(int $limit = 20): array
     {
-        $query = $this->pdo->prepare('SELECT public_id, media_name, frequency_channel, channels FROM media_profiles WHERE status <> ?');
+        $query = $this->pdo->prepare('SELECT public_id, media_name, frequency_channel, channels, facebook, instagram, tiktok, youtube, website, other_link FROM media_profiles WHERE status <> ?');
         $query->execute([self::ARCHIVED]);
         $ranking = [];
         foreach ($query->fetchAll(PDO::FETCH_ASSOC) as $row) {
-            $channels = json_decode((string) ($row['channels'] ?? '') ?: '[]', true, 8) ?: [];
+            $channels = self::channelsOf($row);
             $total = self::followersTotal($channels);
             if ($total <= 0) continue;
             $best = array_reduce($channels, static fn (?array $carry, array $channel): ?array => ($channel['followers'] ?? 0) > ($carry['followers'] ?? 0) ? $channel : $carry);
@@ -193,6 +193,30 @@ final class MediaRepository
         }
         usort($ranking, static fn (array $left, array $right): int => [$right['followers_total'], $left['media_name']] <=> [$left['followers_total'], $right['media_name']]);
         return array_slice($ranking, 0, max(1, min(50, $limit)));
+    }
+
+    /**
+     * Channel list of a record. Records saved before 014 kept one link per network in their own
+     * columns; they are presented as a list so nothing disappears until the medium saves again.
+     */
+    private static function channelsOf(array $row): array
+    {
+        $channels = json_decode((string) ($row['channels'] ?? '') ?: '[]', true, 8);
+        if (is_array($channels) && $channels !== []) return $channels;
+        $legacy = [];
+        foreach (['facebook' => 'facebook', 'instagram' => 'instagram', 'tiktok' => 'tiktok', 'youtube' => 'youtube', 'website' => 'website', 'other_link' => 'otro'] as $column => $type) {
+            $url = trim((string) ($row[$column] ?? ''));
+            if ($url !== '') $legacy[] = ['type' => $type, 'url' => $url, 'followers' => null];
+        }
+        return $legacy;
+    }
+
+    private static function tvChannelsOf(array $row): array
+    {
+        $channels = json_decode((string) ($row['tv_channels'] ?? '') ?: '[]', true, 8);
+        if (is_array($channels) && $channels !== []) return $channels;
+        $legacy = trim((string) ($row['tv_channel'] ?? ''));
+        return $legacy === '' ? [] : [$legacy];
     }
 
     private static function followersTotal(array $channels): int
@@ -563,8 +587,8 @@ final class MediaRepository
         foreach (self::PLAIN as $field) $result[$field] = (string) $row[$field];
         $result['media_types'] = self::typeKeys((string) ($row['media_types'] ?? ''));
         $result['radio_stations'] = json_decode((string) ($row['radio_stations'] ?? '') ?: '[]', true, 8) ?: [];
-        $result['tv_channels'] = json_decode((string) ($row['tv_channels'] ?? '') ?: '[]', true, 8) ?: [];
-        $result['channels'] = json_decode((string) ($row['channels'] ?? '') ?: '[]', true, 8) ?: [];
+        $result['tv_channels'] = self::tvChannelsOf($row);
+        $result['channels'] = self::channelsOf($row);
         $result['followers_total'] = self::followersTotal($result['channels']);
         $result['audience_count'] = ($row['audience_count'] ?? null) === null ? null : (int) $row['audience_count'];
         foreach (self::ENCRYPTED as $field) $result[$field] = ($row[$field . '_enc'] ?? null) === null || $row[$field . '_enc'] === '' ? '' : $this->crypto->decrypt($row[$field . '_enc']);
