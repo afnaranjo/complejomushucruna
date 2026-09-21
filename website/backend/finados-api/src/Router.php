@@ -40,7 +40,7 @@ final class Router
     private readonly Audit $audit;
     private readonly Crypto $crypto;
     private const FILTERS = ['search', 'status', 'city', 'main_network', 'previous_participation', 'date_from', 'date_to'];
-    private const MEDIA_FILTERS = ['search', 'status', 'media_type', 'province'];
+    private const MEDIA_FILTERS = ['search', 'status'];
     private const METHODS = ['GET', 'POST', 'PATCH', 'OPTIONS'];
 
     public function __construct(private readonly Config $config, private readonly PDO $pdo)
@@ -433,6 +433,14 @@ final class Router
             $own = $this->media()->forAccount($user['id']);
             return $this->json(200, $own === null ? ['registered' => false, 'email' => $user['email'], 'status' => null, 'editable' => true] : ['registered' => true, 'email' => $user['email'], ...$own], $headers);
         }
+        if ($path === '/api/media/videos') {
+            $user = $this->mediaAuth()->requireUser();
+            if ($method !== 'POST') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+            if (!$this->config->isAllowedOrigin($origin) || !$validIp || $query !== []) throw new Forbidden();
+            $this->mediaAuth()->verifyCsrf($token);
+            $body = $this->body($server, $rawBody, ['url']);
+            return $this->json(201, ['ok' => true, 'videos' => $this->media()->addVideoForAccount($user['id'], $body['url'] ?? null, $ip)], $headers);
+        }
         return null;
     }
 
@@ -516,7 +524,7 @@ final class Router
 
     private function mediaExport(array $filters, int $actorId, string $ip, array $headers): Response
     {
-        $columns = ['public_id', 'status', 'submitted_at', 'media_name', 'media_type', 'frequency_channel', 'program_name', 'program_type', 'province', 'city', 'contract', 'people_count', 'team', 'phone', 'contact_email', 'account_email'];
+        $columns = ['public_id', 'status', 'submitted_at', 'media_name', 'frequency_channel', 'social_link', 'account_email', 'videos_count', 'video_links'];
         $stream = fopen('php://temp/maxmemory:2097152', 'w+');
         if ($stream === false) throw new \RuntimeException();
         try {
@@ -524,6 +532,8 @@ final class Router
             fputcsv($stream, $columns, ',', '"', '', "\r\n");
             $rows = $this->media()->exportRows($filters);
             foreach ($rows as $detail) {
+                $links = array_column($detail['videos'] ?? [], 'url');
+                $detail = [...$detail, 'videos_count' => count($links), 'video_links' => implode(' | ', $links)];
                 fputcsv($stream, array_map(static function (string $column) use ($detail): string {
                     $value = (string) ($detail[$column] ?? '');
                     // Also protect formulas hidden behind whitespace/control characters.

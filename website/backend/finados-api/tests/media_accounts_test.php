@@ -34,7 +34,7 @@ function media_json(array $payload): string { return json_encode($payload, JSON_
 media_close_session();
 $config = media_config();
 $pdo = Database::connect($config);
-foreach (['001_initial', '002_sheets_outbox', '003_vocero_accounts', '008_media_accounts'] as $migration) {
+foreach (['001_initial', '002_sheets_outbox', '003_vocero_accounts', '008_media_accounts', '009_media_videos'] as $migration) {
     $pdo->exec(file_get_contents(__DIR__ . '/../migrations/' . $migration . '_sqlite.sql'));
 }
 same('008_media_accounts', $pdo->query("SELECT version FROM schema_migrations WHERE version = '008_media_accounts'")->fetchColumn());
@@ -70,28 +70,33 @@ same('media', $login['user']['role']);
 $empty = media_body($router->handle('GET', '/api/media/profile', $origin));
 same(false, $empty['registered']);
 same('radio@example.invalid', $empty['email']);
-$record = [
-    'media_name' => 'Radio Prueba', 'media_type' => 'Radio', 'frequency_channel' => '99.9 FM', 'program_name' => 'Noticiero de prueba',
-    'program_type' => 'Noticias', 'province' => 'Tungurahua', 'city' => 'Ambato', 'contract' => 'No', 'people_count' => 2,
-    'team' => "Persona Uno — Reportera\r\nPersona Dos — Camarógrafo", 'phone' => '0990000000', 'contact_email' => 'Prensa@Example.invalid',
-    'conditions_accepted' => true,
-];
-same(422, $router->handle('POST', '/api/media/profile', $json($login['csrf']), media_json([...$record, 'people_count' => 3]))->status);
+$record = ['media_name' => 'Radio Prueba', 'frequency_channel' => '99.9 FM', 'social_link' => 'facebook.com/radioprueba', 'conditions_accepted' => true];
+same(422, $router->handle('POST', '/api/media/profile', $json($login['csrf']), media_json([...$record, 'social_link' => 'javascript:alert(1)']))->status);
+same(422, $router->handle('POST', '/api/media/profile', $json($login['csrf']), media_json([...$record, 'people_count' => 2]))->status);
 same(422, $router->handle('POST', '/api/media/profile', $json($login['csrf']), media_json([...$record, 'conditions_accepted' => false]))->status);
 same(422, $router->handle('POST', '/api/media/profile', $json($login['csrf']), media_json([...$record, 'status' => 'Aprobado']))->status);
 same(403, $router->handle('POST', '/api/media/profile', $json('token-incorrecto'), media_json($record))->status);
+// Videos need a saved record first.
+$login = ['csrf' => media_body($router->handle('GET', '/api/media/auth/session', $origin))['csrf']] + $login;
+same(403, $router->handle('POST', '/api/media/videos', $json($login['csrf']), media_json(['url' => 'https://www.tiktok.com/@radio/video/1']))->status);
 $saved = media_body($router->handle('POST', '/api/media/profile', $json($login['csrf']), media_json($record)));
 same(true, $saved['registered']);
 same('Nuevo', $saved['status']);
 same(true, $saved['editable']);
-same("Persona Uno — Reportera\nPersona Dos — Camarógrafo", $saved['team']);
-same('prensa@example.invalid', $saved['contact_email']);
-$stored = $pdo->query('SELECT team_enc, phone_enc, contact_email_enc FROM media_profiles')->fetch();
-same(false, str_contains(implode('|', $stored), 'Persona'));
-same(false, str_contains(implode('|', $stored), '0990000000'));
-$updated = media_body($router->handle('POST', '/api/media/profile', $json($login['csrf']), media_json([...$record, 'city' => 'Tisaleo', 'people_count' => 1])));
-same('Tisaleo', $updated['city']);
+same('https://facebook.com/radioprueba', $saved['social_link']);
+same([], $saved['videos']);
+same(false, array_key_exists('people_count', $saved));
+$updated = media_body($router->handle('POST', '/api/media/profile', $json($login['csrf']), media_json([...$record, 'frequency_channel' => '101.5 FM'])));
+same('101.5 FM', $updated['frequency_channel']);
 same(1, (int) $pdo->query('SELECT COUNT(*) FROM media_profiles')->fetchColumn());
+// The medium keeps adding the links of what it published.
+$firstVideo = media_body($router->handle('POST', '/api/media/videos', $json($login['csrf']), media_json(['url' => 'https://www.tiktok.com/@radio/video/1'])));
+same(1, count($firstVideo['videos']));
+same(201, $router->handle('POST', '/api/media/videos', $json($login['csrf']), media_json(['url' => 'youtube.com/watch?v=abc']))->status);
+same(409, $router->handle('POST', '/api/media/videos', $json($login['csrf']), media_json(['url' => 'https://www.TikTok.com/@radio/video/1']))->status);
+same(422, $router->handle('POST', '/api/media/videos', $json($login['csrf']), media_json(['url' => 'no es un link']))->status);
+same(422, $router->handle('POST', '/api/media/videos', $json($login['csrf']), media_json(['url' => 'https://a.example/v', 'otro' => 1]))->status);
+same(2, count(media_body($router->handle('GET', '/api/media/profile', $origin))['videos']));
 $publicId = $updated['public_id'];
 media_close_session();
 // Administrative routes require the separate admin session.
@@ -107,11 +112,13 @@ same(1, $list['pagination']['total']);
 same('Radio Prueba', $list['items'][0]['media_name']);
 same(false, array_key_exists('phone', $list['items'][0]));
 same(1, $list['summary']['byStatus']['Nuevo']);
-same(1, $list['summary']['people']);
-same(0, media_body($router->handle('GET', '/api/medios?media_type=TV', $origin))['pagination']['total']);
+same(2, $list['summary']['videos']);
+same(2, $list['items'][0]['videos_count']);
+same(422, $router->handle('GET', '/api/medios?media_type=TV', $origin)->status);
 same(422, $router->handle('GET', '/api/medios?status=Inventado', $origin)->status);
 $detail = media_body($router->handle('GET', '/api/medios/' . $publicId, $origin));
-same('0990000000', $detail['phone']);
+same('https://facebook.com/radioprueba', $detail['social_link']);
+same('https://youtube.com/watch?v=abc', $detail['videos'][0]['url']);
 same('radio@example.invalid', $detail['account_email']);
 same(422, $router->handle('PATCH', '/api/medios/' . $publicId, $admin, media_json(['status' => 'Eliminado']))->status);
 same(['ok' => true], media_body($router->handle('PATCH', '/api/medios/' . $publicId, $admin, media_json(['status' => 'Aprobado']))));
@@ -122,6 +129,7 @@ same('Credenciales listas.', $detail['notes'][0]['body']);
 $export = $router->handle('POST', '/api/medios/export', $admin, media_json(['status' => 'Aprobado']));
 same(200, $export->status);
 same(true, str_contains($export->body, 'Radio Prueba'));
+same(true, str_contains($export->body, 'https://www.tiktok.com/@radio/video/1 | ') || str_contains($export->body, ' | https://www.tiktok.com/@radio/video/1'));
 same('text/csv; charset=utf-8', $export->headers['Content-Type']);
 $reset = media_body($router->handle('POST', '/api/medios/' . $publicId . '/password-reset', $admin, '{}'));
 same(1, preg_match('~^https://example\.invalid/finados/medios/restablecer/\?token=([a-f0-9]{64})$~D', $reset['resetUrl'], $token));
@@ -144,6 +152,9 @@ same('Aprobado', $own['status']);
 same(false, $own['editable']);
 same(false, array_key_exists('notes', $own));
 same(403, $router->handle('POST', '/api/media/profile', $json($relogin['csrf']), media_json($record))->status);
+// An approved medium can no longer edit its record, but keeps reporting published videos.
+$relogin = ['csrf' => media_body($router->handle('GET', '/api/media/auth/session', $origin))['csrf']] + $relogin;
+same(201, $router->handle('POST', '/api/media/videos', $json($relogin['csrf']), media_json(['url' => 'https://www.instagram.com/reel/xyz/']))->status);
 media_close_session();
 
 // Safe retirement hides the record, disables the account and keeps the evidence.

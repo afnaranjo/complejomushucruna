@@ -1370,3 +1370,13 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - QA: pruebas de Medios y administración en verde y build de 138 archivos. Commit: incluido en `Hacer visibles las cuentas de medios pendientes`.
 - Publicación externa: solo GitHub. La mejora del panel **no está desplegada**; requiere autorización de Alex para publicar el frontend. No se modificaron datos en producción.
 - Pendiente: que el medio de prueba guarde su ficha para validar el flujo completo y desplegar esta mejora cuando Alex lo indique.
+
+### 2026-09-21 — Ficha de Medios simplificada y links de video acumulables
+
+- Alex pidió retirar `número de personas a acreditar` y dejar lo que el medio realmente necesita: nombre del medio, frecuencia, link de redes y la posibilidad de ir subiendo los links de los videos que publica. La ficha de `/finados/medios/mi-registro/` quedó con `Nombre del medio`, `Frecuencia / canal`, `Link de redes` y la aceptación de condiciones; se retiraron tipo de medio, programa, provincia, ciudad, contrato, número de personas, equipo, teléfono y correo de contacto.
+- Se añadió la sección `Videos publicados`: el medio agrega un link cada vez que publica, sin límite práctico (tope técnico de 100), con rechazo de links repetidos o inválidos. Un medio aprobado ya no edita su ficha, pero puede seguir agregando videos; uno rechazado o retirado no. Los links quedan como evidencia y no se editan ni borran.
+- Backend: migración aditiva `009_media_videos` (tabla `media_videos` y columna `social_link`); las columnas de la ficha anterior permanecen en el esquema sin uso para no eliminar nada. Nueva ruta `POST /api/media/videos`. Panel `/admin/medios/`: columnas Medio, Frecuencia, Redes y Videos, detalle con la lista de videos, resumen `Videos recibidos`, filtros de búsqueda y estado, y CSV con cantidad y links de video. Solo los enlaces `https` se muestran como vínculos.
+- QA: `npm run check` completo en verde con 159 pruebas Node, 21 suites PHP y 10 de integración; build de 138 archivos, 37 HTML y 1204 referencias. El flujo real se comprobó por HTTP contra el stack local. La entrada anterior citó 22 suites PHP por un conteo erróneo; son 21.
+- Commit: incluido en `Simplificar ficha de Medios y recibir links de video`.
+- Publicación externa: solo GitHub. **No está desplegado**: producción conserva la ficha anterior hasta que Alex autorice backend → frontend; en producción no existe todavía ningún registro de medio guardado, por lo que el cambio no afecta datos.
+- Pendiente: autorización de despliegue y prueba con un medio real; confirmar si se requiere algún dato de contacto adicional del medio.

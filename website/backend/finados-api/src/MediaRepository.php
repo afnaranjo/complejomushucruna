@@ -18,18 +18,14 @@ require_once __DIR__ . '/Audit.php';
 final class MediaRepository
 {
     public const STATUSES = ['Nuevo', 'En revisión', 'Aprobado', 'Rechazado'];
-    public const MEDIA_TYPES = ['Radio', 'TV', 'Prensa escrita', 'Digital', 'Redes sociales'];
-    public const PROGRAM_TYPES = ['Noticias', 'Magazine', 'Cultural', 'Deportivo', 'Entretenimiento', 'Opinión'];
-    public const PROVINCES = [
-        'Azuay', 'Bolívar', 'Cañar', 'Carchi', 'Chimborazo', 'Cotopaxi', 'El Oro', 'Esmeraldas', 'Galápagos', 'Guayas',
-        'Imbabura', 'Loja', 'Los Ríos', 'Manabí', 'Morona Santiago', 'Napo', 'Orellana', 'Pastaza', 'Pichincha',
-        'Santa Elena', 'Santo Domingo de los Tsáchilas', 'Sucumbíos', 'Tungurahua', 'Zamora Chinchipe',
-    ];
-    public const FIELDS = ['media_name', 'media_type', 'frequency_channel', 'program_name', 'program_type', 'province', 'city', 'contract', 'people_count', 'team', 'phone', 'contact_email', 'conditions_accepted'];
+    public const FIELDS = ['media_name', 'frequency_channel', 'social_link', 'conditions_accepted'];
+    public const MAX_VIDEOS = 100;
     private const ARCHIVED = 'Eliminado';
     private const EDITABLE = ['Nuevo', 'En revisión'];
-    private const PLAIN = ['media_name', 'media_type', 'frequency_channel', 'program_name', 'program_type', 'province', 'city', 'contract', 'people_count'];
-    private const ENCRYPTED = ['team', 'phone', 'contact_email'];
+    private const PLAIN = ['media_name', 'frequency_channel', 'social_link'];
+    // Columns from the first accreditation form (008). They stay in the schema, unused, so no data is ever dropped.
+    private const LEGACY_PLAIN = ['media_type' => '', 'program_name' => '', 'program_type' => '', 'province' => '', 'city' => '', 'contract' => '', 'people_count' => 0];
+    private const LEGACY_ENCRYPTED = ['team_enc', 'phone_enc', 'contact_email_enc'];
     private readonly Audit $audit;
     private readonly array $conditions;
 
@@ -55,7 +51,8 @@ final class MediaRepository
         $statement->execute([$accountId]);
         $row = $statement->fetch();
         if ($row === false || $row['status'] === self::ARCHIVED) return null;
-        return [...$this->present($row), 'editable' => in_array($row['status'], self::EDITABLE, true)];
+        return [...$this->present($row), 'editable' => in_array($row['status'], self::EDITABLE, true), 'videos' => $this->videos((int) $row['id']),
+            'can_add_videos' => $row['status'] !== 'Rechazado'];
     }
 
     public function saveForAccount(int $accountId, array $input, string $ip): array
@@ -69,14 +66,15 @@ final class MediaRepository
             $existing = $statement->fetch();
             $values = [];
             foreach (self::PLAIN as $field) $values[$field] = $record[$field];
-            foreach (self::ENCRYPTED as $field) $values[$field . '_enc'] = $this->crypto->encrypt($record[$field]);
             $values += [
                 'conditions_version' => $this->conditions['version'], 'conditions_hash' => hash('sha256', $this->conditions['text']),
                 'conditions_accepted_at' => $now, 'updated_at' => $now,
             ];
             if ($existing === false) {
                 $publicId = bin2hex(random_bytes(16));
-                $values = ['public_id' => $publicId, 'account_id' => $accountId, 'status' => 'Nuevo', ...$values, 'submitted_at' => $now];
+                $legacy = self::LEGACY_PLAIN;
+                foreach (self::LEGACY_ENCRYPTED as $column) $legacy[$column] = $this->crypto->encrypt('');
+                $values = ['public_id' => $publicId, 'account_id' => $accountId, 'status' => 'Nuevo', ...$legacy, ...$values, 'submitted_at' => $now];
                 $columns = array_keys($values);
                 $this->pdo->prepare('INSERT INTO media_profiles (' . implode(', ', $columns) . ') VALUES (' . implode(', ', array_fill(0, count($columns), '?')) . ')')
                     ->execute(array_values($values));
@@ -107,31 +105,21 @@ final class MediaRepository
             if (!in_array($status, self::STATUSES, true)) throw new InvalidArgumentException();
             $where[] = 'status = ?'; $parameters[] = $status;
         }
-        $type = trim((string) ($filters['media_type'] ?? ''));
-        if ($type !== '') {
-            if (!in_array($type, self::MEDIA_TYPES, true)) throw new InvalidArgumentException();
-            $where[] = 'media_type = ?'; $parameters[] = $type;
-        }
-        $province = trim((string) ($filters['province'] ?? ''));
-        if ($province !== '') {
-            if (!in_array($province, self::PROVINCES, true)) throw new InvalidArgumentException();
-            $where[] = 'province = ?'; $parameters[] = $province;
-        }
         $search = trim((string) ($filters['search'] ?? ''));
         if (self::length($search) > 100) throw new InvalidArgumentException();
         if ($search !== '') {
             // Both supported collations already compare LIKE without case sensitivity.
             $like = '%' . addcslashes($search, '\\%_') . '%';
-            $where[] = "(media_name LIKE ? ESCAPE '\\' OR program_name LIKE ? ESCAPE '\\' OR city LIKE ? ESCAPE '\\')";
+            $where[] = "(media_name LIKE ? ESCAPE '\\' OR frequency_channel LIKE ? ESCAPE '\\' OR social_link LIKE ? ESCAPE '\\')";
             array_push($parameters, $like, $like, $like);
         }
         $condition = implode(' AND ', $where);
         $count = $this->pdo->prepare('SELECT COUNT(*) FROM media_profiles WHERE ' . $condition);
         $count->execute($parameters);
         $total = (int) $count->fetchColumn();
-        $rows = $this->pdo->prepare('SELECT public_id, status, media_name, media_type, program_name, province, city, contract, people_count, submitted_at FROM media_profiles WHERE ' . $condition . ' ORDER BY submitted_at DESC, id DESC LIMIT ' . $perPage . ' OFFSET ' . (($page - 1) * $perPage));
+        $rows = $this->pdo->prepare('SELECT public_id, status, media_name, frequency_channel, social_link, submitted_at, (SELECT COUNT(*) FROM media_videos v WHERE v.profile_id = media_profiles.id) AS videos_count FROM media_profiles WHERE ' . $condition . ' ORDER BY submitted_at DESC, id DESC LIMIT ' . $perPage . ' OFFSET ' . (($page - 1) * $perPage));
         $rows->execute($parameters);
-        $items = array_map(static fn (array $row): array => [...$row, 'people_count' => (int) $row['people_count']], $rows->fetchAll(PDO::FETCH_ASSOC));
+        $items = array_map(static fn (array $row): array => [...$row, 'videos_count' => (int) $row['videos_count']], $rows->fetchAll(PDO::FETCH_ASSOC));
         return ['items' => $items, 'page' => $page, 'per_page' => $perPage, 'total' => $total];
     }
 
@@ -141,9 +129,9 @@ final class MediaRepository
         $query = $this->pdo->prepare('SELECT status, COUNT(*) AS count FROM media_profiles WHERE status <> ? GROUP BY status');
         $query->execute([self::ARCHIVED]);
         foreach ($query as $row) if (isset($statuses[$row['status']])) $statuses[$row['status']] = (int) $row['count'];
-        $people = $this->pdo->prepare('SELECT COALESCE(SUM(people_count), 0) FROM media_profiles WHERE status <> ?');
-        $people->execute([self::ARCHIVED]);
-        return ['total' => array_sum($statuses), 'byStatus' => $statuses, 'people' => (int) $people->fetchColumn()];
+        $videos = $this->pdo->prepare('SELECT COUNT(*) FROM media_videos v JOIN media_profiles m ON m.id = v.profile_id WHERE m.status <> ?');
+        $videos->execute([self::ARCHIVED]);
+        return ['total' => array_sum($statuses), 'byStatus' => $statuses, 'videos' => (int) $videos->fetchColumn()];
     }
 
     public function find(string $publicId): ?array
@@ -160,6 +148,7 @@ final class MediaRepository
             'account_email' => $owner ? $this->crypto->decrypt($owner['email_enc']) : '',
             'account_active' => $owner ? (int) $owner['active'] === 1 : false,
             'last_login_at' => $owner['last_login_at'] ?? null,
+            'videos' => $this->videos((int) $row['id']),
             'notes' => array_map(static fn (array $note): array => [...$note, 'id' => (int) $note['id']], $notes->fetchAll(PDO::FETCH_ASSOC)),
         ];
     }
@@ -244,43 +233,74 @@ final class MediaRepository
     {
         if (array_diff(array_keys($input), self::FIELDS) !== [] || array_diff(self::FIELDS, array_keys($input)) !== []) throw new InvalidArgumentException();
         if ($input['conditions_accepted'] !== true) throw new InvalidArgumentException();
-        $text = static function (mixed $value, int $max, bool $multiline = false): string {
+        $text = static function (mixed $value, int $max): string {
             if (!is_string($value)) throw new InvalidArgumentException();
-            $value = str_replace(["\r\n", "\r"], "\n", $value);
-            $value = trim(preg_replace($multiline ? '/[^\P{C}\n]+/u' : '/\p{C}+/u', ' ', $value) ?? '');
+            $value = trim(preg_replace('/\p{C}+/u', ' ', $value) ?? '');
             if ($value === '' || self::length($value) > $max) throw new InvalidArgumentException();
             return $value;
         };
-        $choice = static function (mixed $value, array $allowed): string {
-            if (!is_string($value) || !in_array($value, $allowed, true)) throw new InvalidArgumentException();
-            return $value;
-        };
-        if (!is_int($input['people_count']) || !in_array($input['people_count'], [1, 2], true)) throw new InvalidArgumentException();
-        $phone = $text($input['phone'], 25);
-        if (preg_match('/^\+?[0-9][0-9 ()-]{6,23}$/D', $phone) !== 1) throw new InvalidArgumentException();
-        $email = strtolower($text($input['contact_email'], 180));
-        if (filter_var($email, FILTER_VALIDATE_EMAIL) === false) throw new InvalidArgumentException();
         return [
             'media_name' => $text($input['media_name'], 140),
-            'media_type' => $choice($input['media_type'], self::MEDIA_TYPES),
             'frequency_channel' => $text($input['frequency_channel'], 120),
-            'program_name' => $text($input['program_name'], 160),
-            'program_type' => $choice($input['program_type'], self::PROGRAM_TYPES),
-            'province' => $choice($input['province'], self::PROVINCES),
-            'city' => $text($input['city'], 100),
-            'contract' => $choice($input['contract'], ['Sí', 'No']),
-            'people_count' => $input['people_count'],
-            'team' => $text($input['team'], 500, true),
-            'phone' => $phone,
-            'contact_email' => $email,
+            'social_link' => self::link($input['social_link'], 300),
         ];
+    }
+
+    /** Public https link; a bare "facebook.com/medio" is accepted and normalized. */
+    public static function link(mixed $value, int $max): string
+    {
+        if (!is_string($value)) throw new InvalidArgumentException();
+        $value = trim($value);
+        if ($value !== '' && preg_match('~^https?://~i', $value) !== 1) $value = 'https://' . $value;
+        $value = preg_replace('~^http://~i', 'https://', $value) ?? '';
+        $parts = parse_url($value);
+        if ($value === '' || strlen($value) > $max || preg_match('/[\x00-\x20<>"]/', $value) === 1 || str_contains($value, '\\') || !is_array($parts)
+            || strtolower($parts['scheme'] ?? '') !== 'https' || isset($parts['user']) || isset($parts['pass'])
+            || preg_match('/^(?=.{4,253}$)([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,24}$/iD', $parts['host'] ?? '') !== 1) {
+            throw new InvalidArgumentException();
+        }
+        return $value;
+    }
+
+    /** Appends one published video link to the owner's record; links are kept as evidence and never edited. */
+    public function addVideoForAccount(int $accountId, mixed $url, string $ip): array
+    {
+        $url = self::link($url, 500);
+        $this->begin();
+        try {
+            $statement = $this->pdo->prepare('SELECT id, public_id, status FROM media_profiles WHERE account_id = ?' . $this->rowLock());
+            $statement->execute([$accountId]);
+            $profile = $statement->fetch();
+            if ($profile === false || in_array($profile['status'], [self::ARCHIVED, 'Rechazado'], true)) throw new Forbidden();
+            $count = $this->pdo->prepare('SELECT COUNT(*) FROM media_videos WHERE profile_id = ?');
+            $count->execute([$profile['id']]);
+            if ((int) $count->fetchColumn() >= self::MAX_VIDEOS) throw new InvalidArgumentException();
+            $hash = hash('sha256', strtolower($url));
+            $duplicate = $this->pdo->prepare('SELECT 1 FROM media_videos WHERE profile_id = ? AND url_hash = ?');
+            $duplicate->execute([$profile['id'], $hash]);
+            if ($duplicate->fetchColumn() !== false) throw new DuplicateRegistration();
+            $this->pdo->prepare('INSERT INTO media_videos (profile_id, url, url_hash, created_at) VALUES (?, ?, ?, ?)')
+                ->execute([$profile['id'], $url, $hash, gmdate('Y-m-d H:i:s')]);
+            $this->audit->log('media.video_added', null, 'media_profile', $profile['public_id'], [], $ip);
+            $this->commit();
+        } catch (Throwable $error) {
+            $this->rollBack();
+            throw $error;
+        }
+        return $this->videos((int) $profile['id']);
+    }
+
+    private function videos(int $profileId): array
+    {
+        $statement = $this->pdo->prepare('SELECT url, created_at FROM media_videos WHERE profile_id = ? ORDER BY created_at DESC, id DESC');
+        $statement->execute([$profileId]);
+        return $statement->fetchAll(PDO::FETCH_ASSOC);
     }
 
     private function present(array $row): array
     {
         $result = ['public_id' => $row['public_id'], 'status' => $row['status'], 'submitted_at' => $row['submitted_at'], 'updated_at' => $row['updated_at']];
-        foreach (self::PLAIN as $field) $result[$field] = $field === 'people_count' ? (int) $row[$field] : (string) $row[$field];
-        foreach (self::ENCRYPTED as $field) $result[$field] = $this->crypto->decrypt($row[$field . '_enc']);
+        foreach (self::PLAIN as $field) $result[$field] = (string) $row[$field];
         return $result;
     }
 

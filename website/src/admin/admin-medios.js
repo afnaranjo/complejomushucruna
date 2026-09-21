@@ -1,16 +1,13 @@
 import { MIRROR_API_BASE, PRIMARY_API_BASE, resolveRuntimeOrigins } from '../finados/runtime-origins.mjs';
 
 export const MEDIA_STATUSES = Object.freeze(['Nuevo', 'En revisión', 'Aprobado', 'Rechazado']);
-export const MEDIA_TYPES = Object.freeze(['Radio', 'TV', 'Prensa escrita', 'Digital', 'Redes sociales']);
 const API = PRIMARY_API_BASE;
 const LOCAL_API = 'http://127.0.0.1:4174/api';
-const FILTERS = ['search', 'status', 'media_type', 'province'];
+const FILTERS = ['search', 'status'];
 const DETAIL_FIELDS = Object.freeze([
-  ['media_name', 'Nombre del medio'], ['media_type', 'Tipo de medio'], ['frequency_channel', 'Frecuencia / canal'],
-  ['program_name', 'Programa o espacio'], ['program_type', 'Tipo de programa'], ['province', 'Provincia'], ['city', 'Ciudad'],
-  ['contract', 'Contrato vigente con Mushuc Runa'], ['people_count', 'Personas a acreditar'], ['team', 'Equipo de cobertura'],
-  ['phone', 'Teléfono / WhatsApp'], ['contact_email', 'Correo de contacto'], ['account_email', 'Correo de la cuenta'],
+  ['media_name', 'Nombre del medio'], ['frequency_channel', 'Frecuencia / canal'], ['social_link', 'Link de redes'], ['account_email', 'Correo de la cuenta'],
 ]);
+const LINK_FIELDS = new Set(['social_link']);
 
 export function normalizeMediaFilters(input = {}) {
   const result = {};
@@ -19,7 +16,6 @@ export function normalizeMediaFilters(input = {}) {
     if (value) result[key] = value;
   }
   if (result.status && !MEDIA_STATUSES.includes(result.status)) throw new Error('Selecciona un estado válido.');
-  if (result.media_type && !MEDIA_TYPES.includes(result.media_type)) throw new Error('Selecciona un tipo de medio válido.');
   if (result.search && result.search.length > 100) throw new Error('La búsqueda es demasiado larga.');
   result.page = Math.min(1000000, Math.max(1, Number.parseInt(input.page, 10) || 1));
   result.pageSize = [25, 50, 100].includes(Number(input.pageSize)) ? Number(input.pageSize) : 25;
@@ -31,7 +27,7 @@ export function renderMediaSummary(data = {}) {
     { label: 'Medios', value: data.total ?? 0 },
     { label: 'Nuevos', value: data.byStatus?.Nuevo ?? 0 },
     { label: 'Aprobados', value: data.byStatus?.Aprobado ?? 0 },
-    { label: 'Personas por acreditar', value: data.people ?? 0 },
+    { label: 'Videos recibidos', value: data.videos ?? 0 },
   ];
 }
 
@@ -100,6 +96,16 @@ function feedback(element, message, kind = '') {
   element.textContent = message;
   element.dataset.error = String(kind === 'error');
   element.dataset.success = String(kind === 'success');
+}
+/** Only https links become anchors; anything else is shown as plain text. */
+export function safeLink(value) {
+  try { const url = new URL(String(value ?? '')); return url.protocol === 'https:' ? url.href : ''; } catch { return ''; }
+}
+function linkNode(value) {
+  const href = safeLink(value);
+  if (!href) return node('span', value || '—');
+  const anchor = node('a', value); anchor.href = href; anchor.target = '_blank'; anchor.rel = 'noopener noreferrer';
+  return anchor;
 }
 function dateTime(value) {
   if (!value) return '—';
@@ -191,10 +197,10 @@ export async function initializeMediaAdmin() {
           const td = node('td'); td.dataset.label = label;
           td.append(node('span', value)); if (secondary) td.append(node('small', secondary)); row.append(td); return td;
         };
-        cell('Medio', record.media_name, record.media_type).className = 'record-name';
-        cell('Programa', record.program_name);
-        cell('Ubicación', record.city, record.province);
-        cell('Personas', record.people_count, record.contract === 'Sí' ? 'Con contrato vigente' : 'Sin contrato');
+        cell('Medio', record.media_name).className = 'record-name';
+        cell('Frecuencia', record.frequency_channel);
+        cell('Redes', '').replaceChildren(linkNode(record.social_link));
+        cell('Videos', record.videos_count === 1 ? '1 video' : `${record.videos_count ?? 0} videos`);
         cell('Registro', dateTime(record.submitted_at));
         const badge = node('span', record.status, 'status-badge'); badge.dataset.status = record.status;
         cell('Estado', '').replaceChildren(badge);
@@ -256,11 +262,18 @@ export async function initializeMediaAdmin() {
     const submitted = node('p', `Registrado: ${dateTime(data.submitted_at)} · Actualizado: ${dateTime(data.updated_at)} · Último acceso: ${dateTime(data.last_login_at)}`);
     const dl = node('dl', undefined, 'detail-fields');
     for (const [key, label] of DETAIL_FIELDS) {
-      const field = node('div'); const value = node('dd', data[key] === '' || data[key] == null ? '—' : data[key]);
-      if (key === 'team') value.style.whiteSpace = 'pre-line';
+      const field = node('div'); const value = node('dd');
+      if (LINK_FIELDS.has(key)) value.append(linkNode(data[key])); else value.textContent = data[key] === '' || data[key] == null ? '—' : data[key];
       field.append(node('dt', label), value); dl.append(field);
     }
-    detailContent.replaceChildren(submitted, dl);
+    const videos = node('section', undefined, 'notes-section');
+    const total = (data.videos ?? []).length;
+    videos.append(node('h3', total === 1 ? 'Videos publicados (1)' : `Videos publicados (${total})`));
+    if (total === 0) videos.append(node('p', 'Este medio todavía no ha agregado links de video.'));
+    const videoList = node('ol');
+    for (const video of data.videos ?? []) { const item = node('li'); item.append(linkNode(video.url), node('small', ' · ' + dateTime(video.created_at))); videoList.append(item); }
+    videos.append(videoList);
+    detailContent.replaceChildren(submitted, dl, videos);
     statusForm.elements.status.value = data.status;
     notes.replaceChildren();
     for (const note of data.notes ?? []) {

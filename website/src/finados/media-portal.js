@@ -5,11 +5,11 @@ const LOCAL_API = 'http://127.0.0.1:4174/api';
 const ACCESS = '/finados/medios/acceso/?modo=login';
 const PROFILE = '/finados/medios/mi-registro/';
 
-export const MEDIA_FIELDS = Object.freeze(['media_name', 'media_type', 'frequency_channel', 'program_name', 'program_type', 'province', 'city', 'contract', 'people_count', 'team', 'phone', 'contact_email']);
+export const MEDIA_FIELDS = Object.freeze(['media_name', 'frequency_channel', 'social_link']);
 export const STATUS_HELP = Object.freeze({
   Nuevo: 'Recibimos tu registro. Puedes actualizarlo mientras el equipo lo revisa.',
   'En revisión': 'El equipo de Finados Mushuc Runa está revisando tu registro. Aún puedes actualizarlo.',
-  Aprobado: 'Tu acreditación fue aprobada. El registro ya no se puede modificar.',
+  Aprobado: 'Tu registro fue aprobado. Ya no se puede modificar, pero puedes seguir agregando los links de tus videos.',
   Rechazado: 'Tu solicitud no fue aprobada. Comunícate con el equipo de comunicación para más información.',
 });
 
@@ -21,7 +21,8 @@ export class MediaError extends Error {
       401: context === 'login' ? 'No se pudo iniciar sesión. Revisa tu correo y contraseña.' : 'Tu sesión venció. Inicia sesión nuevamente.',
       403: 'No se autorizó el cambio. Tu registro puede estar revisado o el acceso debe actualizarse.',
       404: 'La función o el enlace no está disponible. Solicita ayuda al equipo de comunicación.',
-      422: 'Revisa los campos del registro. No se pudo guardar la información.',
+      409: 'Ese link ya fue agregado.',
+      422: 'Revisa los datos ingresados. Los links deben ser enlaces válidos (https://…).',
       429: 'Hay demasiados intentos. Espera 15 minutos antes de volver a intentar.' })[status] ?? 'No se pudo completar la solicitud. Intenta de nuevo.');
     this.status = status;
     if (context === 'reset' && [401, 403, 404, 422].includes(status)) this.message = 'El enlace de recuperación venció, ya fue usado o no está disponible. Solicita un enlace nuevo.';
@@ -36,7 +37,7 @@ export class MediaApiClient {
     this.fetch = fetchImplementation;
   }
   async request(path, { body } = {}) {
-    if (!/^\/(?:auth\/(?:session|register|login|logout|reset)|profile)$/.test(path)) throw new Error('Ruta de API no permitida.');
+    if (!/^\/(?:auth\/(?:session|register|login|logout|reset)|profile|videos)$/.test(path)) throw new Error('Ruta de API no permitida.');
     if (body !== undefined && !this.#csrf) await this.session();
     const headers = { Accept: 'application/json' };
     if (body !== undefined) {
@@ -67,6 +68,7 @@ export class MediaApiClient {
   async logout() { const result = await this.request('/auth/logout', { body: {} }); this.#csrf = ''; return result; }
   profile() { return this.request('/profile'); }
   saveProfile(body) { return this.request('/profile', { body }); }
+  addVideo(url) { return this.request('/videos', { body: { url } }); }
   async reset(token, password) {
     const result = await this.request('/auth/reset', { body: { token, password } });
     if (result?.ok !== true) throw new MediaError(502, 'reset');
@@ -74,14 +76,25 @@ export class MediaApiClient {
   }
 }
 
+/** Accepts "facebook.com/medio" and returns the https link the API stores. */
+export function normalizeLink(value, max = 300) {
+  let link = String(value ?? '').trim();
+  if (link && !/^https?:\/\//i.test(link)) link = 'https://' + link;
+  link = link.replace(/^http:\/\//i, 'https://');
+  let url;
+  try { url = new URL(link); } catch { url = null; }
+  if (!url || url.protocol !== 'https:' || url.username || url.password || !/\.[a-z]{2,24}$/i.test(url.hostname) || /[\s<>"\\]/.test(link) || link.length > max) {
+    throw new Error('Escribe un link válido, por ejemplo https://www.facebook.com/tumedio.');
+  }
+  return link;
+}
+
 /** Builds the exact JSON contract expected by POST /api/media/profile. */
 export function profilePayload(data) {
   const body = {};
   for (const name of MEDIA_FIELDS) body[name] = String(data.get(name) ?? '').trim();
-  body.people_count = Number.parseInt(body.people_count, 10);
-  if (![1, 2].includes(body.people_count)) throw new Error('Selecciona el número de personas a acreditar.');
-  const lines = body.team.split(/\r?\n/).filter(line => line.trim() !== '').length;
-  if (lines > 2) throw new Error('Puedes acreditar un máximo de dos personas. Incluye una línea por cada persona.');
+  if (!body.media_name || !body.frequency_channel) throw new Error('Completa el nombre del medio y su frecuencia o canal.');
+  body.social_link = normalizeLink(body.social_link);
   if (data.get('conditions_accepted') === null) throw new Error('Debes aceptar las condiciones de acreditación.');
   body.conditions_accepted = true;
   return body;
@@ -128,6 +141,11 @@ export async function initializeMediaPortal(root = document) {
   const statusHelp = root.querySelector('[data-media-status-help]');
   const profileStatus = root.querySelector('[data-profile-status]');
   const logout = root.querySelector('[data-media-logout]');
+  const videosPanel = root.querySelector('[data-media-videos]');
+  const videoForm = root.querySelector('[data-media-video-form]');
+  const videoList = root.querySelector('[data-media-video-list]');
+  const videoCount = root.querySelector('[data-media-video-count]');
+  let canAddVideos = false;
   const forms = [register, login, reset].filter(Boolean);
   let ready = false;
   let editable = true;
@@ -154,6 +172,19 @@ export async function initializeMediaPortal(root = document) {
   let resetToken = view === 'reset' ? new URLSearchParams(location.search).get('token') ?? '' : '';
   if (view === 'reset' && location.search) globalThis.history?.replaceState(null, '', location.pathname);
 
+  function renderVideos(videos = []) {
+    videoList.replaceChildren();
+    for (const video of videos) {
+      const item = document.createElement('li');
+      const link = document.createElement('a');
+      link.href = video.url; link.textContent = video.url; link.target = '_blank'; link.rel = 'noopener noreferrer';
+      const date = document.createElement('small');
+      const parsed = new Date(String(video.created_at ?? '').replace(' ', 'T') + 'Z');
+      date.textContent = Number.isNaN(parsed.getTime()) ? '' : new Intl.DateTimeFormat('es-EC', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'America/Guayaquil' }).format(parsed);
+      item.append(link, date); videoList.append(item);
+    }
+    videoCount.textContent = videos.length === 0 ? 'Aún no has agregado videos.' : videos.length === 1 ? '1 video agregado.' : `${videos.length} videos agregados.`;
+  }
   function populate(profile) {
     editable = profile.editable !== false;
     profileForm.querySelector('[data-account-email]').value = profile.email ?? '';
@@ -167,6 +198,11 @@ export async function initializeMediaPortal(root = document) {
     statusHelp.textContent = STATUS_HELP[status] ?? 'Completa y guarda el registro de tu medio.';
     profileStatus.textContent = profile.registered ? `Estado de tu registro: ${status}.` : 'Aún no has guardado el registro de tu medio.';
     profileForm.querySelector('fieldset').disabled = !editable;
+    // Videos are reported after the record exists, and keep being accepted once it is approved.
+    videosPanel.hidden = !profile.registered;
+    canAddVideos = profile.registered === true && profile.can_add_videos !== false;
+    videoForm.querySelector('fieldset').disabled = !canAddVideos;
+    if (profile.registered) renderVideos(profile.videos);
   }
 
   function submit(form, action) {
@@ -182,7 +218,7 @@ export async function initializeMediaPortal(root = document) {
         fields.disabled = true; form.setAttribute('aria-busy', 'true'); message('Guardando…', false, false);
         await result;
       } catch (error) { reportError(error); }
-      finally { fields.disabled = view === 'profile' ? !editable : false; form.setAttribute('aria-busy', 'false'); }
+      finally { fields.disabled = form === videoForm ? !canAddVideos : view === 'profile' ? !editable : false; form.setAttribute('aria-busy', 'false'); }
     });
   }
   submit(register, async data => {
@@ -204,7 +240,13 @@ export async function initializeMediaPortal(root = document) {
   submit(profileForm, async data => {
     const saved = await api.saveProfile(profilePayload(data));
     populate({ ...saved, email: profileForm.querySelector('[data-account-email]').value });
-    message('Registro guardado. Puedes consultar aquí el estado de tu acreditación.');
+    message('Registro guardado. Ahora puedes agregar los links de los videos que publiques.');
+  });
+  submit(videoForm, async data => {
+    const result = await api.addVideo(normalizeLink(data.get('url'), 500));
+    renderVideos(result.videos);
+    videoForm.reset();
+    message('Video agregado. Puedes seguir agregando más links.');
   });
   logout?.addEventListener('click', async () => {
     logout.disabled = true;

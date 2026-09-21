@@ -1,7 +1,6 @@
 import { escapeHtml as esc } from '../render/html.mjs';
 import { STATUSES, PREVIOUS_PARTICIPATION } from './admin.js';
-import { MEDIA_STATUSES, MEDIA_TYPES } from './admin-medios.js';
-import { ecuadorProvinces } from '../media-accreditation/page.mjs';
+import { MEDIA_STATUSES } from './admin-medios.js';
 import { apiBasesForCsp, LOCAL_API_BASE, PRIMARY_API_BASE } from '../finados/runtime-origins.mjs';
 
 const options = values => values.map(value => `<option value="${esc(value)}">${esc(value)}</option>`).join('');
@@ -119,21 +118,19 @@ export function renderAdminMediosPage(page) {
 <details class="pending-accounts" data-pending-panel><summary><span><strong id="pending-accounts-title">Cuentas pendientes de registro</strong><small>Medios que ya crearon su cuenta pero aún no guardan su registro. Aparecerán en la tabla cuando lo guarden.</small></span><span data-pending-count>—</span></summary><div class="pending-accounts-body" aria-labelledby="pending-accounts-title"><p class="feedback" data-pending-message role="status" aria-live="polite">Cargando cuentas…</p><div class="pending-accounts-table"><table><caption class="sr-only">Cuentas de medios que todavía no completan su registro</caption><thead><tr><th scope="col">Correo</th><th scope="col">Creada</th><th scope="col">Último acceso</th><th scope="col"><span class="sr-only">Acciones</span></th></tr></thead><tbody data-pending-accounts></tbody></table></div></div></details>
 <form class="filters" data-admin-filters><fieldset disabled data-panel-fields>
 <legend>Filtrar registros</legend>
-<div class="filter-grid"><label class="search-field">Buscar<input type="search" name="search" maxlength="100" placeholder="Medio, programa o ciudad"></label>
-${select('status', 'Estado', MEDIA_STATUSES)}
-${select('media_type', 'Tipo de medio', MEDIA_TYPES)}
-${select('province', 'Provincia', ecuadorProvinces)}</div>
+<div class="filter-grid"><label class="search-field">Buscar<input type="search" name="search" maxlength="100" placeholder="Medio, frecuencia o link de redes"></label>
+${select('status', 'Estado', MEDIA_STATUSES)}</div>
 <div class="filter-actions"><button type="submit" class="button-primary">Aplicar filtros</button><button type="reset" class="button-quiet">Limpiar</button><label>Por página<select name="pageSize"><option>25</option><option>50</option><option>100</option></select></label></div>
 </fieldset></form>
 <section class="records" aria-labelledby="records-title" aria-busy="true" data-records-region><div class="records-heading"><h2 id="records-title" tabindex="-1">Registros</h2><p data-record-count>—</p></div>
 <p data-list-message role="status">Cargando registros…</p>
-<table><caption class="sr-only">Medios registrados. Abre un registro para revisar sus datos y notas.</caption><thead><tr><th scope="col">Medio</th><th scope="col">Programa</th><th scope="col">Ubicación</th><th scope="col">Personas</th><th scope="col">Registro</th><th scope="col">Estado</th><th scope="col"><span class="sr-only">Acciones</span></th></tr></thead><tbody data-records></tbody></table>
+<table><caption class="sr-only">Medios registrados. Abre un registro para revisar sus datos, videos y notas.</caption><thead><tr><th scope="col">Medio</th><th scope="col">Frecuencia</th><th scope="col">Redes</th><th scope="col">Videos</th><th scope="col">Registro</th><th scope="col">Estado</th><th scope="col"><span class="sr-only">Acciones</span></th></tr></thead><tbody data-records></tbody></table>
 <nav class="pagination" aria-label="Paginación de registros"><button class="button-quiet" data-previous disabled>← Anterior</button><span data-page-label>Página —</span><button class="button-quiet" data-next disabled>Siguiente →</button></nav></section>
 <dialog class="detail-dialog" aria-labelledby="detail-title" data-detail><div class="detail-heading"><h2 id="detail-title" tabindex="-1">Detalle del medio</h2><button type="button" class="button-quiet" data-detail-close aria-label="Cerrar detalle">Cerrar ×</button></div>
 <p class="feedback" data-detail-feedback role="status" aria-live="polite" aria-atomic="true"></p><div data-detail-content></div>
-<form data-status-form><fieldset disabled><label>Estado de la acreditación<select name="status" required>${options(MEDIA_STATUSES)}</select></label><button class="button-primary" type="submit">Guardar estado</button></fieldset></form>
+<form data-status-form><fieldset disabled><label>Estado del registro<select name="status" required>${options(MEDIA_STATUSES)}</select></label><button class="button-primary" type="submit">Guardar estado</button></fieldset></form>
 <section class="admin-reset"><h3>Recuperar acceso</h3><button type="button" class="button-quiet" data-admin-reset disabled>Generar enlace temporal</button><div data-reset-output hidden><label>Enlace temporal<input type="text" readonly data-reset-url autocomplete="off" spellcheck="false"></label><button type="button" class="button-quiet" data-reset-copy>Copiar enlace</button></div><p class="feedback" data-reset-feedback role="status" aria-live="polite"></p></section>
 <section class="notes-section"><h3>Notas internas</h3><ol data-notes></ol><form data-note-form><fieldset disabled><label>Añadir nota<textarea name="body" rows="3" maxlength="2000" required></textarea></label><button class="button-primary" type="submit">Guardar nota</button></fieldset></form></section>
 <div class="detail-danger-zone"><p>¿Este registro ya no debe tener acceso?</p><button type="button" class="button-danger" data-admin-delete disabled>Retirar registro</button></div>
-</dialog></main></div>`, '/assets/admin/admin-medios.js?v=20260921-admin-medios-2');
+</dialog></main></div>`, '/assets/admin/admin-medios.js?v=20260921-admin-medios-3');
 }

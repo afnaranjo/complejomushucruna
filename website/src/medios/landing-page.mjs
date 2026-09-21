@@ -1,7 +1,7 @@
 const steps = Object.freeze([
   { number: '01', title: 'Crea la cuenta de tu medio', text: 'Usa el correo con el que tu medio gestionará la acreditación y elige una contraseña.' },
-  { number: '02', title: 'Completa el registro', text: 'Ingresa los datos del medio, del programa y del equipo que realizará la cobertura. Puedes acreditar un máximo de dos personas.' },
-  { number: '03', title: 'Consulta el estado', text: 'Inicia sesión cuando quieras para revisar tu registro y el estado de la acreditación.' },
+  { number: '02', title: 'Completa el registro', text: 'Ingresa el nombre de tu medio, su frecuencia o canal y el link de sus redes.' },
+  { number: '03', title: 'Agrega tus videos', text: 'Cada vez que publiques un video sobre la feria, inicia sesión y pega su link. También puedes consultar el estado de tu registro.' },
 ]);
 
 export function renderMediaLandingBody() {
@@ -11,7 +11,7 @@ export function renderMediaLandingBody() {
     <div class="shell media-hero__content">
       <p class="media-hero__eyebrow">Finados Mushuc Runa 2026</p>
       <h1 id="media-title">Registro<br>de medios</h1>
-      <p class="media-hero__intro">Crea la cuenta de tu medio, registra al equipo que realizará la cobertura y consulta el estado de tu acreditación.</p>
+      <p class="media-hero__intro">Crea la cuenta de tu medio, completa su registro y ve agregando los links de los videos que publiques sobre la feria.</p>
       <div class="media-hero__actions">
         <a class="media-hero__button" href="/finados/medios/acceso/">Crear cuenta <span aria-hidden="true">→</span></a>
         <a class="media-hero__button media-hero__button--ghost" href="/finados/medios/acceso/?modo=login">Iniciar sesión</a>

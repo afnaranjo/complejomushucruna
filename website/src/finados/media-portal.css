@@ -55,3 +55,57 @@
 .media-status-panel[data-status="Rechazado"] {
   box-shadow:6px 6px 0 #e01b24
 }
+.media-videos {
+  border-top:1px solid var(--line);
+  padding-top:2rem;
+  margin-top:2.5rem
+}
+.media-videos>p:not(.vocero-eyebrow) {
+  font-size:.9rem;
+  color:var(--muted)
+}
+.media-videos form fieldset {
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:0 1rem;
+  align-items:end;
+  border:0;
+  padding:0;
+  margin:0
+}
+.media-videos form .vocero-primary {
+  margin-bottom:1.2rem
+}
+.media-videos__count {
+  font-weight:700
+}
+.media-videos__list {
+  list-style:none;
+  padding:0;
+  margin:0;
+  display:grid;
+  gap:.6rem
+}
+.media-videos__list li {
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:space-between;
+  gap:.25rem 1rem;
+  border:1px solid var(--line);
+  border-left:4px solid var(--cyan);
+  background:#fffcf7;
+  padding:.7rem .9rem
+}
+.media-videos__list a {
+  color:var(--accent);
+  font-weight:600;
+  overflow-wrap:anywhere
+}
+.media-videos__list small {
+  color:var(--muted)
+}
+@media (max-width:640px) {
+  .media-videos form fieldset {
+    grid-template-columns:1fr
+  }
+}

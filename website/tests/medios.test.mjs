@@ -7,8 +7,8 @@ import { join } from 'node:path';
 import { readdir } from 'node:fs/promises';
 import { buildSite } from '../scripts/build.mjs';
 import { primaryNavigation } from '../src/data/site.mjs';
-import { MediaApiClient, MediaError, MEDIA_FIELDS, profilePayload } from '../src/finados/media-portal.js';
-import { createMediaAdminClient, MEDIA_STATUSES, normalizeMediaFilters, renderMediaSummary } from '../src/admin/admin-medios.js';
+import { MediaApiClient, MediaError, MEDIA_FIELDS, normalizeLink, profilePayload } from '../src/finados/media-portal.js';
+import { createMediaAdminClient, MEDIA_STATUSES, normalizeMediaFilters, renderMediaSummary, safeLink } from '../src/admin/admin-medios.js';
 
 const json = (status, body) => ({ ok: status >= 200 && status < 300, status, json: async () => body });
 
@@ -42,7 +42,10 @@ test('el build publica la landing, las cuentas de medios y su panel sin tocar la
 
   const profile = await readFile(join(output, 'finados/medios/mi-registro/index.html'), 'utf8');
   for (const name of [...MEDIA_FIELDS, 'conditions_accepted']) assert.match(profile, new RegExp(`name="${name}"`), name);
-  assert.match(profile, /2 personas \(máximo\)/);
+  assert.deepEqual([...MEDIA_FIELDS], ['media_name', 'frequency_channel', 'social_link']);
+  for (const retired of ['people_count', 'team', 'media_type', 'program_name', 'province', 'contract', 'phone']) assert.doesNotMatch(profile, new RegExp(`name="${retired}"`), retired);
+  assert.match(profile, /data-media-video-form/);
+  assert.match(profile, /Agregar video/);
 
   const admin = await readFile(join(output, 'admin/medios/index.html'), 'utf8');
   assert.match(admin, /data-admin-medios/);
@@ -83,29 +86,43 @@ test('el cliente de medios solo usa rutas permitidas, envía CSRF y no liga this
   assert.throws(() => new MediaApiClient('https://example.invalid/api'), /Origen de API no permitido/);
 });
 
-test('el registro de medios arma el contrato exacto y limita el equipo a dos personas', () => {
+test('el registro de medios arma el contrato exacto y normaliza los links', () => {
   const data = new FormData();
-  const values = { media_name: ' Radio Prueba ', media_type: 'Radio', frequency_channel: '99.9 FM', program_name: 'Noticiero', program_type: 'Noticias',
-    province: 'Tungurahua', city: 'Ambato', contract: 'No', people_count: '2', team: 'Persona Uno — Reportera\nPersona Dos — Cámara', phone: '0990000000', contact_email: 'prensa@example.invalid' };
-  for (const [name, value] of Object.entries(values)) data.set(name, value);
+  for (const [name, value] of Object.entries({ media_name: ' Radio Prueba ', frequency_channel: '99.9 FM', social_link: 'facebook.com/radioprueba' })) data.set(name, value);
   assert.throws(() => profilePayload(data), /condiciones/);
   data.set('conditions_accepted', 'on');
-  const body = profilePayload(data);
-  assert.deepEqual(Object.keys(body).sort(), [...MEDIA_FIELDS, 'conditions_accepted'].sort());
-  assert.equal(body.media_name, 'Radio Prueba');
-  assert.equal(body.people_count, 2);
-  assert.equal(body.conditions_accepted, true);
-  data.set('team', 'Uno\nDos\nTres');
-  assert.throws(() => profilePayload(data), /máximo de dos personas/);
-  data.set('team', 'Uno'); data.set('people_count', '3');
-  assert.throws(() => profilePayload(data), /número de personas/);
+  assert.deepEqual(profilePayload(data), { media_name: 'Radio Prueba', frequency_channel: '99.9 FM', social_link: 'https://facebook.com/radioprueba', conditions_accepted: true });
+  assert.equal(normalizeLink('http://www.tiktok.com/@radio/video/1', 500), 'https://www.tiktok.com/@radio/video/1');
+  for (const invalid of ['', 'no es un link', 'javascript:alert(1)', 'https://usuario:clave@example.com/', 'https://localhost/video']) assert.throws(() => normalizeLink(invalid), /link válido/, invalid);
+  data.set('social_link', 'sin enlace');
+  assert.throws(() => profilePayload(data), /link válido/);
+  data.set('social_link', 'https://instagram.com/radio'); data.set('frequency_channel', ' ');
+  assert.throws(() => profilePayload(data), /nombre del medio y su frecuencia/);
+});
+
+test('el medio agrega links de video con CSRF por la ruta permitida', async () => {
+  const calls = [];
+  const api = new MediaApiClient('https://finados.complejomushucruna.com/api', (url, options) => {
+    calls.push([url, options]);
+    if (url.endsWith('/media/auth/session')) return Promise.resolve(json(200, { authenticated: true, csrf: 'token-2' }));
+    return Promise.resolve(calls.length === 2 ? json(201, { ok: true, videos: [{ url: 'https://youtu.be/abc', created_at: '2026-09-21 10:00:00' }] }) : json(409, { ok: false }));
+  });
+  const result = await api.addVideo('https://youtu.be/abc');
+  assert.equal(calls[1][0], 'https://finados.complejomushucruna.com/api/media/videos');
+  assert.deepEqual(JSON.parse(calls[1][1].body), { url: 'https://youtu.be/abc' });
+  assert.equal(calls[1][1].headers['X-CSRF-Token'], 'token-2');
+  assert.equal(result.videos.length, 1);
+  await assert.rejects(api.addVideo('https://youtu.be/abc'), error => error.status === 409 && /ya fue agregado/.test(error.message));
 });
 
 test('el panel de medios normaliza filtros, resume estados y restringe sus rutas', async () => {
   assert.deepEqual(normalizeMediaFilters({ search: '  radio ', status: 'Aprobado', page: '0', pageSize: '50', otro: 'x' }), { search: 'radio', status: 'Aprobado', page: 1, pageSize: 50 });
   assert.throws(() => normalizeMediaFilters({ status: 'Eliminado' }), /estado válido/);
   assert.deepEqual(MEDIA_STATUSES, ['Nuevo', 'En revisión', 'Aprobado', 'Rechazado']);
-  assert.deepEqual(renderMediaSummary({ total: 3, byStatus: { Nuevo: 2, Aprobado: 1 }, people: 5 }).map(item => item.value), [3, 2, 1, 5]);
+  assert.deepEqual(renderMediaSummary({ total: 3, byStatus: { Nuevo: 2, Aprobado: 1 }, videos: 5 }).map(item => item.value), [3, 2, 1, 5]);
+  assert.deepEqual(normalizeMediaFilters({ media_type: 'TV', province: 'Azuay' }), { page: 1, pageSize: 25 });
+  assert.equal(safeLink('https://www.tiktok.com/@radio/video/1'), 'https://www.tiktok.com/@radio/video/1');
+  for (const unsafe of ['javascript:alert(1)', 'http://example.com/', 'texto']) assert.equal(safeLink(unsafe), '', unsafe);
   const calls = [];
   const client = createMediaAdminClient('https://finados.complejomushucruna.com/api', async (url, options) => {
     calls.push([url, options]);
@@ -129,7 +146,7 @@ test('el empaquetado del backend incluye cada catálogo de resources y Medios ca
   const resources = await readdir(new URL('../backend/finados-api/resources/', import.meta.url));
   assert.ok(resources.includes('media-consents.json'));
   for (const name of resources) assert.match(`resources/${name}`, pattern, `${name} debe viajar en el artefacto`);
-  for (const name of ['src/MediaAuth.php', 'src/MediaRepository.php', 'src/MediaPasswordReset.php', 'migrations/008_media_accounts_mysql.sql']) assert.match(name, pattern, name);
+  for (const name of ['src/MediaAuth.php', 'src/MediaRepository.php', 'src/MediaPasswordReset.php', 'migrations/008_media_accounts_mysql.sql', 'migrations/009_media_videos_mysql.sql']) assert.match(name, pattern, name);
   const router = await readFile(new URL('../backend/finados-api/src/Router.php', import.meta.url), 'utf8');
   const constructor = /public function __construct[\s\S]*?\n    }\n/.exec(router)[0];
   assert.doesNotMatch(constructor, /Media/, 'el constructor del Router no debe depender de Medios');
