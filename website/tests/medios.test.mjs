@@ -77,6 +77,7 @@ test('el build publica la landing, las cuentas de medios y su panel sin tocar la
   assert.ok(positions.every(position => position > 0) && positions.every((position, index) => index === 0 || position > positions[index - 1]), JSON.stringify(positions));
   assert.match(profile, /data-media-profile-toggle aria-expanded="false" aria-controls="media-profile-panel"/);
   assert.match(profile, /data-media-light hidden/);
+  assert.match(profile, /data-media-video-locked hidden>Podrás agregar los links de tus videos cuando/);
   assert.match(profile, /Agregar video/);
 
   const admin = await readFile(join(output, 'admin/medios/index.html'), 'utf8');

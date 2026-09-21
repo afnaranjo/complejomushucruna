@@ -6,7 +6,7 @@ import { apiBasesForCsp, LOCAL_API_BASE, PRIMARY_API_BASE } from '../finados/run
 
 // Server-owned text is incorporated at build time and escaped as HTML, never fetched by the browser.
 const consents = JSON.parse(readFileSync(new URL('../../backend/finados-api/resources/media-consents.json', import.meta.url), 'utf8'));
-export const mediaPortalScriptVersion = '20260921-medios-9';
+export const mediaPortalScriptVersion = '20260921-medios-10';
 
 const email = id => `<label class="vocero-field" for="${id}"><span>Correo electrónico</span><input id="${id}" name="email" type="email" autocomplete="username" maxlength="254" autocapitalize="none" spellcheck="false" required></label>`;
 const password = (id, label, autocomplete) => `<label class="vocero-field" for="${id}"><span>${label}</span><input id="${id}" name="${id.includes('confirmation') ? 'confirmation' : 'password'}" type="password" autocomplete="${autocomplete}" minlength="${autocomplete === 'current-password' ? '1' : '10'}" maxlength="128" required></label>`;
@@ -26,6 +26,7 @@ function renderMediaForm() {
 <section class="media-videos" aria-labelledby="media-videos-title" data-media-videos hidden>
 <p class="vocero-eyebrow">Tus publicaciones</p><h2 id="media-videos-title">Videos publicados</h2>
 <p>Cada vez que tu medio publique un video sobre Finados Mushuc Runa 2026, pega aquí su link y pulsa «Agregar video». No hay un máximo de cinco: agrega uno por uno todos los que publiques.</p>
+<p class="media-videos__locked" data-media-video-locked hidden>Podrás agregar los links de tus videos cuando el equipo de Finados Mushuc Runa apruebe tu registro. Mientras tanto puedes completar tu perfil y subir la foto del representante.</p>
 <form data-media-video-form novalidate><fieldset disabled><label class="vocero-field" for="video_url"><span>Link del video${required}</span><input id="video_url" name="url" type="text" inputmode="url" maxlength="500" autocapitalize="none" spellcheck="false" placeholder="Ej.: https://www.tiktok.com/@tumedio/video/…" required></label><button class="vocero-primary" type="submit">Agregar video</button></fieldset></form>
 <p class="media-videos__count" data-media-video-count>Aún no has agregado videos.</p>
 <ol class="media-videos__list" data-media-video-list></ol>

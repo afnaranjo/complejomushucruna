@@ -1,7 +1,7 @@
 const steps = Object.freeze([
   { number: '01', title: 'Crea la cuenta de tu medio', text: 'Usa el correo con el que tu medio gestionará la acreditación y elige una contraseña.' },
   { number: '02', title: 'Completa el registro', text: 'Marca el tipo de medio (radio, televisión, prensa, digital o redes), su ubicación, la persona de contacto y sus canales. Si es radio, agrega sus emisoras, oyentes y género.' },
-  { number: '03', title: 'Agrega tus videos', text: 'Cada vez que publiques un video sobre la feria, inicia sesión y pega su link. También puedes consultar el estado de tu registro.' },
+  { number: '03', title: 'Agrega tus videos', text: 'Cuando tu registro sea aprobado, cada vez que publiques un video sobre la feria inicia sesión y pega su link. También puedes consultar tu estado y semáforo.' },
 ]);
 
 export function renderMediaLandingBody() {

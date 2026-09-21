@@ -13,8 +13,8 @@ export const MEDIA_TYPES = Object.freeze(['radio', 'tv', 'prensa', 'digital', 'r
 export const MAX_STATIONS = 10;
 export const MEDIA_FIELDS = Object.freeze(['media_name', 'contact_name', 'phone', 'contact_email', 'province', 'city']);
 export const STATUS_HELP = Object.freeze({
-  Nuevo: 'Recibimos tu registro. Puedes actualizarlo mientras el equipo lo revisa.',
-  'En revisión': 'El equipo de Finados Mushuc Runa está revisando tu registro. Aún puedes actualizarlo.',
+  Nuevo: 'Recibimos tu registro. Puedes actualizarlo mientras el equipo lo revisa. Cuando sea aprobado podrás agregar tus videos.',
+  'En revisión': 'El equipo de Finados Mushuc Runa está revisando tu registro. Aún puedes actualizarlo. Cuando sea aprobado podrás agregar tus videos.',
   Aprobado: 'Tu registro fue aprobado. Ya no se puede modificar, pero puedes seguir agregando los links de tus videos.',
   Rechazado: 'Tu solicitud no fue aprobada. Comunícate con el equipo de comunicación para más información.',
 });
@@ -221,6 +221,7 @@ export async function initializeMediaPortal(root = document) {
   const videoList = root.querySelector('[data-media-video-list]');
   const videoCount = root.querySelector('[data-media-video-count]');
   let canAddVideos = false;
+  let canUploadPhoto = false;
   const forms = [register, login, reset].filter(Boolean);
   let ready = false;
   let editable = true;
@@ -373,8 +374,12 @@ export async function initializeMediaPortal(root = document) {
     syncSections();
     // Videos are reported after the record exists, and keep being accepted once it is approved.
     videosPanel.hidden = !profile.registered;
-    canAddVideos = profile.registered === true && profile.can_add_videos !== false;
+    canAddVideos = profile.registered === true && profile.can_add_videos === true;
+    canUploadPhoto = profile.registered === true && profile.can_upload_photo !== false;
     videoForm.querySelector('fieldset').disabled = !canAddVideos;
+    // Until approval the panel explains why the box is closed instead of looking broken.
+    videoForm.hidden = !canAddVideos;
+    root.querySelector('[data-media-video-locked]').hidden = canAddVideos || !profile.registered;
     if (profile.registered) renderVideos(profile.videos);
     photoPanel.hidden = !profile.registered;
     // First visit shows the form; once the record exists the videos become the main screen.
@@ -387,7 +392,7 @@ export async function initializeMediaPortal(root = document) {
       root.querySelector('[data-media-light-text]').textContent = TRAFFIC_LIGHTS[light.dataset.light];
       if (!wasRegistered) showProfile(false);
     } else { light.hidden = true; showProfile(true); }
-    photoForm.querySelector('fieldset').disabled = !canAddVideos;
+    photoForm.querySelector('fieldset').disabled = !canUploadPhoto;
   }
 
   function submit(form, action) {
@@ -403,7 +408,7 @@ export async function initializeMediaPortal(root = document) {
         fields.disabled = true; form.setAttribute('aria-busy', 'true'); message('Guardando…', false, false);
         await result;
       } catch (error) { reportError(error); }
-      finally { fields.disabled = form === videoForm || form === photoForm ? !canAddVideos : view === 'profile' ? !editable : false; form.setAttribute('aria-busy', 'false'); }
+      finally { fields.disabled = form === videoForm ? !canAddVideos : form === photoForm ? !canUploadPhoto : view === 'profile' ? !editable : false; form.setAttribute('aria-busy', 'false'); }
     });
   }
   submit(register, async data => {

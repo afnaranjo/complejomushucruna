@@ -81,7 +81,7 @@ final class MediaRepository
         $row = $statement->fetch();
         if ($row === false || $row['status'] === self::ARCHIVED) return null;
         return [...$this->present($row), 'editable' => in_array($row['status'], self::EDITABLE, true), 'videos' => $this->videos((int) $row['id']),
-            'can_add_videos' => $row['status'] !== 'Rechazado', 'consents' => $this->consents((int) $row['id']), 'photo' => $this->photoMeta((int) $row['id'])];
+            'can_add_videos' => $row['status'] === 'Aprobado', 'can_upload_photo' => $row['status'] !== 'Rechazado', 'consents' => $this->consents((int) $row['id']), 'photo' => $this->photoMeta((int) $row['id'])];
     }
 
     public function saveForAccount(int $accountId, array $input, string $ip): array
@@ -460,7 +460,8 @@ final class MediaRepository
             $statement = $this->pdo->prepare('SELECT id, public_id, status FROM media_profiles WHERE account_id = ?' . $this->rowLock());
             $statement->execute([$accountId]);
             $profile = $statement->fetch();
-            if ($profile === false || in_array($profile['status'], [self::ARCHIVED, 'Rechazado'], true)) throw new Forbidden();
+            // Video links open only once administration approves the record.
+            if ($profile === false || $profile['status'] !== 'Aprobado') throw new Forbidden();
             $count = $this->pdo->prepare('SELECT COUNT(*) FROM media_videos WHERE profile_id = ?');
             $count->execute([$profile['id']]);
             if ((int) $count->fetchColumn() >= self::MAX_VIDEOS) throw new InvalidArgumentException();

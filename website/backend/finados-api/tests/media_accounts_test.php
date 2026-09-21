@@ -158,6 +158,13 @@ same(true, $withdrawn['consents']['privacy']['accepted']);
 same(4, (int) $pdo->query('SELECT COUNT(*) FROM media_consents')->fetchColumn());
 same(false, str_contains((string) $pdo->query('SELECT GROUP_CONCAT(ip_hash) FROM media_consents')->fetchColumn(), '192.0.2'));
 same(1, (int) $pdo->query('SELECT COUNT(*) FROM media_profiles')->fetchColumn());
+// Videos stay closed until administration approves the record.
+same(false, $updated['can_add_videos']);
+same(true, $updated['can_upload_photo']);
+same(403, $router->handle('POST', '/api/media/videos', $json($login['csrf']), media_json(['url' => 'https://www.tiktok.com/@radio/video/1']))->status);
+$login = ['csrf' => media_body($router->handle('GET', '/api/media/auth/session', $origin))['csrf']] + $login;
+$pdo->exec("UPDATE media_profiles SET status = 'Aprobado'");
+same(true, media_body($router->handle('GET', '/api/media/profile', $origin))['can_add_videos']);
 // The medium keeps adding the links of what it published.
 $firstVideo = media_body($router->handle('POST', '/api/media/videos', $json($login['csrf']), media_json(['url' => 'https://www.tiktok.com/@radio/video/1'])));
 same(1, count($firstVideo['videos']));
@@ -166,6 +173,7 @@ same(409, $router->handle('POST', '/api/media/videos', $json($login['csrf']), me
 same(422, $router->handle('POST', '/api/media/videos', $json($login['csrf']), media_json(['url' => 'no es un link']))->status);
 same(422, $router->handle('POST', '/api/media/videos', $json($login['csrf']), media_json(['url' => 'https://a.example/v', 'otro' => 1]))->status);
 same(2, count(media_body($router->handle('GET', '/api/media/profile', $origin))['videos']));
+$pdo->exec("UPDATE media_profiles SET status = 'Nuevo'");
 $publicId = $updated['public_id'];
 media_close_session();
 // Administrative routes require the separate admin session.

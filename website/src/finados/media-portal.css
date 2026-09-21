@@ -291,3 +291,10 @@
   padding-top:.5rem;
   margin-top:1rem
 }
+.media-videos__locked {
+  border:1px dashed var(--line);
+  border-left:4px solid #ffc42e;
+  background:#fffcf7;
+  padding:.9rem 1rem;
+  font-weight:600
+}
