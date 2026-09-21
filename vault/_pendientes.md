@@ -228,7 +228,8 @@ tags:
 - [x] Desplegar backend → frontend la ficha de `MEDIOS` con varios canales de TV y digitales, seguidores declarados, foto del representante y Top 20 por seguidores (migración aditiva `014_media_channels_photo`), más la lectura de compatibilidad `cebbd29` para fichas guardadas con el formato anterior. Responsable: tecnología/dirección. Completado: 2026-09-21.
 - [ ] Revisar en navegador, en producción, las listas «Agregar otro», el campo de seguidores y la subida de la foto del representante en la ficha de `MEDIOS`. Responsable: Alex/comunicación. Fecha: por definir.
 - [ ] Decidir si se amplía `bin/backup.php` —código compartido con Voceros— para incluir las fotos de representantes de medios (`media-photos/`) en el respaldo verificado; hoy quedan fuera. Responsable: Alex/tecnología. Fecha: por definir.
-- [ ] Desplegar backend → frontend la pantalla de videos como inicio del medio, el perfil detrás de la foto y el semáforo administrativo de `MEDIOS` (migración aditiva `015_media_traffic_light`) cuando Alex lo autorice; decidir si los videos se habilitan solo tras la aprobación. Responsable: tecnología/dirección. Fecha: por definir.
+- [x] Desplegar backend → frontend la pantalla de videos como inicio del medio, el perfil detrás de la foto, el semáforo administrativo de `MEDIOS` (migración aditiva `015_media_traffic_light`) y la regla confirmada por Alex de habilitar los videos solo tras la aprobación (`cff955e`). Responsable: tecnología/dirección. Completado: 2026-09-21.
+- [ ] Revisar en navegador, en producción, la pantalla del medio: avatar arriba, abrir el perfil al tocarlo, semáforo y carga de videos con el registro aprobado. Responsable: Alex/comunicación. Fecha: por definir.
 
 ## Regla
 
