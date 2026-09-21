@@ -34,9 +34,9 @@ final class Router
     private const PRIVATE_FREE_BYTES = 100 * 1024 * 1024;
     private readonly Auth $auth;
     private readonly VoceroAuth $voceroAuth;
-    private readonly MediaAuth $mediaAuth;
+    private ?MediaAuth $mediaAuthInstance = null;
     private readonly VocerosRepository $repository;
-    private readonly MediaRepository $media;
+    private ?MediaRepository $mediaInstance = null;
     private readonly Audit $audit;
     private readonly Crypto $crypto;
     private const FILTERS = ['search', 'status', 'city', 'main_network', 'previous_participation', 'date_from', 'date_to'];
@@ -50,8 +50,6 @@ final class Router
         $this->repository = new VocerosRepository($pdo, $this->crypto, $this->audit);
         $this->auth = new Auth($pdo, $config);
         $this->voceroAuth = new VoceroAuth($pdo, $config);
-        $this->mediaAuth = new MediaAuth($pdo, $config);
-        $this->media = new MediaRepository($pdo, $this->crypto, $this->audit);
     }
 
     public function handle(string $method, string $uri, array $server = [], string $rawBody = '', array $post = [], array $files = []): Response
@@ -368,60 +366,71 @@ final class Router
         }
     }
 
+    // Media services load on first use so a Medios fault can never take down Voceros or administration.
+    private function mediaAuth(): MediaAuth
+    {
+        return $this->mediaAuthInstance ??= new MediaAuth($this->pdo, $this->config);
+    }
+
+    private function media(): MediaRepository
+    {
+        return $this->mediaInstance ??= new MediaRepository($this->pdo, $this->crypto, $this->audit);
+    }
+
     private function mediaAccount(string $method, string $path, array $query, array $server, string $rawBody, ?string $origin, mixed $ip, string $token, array $headers): ?Response
     {
         $validIp = is_string($ip) && inet_pton($ip) !== false;
         if ($path === '/api/media/auth/session') {
             if ($method !== 'GET') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
-            try { $user = $this->mediaAuth->requireUser(); } catch (Unauthorized) { $user = null; }
-            return $this->json(200, ['authenticated' => $user !== null, 'user' => $user, 'csrf' => $this->mediaAuth->csrfToken()], $headers);
+            try { $user = $this->mediaAuth()->requireUser(); } catch (Unauthorized) { $user = null; }
+            return $this->json(200, ['authenticated' => $user !== null, 'user' => $user, 'csrf' => $this->mediaAuth()->csrfToken()], $headers);
         }
         if (in_array($path, ['/api/media/auth/register', '/api/media/auth/login', '/api/media/auth/logout', '/api/media/auth/reset'], true)) {
             if ($method !== 'POST') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
             if (!$this->config->isAllowedOrigin($origin) || !$validIp) throw new Forbidden();
-            $this->mediaAuth->verifyCsrf($token);
+            $this->mediaAuth()->verifyCsrf($token);
             if ($query !== []) throw new InvalidArgumentException();
             if ($path === '/api/media/auth/reset') {
                 $body = $this->body($server, $rawBody, ['token', 'password']);
                 if (!is_string($body['token'] ?? null) || !is_string($body['password'] ?? null)) throw new InvalidArgumentException();
                 (new MediaPasswordReset($this->pdo, $this->config))->consume($body['token'], $body['password'], $ip);
-                $this->mediaAuth->logout();
-                return $this->json(200, ['ok' => true, 'csrf' => $this->mediaAuth->csrfToken()], $headers);
+                $this->mediaAuth()->logout();
+                return $this->json(200, ['ok' => true, 'csrf' => $this->mediaAuth()->csrfToken()], $headers);
             }
             if ($path === '/api/media/auth/register') {
                 $body = $this->body($server, $rawBody, ['email', 'password', 'privacyAcknowledged']);
                 if (!is_string($body['email'] ?? null) || !is_string($body['password'] ?? null) || !is_bool($body['privacyAcknowledged'] ?? null)) throw new InvalidArgumentException();
-                $this->mediaAuth->register($body['email'], $body['password'], $body['privacyAcknowledged'], $ip);
+                $this->mediaAuth()->register($body['email'], $body['password'], $body['privacyAcknowledged'], $ip);
                 return $this->json(202, ['ok' => true, 'message' => 'Cuenta creada; inicia sesión.'], $headers);
             }
             if ($path === '/api/media/auth/login') {
                 $body = $this->body($server, $rawBody, ['email', 'password']);
                 if (!is_string($body['email'] ?? null) || !is_string($body['password'] ?? null)) throw new InvalidArgumentException();
-                $result = $this->mediaAuth->login($body['email'], $body['password'], $ip);
+                $result = $this->mediaAuth()->login($body['email'], $body['password'], $ip);
                 try {
                     $this->audit->log('media_account.login', null, 'media_account', $result['user']['public_id'], [], $ip);
                 } catch (Throwable $error) {
-                    $this->mediaAuth->logout();
+                    $this->mediaAuth()->logout();
                     throw $error;
                 }
                 return $this->json(200, ['authenticated' => true, ...$result], $headers);
             }
-            $user = $this->mediaAuth->requireUser();
+            $user = $this->mediaAuth()->requireUser();
             $this->audit->log('media_account.logout', null, 'media_account', $user['public_id'], [], $ip);
-            $this->mediaAuth->logout();
+            $this->mediaAuth()->logout();
             return $this->json(200, ['ok' => true], $headers);
         }
         if ($path === '/api/media/profile') {
-            $user = $this->mediaAuth->requireUser();
+            $user = $this->mediaAuth()->requireUser();
             if (!in_array($method, ['GET', 'POST'], true)) return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
             if ($query !== []) throw new InvalidArgumentException();
             if ($method === 'POST') {
                 if (!$this->config->isAllowedOrigin($origin) || !$validIp) throw new Forbidden();
-                $this->mediaAuth->verifyCsrf($token);
-                $saved = $this->media->saveForAccount($user['id'], $this->body($server, $rawBody, MediaRepository::FIELDS), $ip);
+                $this->mediaAuth()->verifyCsrf($token);
+                $saved = $this->media()->saveForAccount($user['id'], $this->body($server, $rawBody, MediaRepository::FIELDS), $ip);
                 return $this->json(200, ['registered' => true, ...$saved], $headers);
             }
-            $own = $this->media->forAccount($user['id']);
+            $own = $this->media()->forAccount($user['id']);
             return $this->json(200, $own === null ? ['registered' => false, 'email' => $user['email'], 'status' => null, 'editable' => true] : ['registered' => true, 'email' => $user['email'], ...$own], $headers);
         }
         return null;
@@ -434,8 +443,8 @@ final class Router
         if (!is_string($ip) || inet_pton($ip) === false) throw new Forbidden();
         if ($path === '/api/medios') {
             if ($method !== 'GET') return $notAllowed();
-            $result = $this->media->list($this->mediaFilters($query, true));
-            return $this->json(200, ['items' => $result['items'], 'summary' => $this->media->summary(), 'pagination' => [
+            $result = $this->media()->list($this->mediaFilters($query, true));
+            return $this->json(200, ['items' => $result['items'], 'summary' => $this->media()->summary(), 'pagination' => [
                 'page' => $result['page'], 'pageSize' => $result['per_page'], 'total' => $result['total'],
                 'pages' => (int) ceil($result['total'] / $result['per_page']),
             ]], $headers);
@@ -443,7 +452,7 @@ final class Router
         if ($path === '/api/media-accounts') {
             if ($method !== 'GET') return $notAllowed();
             if ($query !== []) throw new InvalidArgumentException();
-            return $this->json(200, ['items' => $this->media->pendingAccounts()], $headers);
+            return $this->json(200, ['items' => $this->media()->pendingAccounts()], $headers);
         }
         if ($path === '/api/medios/export') {
             if ($method !== 'POST') return $notAllowed();
@@ -454,14 +463,14 @@ final class Router
             if ($method !== 'POST') return $notAllowed();
             if ($query !== []) throw new InvalidArgumentException();
             $this->body($server, $rawBody, []);
-            $this->media->archiveAccount($parts[1], $user['id'], $ip);
+            $this->media()->archiveAccount($parts[1], $user['id'], $ip);
             return $this->json(200, ['ok' => true], $headers);
         }
         if (preg_match('~^/api/medios/([a-f0-9]{32})(?:/(delete|notes|password-reset))?$~D', $path, $parts)) {
             $id = $parts[1]; $action = $parts[2] ?? '';
             if ($query !== []) throw new InvalidArgumentException();
             if ($action === '' && $method === 'GET') {
-                $detail = $this->media->find($id);
+                $detail = $this->media()->find($id);
                 if ($detail === null) throw new OutOfBoundsException();
                 $this->audit->log('media.viewed', $user['id'], 'media_profile', $id, [], $ip);
                 return $this->json(200, $detail, $headers);
@@ -469,19 +478,19 @@ final class Router
             if ($action === '' && $method === 'PATCH') {
                 $body = $this->body($server, $rawBody, ['status']);
                 if (!is_string($body['status'] ?? null)) throw new InvalidArgumentException();
-                $this->media->changeStatus($id, $body['status'], $user['id'], $ip);
+                $this->media()->changeStatus($id, $body['status'], $user['id'], $ip);
                 return $this->json(200, ['ok' => true], $headers);
             }
             if ($action !== '' && $method !== 'POST') return $notAllowed();
             if ($action === 'notes') {
                 $body = $this->body($server, $rawBody, ['body']);
                 if (!is_string($body['body'] ?? null)) throw new InvalidArgumentException();
-                $this->media->addNote($id, $body['body'], $user['id'], $ip);
+                $this->media()->addNote($id, $body['body'], $user['id'], $ip);
                 return $this->json(201, ['ok' => true], $headers);
             }
             if ($action === 'delete') {
                 $this->body($server, $rawBody, []);
-                $this->media->archive($id, $user['id'], $ip);
+                $this->media()->archive($id, $user['id'], $ip);
                 return $this->json(200, ['ok' => true], $headers);
             }
             if ($action === 'password-reset') {
@@ -513,7 +522,7 @@ final class Router
         try {
             fwrite($stream, "\xEF\xBB\xBF");
             fputcsv($stream, $columns, ',', '"', '', "\r\n");
-            $rows = $this->media->exportRows($filters);
+            $rows = $this->media()->exportRows($filters);
             foreach ($rows as $detail) {
                 fputcsv($stream, array_map(static function (string $column) use ($detail): string {
                     $value = (string) ($detail[$column] ?? '');

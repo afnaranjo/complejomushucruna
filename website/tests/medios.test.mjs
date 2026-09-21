@@ -4,6 +4,7 @@ import { mkdtemp, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
+import { readdir } from 'node:fs/promises';
 import { buildSite } from '../scripts/build.mjs';
 import { primaryNavigation } from '../src/data/site.mjs';
 import { MediaApiClient, MediaError, MEDIA_FIELDS, profilePayload } from '../src/finados/media-portal.js';
@@ -118,4 +119,18 @@ test('el panel de medios normaliza filtros, resume estados y restringe sus rutas
   assert.equal(calls.at(-1)[1].headers['X-CSRF-Token'], 'admin-token');
   await assert.rejects(client.request('/voceros'), /Ruta de API no permitida/);
   await assert.rejects(client.detail('no-valido'), /Ruta de API no permitida/);
+});
+
+test('el empaquetado del backend incluye cada catálogo de resources y Medios carga bajo demanda', async () => {
+  const script = await readFile(new URL('../scripts/deploy-finados-backend.mjs', import.meta.url), 'utf8');
+  const allowlist = /filter\(file => \/(.+?)\/\.test\(file\)\)/.exec(script);
+  assert.ok(allowlist, 'no se encontró la lista de archivos del artefacto');
+  const pattern = new RegExp(allowlist[1]);
+  const resources = await readdir(new URL('../backend/finados-api/resources/', import.meta.url));
+  assert.ok(resources.includes('media-consents.json'));
+  for (const name of resources) assert.match(`resources/${name}`, pattern, `${name} debe viajar en el artefacto`);
+  for (const name of ['src/MediaAuth.php', 'src/MediaRepository.php', 'src/MediaPasswordReset.php', 'migrations/008_media_accounts_mysql.sql']) assert.match(name, pattern, name);
+  const router = await readFile(new URL('../backend/finados-api/src/Router.php', import.meta.url), 'utf8');
+  const constructor = /public function __construct[\s\S]*?\n    }\n/.exec(router)[0];
+  assert.doesNotMatch(constructor, /Media/, 'el constructor del Router no debe depender de Medios');
 });

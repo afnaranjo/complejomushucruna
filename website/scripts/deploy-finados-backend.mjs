@@ -477,7 +477,7 @@ catch (Throwable) {
 export function backendReleaseFiles() {
   const tracked = spawnSync('git', ['ls-files', '-z', '--', 'src', 'bin', 'migrations', 'public', 'resources'], { cwd: backend, encoding: 'utf8' });
   if (tracked.status !== 0) fail('No se pudo verificar el inventario versionado.');
-  const files = tracked.stdout.split('\0').filter(Boolean).filter(file => /^(src\/[^/]+\.php|bin\/[^/]+\.php|migrations\/\d+_[a-z_]+\.sql|public\/(index\.php|\.htaccess)|resources\/vocero-consents\.json)$/.test(file)).sort();
+  const files = tracked.stdout.split('\0').filter(Boolean).filter(file => /^(src\/[^/]+\.php|bin\/[^/]+\.php|migrations\/\d+_[a-z_]+\.sql|public\/(index\.php|\.htaccess)|resources\/(?:vocero|media)-consents\.json)$/.test(file)).sort();
   for (const file of files) {
     const info = lstatSync(join(backend, file));
     // APFS puede reportar `nlink === 2` para archivos con clonación de copia
@@ -488,7 +488,7 @@ export function backendReleaseFiles() {
       fail('El artefacto requiere archivos regulares versionados.');
     }
   }
-  for (const required of ['src/PhotoStorage.php', 'src/VoceroMediaLock.php', 'src/VoceroAuth.php', 'src/VoceroProfile.php', 'src/VoceroPasswordReset.php', 'resources/vocero-consents.json', 'migrations/003_vocero_accounts_mysql.sql']) {
+  for (const required of ['src/PhotoStorage.php', 'src/VoceroMediaLock.php', 'src/VoceroAuth.php', 'src/VoceroProfile.php', 'src/VoceroPasswordReset.php', 'resources/vocero-consents.json', 'migrations/003_vocero_accounts_mysql.sql', 'src/MediaAuth.php', 'src/MediaRepository.php', 'src/MediaPasswordReset.php', 'resources/media-consents.json', 'migrations/008_media_accounts_mysql.sql']) {
     if (!files.includes(required)) fail('La versión no incluye una dependencia requerida.');
   }
   return files;
