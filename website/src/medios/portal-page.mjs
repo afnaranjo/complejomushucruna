@@ -6,7 +6,7 @@ import { apiBasesForCsp, LOCAL_API_BASE, PRIMARY_API_BASE } from '../finados/run
 
 // Server-owned text is incorporated at build time and escaped as HTML, never fetched by the browser.
 const consents = JSON.parse(readFileSync(new URL('../../backend/finados-api/resources/media-consents.json', import.meta.url), 'utf8'));
-export const mediaPortalScriptVersion = '20260921-medios-10';
+export const mediaPortalScriptVersion = '20260921-medios-11';
 
 const email = id => `<label class="vocero-field" for="${id}"><span>Correo electrónico</span><input id="${id}" name="email" type="email" autocomplete="username" maxlength="254" autocapitalize="none" spellcheck="false" required></label>`;
 const password = (id, label, autocomplete) => `<label class="vocero-field" for="${id}"><span>${label}</span><input id="${id}" name="${id.includes('confirmation') ? 'confirmation' : 'password'}" type="password" autocomplete="${autocomplete}" minlength="${autocomplete === 'current-password' ? '1' : '10'}" maxlength="128" required></label>`;
@@ -31,6 +31,12 @@ function renderMediaForm() {
 <p class="media-videos__count" data-media-video-count>Aún no has agregado videos.</p>
 <ol class="media-videos__list" data-media-video-list></ol>
 </section><div id="media-profile-panel" data-media-profile-panel>
+<section class="media-photo" aria-labelledby="media-photo-title" data-media-photo>
+<p class="vocero-eyebrow">Obligatoria</p><h2 id="media-photo-title">Foto de la persona responsable${required}</h2>
+<p id="media-photo-help">Sube una foto reciente de la <strong>persona responsable del medio</strong>: de frente y con el rostro visible. No uses el logotipo del medio ni una foto grupal. Es obligatoria para verificar su identidad y aprobar el registro; se guarda cifrada y subirla no autoriza por sí sola su publicación. JPG, PNG o WebP; máximo 5 MB.</p>
+<div class="media-photo__layout"><div class="vocero-photo-frame media-photo__frame"><img data-media-photo-preview alt="Foto de la persona responsable del medio" hidden><span data-media-photo-placeholder>Sin foto</span></div>
+<form data-media-photo-form novalidate><fieldset><label class="vocero-field" for="media_photo"><span data-media-photo-label>Seleccionar fotografía${required}</span><input id="media_photo" name="photo" type="file" accept="image/jpeg,image/png,image/webp" aria-describedby="media-photo-help"></label><p class="vocero-field-help" data-media-photo-note>La foto se guardará junto con tu registro al pulsar «Guardar registro».</p><button class="vocero-primary" type="submit" data-media-photo-submit hidden>Guardar foto</button></fieldset></form></div>
+</section>
 <form data-media-profile class="vocero-profile-form media-profile-form" novalidate>
 <fieldset data-profile-fields disabled>
 <legend class="sr-only">Registro del medio</legend>
@@ -77,12 +83,6 @@ ${consent('image_accepted', 'image', { optional: true })}
 </section>
 <div class="vocero-save"><button class="vocero-primary" type="submit">Guardar registro</button></div>
 </fieldset></form>
-<section class="media-videos media-photo" aria-labelledby="media-photo-title" data-media-photo hidden>
-<p class="vocero-eyebrow">04 · Representante</p><h2 id="media-photo-title">Foto de perfil del representante</h2>
-<p id="media-photo-help">Sube una foto reciente, de frente y con el rostro visible, de la persona de contacto. Es opcional y se guarda cifrada; subirla no autoriza por sí sola su publicación. JPG, PNG o WebP; máximo 5 MB.</p>
-<div class="media-photo__layout"><div class="vocero-photo-frame media-photo__frame"><img data-media-photo-preview alt="Foto de perfil del representante" hidden><span data-media-photo-placeholder>Sin foto</span></div>
-<form data-media-photo-form novalidate><fieldset disabled><label class="vocero-field" for="media_photo"><span>Seleccionar fotografía</span><input id="media_photo" name="photo" type="file" accept="image/jpeg,image/png,image/webp" required aria-describedby="media-photo-help"></label><button class="vocero-primary" type="submit">Subir foto</button></fieldset></form></div>
-</section>
 </div>`;
 }
 

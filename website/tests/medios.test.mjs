@@ -73,10 +73,15 @@ test('el build publica la landing, las cuentas de medios y su panel sin tocar la
   assert.match(access, /href="\/finados\/medios\/politica-de-privacidad\/"/);
   assert.match(profile, /data-media-video-form/);
   // Registered media land on their videos: avatar header first, then videos, and the profile behind the avatar.
-  const positions = ['data-media-dashboard', 'data-media-video-form', 'data-media-profile-panel', 'data-media-photo-form'].map(marker => profile.indexOf(marker));
+  const positions = ['data-media-dashboard', 'data-media-video-form', 'data-media-profile-panel', 'data-media-photo-form', 'data-media-profile '].map(marker => profile.indexOf(marker));
   assert.ok(positions.every(position => position > 0) && positions.every((position, index) => index === 0 || position > positions[index - 1]), JSON.stringify(positions));
   assert.match(profile, /data-media-profile-toggle aria-expanded="false" aria-controls="media-profile-panel"/);
   assert.match(profile, /data-media-light hidden/);
+  // The responsible person's photo is mandatory and opens the profile, before the rest of the form.
+  assert.match(profile, /Foto de la persona responsable/);
+  assert.match(profile, /No uses el logotipo del medio/);
+  assert.ok(profile.indexOf('data-media-photo-form') < profile.indexOf('data-media-profile '), 'la foto va antes de la ficha');
+  assert.doesNotMatch(profile, /Es opcional y se guarda cifrada/);
   assert.match(profile, /data-media-video-locked hidden>Podrás agregar los links de tus videos cuando/);
   assert.match(profile, /Agregar video/);
 

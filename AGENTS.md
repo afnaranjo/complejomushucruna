@@ -1491,3 +1491,14 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - QA: `npm run check` completo en verde con 161 pruebas Node, 21 suites PHP y 10 de integración antes de cada activación.
 - Publicación externa: GitHub, backend y frontend autorizados. No se modificaron datos de Voceros, DNS, Google Sheets, Meta ni otros proyectos.
 - Pendiente: revisión visual de Alex en producción (avatar, abrir perfil, semáforo, agregar videos con el registro aprobado); decisión sobre incluir `media-photos/` en el respaldo verificado; validación legal de los textos de Medios.
+
+### 2026-09-21 — Foto obligatoria de la persona responsable en Medios
+
+- Alex pidió que la foto de perfil del medio sea obligatoria y que se especifique que debe ser de la persona responsable.
+- Ficha: la sección `Foto de la persona responsable` pasó al inicio del perfil, marcada como obligatoria, con la indicación de que sea una foto reciente, de frente y con el rostro visible, y que no se use el logotipo ni una foto grupal. En el primer guardado la ficha no sale sin foto: el cliente valida el archivo, guarda el registro y sube la foto en el mismo paso; después la foto tiene su propio botón para reemplazarla. Si falta, el panel de estado lo avisa y el perfil se abre solo.
+- Reglas de servidor: administración no puede pasar un registro a `Aprobado` sin foto (422) y los links de video requieren registro aprobado y foto. El panel lo explica antes de enviar y muestra `Falta la foto de la persona responsable`. No hay cambios retroactivos de estado: un registro ya aprobado sin foto conserva su estado, pero no podrá agregar videos hasta subirla.
+- Textos: consentimiento de privacidad `2026-09-21-4`, Política de Privacidad, Buenas prácticas y landing indican que la fotografía es obligatoria y de la persona responsable, y que subirla no autoriza su publicación.
+- QA: `npm run check` completo en verde con 161 pruebas Node, 21 suites PHP y 10 de integración. Flujo real verificado por HTTP en el stack local: ficha sin foto queda sin videos, aprobar sin foto devuelve 422, `En revisión` sí se permite, tras subir la foto la aprobación y el primer video funcionan. Ningún archivo de Voceros cambió.
+- Commit: incluido en `Hacer obligatoria la foto de la persona responsable en Medios`.
+- Publicación externa: solo GitHub. **No está desplegado**; requiere autorización de Alex para backend → frontend. No hay migraciones nuevas.
+- Riesgo a confirmar antes de publicar: la única ficha real en producción está `Aprobado` y sin foto; al desplegar dejará de poder agregar videos hasta que suba la foto de su persona responsable.

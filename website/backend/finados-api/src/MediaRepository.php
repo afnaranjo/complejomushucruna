@@ -81,7 +81,7 @@ final class MediaRepository
         $row = $statement->fetch();
         if ($row === false || $row['status'] === self::ARCHIVED) return null;
         return [...$this->present($row), 'editable' => in_array($row['status'], self::EDITABLE, true), 'videos' => $this->videos((int) $row['id']),
-            'can_add_videos' => $row['status'] === 'Aprobado', 'can_upload_photo' => $row['status'] !== 'Rechazado', 'consents' => $this->consents((int) $row['id']), 'photo' => $this->photoMeta((int) $row['id'])];
+            'can_add_videos' => $row['status'] === 'Aprobado' && $this->photoMeta((int) $row['id'])['available'], 'can_upload_photo' => $row['status'] !== 'Rechazado', 'photo_required' => true, 'consents' => $this->consents((int) $row['id']), 'photo' => $this->photoMeta((int) $row['id'])];
     }
 
     public function saveForAccount(int $accountId, array $input, string $ip): array
@@ -269,6 +269,8 @@ final class MediaRepository
         if (!in_array($status, self::STATUSES, true)) throw new InvalidArgumentException();
         $this->mutate($publicId, function (array $row) use ($status, $actorId, $ip, $publicId): void {
             if ($row['status'] === $status) return;
+            // The photo of the responsible person is mandatory: no approval without it.
+            if ($status === 'Aprobado' && !$this->photoMeta((int) $row['id'])['available']) throw new InvalidArgumentException();
             $this->pdo->prepare('UPDATE media_profiles SET status = ?, updated_at = ? WHERE id = ?')->execute([$status, gmdate('Y-m-d H:i:s'), $row['id']]);
             $this->audit->log('media.status_changed', $actorId, 'media_profile', $publicId, ['from_status' => $row['status'], 'to_status' => $status], $ip);
         });
@@ -460,8 +462,8 @@ final class MediaRepository
             $statement = $this->pdo->prepare('SELECT id, public_id, status FROM media_profiles WHERE account_id = ?' . $this->rowLock());
             $statement->execute([$accountId]);
             $profile = $statement->fetch();
-            // Video links open only once administration approves the record.
-            if ($profile === false || $profile['status'] !== 'Aprobado') throw new Forbidden();
+            // Video links open only once administration approves the record, which in turn requires the responsible person's photo.
+            if ($profile === false || $profile['status'] !== 'Aprobado' || !$this->photoMeta((int) $profile['id'])['available']) throw new Forbidden();
             $count = $this->pdo->prepare('SELECT COUNT(*) FROM media_videos WHERE profile_id = ?');
             $count->execute([$profile['id']]);
             if ((int) $count->fetchColumn() >= self::MAX_VIDEOS) throw new InvalidArgumentException();

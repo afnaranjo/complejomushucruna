@@ -13,6 +13,7 @@ export const MEDIA_TYPES = Object.freeze(['radio', 'tv', 'prensa', 'digital', 'r
 export const MAX_STATIONS = 10;
 export const MEDIA_FIELDS = Object.freeze(['media_name', 'contact_name', 'phone', 'contact_email', 'province', 'city']);
 export const STATUS_HELP = Object.freeze({
+  sinFoto: 'Falta la foto de la persona responsable del medio. Es obligatoria: súbela para completar tu registro y poder ser aprobado.',
   Nuevo: 'Recibimos tu registro. Puedes actualizarlo mientras el equipo lo revisa. Cuando sea aprobado podrás agregar tus videos.',
   'En revisión': 'El equipo de Finados Mushuc Runa está revisando tu registro. Aún puedes actualizarlo. Cuando sea aprobado podrás agregar tus videos.',
   Aprobado: 'Tu registro fue aprobado. Ya no se puede modificar, pero puedes seguir agregando los links de tus videos.',
@@ -222,6 +223,7 @@ export async function initializeMediaPortal(root = document) {
   const videoCount = root.querySelector('[data-media-video-count]');
   let canAddVideos = false;
   let canUploadPhoto = false;
+  let hasPhoto = false;
   const forms = [register, login, reset].filter(Boolean);
   let ready = false;
   let editable = true;
@@ -381,7 +383,13 @@ export async function initializeMediaPortal(root = document) {
     videoForm.hidden = !canAddVideos;
     root.querySelector('[data-media-video-locked]').hidden = canAddVideos || !profile.registered;
     if (profile.registered) renderVideos(profile.videos);
-    photoPanel.hidden = !profile.registered;
+    hasPhoto = profile.photo?.available === true;
+    photoPanel.dataset.missing = String(!hasPhoto);
+    // Before the record exists the photo travels with the first save; afterwards it has its own button.
+    root.querySelector('[data-media-photo-submit]').hidden = !profile.registered;
+    root.querySelector('[data-media-photo-note]').hidden = profile.registered === true;
+    root.querySelector('[data-media-photo-label]').textContent = hasPhoto ? 'Reemplazar fotografía' : 'Seleccionar fotografía *';
+    if (profile.registered && !hasPhoto) statusHelp.textContent = STATUS_HELP.sinFoto;
     // First visit shows the form; once the record exists the videos become the main screen.
     const wasRegistered = dashboard.hidden === false;
     dashboard.hidden = !profile.registered;
@@ -390,9 +398,9 @@ export async function initializeMediaPortal(root = document) {
       initials.textContent = mediaInitials(profile.media_name);
       light.hidden = false; light.dataset.light = TRAFFIC_LIGHTS[profile.traffic_light] ? profile.traffic_light : 'red';
       root.querySelector('[data-media-light-text]').textContent = TRAFFIC_LIGHTS[light.dataset.light];
-      if (!wasRegistered) showProfile(false);
+      if (!hasPhoto) showProfile(true); else if (!wasRegistered) showProfile(false);
     } else { light.hidden = true; showProfile(true); }
-    photoForm.querySelector('fieldset').disabled = !canUploadPhoto;
+    photoForm.querySelector('fieldset').disabled = profile.registered === true && !canUploadPhoto;
   }
 
   function submit(form, action) {
@@ -429,9 +437,22 @@ export async function initializeMediaPortal(root = document) {
   });
   submit(profileForm, async data => {
     if (data.getAll('media_types').length === 0) { typeGroup.dataset.invalid = 'true'; typeGroup.querySelector('input').focus(); }
-    const saved = await api.saveProfile(profilePayload(data, readStations(), readTvChannels(), readChannels()));
+    const body = profilePayload(data, readStations(), readTvChannels(), readChannels());
+    // The photo of the responsible person is mandatory: a first save never goes out without it.
+    const photoInput = photoForm.elements.namedItem('photo');
+    const pendingPhoto = photoInput.files?.[0] ?? null;
+    if (!hasPhoto) {
+      if (!pendingPhoto) { photoPanel.dataset.missing = 'true'; photoInput.focus(); throw new Error('Sube la foto de la persona responsable del medio. Es obligatoria.'); }
+      validatePhoto(pendingPhoto);
+    } else if (pendingPhoto) validatePhoto(pendingPhoto);
+    const saved = await api.saveProfile(body);
+    if (pendingPhoto) {
+      try { saved.photo = (await api.uploadPhoto(pendingPhoto)).photo; photoInput.value = ''; }
+      catch (error) { populate({ ...saved, email: profileForm.querySelector('[data-account-email]').value }); throw new Error('Tu registro se guardó, pero la foto no se pudo subir. ' + (error?.message ?? '') + ' Vuelve a intentarlo con «Guardar foto».'); }
+    }
     populate({ ...saved, email: profileForm.querySelector('[data-account-email]').value });
-    message('Registro guardado. Ahora puedes agregar los links de los videos que publiques.');
+    if (saved.photo?.available) { try { await showSavedPhoto(); } catch { /* the record stays usable without its preview */ } }
+    message(canAddVideos ? 'Registro guardado. Ya puedes agregar los links de tus videos.' : 'Registro guardado. Cuando el equipo lo apruebe podrás agregar tus videos.');
     videosPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
   submit(photoForm, async data => {
@@ -439,6 +460,7 @@ export async function initializeMediaPortal(root = document) {
     validatePhoto(file);
     await api.uploadPhoto(file);
     photoForm.reset();
+    populate({ ...(await api.profile()) });
     await showSavedPhoto();
     message('Foto guardada.');
   });

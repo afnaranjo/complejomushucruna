@@ -298,3 +298,19 @@
   padding:.9rem 1rem;
   font-weight:600
 }
+.media-photo {
+  border:2px solid var(--ink);
+  border-radius:6px;
+  background:#fffcf7;
+  padding:1.25rem 1.5rem;
+  margin:0 0 1.5rem
+}
+.media-photo[data-missing="true"] {
+  border-color:#b3123d;
+  box-shadow:6px 6px 0 #ff2e8a
+}
+.media-photo form fieldset {
+  border:0;
+  padding:0;
+  margin:0
+}

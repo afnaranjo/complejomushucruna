@@ -132,6 +132,7 @@ same(4, count($saved['channels']));
 same(['type' => 'facebook', 'url' => 'https://www.facebook.com/radiopruebariobamba', 'followers' => 3000], $saved['channels'][1]);
 same(15000, $saved['followers_total']);
 same(['available' => false], $saved['photo']);
+same(false, $saved['can_add_videos']);
 same('Persona Responsable', $saved['contact_name']);
 same(['conditions', 'privacy', 'image'], array_keys($saved['consents']));
 same(true, $saved['consents']['image']['accepted']);
@@ -158,6 +159,20 @@ same(true, $withdrawn['consents']['privacy']['accepted']);
 same(4, (int) $pdo->query('SELECT COUNT(*) FROM media_consents')->fetchColumn());
 same(false, str_contains((string) $pdo->query('SELECT GROUP_CONCAT(ip_hash) FROM media_consents')->fetchColumn(), '192.0.2'));
 same(1, (int) $pdo->query('SELECT COUNT(*) FROM media_profiles')->fetchColumn());
+// The responsible person's photo is mandatory: without it there is no approval and no videos.
+same(true, $updated['photo_required']);
+$earlyImage = imagecreatetruecolor(200, 200);
+$earlyUpload = tempnam(sys_get_temp_dir(), 'media-photo-');
+imagejpeg($earlyImage, $earlyUpload, 90);
+$earlyRepository = new MediaRepository($pdo, new Finados\Crypto($config));
+$earlyAccountId = (int) $pdo->query('SELECT account_id FROM media_profiles LIMIT 1')->fetchColumn();
+$pdo->exec("UPDATE media_profiles SET status = 'Aprobado'");
+same(false, media_body($router->handle('GET', '/api/media/profile', $origin))['can_add_videos']);
+same(403, $router->handle('POST', '/api/media/videos', $json($login['csrf']), media_json(['url' => 'https://www.tiktok.com/@radio/video/1']))->status);
+$login = ['csrf' => media_body($router->handle('GET', '/api/media/auth/session', $origin))['csrf']] + $login;
+$pdo->exec("UPDATE media_profiles SET status = 'Nuevo'");
+$earlyRepository->savePhotoForAccount($earlyAccountId, new Finados\MediaPhotoStorage($config, new Finados\Crypto($config)), $earlyUpload, filesize($earlyUpload), '192.0.2.59');
+unlink($earlyUpload);
 // Videos stay closed until administration approves the record.
 same(false, $updated['can_add_videos']);
 same(true, $updated['can_upload_photo']);
@@ -253,6 +268,11 @@ same(['ok' => true], media_body($router->handle('PATCH', '/api/medios/' . $publi
 same('green', media_body($router->handle('GET', '/api/medios', $origin))['items'][0]['traffic_light']);
 same(2, (int) $pdo->query("SELECT COUNT(*) FROM audit_log WHERE event_type = 'media.traffic_light_changed'")->fetchColumn());
 same(422, $router->handle('PATCH', '/api/medios/' . $publicId, $admin, media_json(['status' => 'Eliminado']))->status);
+// Approval is refused while the photo is missing.
+$photoRow = $pdo->query('SELECT * FROM media_photos')->fetch(PDO::FETCH_ASSOC);
+$pdo->exec('DELETE FROM media_photos');
+same(422, $router->handle('PATCH', '/api/medios/' . $publicId, $admin, media_json(['status' => 'Aprobado']))->status);
+$pdo->prepare('INSERT INTO media_photos (id, profile_id, storage_key, content_type, bytes, sha256, width, height, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)')->execute(array_values($photoRow));
 same(['ok' => true], media_body($router->handle('PATCH', '/api/medios/' . $publicId, $admin, media_json(['status' => 'Aprobado']))));
 same(201, $router->handle('POST', '/api/medios/' . $publicId . '/notes', $admin, media_json(['body' => 'Credenciales listas.']))->status);
 $detail = media_body($router->handle('GET', '/api/medios/' . $publicId, $origin));

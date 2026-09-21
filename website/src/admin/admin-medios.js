@@ -214,6 +214,7 @@ export async function initializeMediaAdmin() {
   let currentId = null;
   let opener = null;
   let photoUrl = '';
+  let detailHasPhoto = false;
 
   const clearDetail = () => {
     currentId = null; detailGeneration++;
@@ -430,17 +431,18 @@ export async function initializeMediaAdmin() {
       });
       videos.append(save, saved);
     }
+    detailHasPhoto = data.photo?.available === true;
     const photo = node('section', undefined, 'admin-photo');
-    photo.append(node('h3', 'Foto de perfil del representante'));
+    photo.append(node('h3', 'Foto de la persona responsable (obligatoria)'));
     if (data.photo?.available) {
-      const image = node('img'); image.alt = 'Foto de perfil del representante'; image.hidden = true;
+      const image = node('img'); image.alt = 'Foto de la persona responsable del medio'; image.hidden = true;
       const state = node('p', 'Cargando fotografía…');
       photo.append(state, image);
       client.photo(id).then((blob) => {
         if (generation !== detailGeneration) return;
         photoUrl = URL.createObjectURL(blob); image.src = photoUrl; image.hidden = false; state.textContent = `Subida: ${dateTime(data.photo.created_at)}`;
       }).catch(() => { state.textContent = 'No se pudo cargar la fotografía.'; });
-    } else photo.append(node('p', 'El representante todavía no ha subido su foto.'));
+    } else photo.append(node('p', 'Falta la foto de la persona responsable. El registro no se puede aprobar hasta que el medio la suba.'));
     detailContent.replaceChildren(submitted, photo, dl, videos);
     statusForm.elements.status.value = data.status;
     statusForm.elements.traffic_light.value = Object.hasOwn(TRAFFIC_LIGHT_LABELS, data.traffic_light) ? data.traffic_light : 'red';
@@ -484,6 +486,12 @@ export async function initializeMediaAdmin() {
     } catch (error) { if (generation === detailGeneration) fail(error, detailFeedback); }
     finally { if (generation === detailGeneration) statusForm.querySelector('fieldset').disabled = noteForm.querySelector('fieldset').disabled = false; }
   }
+  statusForm.addEventListener('submit', (event) => {
+    if (statusForm.elements.status.value === 'Aprobado' && !detailHasPhoto) {
+      event.preventDefault(); event.stopImmediatePropagation();
+      feedback(detailFeedback, 'No se puede aprobar: falta la foto de la persona responsable del medio.', 'error');
+    }
+  });
   statusForm.addEventListener('submit', event => mutate(event, id => client.changeStatus(id, statusForm.elements.status.value, statusForm.elements.traffic_light.value), 'Estado y semáforo actualizados.', true));
   noteForm.addEventListener('submit', event => {
     const body = noteForm.elements.body.value.trim();
