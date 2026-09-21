@@ -2,7 +2,7 @@
 titulo: "Memoria del proyecto"
 responsable: "dirección integral de la feria"
 estado: en-revision
-ultima_actualizacion: 2026-09-19
+ultima_actualizacion: 2026-09-21
 fuente: interna
 confidencialidad: interno
 tags:
@@ -388,3 +388,9 @@ El 28 de agosto quedó confirmado `¡LEGADO QUE NOS UNE!` como eslogan gráfico 
 - La lectura secuencial de Graph API confirmó el álbum público del 19 de septiembre que presenta a Kjarkas con William Luna y la audiencia personalizada `Folklore`: disponible, de interacción, formada por visualizaciones de al menos 15 segundos de seis videos y con estimación general de 89.800–105.700 personas. Es público cálido, no de prospección. La lectura de medios de Instagram no tuvo permiso; antes de pautar se debe validar su pieza/ubicaciones elegibles.
 - La propuesta contiene una campaña con dos conjuntos —`Folklore` y descubrimiento excluyendo ese público—, reutilización del álbum, destino WhatsApp/optimización a conversaciones, un piloto **propuesto y no aprobado** de USD 10 diarios por siete días, cierre antes del show según Ventas y evaluación por boletos pagados, no por chats. El gasto agregado observado en la cuenta del 25 de agosto al 18 de septiembre fue USD 947,66; faltan conciliación y compromisos para calcular el remanente real de los USD 4.000.
 - No se almacenó ningún token, ID de cuenta o de audiencia ni teléfono en el repositorio; no se creó campaña, conjunto, anuncio, público, presupuesto o borrador y no se hizo gasto nuevo. Pendientes: aprobación de Alex, oferta/precios/localidades, elegibilidad de la pieza en Instagram, hora de cierre, remanente y capacidad de atención.
+
+### 2026-09-21 — Registro de Medios con cuenta (solo local)
+
+- Por pedido de Alex se construyó en local un sistema `MEDIOS` separado de Voceros: opción `MEDIOS` en el submenú de `FINADOS 2026` debajo de `VOCEROS`, landing `/finados/medios/`, cuentas propias (crear cuenta, iniciar sesión, restablecer contraseña, `Mi registro`) y sección `Medios` en el sidebar del panel, debajo de `Voceros`, con `/admin/medios/`.
+- La ficha reutiliza exactamente los campos y la línea gráfica de `/acreditacion-de-medios/`, que permanece intacta junto con su POST y el puente de Google Sheets. El backend añade la migración aditiva `008_media_accounts` (cinco tablas `media_*`), sesión `finados_media` aislada de las sesiones de Vocero y administración, datos de contacto y equipo cifrados, estados `Nuevo/En revisión/Aprobado/Rechazado`, notas, exportación CSV, enlace temporal de recuperación y retiro seguro sin borrado físico.
+- Estado: **sin commit, push ni despliegue**. Producción, base de datos, registros de Voceros, DNS y Google Sheets no se modificaron. La revisión visual en navegador quedó pendiente de Alex. Detalle en la bitácora del `AGENTS.md` raíz y acciones en [[_pendientes|Pendientes]].

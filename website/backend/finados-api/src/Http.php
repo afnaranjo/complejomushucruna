@@ -21,6 +21,7 @@ final class Http
         [$name, $sameSite] = match ($scope) {
             'admin' => ['finados_admin', 'Strict'],
             'vocero' => ['finados_vocero', 'Lax'],
+            'media' => ['finados_media', 'Lax'],
             default => throw new RuntimeException('Ámbito de sesión no válido.'),
         };
         if (session_status() === PHP_SESSION_ACTIVE) {

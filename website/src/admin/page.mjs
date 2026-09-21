@@ -1,11 +1,14 @@
 import { escapeHtml as esc } from '../render/html.mjs';
 import { STATUSES, PREVIOUS_PARTICIPATION } from './admin.js';
+import { MEDIA_STATUSES, MEDIA_TYPES } from './admin-medios.js';
+import { ecuadorProvinces } from '../media-accreditation/page.mjs';
 import { apiBasesForCsp, LOCAL_API_BASE, PRIMARY_API_BASE } from '../finados/runtime-origins.mjs';
 
 const options = values => values.map(value => `<option value="${esc(value)}">${esc(value)}</option>`).join('');
 const select = (name, label, values) => `<label>${label}<select name="${name}"><option value="">Todos</option>${options(values)}</select></label>`;
 const ADMIN_FORMS = Object.freeze([
   { route: '/admin/voceros/', label: 'Voceros', description: 'Registros y seguimiento', marker: 'V' },
+  { route: '/admin/medios/', label: 'Medios', description: 'Acreditación de medios', marker: 'M' },
 ]);
 const PROGRESS_LEVELS = ['En preparación', 'Primer paso', 'Gorra', 'Kit completo', 'Trae a los tuyos', 'Noche de concierto', 'Tope'];
 const VIDEO_SLOTS = Object.freeze([1, 2, 3, 4, 5]);
@@ -31,14 +34,14 @@ function adminSidebar(page) {
 </aside>`;
 }
 
-function layout(page, content) {
+function layout(page, content, script = '/assets/admin/admin.js?v=20260918-admin-video-views-1') {
   const api = page.adminEnvironment === 'development' ? (page.adminApiBase ?? LOCAL_API_BASE) : PRIMARY_API_BASE;
   const connectSources = apiBasesForCsp(api);
   return `<!doctype html>
 <html lang="es"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${esc(page.title)} | Complejo Mushuc Runa</title>
-<meta name="description" content="Acceso administrativo a los registros de Voceros de Finados Mushuc Runa.">
+<meta name="description" content="Acceso administrativo a los registros de Finados Mushuc Runa.">
 <link rel="canonical" href="https://complejomushucruna.com${esc(page.route)}">
 <meta name="robots" content="noindex, nofollow, noarchive">
 <meta name="referrer" content="no-referrer">
@@ -46,10 +49,10 @@ function layout(page, content) {
 <meta name="admin-api-base" content="${api}">
 <link rel="icon" href="/assets/finados/favicon-finados.png">
 <link rel="stylesheet" href="/assets/admin/admin.css?v=20260915-2">
-<script type="module" src="/assets/admin/admin.js?v=20260918-admin-video-views-1"></script>
+<script type="module" src="${script}"></script>
 </head><body class="admin-page">
 <a class="skip-link" href="#contenido">Ir al contenido</a>
-<header class="admin-header"><a href="/finados/voceros/" aria-label="Volver a Voceros"><img src="/assets/finados/logo-finados.svg" width="132" height="60" alt="Finados Mushuc Runa"></a><span class="header-context">Administración${page.route === '/admin/voceros/' ? ' <span aria-hidden="true">/</span> Formularios' : ''}</span></header>
+<header class="admin-header"><a href="${page.route === '/admin/medios/' ? '/finados/medios/' : '/finados/voceros/'}" aria-label="${page.route === '/admin/medios/' ? 'Volver a Medios' : 'Volver a Voceros'}"><img src="/assets/finados/logo-finados.svg" width="132" height="60" alt="Finados Mushuc Runa"></a><span class="header-context">Administración${['/admin/voceros/', '/admin/medios/'].includes(page.route) ? ' <span aria-hidden="true">/</span> Formularios' : ''}</span></header>
 ${content}
 <noscript><p class="notice">Activa JavaScript para iniciar sesión y administrar los registros.</p></noscript>
 </body></html>`;
@@ -105,4 +108,32 @@ ${select('previous_participation', 'Participación anterior', PREVIOUS_PARTICIPA
 <section class="admin-progress" aria-labelledby="admin-progress-title"><div class="admin-progress-heading"><div><h3 id="admin-progress-title">Progreso del vocero</h3><p>Registra la métrica validada, semáforo, retiro de kit y views validadas de cada video. Las fechas se configuran una sola vez en la sección global.</p></div><span data-admin-progress-summary>Sin actualizar</span></div><form data-progress-form><fieldset disabled><div class="admin-progress-grid"><label>Seguidores validados<input type="number" name="followers_count" min="0" max="1000000000" step="1" required></label><label>Nivel<select name="level" required>${PROGRESS_LEVELS.map((label, index) => `<option value="${index}">${index} · ${esc(label)}</option>`).join('')}</select></label><label>Semáforo<select name="traffic_light" required><option value="red">Rojo · En preparación</option><option value="yellow">Amarillo · En avance</option><option value="green">Verde · Listo</option></select></label><label>Kit<select name="kit_status" required><option value="pendiente">Pendiente de retiro</option><option value="retirado">Retirado</option></select></label></div><div class="admin-videos" data-admin-videos></div><button class="button-primary" type="submit">Guardar progreso</button></fieldset></form><p class="feedback" data-progress-feedback role="status" aria-live="polite"></p></section>
 <section class="notes-section"><h3>Notas internas</h3><ol data-notes></ol><form data-note-form><fieldset disabled><label>Añadir nota<textarea name="body" rows="3" maxlength="2000" required></textarea></label><button class="button-primary" type="submit">Guardar nota</button></fieldset></form></section>
 </dialog></main></div>`);
+}
+
+export function renderAdminMediosPage(page) {
+  return layout(page, `<div class="admin-shell">${adminSidebar(page)}<main id="contenido" class="admin-workspace" data-admin-medios>
+<div class="workspace-heading"><div><p class="eyebrow">Finados 2026</p><h1>Registros de Medios</h1><p data-admin-user>Comprobando acceso…</p></div><button type="button" class="button-primary" data-admin-export disabled>Exportar CSV</button></div>
+<p class="feedback" data-admin-feedback role="status" aria-live="polite" aria-atomic="true"></p>
+<button type="button" class="button-quiet" data-session-retry hidden>Reintentar conexión</button>
+<section aria-label="Resumen de todos los registros de medios" class="summary" data-admin-dashboard aria-busy="true"></section>
+<form class="filters" data-admin-filters><fieldset disabled data-panel-fields>
+<legend>Filtrar registros</legend>
+<div class="filter-grid"><label class="search-field">Buscar<input type="search" name="search" maxlength="100" placeholder="Medio, programa o ciudad"></label>
+${select('status', 'Estado', MEDIA_STATUSES)}
+${select('media_type', 'Tipo de medio', MEDIA_TYPES)}
+${select('province', 'Provincia', ecuadorProvinces)}</div>
+<div class="filter-actions"><button type="submit" class="button-primary">Aplicar filtros</button><button type="reset" class="button-quiet">Limpiar</button><label>Por página<select name="pageSize"><option>25</option><option>50</option><option>100</option></select></label></div>
+</fieldset></form>
+<section class="records" aria-labelledby="records-title" aria-busy="true" data-records-region><div class="records-heading"><h2 id="records-title" tabindex="-1">Registros</h2><p data-record-count>—</p></div>
+<p data-list-message role="status">Cargando registros…</p>
+<table><caption class="sr-only">Medios registrados. Abre un registro para revisar sus datos y notas.</caption><thead><tr><th scope="col">Medio</th><th scope="col">Programa</th><th scope="col">Ubicación</th><th scope="col">Personas</th><th scope="col">Registro</th><th scope="col">Estado</th><th scope="col"><span class="sr-only">Acciones</span></th></tr></thead><tbody data-records></tbody></table>
+<nav class="pagination" aria-label="Paginación de registros"><button class="button-quiet" data-previous disabled>← Anterior</button><span data-page-label>Página —</span><button class="button-quiet" data-next disabled>Siguiente →</button></nav></section>
+<details class="pending-accounts" data-pending-panel><summary><span><strong id="pending-accounts-title">Cuentas pendientes de registro</strong><small>Cuentas de medios creadas que todavía no guardan su registro.</small></span><span data-pending-count>—</span></summary><div class="pending-accounts-body" aria-labelledby="pending-accounts-title"><p class="feedback" data-pending-message role="status" aria-live="polite">Cargando cuentas…</p><div class="pending-accounts-table"><table><caption class="sr-only">Cuentas de medios que todavía no completan su registro</caption><thead><tr><th scope="col">Correo</th><th scope="col">Creada</th><th scope="col">Último acceso</th><th scope="col"><span class="sr-only">Acciones</span></th></tr></thead><tbody data-pending-accounts></tbody></table></div></div></details>
+<dialog class="detail-dialog" aria-labelledby="detail-title" data-detail><div class="detail-heading"><h2 id="detail-title" tabindex="-1">Detalle del medio</h2><button type="button" class="button-quiet" data-detail-close aria-label="Cerrar detalle">Cerrar ×</button></div>
+<p class="feedback" data-detail-feedback role="status" aria-live="polite" aria-atomic="true"></p><div data-detail-content></div>
+<form data-status-form><fieldset disabled><label>Estado de la acreditación<select name="status" required>${options(MEDIA_STATUSES)}</select></label><button class="button-primary" type="submit">Guardar estado</button></fieldset></form>
+<section class="admin-reset"><h3>Recuperar acceso</h3><button type="button" class="button-quiet" data-admin-reset disabled>Generar enlace temporal</button><div data-reset-output hidden><label>Enlace temporal<input type="text" readonly data-reset-url autocomplete="off" spellcheck="false"></label><button type="button" class="button-quiet" data-reset-copy>Copiar enlace</button></div><p class="feedback" data-reset-feedback role="status" aria-live="polite"></p></section>
+<section class="notes-section"><h3>Notas internas</h3><ol data-notes></ol><form data-note-form><fieldset disabled><label>Añadir nota<textarea name="body" rows="3" maxlength="2000" required></textarea></label><button class="button-primary" type="submit">Guardar nota</button></fieldset></form></section>
+<div class="detail-danger-zone"><p>¿Este registro ya no debe tener acceso?</p><button type="button" class="button-danger" data-admin-delete disabled>Retirar registro</button></div>
+</dialog></main></div>`, '/assets/admin/admin-medios.js?v=20260921-admin-medios-1');
 }

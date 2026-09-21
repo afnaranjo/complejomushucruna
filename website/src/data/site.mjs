@@ -19,6 +19,7 @@ export const primaryNavigation = Object.freeze([
       { label: 'PROGRAMACIÓN ARTÍSTICA', href: '/finados/#artistas' },
       { label: 'DIGNIDADES 2025', href: '/finados/dignidades-finados-2025/' },
       { label: 'VOCEROS', href: '/finados/voceros/' },
+      { label: 'MEDIOS', href: '/finados/medios/' },
     ]),
   },
   { label: 'ACREDITACIÓN DE MEDIOS', href: '/acreditacion-de-medios/' },

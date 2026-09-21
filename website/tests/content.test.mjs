@@ -35,6 +35,7 @@ test('la navegación institucional agrupa venta dentro de Finados y conserva el 
       { label: 'PROGRAMACIÓN ARTÍSTICA', href: '/finados/#artistas' },
       { label: 'DIGNIDADES 2025', href: '/finados/dignidades-finados-2025/' },
       { label: 'VOCEROS', href: '/finados/voceros/' },
+      { label: 'MEDIOS', href: '/finados/medios/' },
     ],
   });
   assert.deepEqual(primaryNavigation[2], {

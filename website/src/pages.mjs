@@ -29,7 +29,9 @@ import { renderVocerosPage } from './finados/voceros-page.mjs';
 import { renderVoceroPortalPage } from './finados/vocero-portal-page.mjs';
 import { renderVoceroVerificationPage } from './finados/vocero-verification-page.mjs';
 import { renderMediaAccreditationBody } from './media-accreditation/page.mjs';
-import { renderAdminLoginPage, renderAdminVocerosPage } from './admin/page.mjs';
+import { renderAdminLoginPage, renderAdminMediosPage, renderAdminVocerosPage } from './admin/page.mjs';
+import { renderMediaLandingBody } from './medios/landing-page.mjs';
+import { renderMediaPortalPage } from './medios/portal-page.mjs';
 
 const historyParagraphs = [
   'Al pie del volcán Carihuayrazo, cerca al Puñalica y de frente a los Llimpes, se levanta el Complejo Intercultural y Deportivo Mushuc Runa, en honor al hombre nuevo, que se abre espacio en este mundo globalizado. Desde la parte alta se puede apreciar la explanada que acoge a varios poblados de Ambato, Tisaleo, Quero y Cevallos. La obra que inició en el 2012 bajo la inspiración de Luis Alfonso Chango, tiene un toque campestre y natural, dotado de funcionalidad moderna. El proyecto fue inspirado en la reivindicación de los indígenas que hasta hace poco, sólo servían como peones de estas tierras.',
@@ -291,6 +293,20 @@ const vocerosLegalPages = [
   render: renderVocerosLegalPage,
 }));
 
+const finadosMediaPage = {
+  route: '/finados/medios/',
+  title: 'Registro de medios',
+  description: 'Registro con cuenta para medios de comunicación que cubrirán Finados Mushuc Runa 2026.',
+  indexable: false,
+  bodyClass: 'media-accreditation-page',
+  designSystem: 'finados',
+  headerVariant: 'finados',
+  footerVariant: 'finados',
+  heroImage: '/assets/images/acreditacion-medios-periodista.jpg?v=20260909',
+  stylesheet: '/assets/media-accreditation.css?v=20260921-medios-1',
+  body: renderMediaLandingBody(),
+};
+
 const standsAccessPage = {
   route: '/acceso-compra-stands/',
   title: 'Acceso para compra de stands',
@@ -302,6 +318,7 @@ const standsAccessPage = {
 export const pages = Object.freeze([
   { route: '/admin/', title: 'Iniciar sesión', indexable: false, render: renderAdminLoginPage },
   { route: '/admin/voceros/', title: 'Voceros · Administración', indexable: false, render: renderAdminVocerosPage },
+  { route: '/admin/medios/', title: 'Medios · Administración', indexable: false, render: renderAdminMediosPage },
   ...mainPages,
   ...archivePages,
   finadosPreview,
@@ -310,6 +327,8 @@ export const pages = Object.freeze([
   voceroVerificationPage,
   ...['acceso', 'mi-registro', 'restablecer'].map(slug => ({ route: `/finados/voceros/${slug}/`, title: 'Cuenta de Vocero', indexable: false, render: renderVoceroPortalPage })),
   ...vocerosLegalPages,
+  finadosMediaPage,
+  ...['acceso', 'mi-registro', 'restablecer'].map(slug => ({ route: `/finados/medios/${slug}/`, title: 'Cuenta de medio', indexable: false, render: renderMediaPortalPage })),
   finadosDignitiesPage,
   standsAccessPage,
 ]);

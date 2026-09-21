@@ -253,7 +253,7 @@ test('development build uses its configured loopback API; production refuses ove
       assert.doesNotMatch(await readFile(join(root, 'production', file), 'utf8'), /VOCEROS_TEST_CONFIG|local_test_config|http:\/\/127\.0\.0\.1:/, file);
     }
     assert.match(await readFile(join(root, 'production/admin/index.html'), 'utf8'), /https:\/\/finados\.complejomushucruna\.com\/api/);
-    for (const file of files.filter((file) => !file.startsWith('admin/') && !file.startsWith('assets/admin/') && !/^finados\/voceros\/(acceso|mi-registro|restablecer)\//.test(file) && file !== 'assets/finados/vocero-portal.js')) {
+    for (const file of files.filter((file) => !file.startsWith('admin/') && !file.startsWith('assets/admin/') && !/^finados\/(?:voceros|medios)\/(acceso|mi-registro|restablecer)\//.test(file) && !['assets/finados/vocero-portal.js', 'assets/finados/media-portal.js'].includes(file))) {
       assert.deepEqual(await readFile(join(root, 'production', file)), await readFile(join(root, 'dev', file)), file);
     }
   } finally { await rm(root, { recursive: true, force: true }); }
