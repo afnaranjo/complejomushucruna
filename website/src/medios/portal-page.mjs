@@ -1,14 +1,16 @@
 import { readFileSync } from 'node:fs';
 import { escapeHtml as esc } from '../render/html.mjs';
+import { ecuadorProvinces } from '../media-accreditation/page.mjs';
 import { apiBasesForCsp, LOCAL_API_BASE, PRIMARY_API_BASE } from '../finados/runtime-origins.mjs';
 
 // Server-owned text is incorporated at build time and escaped as HTML, never fetched by the browser.
 const consents = JSON.parse(readFileSync(new URL('../../backend/finados-api/resources/media-consents.json', import.meta.url), 'utf8'));
-export const mediaPortalScriptVersion = '20260921-medios-2';
+export const mediaPortalScriptVersion = '20260921-medios-3';
 
 const email = id => `<label class="vocero-field" for="${id}"><span>Correo electrónico</span><input id="${id}" name="email" type="email" autocomplete="username" maxlength="254" autocapitalize="none" spellcheck="false" required></label>`;
 const password = (id, label, autocomplete) => `<label class="vocero-field" for="${id}"><span>${label}</span><input id="${id}" name="${id.includes('confirmation') ? 'confirmation' : 'password'}" type="password" autocomplete="${autocomplete}" minlength="${autocomplete === 'current-password' ? '1' : '10'}" maxlength="128" required></label>`;
 const required = ' <span aria-hidden="true">*</span>';
+const channel = (name, label, placeholder) => `<label class="vocero-field" for="${name}"><span>${label} <small>Opcional</small></span><input id="${name}" name="${name}" type="text" inputmode="url" maxlength="300" autocapitalize="none" spellcheck="false" placeholder="${placeholder}" data-media-channel></label>`;
 const field = (name, label, attrs) => `<label class="vocero-field" for="${name}"><span>${label}${required}</span><input id="${name}" name="${name}" ${attrs} required></label>`;
 
 function renderMediaForm() {
@@ -20,15 +22,32 @@ function renderMediaForm() {
 <div class="vocero-fields">
 ${field('media_name', 'Nombre del medio', 'type="text" maxlength="140" autocomplete="organization"')}
 ${field('frequency_channel', 'Frecuencia / canal', 'type="text" maxlength="120" placeholder="Ej.: 99.9 FM, canal 25 o solo digital"')}
-<label class="vocero-field media-field-wide" for="social_link"><span>Link de redes${required}</span><input id="social_link" name="social_link" type="text" inputmode="url" maxlength="300" autocapitalize="none" spellcheck="false" placeholder="Ej.: https://www.facebook.com/tumedio" required aria-describedby="social-help"><small id="social-help">Pega el enlace de la red social principal de tu medio.</small></label>
+<label class="vocero-field" for="province"><span>Provincia${required}</span><select id="province" name="province" autocomplete="address-level1" required><option value="">Selecciona una opción</option>${ecuadorProvinces.map(value => `<option value="${esc(value)}">${esc(value)}</option>`).join('')}</select></label>
+${field('city', 'Ciudad', 'type="text" maxlength="100" autocomplete="address-level2"')}
+</div></section>
+<section aria-labelledby="media-contact-title"><p class="vocero-eyebrow">02 · Contacto</p><h2 id="media-contact-title">Persona de contacto</h2>
+<div class="vocero-fields">
+${field('contact_name', 'Nombre y apellido', 'type="text" maxlength="160" autocomplete="name"')}
+${field('phone', 'Número telefónico / WhatsApp', 'type="tel" maxlength="25" autocomplete="tel" inputmode="tel" placeholder="Ej.: 0991234567"')}
+${field('contact_email', 'Correo de contacto', 'type="email" maxlength="180" autocomplete="email"')}
 <label class="vocero-field" for="account-email"><span>Correo de tu cuenta</span><input id="account-email" type="email" data-account-email readonly aria-describedby="account-email-help"><small id="account-email-help">Este correo está vinculado a la cuenta del medio.</small></label>
+</div></section>
+<section aria-labelledby="media-channels-title"><p class="vocero-eyebrow">03 · Canales del medio</p><h2 id="media-channels-title">Redes sociales y página web</h2>
+<p id="channels-help">Pega el enlace de cada canal que tenga tu medio. Completa al menos uno.</p>
+<div class="vocero-fields" aria-describedby="channels-help">
+${channel('facebook', 'Facebook', 'https://www.facebook.com/tumedio')}
+${channel('instagram', 'Instagram', 'https://www.instagram.com/tumedio')}
+${channel('tiktok', 'TikTok', 'https://www.tiktok.com/@tumedio')}
+${channel('youtube', 'YouTube', 'https://www.youtube.com/@tumedio')}
+${channel('website', 'Página web', 'https://www.tumedio.com')}
+${channel('other_link', 'Otro canal', 'X, Threads, WhatsApp Channel u otro')}
 </div></section>
 <label class="vocero-check"><input name="conditions_accepted" type="checkbox" required><span>${esc(consents.conditions.text)}${required}</span></label>
 <p class="vocero-field-help">La información se utilizará únicamente para gestionar el registro de tu medio y el contacto del evento.</p>
 <div class="vocero-save"><button class="vocero-primary" type="submit">Guardar registro</button></div>
 </fieldset></form>
 <section class="media-videos" aria-labelledby="media-videos-title" data-media-videos hidden>
-<p class="vocero-eyebrow">02 · Tus publicaciones</p><h2 id="media-videos-title">Videos publicados</h2>
+<p class="vocero-eyebrow">04 · Tus publicaciones</p><h2 id="media-videos-title">Videos publicados</h2>
 <p>Cada vez que tu medio publique un video sobre Finados Mushuc Runa 2026, pega aquí su link. Puedes agregar todos los que necesites.</p>
 <form data-media-video-form novalidate><fieldset disabled><label class="vocero-field" for="video_url"><span>Link del video${required}</span><input id="video_url" name="url" type="text" inputmode="url" maxlength="500" autocapitalize="none" spellcheck="false" placeholder="Ej.: https://www.tiktok.com/@tumedio/video/…" required></label><button class="vocero-primary" type="submit">Agregar video</button></fieldset></form>
 <p class="media-videos__count" data-media-video-count>Aún no has agregado videos.</p>

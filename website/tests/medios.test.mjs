@@ -7,7 +7,7 @@ import { join } from 'node:path';
 import { readdir } from 'node:fs/promises';
 import { buildSite } from '../scripts/build.mjs';
 import { primaryNavigation } from '../src/data/site.mjs';
-import { MediaApiClient, MediaError, MEDIA_FIELDS, normalizeLink, profilePayload } from '../src/finados/media-portal.js';
+import { MediaApiClient, MediaError, MEDIA_CHANNELS, MEDIA_FIELDS, normalizeLink, profilePayload } from '../src/finados/media-portal.js';
 import { collectVideoViews, createMediaAdminClient, MEDIA_STATUSES, normalizeMediaFilters, renderMediaSummary, safeLink, topMediaViews } from '../src/admin/admin-medios.js';
 import { topVideoViews } from '../src/admin/admin.js';
 
@@ -43,8 +43,10 @@ test('el build publica la landing, las cuentas de medios y su panel sin tocar la
 
   const profile = await readFile(join(output, 'finados/medios/mi-registro/index.html'), 'utf8');
   for (const name of [...MEDIA_FIELDS, 'conditions_accepted']) assert.match(profile, new RegExp(`name="${name}"`), name);
-  assert.deepEqual([...MEDIA_FIELDS], ['media_name', 'frequency_channel', 'social_link']);
-  for (const retired of ['people_count', 'team', 'media_type', 'program_name', 'province', 'contract', 'phone']) assert.doesNotMatch(profile, new RegExp(`name="${retired}"`), retired);
+  assert.deepEqual([...MEDIA_FIELDS], ['media_name', 'frequency_channel', 'contact_name', 'phone', 'contact_email', 'province', 'city', 'facebook', 'instagram', 'tiktok', 'youtube', 'website', 'other_link']);
+  for (const channel of MEDIA_CHANNELS) assert.doesNotMatch(new RegExp(`name="${channel}"[^>]*required`).exec(profile)?.[0] ?? '', /required/, channel);
+  assert.match(profile, /Completa al menos uno/);
+  for (const retired of ['people_count', 'team', 'media_type', 'program_name', 'contract', 'social_link']) assert.doesNotMatch(profile, new RegExp(`name="${retired}"`), retired);
   assert.match(profile, /data-media-video-form/);
   assert.match(profile, /Agregar video/);
 
@@ -87,18 +89,23 @@ test('el cliente de medios solo usa rutas permitidas, envía CSRF y no liga this
   assert.throws(() => new MediaApiClient('https://example.invalid/api'), /Origen de API no permitido/);
 });
 
-test('el registro de medios arma el contrato exacto y normaliza los links', () => {
+test('el registro de medios arma el contrato exacto, exige contacto y al menos un canal', () => {
   const data = new FormData();
-  for (const [name, value] of Object.entries({ media_name: ' Radio Prueba ', frequency_channel: '99.9 FM', social_link: 'facebook.com/radioprueba' })) data.set(name, value);
+  const values = { media_name: ' Radio Prueba ', frequency_channel: '99.9 FM', contact_name: 'Persona Responsable', phone: '0991234567', contact_email: 'prensa@example.invalid',
+    province: 'Tungurahua', city: 'Ambato', facebook: 'facebook.com/radioprueba', instagram: '', tiktok: '', youtube: '', website: 'radioprueba.example', other_link: '' };
+  for (const [name, value] of Object.entries(values)) data.set(name, value);
   assert.throws(() => profilePayload(data), /condiciones/);
   data.set('conditions_accepted', 'on');
-  assert.deepEqual(profilePayload(data), { media_name: 'Radio Prueba', frequency_channel: '99.9 FM', social_link: 'https://facebook.com/radioprueba', conditions_accepted: true });
+  assert.deepEqual(profilePayload(data), { ...values, media_name: 'Radio Prueba', facebook: 'https://facebook.com/radioprueba', website: 'https://radioprueba.example', conditions_accepted: true });
   assert.equal(normalizeLink('http://www.tiktok.com/@radio/video/1', 500), 'https://www.tiktok.com/@radio/video/1');
   for (const invalid of ['', 'no es un link', 'javascript:alert(1)', 'https://usuario:clave@example.com/', 'https://localhost/video']) assert.throws(() => normalizeLink(invalid), /link válido/, invalid);
-  data.set('social_link', 'sin enlace');
-  assert.throws(() => profilePayload(data), /link válido/);
-  data.set('social_link', 'https://instagram.com/radio'); data.set('frequency_channel', ' ');
-  assert.throws(() => profilePayload(data), /nombre del medio y su frecuencia/);
+  const broken = (name, value, message) => { const copy = new FormData(); for (const [key, item] of data.entries()) copy.set(key, item); copy.set(name, value); assert.throws(() => profilePayload(copy), message, name); };
+  broken('instagram', 'sin enlace', /link válido/);
+  broken('phone', 'abc', /número telefónico/);
+  broken('contact_email', 'correo', /correo de contacto/);
+  broken('city', ' ', /ubicación/);
+  const noChannels = new FormData(); for (const [key, item] of data.entries()) noChannels.set(key, MEDIA_CHANNELS.includes(key) ? '' : item);
+  assert.throws(() => profilePayload(noChannels), /al menos un canal/);
 });
 
 test('el medio agrega links de video con CSRF por la ruta permitida', async () => {
@@ -121,7 +128,7 @@ test('el panel de medios normaliza filtros, resume estados y restringe sus rutas
   assert.throws(() => normalizeMediaFilters({ status: 'Eliminado' }), /estado válido/);
   assert.deepEqual(MEDIA_STATUSES, ['Nuevo', 'En revisión', 'Aprobado', 'Rechazado']);
   assert.deepEqual(renderMediaSummary({ total: 3, byStatus: { Nuevo: 2, Aprobado: 1 }, videos: 5, views: 0 }).map(item => item.value), [3, 2, 1, 5, '0']);
-  assert.deepEqual(normalizeMediaFilters({ media_type: 'TV', province: 'Azuay' }), { page: 1, pageSize: 25 });
+  assert.deepEqual(normalizeMediaFilters({ media_type: 'TV', province: 'Azuay' }), { province: 'Azuay', page: 1, pageSize: 25 });
   assert.equal(safeLink('https://www.tiktok.com/@radio/video/1'), 'https://www.tiktok.com/@radio/video/1');
   for (const unsafe of ['javascript:alert(1)', 'http://example.com/', 'texto']) assert.equal(safeLink(unsafe), '', unsafe);
   const calls = [];

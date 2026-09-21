@@ -5,7 +5,8 @@ const LOCAL_API = 'http://127.0.0.1:4174/api';
 const ACCESS = '/finados/medios/acceso/?modo=login';
 const PROFILE = '/finados/medios/mi-registro/';
 
-export const MEDIA_FIELDS = Object.freeze(['media_name', 'frequency_channel', 'social_link']);
+export const MEDIA_CHANNELS = Object.freeze(['facebook', 'instagram', 'tiktok', 'youtube', 'website', 'other_link']);
+export const MEDIA_FIELDS = Object.freeze(['media_name', 'frequency_channel', 'contact_name', 'phone', 'contact_email', 'province', 'city', ...MEDIA_CHANNELS]);
 export const STATUS_HELP = Object.freeze({
   Nuevo: 'Recibimos tu registro. Puedes actualizarlo mientras el equipo lo revisa.',
   'En revisión': 'El equipo de Finados Mushuc Runa está revisando tu registro. Aún puedes actualizarlo.',
@@ -93,8 +94,11 @@ export function normalizeLink(value, max = 300) {
 export function profilePayload(data) {
   const body = {};
   for (const name of MEDIA_FIELDS) body[name] = String(data.get(name) ?? '').trim();
-  if (!body.media_name || !body.frequency_channel) throw new Error('Completa el nombre del medio y su frecuencia o canal.');
-  body.social_link = normalizeLink(body.social_link);
+  for (const name of ['media_name', 'frequency_channel', 'contact_name', 'province', 'city']) if (!body[name]) throw new Error('Completa los datos del medio, su ubicación y la persona de contacto.');
+  if (!/^\+?[0-9][0-9 ()-]{6,23}$/.test(body.phone)) throw new Error('Escribe un número telefónico válido, por ejemplo 0991234567.');
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(body.contact_email)) throw new Error('Escribe un correo de contacto válido.');
+  for (const name of MEDIA_CHANNELS) if (body[name]) body[name] = normalizeLink(body[name]);
+  if (!MEDIA_CHANNELS.some(name => body[name])) throw new Error('Agrega al menos un canal: una red social o la página web de tu medio.');
   if (data.get('conditions_accepted') === null) throw new Error('Debes aceptar las condiciones de acreditación.');
   body.conditions_accepted = true;
   return body;
@@ -188,6 +192,7 @@ export async function initializeMediaPortal(root = document) {
   function populate(profile) {
     editable = profile.editable !== false;
     profileForm.querySelector('[data-account-email]').value = profile.email ?? '';
+    if (!profile.registered && !profileForm.elements.namedItem('contact_email').value) profileForm.elements.namedItem('contact_email').value = profile.email ?? '';
     if (profile.registered) {
       for (const name of MEDIA_FIELDS) profileForm.elements.namedItem(name).value = String(profile[name] ?? '');
       profileForm.elements.namedItem('conditions_accepted').checked = true;

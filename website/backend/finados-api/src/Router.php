@@ -40,7 +40,7 @@ final class Router
     private readonly Audit $audit;
     private readonly Crypto $crypto;
     private const FILTERS = ['search', 'status', 'city', 'main_network', 'previous_participation', 'date_from', 'date_to'];
-    private const MEDIA_FILTERS = ['search', 'status'];
+    private const MEDIA_FILTERS = ['search', 'status', 'province'];
     private const METHODS = ['GET', 'POST', 'PATCH', 'OPTIONS'];
 
     public function __construct(private readonly Config $config, private readonly PDO $pdo)
@@ -531,7 +531,7 @@ final class Router
 
     private function mediaExport(array $filters, int $actorId, string $ip, array $headers): Response
     {
-        $columns = ['public_id', 'status', 'submitted_at', 'media_name', 'frequency_channel', 'social_link', 'account_email', 'videos_count', 'views_total', 'video_links'];
+        $columns = ['public_id', 'status', 'submitted_at', 'media_name', 'frequency_channel', 'contact_name', 'phone', 'contact_email', 'account_email', 'province', 'city', 'facebook', 'instagram', 'tiktok', 'youtube', 'website', 'other_link', 'videos_count', 'views_total', 'video_links'];
         $stream = fopen('php://temp/maxmemory:2097152', 'w+');
         if ($stream === false) throw new \RuntimeException();
         try {

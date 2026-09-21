@@ -61,3 +61,5 @@
 .admin-media-videos label { display: grid; gap: .3rem; font-size: .8rem; font-weight: 700; }
 .admin-media-videos input { width: 100%; }
 @media (max-width: 640px) { .admin-media-videos li { grid-template-columns: 1fr; } }
+.admin-media-channels { display: flex; flex-wrap: wrap; gap: .25rem .6rem; }
+.admin-media-channels a { font-weight: 700; font-size: .8rem; }

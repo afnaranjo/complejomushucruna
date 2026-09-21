@@ -18,14 +18,24 @@ require_once __DIR__ . '/Audit.php';
 final class MediaRepository
 {
     public const STATUSES = ['Nuevo', 'En revisión', 'Aprobado', 'Rechazado'];
-    public const FIELDS = ['media_name', 'frequency_channel', 'social_link', 'conditions_accepted'];
+    public const PROVINCES = [
+        'Azuay', 'Bolívar', 'Cañar', 'Carchi', 'Chimborazo', 'Cotopaxi', 'El Oro', 'Esmeraldas', 'Galápagos', 'Guayas',
+        'Imbabura', 'Loja', 'Los Ríos', 'Manabí', 'Morona Santiago', 'Napo', 'Orellana', 'Pastaza', 'Pichincha',
+        'Santa Elena', 'Santo Domingo de los Tsáchilas', 'Sucumbíos', 'Tungurahua', 'Zamora Chinchipe',
+    ];
+    /** Public channels of a medium; every one is optional but at least one is required. */
+    public const CHANNELS = ['facebook', 'instagram', 'tiktok', 'youtube', 'website', 'other_link'];
+    public const FIELDS = ['media_name', 'frequency_channel', 'contact_name', 'phone', 'contact_email', 'province', 'city',
+        'facebook', 'instagram', 'tiktok', 'youtube', 'website', 'other_link', 'conditions_accepted'];
     public const MAX_VIDEOS = 100;
     private const ARCHIVED = 'Eliminado';
     private const EDITABLE = ['Nuevo', 'En revisión'];
-    private const PLAIN = ['media_name', 'frequency_channel', 'social_link'];
+    // social_link keeps the first declared channel so lists and searches have one primary link.
+    private const PLAIN = ['media_name', 'frequency_channel', 'province', 'city', 'social_link', 'facebook', 'instagram', 'tiktok', 'youtube', 'website', 'other_link'];
+    private const ENCRYPTED = ['contact_name', 'phone', 'contact_email'];
     // Columns from the first accreditation form (008). They stay in the schema, unused, so no data is ever dropped.
-    private const LEGACY_PLAIN = ['media_type' => '', 'program_name' => '', 'program_type' => '', 'province' => '', 'city' => '', 'contract' => '', 'people_count' => 0];
-    private const LEGACY_ENCRYPTED = ['team_enc', 'phone_enc', 'contact_email_enc'];
+    private const LEGACY_PLAIN = ['media_type' => '', 'program_name' => '', 'program_type' => '', 'contract' => '', 'people_count' => 0];
+    private const LEGACY_ENCRYPTED = ['team_enc'];
     private readonly Audit $audit;
     private readonly array $conditions;
 
@@ -66,6 +76,7 @@ final class MediaRepository
             $existing = $statement->fetch();
             $values = [];
             foreach (self::PLAIN as $field) $values[$field] = $record[$field];
+            foreach (self::ENCRYPTED as $field) $values[$field . '_enc'] = $this->crypto->encrypt($record[$field]);
             $values += [
                 'conditions_version' => $this->conditions['version'], 'conditions_hash' => hash('sha256', $this->conditions['text']),
                 'conditions_accepted_at' => $now, 'updated_at' => $now,
@@ -105,19 +116,24 @@ final class MediaRepository
             if (!in_array($status, self::STATUSES, true)) throw new InvalidArgumentException();
             $where[] = 'status = ?'; $parameters[] = $status;
         }
+        $province = trim((string) ($filters['province'] ?? ''));
+        if ($province !== '') {
+            if (!in_array($province, self::PROVINCES, true)) throw new InvalidArgumentException();
+            $where[] = 'province = ?'; $parameters[] = $province;
+        }
         $search = trim((string) ($filters['search'] ?? ''));
         if (self::length($search) > 100) throw new InvalidArgumentException();
         if ($search !== '') {
             // Both supported collations already compare LIKE without case sensitivity.
             $like = '%' . addcslashes($search, '\\%_') . '%';
-            $where[] = "(media_name LIKE ? ESCAPE '\\' OR frequency_channel LIKE ? ESCAPE '\\' OR social_link LIKE ? ESCAPE '\\')";
+            $where[] = "(media_name LIKE ? ESCAPE '\\' OR frequency_channel LIKE ? ESCAPE '\\' OR city LIKE ? ESCAPE '\\')";
             array_push($parameters, $like, $like, $like);
         }
         $condition = implode(' AND ', $where);
         $count = $this->pdo->prepare('SELECT COUNT(*) FROM media_profiles WHERE ' . $condition);
         $count->execute($parameters);
         $total = (int) $count->fetchColumn();
-        $rows = $this->pdo->prepare('SELECT public_id, status, media_name, frequency_channel, social_link, submitted_at, (SELECT COUNT(*) FROM media_videos v WHERE v.profile_id = media_profiles.id) AS videos_count, (SELECT COALESCE(SUM(v.views_count), 0) FROM media_videos v WHERE v.profile_id = media_profiles.id) AS views_total FROM media_profiles WHERE ' . $condition . ' ORDER BY submitted_at DESC, id DESC LIMIT ' . $perPage . ' OFFSET ' . (($page - 1) * $perPage));
+        $rows = $this->pdo->prepare('SELECT public_id, status, media_name, frequency_channel, province, city, social_link, facebook, instagram, tiktok, youtube, website, other_link, submitted_at, (SELECT COUNT(*) FROM media_videos v WHERE v.profile_id = media_profiles.id) AS videos_count, (SELECT COALESCE(SUM(v.views_count), 0) FROM media_videos v WHERE v.profile_id = media_profiles.id) AS views_total FROM media_profiles WHERE ' . $condition . ' ORDER BY submitted_at DESC, id DESC LIMIT ' . $perPage . ' OFFSET ' . (($page - 1) * $perPage));
         $rows->execute($parameters);
         $items = array_map(static fn (array $row): array => [...$row, 'videos_count' => (int) $row['videos_count'], 'views_total' => (int) $row['views_total']], $rows->fetchAll(PDO::FETCH_ASSOC));
         return ['items' => $items, 'page' => $page, 'per_page' => $perPage, 'total' => $total];
@@ -253,11 +269,28 @@ final class MediaRepository
             if ($value === '' || self::length($value) > $max) throw new InvalidArgumentException();
             return $value;
         };
-        return [
+        $phone = $text($input['phone'], 25);
+        if (preg_match('/^\+?[0-9][0-9 ()-]{6,23}$/D', $phone) !== 1) throw new InvalidArgumentException();
+        $email = strtolower($text($input['contact_email'], 180));
+        if (filter_var($email, FILTER_VALIDATE_EMAIL) === false) throw new InvalidArgumentException();
+        if (!is_string($input['province']) || !in_array($input['province'], self::PROVINCES, true)) throw new InvalidArgumentException();
+        $record = [
             'media_name' => $text($input['media_name'], 140),
             'frequency_channel' => $text($input['frequency_channel'], 120),
-            'social_link' => self::link($input['social_link'], 300),
+            'contact_name' => $text($input['contact_name'], 160),
+            'phone' => $phone,
+            'contact_email' => $email,
+            'province' => $input['province'],
+            'city' => $text($input['city'], 100),
         ];
+        foreach (self::CHANNELS as $channel) {
+            if (!is_string($input[$channel])) throw new InvalidArgumentException();
+            $record[$channel] = trim($input[$channel]) === '' ? '' : self::link($input[$channel], 300);
+        }
+        $declared = array_values(array_filter(array_map(static fn (string $channel): string => $record[$channel], self::CHANNELS)));
+        if ($declared === []) throw new InvalidArgumentException();
+        $record['social_link'] = $declared[0];
+        return $record;
     }
 
     /** Public https link; a bare "facebook.com/medio" is accepted and normalized. */
@@ -340,6 +373,7 @@ final class MediaRepository
     {
         $result = ['public_id' => $row['public_id'], 'status' => $row['status'], 'submitted_at' => $row['submitted_at'], 'updated_at' => $row['updated_at']];
         foreach (self::PLAIN as $field) $result[$field] = (string) $row[$field];
+        foreach (self::ENCRYPTED as $field) $result[$field] = ($row[$field . '_enc'] ?? null) === null || $row[$field . '_enc'] === '' ? '' : $this->crypto->decrypt($row[$field . '_enc']);
         return $result;
     }
 

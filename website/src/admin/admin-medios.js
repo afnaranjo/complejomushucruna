@@ -3,11 +3,14 @@ import { MIRROR_API_BASE, PRIMARY_API_BASE, resolveRuntimeOrigins } from '../fin
 export const MEDIA_STATUSES = Object.freeze(['Nuevo', 'En revisión', 'Aprobado', 'Rechazado']);
 const API = PRIMARY_API_BASE;
 const LOCAL_API = 'http://127.0.0.1:4174/api';
-const FILTERS = ['search', 'status'];
+const FILTERS = ['search', 'status', 'province'];
 const DETAIL_FIELDS = Object.freeze([
-  ['media_name', 'Nombre del medio'], ['frequency_channel', 'Frecuencia / canal'], ['social_link', 'Link de redes'], ['account_email', 'Correo de la cuenta'],
+  ['media_name', 'Nombre del medio'], ['frequency_channel', 'Frecuencia / canal'], ['province', 'Provincia'], ['city', 'Ciudad'],
+  ['contact_name', 'Persona de contacto'], ['phone', 'Número telefónico'], ['contact_email', 'Correo de contacto'], ['account_email', 'Correo de la cuenta'],
+  ['facebook', 'Facebook'], ['instagram', 'Instagram'], ['tiktok', 'TikTok'], ['youtube', 'YouTube'], ['website', 'Página web'], ['other_link', 'Otro canal'],
 ]);
-const LINK_FIELDS = new Set(['social_link']);
+export const CHANNEL_LABELS = Object.freeze({ facebook: 'Facebook', instagram: 'Instagram', tiktok: 'TikTok', youtube: 'YouTube', website: 'Web', other_link: 'Otro' });
+const LINK_FIELDS = new Set(Object.keys(CHANNEL_LABELS));
 
 export function normalizeMediaFilters(input = {}) {
   const result = {};
@@ -248,7 +251,16 @@ export async function initializeMediaAdmin() {
         };
         cell('Medio', record.media_name).className = 'record-name';
         cell('Frecuencia', record.frequency_channel);
-        cell('Redes', '').replaceChildren(linkNode(record.social_link));
+        cell('Ubicación', record.city || '—', record.province);
+        const channels = node('span', undefined, 'admin-media-channels');
+        for (const [key, label] of Object.entries(CHANNEL_LABELS)) {
+          const href = safeLink(record[key]);
+          if (!href) continue;
+          const anchor = node('a', label); anchor.href = href; anchor.target = '_blank'; anchor.rel = 'noopener noreferrer';
+          channels.append(anchor);
+        }
+        if (!channels.childElementCount) channels.textContent = '—';
+        cell('Canales', '').replaceChildren(channels);
         cell('Videos', record.videos_count === 1 ? '1 video' : `${record.videos_count ?? 0} videos`, `${new Intl.NumberFormat('es-EC').format(record.views_total ?? 0)} views`);
         cell('Registro', dateTime(record.submitted_at));
         const badge = node('span', record.status, 'status-badge'); badge.dataset.status = record.status;
