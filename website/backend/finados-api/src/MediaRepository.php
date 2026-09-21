@@ -117,9 +117,9 @@ final class MediaRepository
         $count = $this->pdo->prepare('SELECT COUNT(*) FROM media_profiles WHERE ' . $condition);
         $count->execute($parameters);
         $total = (int) $count->fetchColumn();
-        $rows = $this->pdo->prepare('SELECT public_id, status, media_name, frequency_channel, social_link, submitted_at, (SELECT COUNT(*) FROM media_videos v WHERE v.profile_id = media_profiles.id) AS videos_count FROM media_profiles WHERE ' . $condition . ' ORDER BY submitted_at DESC, id DESC LIMIT ' . $perPage . ' OFFSET ' . (($page - 1) * $perPage));
+        $rows = $this->pdo->prepare('SELECT public_id, status, media_name, frequency_channel, social_link, submitted_at, (SELECT COUNT(*) FROM media_videos v WHERE v.profile_id = media_profiles.id) AS videos_count, (SELECT COALESCE(SUM(v.views_count), 0) FROM media_videos v WHERE v.profile_id = media_profiles.id) AS views_total FROM media_profiles WHERE ' . $condition . ' ORDER BY submitted_at DESC, id DESC LIMIT ' . $perPage . ' OFFSET ' . (($page - 1) * $perPage));
         $rows->execute($parameters);
-        $items = array_map(static fn (array $row): array => [...$row, 'videos_count' => (int) $row['videos_count']], $rows->fetchAll(PDO::FETCH_ASSOC));
+        $items = array_map(static fn (array $row): array => [...$row, 'videos_count' => (int) $row['videos_count'], 'views_total' => (int) $row['views_total']], $rows->fetchAll(PDO::FETCH_ASSOC));
         return ['items' => $items, 'page' => $page, 'per_page' => $perPage, 'total' => $total];
     }
 
@@ -131,7 +131,21 @@ final class MediaRepository
         foreach ($query as $row) if (isset($statuses[$row['status']])) $statuses[$row['status']] = (int) $row['count'];
         $videos = $this->pdo->prepare('SELECT COUNT(*) FROM media_videos v JOIN media_profiles m ON m.id = v.profile_id WHERE m.status <> ?');
         $videos->execute([self::ARCHIVED]);
-        return ['total' => array_sum($statuses), 'byStatus' => $statuses, 'videos' => (int) $videos->fetchColumn()];
+        $views = $this->pdo->prepare('SELECT COALESCE(SUM(v.views_count), 0) FROM media_videos v JOIN media_profiles m ON m.id = v.profile_id WHERE m.status <> ?');
+        $views->execute([self::ARCHIVED]);
+        return ['total' => array_sum($statuses), 'byStatus' => $statuses, 'videos' => (int) $videos->fetchColumn(), 'views' => (int) $views->fetchColumn()];
+    }
+
+    /** Media ranked by the validated views of all their reported videos. */
+    public function topByViews(int $limit = 20): array
+    {
+        $limit = max(1, min(50, $limit));
+        $query = $this->pdo->prepare('SELECT m.public_id, m.media_name, m.frequency_channel, COUNT(v.id) AS videos_count, SUM(v.views_count) AS views_total, MAX(v.views_count) AS best_video_views FROM media_profiles m JOIN media_videos v ON v.profile_id = m.id WHERE m.status <> ? GROUP BY m.id, m.public_id, m.media_name, m.frequency_channel HAVING SUM(v.views_count) > 0 ORDER BY views_total DESC, m.media_name ASC LIMIT ' . $limit);
+        $query->execute([self::ARCHIVED]);
+        return array_map(static fn (array $row): array => [
+            'public_id' => (string) $row['public_id'], 'media_name' => (string) $row['media_name'], 'frequency_channel' => (string) $row['frequency_channel'],
+            'videos_count' => (int) $row['videos_count'], 'views_total' => (int) $row['views_total'], 'best_video_views' => (int) $row['best_video_views'],
+        ], $query->fetchAll(PDO::FETCH_ASSOC));
     }
 
     public function find(string $publicId): ?array
@@ -148,7 +162,7 @@ final class MediaRepository
             'account_email' => $owner ? $this->crypto->decrypt($owner['email_enc']) : '',
             'account_active' => $owner ? (int) $owner['active'] === 1 : false,
             'last_login_at' => $owner['last_login_at'] ?? null,
-            'videos' => $this->videos((int) $row['id']),
+            'videos' => $this->videos((int) $row['id'], true),
             'notes' => array_map(static fn (array $note): array => [...$note, 'id' => (int) $note['id']], $notes->fetchAll(PDO::FETCH_ASSOC)),
         ];
     }
@@ -290,11 +304,36 @@ final class MediaRepository
         return $this->videos((int) $profile['id']);
     }
 
-    private function videos(int $profileId): array
+    /** Validated views are entered by administration beside each reported link. */
+    public function updateVideoViews(string $publicId, mixed $input, int $actorId, string $ip = ''): void
     {
-        $statement = $this->pdo->prepare('SELECT url, created_at FROM media_videos WHERE profile_id = ? ORDER BY created_at DESC, id DESC');
+        if ($input instanceof \stdClass) $input = (array) $input;
+        if (!is_array($input) || $input === [] || count($input) > self::MAX_VIDEOS) throw new InvalidArgumentException();
+        $views = [];
+        foreach ($input as $id => $count) {
+            $id = filter_var($id, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+            $count = is_int($count) ? filter_var($count, FILTER_VALIDATE_INT, ['options' => ['min_range' => 0, 'max_range' => 1000000000]]) : false;
+            if ($id === false || $count === false) throw new InvalidArgumentException();
+            $views[$id] = $count;
+        }
+        $this->mutate($publicId, function (array $row) use ($views, $actorId, $ip, $publicId): void {
+            $owned = $this->pdo->prepare('SELECT id FROM media_videos WHERE profile_id = ?');
+            $owned->execute([$row['id']]);
+            $ids = array_map('intval', $owned->fetchAll(PDO::FETCH_COLUMN));
+            if (array_diff(array_keys($views), $ids) !== []) throw new InvalidArgumentException();
+            $update = $this->pdo->prepare('UPDATE media_videos SET views_count = ? WHERE id = ? AND profile_id = ?');
+            foreach ($views as $id => $count) $update->execute([$count, $id, $row['id']]);
+            $this->audit->log('media.video_views_updated', $actorId, 'media_profile', $publicId, ['count' => count($views)], $ip);
+        });
+    }
+
+    private function videos(int $profileId, bool $administrative = false): array
+    {
+        $statement = $this->pdo->prepare('SELECT id, url, created_at, views_count FROM media_videos WHERE profile_id = ? ORDER BY created_at DESC, id DESC');
         $statement->execute([$profileId]);
-        return $statement->fetchAll(PDO::FETCH_ASSOC);
+        return array_map(static fn (array $row): array => $administrative
+            ? ['id' => (int) $row['id'], 'url' => (string) $row['url'], 'created_at' => (string) $row['created_at'], 'views_count' => (int) $row['views_count']]
+            : ['url' => (string) $row['url'], 'created_at' => (string) $row['created_at']], $statement->fetchAll(PDO::FETCH_ASSOC));
     }
 
     private function present(array $row): array

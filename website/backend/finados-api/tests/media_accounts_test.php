@@ -34,7 +34,7 @@ function media_json(array $payload): string { return json_encode($payload, JSON_
 media_close_session();
 $config = media_config();
 $pdo = Database::connect($config);
-foreach (['001_initial', '002_sheets_outbox', '003_vocero_accounts', '008_media_accounts', '009_media_videos'] as $migration) {
+foreach (['001_initial', '002_sheets_outbox', '003_vocero_accounts', '008_media_accounts', '009_media_videos', '010_media_video_views'] as $migration) {
     $pdo->exec(file_get_contents(__DIR__ . '/../migrations/' . $migration . '_sqlite.sql'));
 }
 same('008_media_accounts', $pdo->query("SELECT version FROM schema_migrations WHERE version = '008_media_accounts'")->fetchColumn());
@@ -120,6 +120,23 @@ $detail = media_body($router->handle('GET', '/api/medios/' . $publicId, $origin)
 same('https://facebook.com/radioprueba', $detail['social_link']);
 same('https://youtube.com/watch?v=abc', $detail['videos'][0]['url']);
 same('radio@example.invalid', $detail['account_email']);
+// Administration validates the views beside each reported link; they feed the Top 20.
+same([], $list['topViews']);
+same(false, array_key_exists('views_count', media_body($router->handle('GET', '/api/medios/' . $publicId, $origin))['videos'][0]) === false);
+$videoIds = array_column($detail['videos'], 'id', 'url');
+same(2, count($videoIds));
+$tiktok = $videoIds['https://www.tiktok.com/@radio/video/1']; $youtube = $videoIds['https://youtube.com/watch?v=abc'];
+same(['ok' => true], media_body($router->handle('PATCH', '/api/medios/' . $publicId . '/video-views', $admin, media_json(['video_views' => [(string) $tiktok => 1500, (string) $youtube => 800]]))));
+same(422, $router->handle('PATCH', '/api/medios/' . $publicId . '/video-views', $admin, media_json(['video_views' => ['999999' => 10]]))->status);
+same(422, $router->handle('PATCH', '/api/medios/' . $publicId . '/video-views', $admin, media_json(['video_views' => [(string) $tiktok => -1]]))->status);
+same(422, $router->handle('PATCH', '/api/medios/' . $publicId . '/video-views', $admin, media_json(['video_views' => [(string) $tiktok => '1500']]))->status);
+$ranked = media_body($router->handle('GET', '/api/medios', $origin));
+same(1, count($ranked['topViews']));
+same('Radio Prueba', $ranked['topViews'][0]['media_name']);
+same(2300, $ranked['topViews'][0]['views_total']);
+same(1500, $ranked['topViews'][0]['best_video_views']);
+same(2300, $ranked['items'][0]['views_total']);
+same(2300, $ranked['summary']['views']);
 same(422, $router->handle('PATCH', '/api/medios/' . $publicId, $admin, media_json(['status' => 'Eliminado']))->status);
 same(['ok' => true], media_body($router->handle('PATCH', '/api/medios/' . $publicId, $admin, media_json(['status' => 'Aprobado']))));
 same(201, $router->handle('POST', '/api/medios/' . $publicId . '/notes', $admin, media_json(['body' => 'Credenciales listas.']))->status);
@@ -129,7 +146,8 @@ same('Credenciales listas.', $detail['notes'][0]['body']);
 $export = $router->handle('POST', '/api/medios/export', $admin, media_json(['status' => 'Aprobado']));
 same(200, $export->status);
 same(true, str_contains($export->body, 'Radio Prueba'));
-same(true, str_contains($export->body, 'https://www.tiktok.com/@radio/video/1 | ') || str_contains($export->body, ' | https://www.tiktok.com/@radio/video/1'));
+same(true, str_contains($export->body, 'https://www.tiktok.com/@radio/video/1 (1500 views)'));
+same(true, str_contains($export->body, ',2300,'));
 same('text/csv; charset=utf-8', $export->headers['Content-Type']);
 $reset = media_body($router->handle('POST', '/api/medios/' . $publicId . '/password-reset', $admin, '{}'));
 same(1, preg_match('~^https://example\.invalid/finados/medios/restablecer/\?token=([a-f0-9]{64})$~D', $reset['resetUrl'], $token));
@@ -151,6 +169,8 @@ $own = media_body($router->handle('GET', '/api/media/profile', $origin));
 same('Aprobado', $own['status']);
 same(false, $own['editable']);
 same(false, array_key_exists('notes', $own));
+same(false, array_key_exists('views_count', $own['videos'][0]));
+same(false, array_key_exists('id', $own['videos'][0]));
 same(403, $router->handle('POST', '/api/media/profile', $json($relogin['csrf']), media_json($record))->status);
 // An approved medium can no longer edit its record, but keeps reporting published videos.
 $relogin = ['csrf' => media_body($router->handle('GET', '/api/media/auth/session', $origin))['csrf']] + $relogin;

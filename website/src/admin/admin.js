@@ -42,7 +42,7 @@ export function topFollowers(items = [], limit = 20) {
     .sort((left, right) => right.followers_count - left.followers_count || left.full_name.localeCompare(right.full_name, 'es'))
     .slice(0, Math.max(0, Number.parseInt(limit, 10) || 0));
 }
-export function topVideoViews(items = [], limit = 10) {
+export function topVideoViews(items = [], limit = 20) {
   return (Array.isArray(items) ? items : [])
     .map(item => ({ ...item, views_count: Math.max(0, Number.parseInt(item?.views_count, 10) || 0), slot: Math.max(1, Math.min(5, Number.parseInt(item?.slot, 10) || 1)) }))
     .filter(item => item.views_count > 0 && typeof item.full_name === 'string' && item.full_name.trim() !== '')
@@ -405,7 +405,7 @@ export async function initializeAdmin() {
     }
   }
   function renderVideoViewsLeaderboard(items = []) {
-    const ranking = topVideoViews(items, 10);
+    const ranking = topVideoViews(items, 20);
     videoViewsLeaderboard.replaceChildren();
     videoViewsLeaderboardCount.textContent = ranking.length ? `${ranking.length} videos` : 'Sin datos';
     if (!ranking.length) {

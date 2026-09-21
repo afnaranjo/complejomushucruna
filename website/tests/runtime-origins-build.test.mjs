@@ -40,7 +40,7 @@ test('build multi-origen publica todas las dependencias ESM y renueva los client
     ['finados/voceros/verificar', 'finados/vocero-verification.js'],
   ]) {
     const html = await readFile(join(output, route, 'index.html'), 'utf8');
-    const version = script === 'admin/admin.js' ? '20260918-admin-video-views-1' : script === 'finados/vocero-verification.js' ? '20260918-multi-origin-1' : '20260918-navigation-progress-1';
+    const version = script === 'admin/admin.js' ? '20260921-admin-top20-1' : script === 'finados/vocero-verification.js' ? '20260918-multi-origin-1' : '20260918-navigation-progress-1';
     assert.ok(html.includes(`/assets/${script}?v=${version}`),
       `Versión de caché sin renovar: ${route}`);
   }
@@ -59,7 +59,7 @@ test('build multi-origen publica todas las dependencias ESM y renueva los client
     }
     for (const [, , query] of [...html.matchAll(/(?:src|href)="(\/assets\/[^"?]+)(?:\?([^" ]+))?"/g)]
       .filter(([, path]) => path === '/assets/admin/admin.js')) {
-      assert.equal(new URLSearchParams(query).get('v'), '20260918-admin-video-views-1', `${file}: admin/admin.js`);
+      assert.equal(new URLSearchParams(query).get('v'), '20260921-admin-top20-1', `${file}: admin/admin.js`);
       assert.ok(files.has('assets/admin/admin.js'), 'Recurso sin publicar: admin/admin.js');
     }
   }

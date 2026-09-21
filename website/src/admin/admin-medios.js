@@ -28,7 +28,30 @@ export function renderMediaSummary(data = {}) {
     { label: 'Nuevos', value: data.byStatus?.Nuevo ?? 0 },
     { label: 'Aprobados', value: data.byStatus?.Aprobado ?? 0 },
     { label: 'Videos recibidos', value: data.videos ?? 0 },
+    { label: 'Views validadas', value: new Intl.NumberFormat('es-EC').format(data.views ?? 0) },
   ];
+}
+
+/** Media ranked by total validated views; mirrors the server order and tolerates partial rows. */
+export function topMediaViews(items = [], limit = 20) {
+  return (Array.isArray(items) ? items : [])
+    .map(item => ({ ...item, views_total: Math.max(0, Number.parseInt(item?.views_total, 10) || 0), videos_count: Math.max(0, Number.parseInt(item?.videos_count, 10) || 0) }))
+    .filter(item => item.views_total > 0 && typeof item.media_name === 'string' && item.media_name.trim() !== '')
+    .sort((left, right) => right.views_total - left.views_total || left.media_name.localeCompare(right.media_name, 'es'))
+    .slice(0, Math.max(0, Number.parseInt(limit, 10) || 0));
+}
+
+/** Reads the views typed beside each video; every value must be a whole number from 0 to 1.000.000.000. */
+export function collectVideoViews(inputs) {
+  const views = {};
+  for (const input of inputs) {
+    const id = String(input.dataset?.videoId ?? '');
+    const text = String(input.value ?? '').trim();
+    if (!/^[1-9][0-9]{0,15}$/.test(id) || !/^[0-9]{1,10}$/.test(text) || Number(text) > 1000000000) throw new Error('Escribe las views como números enteros, sin puntos ni comas.');
+    views[id] = Number(text);
+  }
+  if (Object.keys(views).length === 0) throw new Error('Este medio todavía no tiene videos.');
+  return views;
 }
 
 export class MediaAdminError extends Error {
@@ -43,7 +66,7 @@ export function createMediaAdminClient(baseUrl = API, fetchImplementation = fetc
   let csrf = '';
   async function request(path, options = {}) {
     if (!/^\/(?:auth\/(?:session|logout)|media-accounts|medios(?:\/export)?)(?:\?[^#]*)?$/.test(path)
-      && !/^\/medios\/[a-f0-9]{32}(?:\/(?:delete|notes|password-reset))?$/.test(path)
+      && !/^\/medios\/[a-f0-9]{32}(?:\/(?:delete|notes|password-reset|video-views))?$/.test(path)
       && !/^\/media-accounts\/[a-f0-9]{32}\/delete$/.test(path)) throw new Error('Ruta de API no permitida.');
     const method = (options.method ?? 'GET').toUpperCase();
     if (!['GET', 'POST', 'PATCH'].includes(method)) throw new Error('Método no permitido.');
@@ -75,6 +98,7 @@ export function createMediaAdminClient(baseUrl = API, fetchImplementation = fetc
     detail: id => request(`/medios/${id}`),
     changeStatus: (id, status) => request(`/medios/${id}`, { method: 'PATCH', body: { status } }),
     addNote: (id, body) => request(`/medios/${id}/notes`, { method: 'POST', body: { body } }),
+    updateVideoViews: (id, views) => request(`/medios/${id}/video-views`, { method: 'PATCH', body: { video_views: views } }),
     archive: id => request(`/medios/${id}/delete`, { method: 'POST', body: {} }),
     passwordReset: id => request(`/medios/${id}/password-reset`, { method: 'POST', body: {} }),
     pendingAccounts: () => request('/media-accounts'),
@@ -136,6 +160,8 @@ export async function initializeMediaAdmin() {
   const records = query('[data-records]');
   const region = query('[data-records-region]');
   const dashboard = query('[data-admin-dashboard]');
+  const viewsLeaderboard = query('[data-media-views-leaderboard]');
+  const viewsLeaderboardCount = query('[data-media-views-leaderboard-count]');
   const previous = query('[data-previous]');
   const next = query('[data-next]');
   const exportButton = query('[data-admin-export]');
@@ -175,6 +201,28 @@ export async function initializeMediaAdmin() {
   globalThis.addEventListener?.('pagehide', clearDetail);
   globalThis.addEventListener?.('pageshow', event => { if (event.persisted) location.reload(); });
 
+  function renderViewsLeaderboard(items = []) {
+    const ranking = topMediaViews(items, 20);
+    viewsLeaderboard.replaceChildren();
+    viewsLeaderboardCount.textContent = ranking.length ? `${ranking.length} medios` : 'Sin datos';
+    if (!ranking.length) { viewsLeaderboard.append(node('li', 'Todavía no hay videos con views registradas.')); return; }
+    const format = new Intl.NumberFormat('es-EC');
+    for (const [index, record] of ranking.entries()) {
+      const item = node('li');
+      const body = node('div');
+      body.append(node('strong', record.media_name));
+      body.append(node('small', [record.frequency_channel, record.videos_count === 1 ? '1 video' : `${record.videos_count} videos`].filter(Boolean).join(' · ')));
+      item.append(node('span', String(index + 1).padStart(2, '0'), 'followers-leaderboard__rank'), body, node('span', format.format(record.views_total), 'followers-leaderboard__value'));
+      if (/^[a-f0-9]{32}$/.test(record.public_id ?? '')) {
+        const open = node('button', 'Ver', 'button-quiet'); open.type = 'button';
+        open.setAttribute('aria-label', 'Ver detalle de ' + record.media_name);
+        open.addEventListener('click', () => openDetail(record.public_id, open));
+        item.append(open);
+      }
+      viewsLeaderboard.append(item);
+    }
+  }
+
   async function list() {
     const generation = ++listGeneration;
     region.setAttribute('aria-busy', 'true');
@@ -190,6 +238,7 @@ export async function initializeMediaAdmin() {
         const block = node('dl'); block.append(node('dt', metric.label), node('dd', metric.value)); dashboard.append(block);
       }
       dashboard.setAttribute('aria-busy', 'false');
+      renderViewsLeaderboard(data.topViews);
       records.replaceChildren();
       for (const record of data.items) {
         const row = node('tr');
@@ -200,7 +249,7 @@ export async function initializeMediaAdmin() {
         cell('Medio', record.media_name).className = 'record-name';
         cell('Frecuencia', record.frequency_channel);
         cell('Redes', '').replaceChildren(linkNode(record.social_link));
-        cell('Videos', record.videos_count === 1 ? '1 video' : `${record.videos_count ?? 0} videos`);
+        cell('Videos', record.videos_count === 1 ? '1 video' : `${record.videos_count ?? 0} videos`, `${new Intl.NumberFormat('es-EC').format(record.views_total ?? 0)} views`);
         cell('Registro', dateTime(record.submitted_at));
         const badge = node('span', record.status, 'status-badge'); badge.dataset.status = record.status;
         cell('Estado', '').replaceChildren(badge);
@@ -270,9 +319,39 @@ export async function initializeMediaAdmin() {
     const total = (data.videos ?? []).length;
     videos.append(node('h3', total === 1 ? 'Videos publicados (1)' : `Videos publicados (${total})`));
     if (total === 0) videos.append(node('p', 'Este medio todavía no ha agregado links de video.'));
-    const videoList = node('ol');
-    for (const video of data.videos ?? []) { const item = node('li'); item.append(linkNode(video.url), node('small', ' · ' + dateTime(video.created_at))); videoList.append(item); }
+    const videoList = node('ol', undefined, 'admin-media-videos');
+    const viewInputs = [];
+    for (const video of data.videos ?? []) {
+      const item = node('li');
+      const info = node('div'); info.append(linkNode(video.url), node('small', dateTime(video.created_at)));
+      const label = node('label', 'Views validadas');
+      const input = node('input'); input.type = 'number'; input.min = '0'; input.max = '1000000000'; input.step = '1'; input.inputMode = 'numeric';
+      input.value = String(video.views_count ?? 0); input.dataset.videoId = String(video.id);
+      input.setAttribute('aria-label', 'Views validadas de ' + video.url);
+      label.append(input); viewInputs.push(input);
+      item.append(info, label); videoList.append(item);
+    }
     videos.append(videoList);
+    if (total > 0) {
+      const save = node('button', 'Guardar views', 'button-primary'); save.type = 'button';
+      const saved = node('p', '', 'feedback'); saved.setAttribute('role', 'status'); saved.setAttribute('aria-live', 'polite');
+      save.addEventListener('click', async () => {
+        const generationAtClick = detailGeneration;
+        try {
+          const views = collectVideoViews(viewInputs);
+          save.disabled = true; feedback(saved, 'Guardando…');
+          await client.updateVideoViews(id, views);
+          await list();
+          if (generationAtClick !== detailGeneration) return;
+          await loadDetail(id, generationAtClick);
+          if (generationAtClick === detailGeneration) feedback(detailFeedback, 'Views actualizadas. El Top 20 ya refleja el cambio.', 'success');
+        } catch (error) {
+          save.disabled = false;
+          if (error.status === 401) fail(error); else feedback(saved, error.message, 'error');
+        }
+      });
+      videos.append(save, saved);
+    }
     detailContent.replaceChildren(submitted, dl, videos);
     statusForm.elements.status.value = data.status;
     notes.replaceChildren();

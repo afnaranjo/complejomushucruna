@@ -8,7 +8,8 @@ import { readdir } from 'node:fs/promises';
 import { buildSite } from '../scripts/build.mjs';
 import { primaryNavigation } from '../src/data/site.mjs';
 import { MediaApiClient, MediaError, MEDIA_FIELDS, normalizeLink, profilePayload } from '../src/finados/media-portal.js';
-import { createMediaAdminClient, MEDIA_STATUSES, normalizeMediaFilters, renderMediaSummary, safeLink } from '../src/admin/admin-medios.js';
+import { collectVideoViews, createMediaAdminClient, MEDIA_STATUSES, normalizeMediaFilters, renderMediaSummary, safeLink, topMediaViews } from '../src/admin/admin-medios.js';
+import { topVideoViews } from '../src/admin/admin.js';
 
 const json = (status, body) => ({ ok: status >= 200 && status < 300, status, json: async () => body });
 
@@ -119,7 +120,7 @@ test('el panel de medios normaliza filtros, resume estados y restringe sus rutas
   assert.deepEqual(normalizeMediaFilters({ search: '  radio ', status: 'Aprobado', page: '0', pageSize: '50', otro: 'x' }), { search: 'radio', status: 'Aprobado', page: 1, pageSize: 50 });
   assert.throws(() => normalizeMediaFilters({ status: 'Eliminado' }), /estado válido/);
   assert.deepEqual(MEDIA_STATUSES, ['Nuevo', 'En revisión', 'Aprobado', 'Rechazado']);
-  assert.deepEqual(renderMediaSummary({ total: 3, byStatus: { Nuevo: 2, Aprobado: 1 }, videos: 5 }).map(item => item.value), [3, 2, 1, 5]);
+  assert.deepEqual(renderMediaSummary({ total: 3, byStatus: { Nuevo: 2, Aprobado: 1 }, videos: 5, views: 0 }).map(item => item.value), [3, 2, 1, 5, '0']);
   assert.deepEqual(normalizeMediaFilters({ media_type: 'TV', province: 'Azuay' }), { page: 1, pageSize: 25 });
   assert.equal(safeLink('https://www.tiktok.com/@radio/video/1'), 'https://www.tiktok.com/@radio/video/1');
   for (const unsafe of ['javascript:alert(1)', 'http://example.com/', 'texto']) assert.equal(safeLink(unsafe), '', unsafe);
@@ -150,4 +151,38 @@ test('el empaquetado del backend incluye cada catálogo de resources y Medios ca
   const router = await readFile(new URL('../backend/finados-api/src/Router.php', import.meta.url), 'utf8');
   const constructor = /public function __construct[\s\S]*?\n    }\n/.exec(router)[0];
   assert.doesNotMatch(constructor, /Media/, 'el constructor del Router no debe depender de Medios');
+});
+
+test('Top 20 por visualizaciones: Medios suma sus videos y Voceros amplía su ranking a veinte', async () => {
+  const media = Array.from({ length: 25 }, (_, index) => ({ public_id: String(index).padStart(32, 'a'), media_name: `Medio ${String(index).padStart(2, '0')}`, views_total: index * 100, videos_count: 2 }));
+  const ranking = topMediaViews(media);
+  assert.equal(ranking.length, 20);
+  assert.equal(ranking[0].media_name, 'Medio 24');
+  assert.ok(ranking.every(item => item.views_total > 0));
+  assert.deepEqual(topMediaViews([{ media_name: 'B', views_total: 5 }, { media_name: 'A', views_total: 5 }, { media_name: 'Sin views', views_total: 0 }, null]).map(item => item.media_name), ['A', 'B']);
+  const videos = Array.from({ length: 30 }, (_, index) => ({ full_name: `Vocero ${index}`, slot: 1, views_count: index + 1 }));
+  assert.equal(topVideoViews(videos).length, 20);
+
+  assert.deepEqual(collectVideoViews([{ dataset: { videoId: '7' }, value: ' 1500 ' }, { dataset: { videoId: '9' }, value: '0' }]), { 7: 1500, 9: 0 });
+  for (const value of ['', '1.500', '-3', '1e3', '1000000001']) assert.throws(() => collectVideoViews([{ dataset: { videoId: '7' }, value }]), /números enteros/, value);
+  assert.throws(() => collectVideoViews([]), /no tiene videos/);
+
+  const calls = [];
+  const client = createMediaAdminClient('https://finados.complejomushucruna.com/api', async (url, options) => {
+    calls.push([url, options]);
+    return url.endsWith('/auth/session') ? json(200, { authenticated: true, csrf: 'admin-token' }) : json(200, { ok: true });
+  });
+  await client.session();
+  await client.updateVideoViews('b'.repeat(32), { 7: 1500 });
+  assert.equal(calls.at(-1)[0], `https://finados.complejomushucruna.com/api/medios/${'b'.repeat(32)}/video-views`);
+  assert.equal(calls.at(-1)[1].method, 'PATCH');
+  assert.deepEqual(JSON.parse(calls.at(-1)[1].body), { video_views: { 7: 1500 } });
+
+  const output = await mkdtemp(join(tmpdir(), 'mushuc-top20-'));
+  await buildSite(output);
+  assert.match(await readFile(join(output, 'admin/medios/index.html'), 'utf8'), /Top 20 por visualizaciones/);
+  const voceros = await readFile(join(output, 'admin/voceros/index.html'), 'utf8');
+  assert.match(voceros, /Top 20 por visualizaciones de videos/);
+  assert.match(voceros, /Top 20 por seguidores/);
+  assert.doesNotMatch(voceros, /Top 10/);
 });

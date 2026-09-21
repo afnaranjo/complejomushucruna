@@ -270,7 +270,7 @@ final class Router
                         'followers_count' => (int) $row['followers_count'],
                     ];
                 }
-                return $this->json(200, ['total' => array_sum($statuses), 'byStatus' => $statuses, 'byDate' => (object) $dates, 'lastSevenDays' => (int) $recent->fetchColumn(), 'topFollowers' => $topFollowers, 'topVideos' => $this->repository->topVideos(10)], $headers);
+                return $this->json(200, ['total' => array_sum($statuses), 'byStatus' => $statuses, 'byDate' => (object) $dates, 'lastSevenDays' => (int) $recent->fetchColumn(), 'topFollowers' => $topFollowers, 'topVideos' => $this->repository->topVideos(20)], $headers);
             }
             if ($path === '/api/voceros/export' && $method === 'POST') {
                 $filters = $this->filters($this->body($server, $rawBody, self::FILTERS));
@@ -452,7 +452,7 @@ final class Router
         if ($path === '/api/medios') {
             if ($method !== 'GET') return $notAllowed();
             $result = $this->media()->list($this->mediaFilters($query, true));
-            return $this->json(200, ['items' => $result['items'], 'summary' => $this->media()->summary(), 'pagination' => [
+            return $this->json(200, ['items' => $result['items'], 'summary' => $this->media()->summary(), 'topViews' => $this->media()->topByViews(20), 'pagination' => [
                 'page' => $result['page'], 'pageSize' => $result['per_page'], 'total' => $result['total'],
                 'pages' => (int) ceil($result['total'] / $result['per_page']),
             ]], $headers);
@@ -472,6 +472,13 @@ final class Router
             if ($query !== []) throw new InvalidArgumentException();
             $this->body($server, $rawBody, []);
             $this->media()->archiveAccount($parts[1], $user['id'], $ip);
+            return $this->json(200, ['ok' => true], $headers);
+        }
+        if (preg_match('~^/api/medios/([a-f0-9]{32})/video-views$~D', $path, $parts)) {
+            if ($method !== 'PATCH') return $notAllowed();
+            if ($query !== []) throw new InvalidArgumentException();
+            $body = $this->body($server, $rawBody, ['video_views']);
+            $this->media()->updateVideoViews($parts[1], $body['video_views'] ?? null, $user['id'], $ip);
             return $this->json(200, ['ok' => true], $headers);
         }
         if (preg_match('~^/api/medios/([a-f0-9]{32})(?:/(delete|notes|password-reset))?$~D', $path, $parts)) {
@@ -524,7 +531,7 @@ final class Router
 
     private function mediaExport(array $filters, int $actorId, string $ip, array $headers): Response
     {
-        $columns = ['public_id', 'status', 'submitted_at', 'media_name', 'frequency_channel', 'social_link', 'account_email', 'videos_count', 'video_links'];
+        $columns = ['public_id', 'status', 'submitted_at', 'media_name', 'frequency_channel', 'social_link', 'account_email', 'videos_count', 'views_total', 'video_links'];
         $stream = fopen('php://temp/maxmemory:2097152', 'w+');
         if ($stream === false) throw new \RuntimeException();
         try {
@@ -533,7 +540,8 @@ final class Router
             $rows = $this->media()->exportRows($filters);
             foreach ($rows as $detail) {
                 $links = array_column($detail['videos'] ?? [], 'url');
-                $detail = [...$detail, 'videos_count' => count($links), 'video_links' => implode(' | ', $links)];
+                $detail = [...$detail, 'videos_count' => count($links), 'views_total' => array_sum(array_column($detail['videos'] ?? [], 'views_count')),
+                    'video_links' => implode(' | ', array_map(static fn (array $video): string => $video['url'] . ' (' . $video['views_count'] . ' views)', $detail['videos'] ?? []))];
                 fputcsv($stream, array_map(static function (string $column) use ($detail): string {
                     $value = (string) ($detail[$column] ?? '');
                     // Also protect formulas hidden behind whitespace/control characters.

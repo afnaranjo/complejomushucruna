@@ -1389,3 +1389,13 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Datos (solo conteos): 122 fichas y 173 cuentas de Voceros intactas; 1 cuenta de medio de prueba sin ficha; 0 videos. No se crearon cuentas ni registros de prueba en producción.
 - Publicación externa: GitHub, backend y frontend autorizados. No se modificaron registros, fotos o cuentas de Voceros, DNS, Google Sheets, Meta ni otros proyectos.
 - Pendiente: prueba de Alex con su cuenta de medio (guardar ficha y agregar un video) y revisión en `/admin/medios/`; definir textos de condiciones/privacidad y el responsable de recuperaciones de acceso; decidir el destino de `ACREDITACIÓN DE MEDIOS`; mover la llave fuera de `Downloads` y rotar su passphrase.
+
+### 2026-09-21 — Top 20 por visualizaciones en Medios y Voceros
+
+- Alex pidió para Medios un Top 20 como el de Voceros y, en ambos paneles, un Top 20 de visualizaciones alimentado por las views que la coordinación registra al lado de cada video, para saber quién tuvo más interacción.
+- Medios: migración aditiva `010_media_video_views` (columna `views_count` en `media_videos`), ruta administrativa `PATCH /api/medios/{id}/video-views`, campo `Views validadas` junto a cada link en el detalle del medio con botón `Guardar views`, sección `Top 20 por visualizaciones` que suma todos los videos de cada medio, total de views en la tabla, en el resumen y en el CSV. El medio no ve ni edita las views; solo agrega links.
+- Voceros: único cambio, el ranking existente de views por video pasa de Top 10 a Top 20 (límite en `Router.php`, límite y título en el panel, caché de `admin.js` `20260921-admin-top20-1`). El campo `Views validadas` por video ya existía; formulario, portal, gafete, reglas y datos de Voceros no cambiaron.
+- QA: `npm run check` completo en verde con 160 pruebas Node, 21 suites PHP y 10 de integración; build de 138 archivos, 37 HTML y 1204 referencias. Flujo real verificado por HTTP en el stack local: dos medios, cuatro links, views registradas por administración, Top 20 ordenado por total y dashboard de Voceros respondiendo.
+- Commit: incluido en `Agregar Top 20 por visualizaciones a Medios y Voceros`.
+- Publicación externa: solo GitHub. **No está desplegado**; requiere autorización de Alex para backend → frontend con la migración 010.
+- Pendiente: autorización de despliegue; confirmar si en Voceros se prefiere el ranking por video (actual) o por total de cada vocero.

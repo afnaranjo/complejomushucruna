@@ -218,6 +218,7 @@ tags:
 - [x] Publicar el sistema `MEDIOS` con autorización de Alex: commits `fcf04a2` y `1c4a275`, backend → frontend, migración aditiva `008_media_accounts`, incidente 503 del artefacto corregido y verificación HTTPS aprobada. Responsable: tecnología/dirección. Completado: 2026-09-21.
 - [ ] Definir el texto de condiciones de acreditación y el aviso de privacidad aplicables a medios, el responsable que atenderá las solicitudes de recuperación de acceso y si `ACREDITACIÓN DE MEDIOS` (cerrada desde el 15 de septiembre) debe enlazar o ceder su lugar al nuevo registro. Responsable: comunicación/dirección/legal. Fecha: por definir.
 - [x] Desplegar backend → frontend la ficha simplificada de `MEDIOS` (nombre, frecuencia, link de redes) y los links de video acumulables, con la migración aditiva `009_media_videos`; verificación HTTPS aprobada y Voceros sin cambios. Responsable: tecnología/dirección. Completado: 2026-09-21.
+- [ ] Desplegar backend → frontend el Top 20 por visualizaciones de Medios (migración aditiva `010_media_video_views`, views validadas por video) y la ampliación del ranking de Voceros de Top 10 a Top 20, cuando Alex lo autorice. Responsable: tecnología/dirección. Fecha: por definir.
 
 ## Regla
 
