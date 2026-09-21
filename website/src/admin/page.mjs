@@ -1,6 +1,6 @@
 import { escapeHtml as esc } from '../render/html.mjs';
 import { STATUSES, PREVIOUS_PARTICIPATION } from './admin.js';
-import { MEDIA_STATUSES } from './admin-medios.js';
+import { MEDIA_STATUSES, MEDIA_TYPE_LABELS } from './admin-medios.js';
 import { ecuadorProvinces } from '../media-accreditation/page.mjs';
 import { apiBasesForCsp, LOCAL_API_BASE, PRIMARY_API_BASE } from '../finados/runtime-origins.mjs';
 
@@ -122,6 +122,7 @@ export function renderAdminMediosPage(page) {
 <legend>Filtrar registros</legend>
 <div class="filter-grid"><label class="search-field">Buscar<input type="search" name="search" maxlength="100" placeholder="Medio, frecuencia o ciudad"></label>
 ${select('status', 'Estado', MEDIA_STATUSES)}
+<label>Tipo de medio<select name="media_type"><option value="">Todos</option>${Object.entries(MEDIA_TYPE_LABELS).map(([key, label]) => `<option value="${esc(key)}">${esc(label)}</option>`).join('')}</select></label>
 ${select('province', 'Provincia', ecuadorProvinces)}</div>
 <div class="filter-actions"><button type="submit" class="button-primary">Aplicar filtros</button><button type="reset" class="button-quiet">Limpiar</button><label>Por página<select name="pageSize"><option>25</option><option>50</option><option>100</option></select></label></div>
 </fieldset></form>
@@ -135,5 +136,5 @@ ${select('province', 'Provincia', ecuadorProvinces)}</div>
 <section class="admin-reset"><h3>Recuperar acceso</h3><button type="button" class="button-quiet" data-admin-reset disabled>Generar enlace temporal</button><div data-reset-output hidden><label>Enlace temporal<input type="text" readonly data-reset-url autocomplete="off" spellcheck="false"></label><button type="button" class="button-quiet" data-reset-copy>Copiar enlace</button></div><p class="feedback" data-reset-feedback role="status" aria-live="polite"></p></section>
 <section class="notes-section"><h3>Notas internas</h3><ol data-notes></ol><form data-note-form><fieldset disabled><label>Añadir nota<textarea name="body" rows="3" maxlength="2000" required></textarea></label><button class="button-primary" type="submit">Guardar nota</button></fieldset></form></section>
 <div class="detail-danger-zone"><p>¿Este registro ya no debe tener acceso?</p><button type="button" class="button-danger" data-admin-delete disabled>Retirar registro</button></div>
-</dialog></main></div>`, '/assets/admin/admin-medios.js?v=20260921-admin-medios-6');
+</dialog></main></div>`, '/assets/admin/admin-medios.js?v=20260921-admin-medios-7');
 }

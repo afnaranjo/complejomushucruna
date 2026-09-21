@@ -221,7 +221,9 @@ tags:
 - [x] Desplegar backend → frontend el Top 20 por visualizaciones de Medios (migración aditiva `010_media_video_views`, views validadas por video) y la ampliación del ranking de Voceros de Top 10 a Top 20; verificación HTTPS aprobada y datos de Voceros intactos. Responsable: tecnología/dirección. Completado: 2026-09-21.
 - [ ] Decidir si el ranking de views de Voceros debe sumar los cinco videos de cada vocero en lugar de ordenar por video. Responsable: Alex/coordinación de Voceros. Fecha: por definir.
 - [x] Desplegar backend → frontend la ficha de `MEDIOS` con contacto, ubicación y canales (migración aditiva `011_media_contact_channels`); verificación HTTPS aprobada y datos de Voceros intactos. Responsable: tecnología/dirección. Completado: 2026-09-21.
-- [ ] Confirmar el aviso de privacidad aplicable a los datos de contacto que ahora recoge la ficha de medios antes de difundir el registro. Responsable: comunicación/legal. Fecha: por definir.
+- [ ] Desplegar backend → frontend las políticas de `MEDIOS`, las aceptaciones premarcadas, los tipos de medio y los datos de radio (migraciones aditivas `012_media_consents` y `013_media_types_radio`) cuando Alex lo autorice, y revisar en navegador que los bloques de Radio y Televisión se activen al marcar su casilla. Responsable: tecnología/dirección. Fecha: por definir.
+- [ ] Validar con el responsable o su asesoría legal los textos de Buenas prácticas, Política de Privacidad y Uso de imagen para medios, el plazo de conservación de tres años y el uso de casillas premarcadas frente a la LOPDP. Responsable: dirección/legal. Fecha: por definir.
+- [ ] Entregar, si se desea el autocompletado de emisoras por frecuencia, un listado oficial verificado de radios y frecuencias; no se inventó ningún catálogo. Responsable: Alex/comunicación. Fecha: por definir.
 
 ## Regla
 

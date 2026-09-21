@@ -7,7 +7,9 @@ const PROFILE = '/finados/medios/mi-registro/';
 
 export const MEDIA_CHANNELS = Object.freeze(['facebook', 'instagram', 'tiktok', 'youtube', 'website', 'other_link']);
 export const MEDIA_CONSENTS = Object.freeze({ conditions_accepted: true, privacy_accepted: true, image_accepted: false });
-export const MEDIA_FIELDS = Object.freeze(['media_name', 'frequency_channel', 'contact_name', 'phone', 'contact_email', 'province', 'city', ...MEDIA_CHANNELS]);
+export const MEDIA_TYPES = Object.freeze(['radio', 'tv', 'prensa', 'digital', 'redes']);
+export const MAX_STATIONS = 10;
+export const MEDIA_FIELDS = Object.freeze(['media_name', 'contact_name', 'phone', 'contact_email', 'province', 'city', ...MEDIA_CHANNELS]);
 export const STATUS_HELP = Object.freeze({
   Nuevo: 'Recibimos tu registro. Puedes actualizarlo mientras el equipo lo revisa.',
   'En revisión': 'El equipo de Finados Mushuc Runa está revisando tu registro. Aún puedes actualizarlo.',
@@ -92,10 +94,34 @@ export function normalizeLink(value, max = 300) {
 }
 
 /** Builds the exact JSON contract expected by POST /api/media/profile. */
-export function profilePayload(data) {
-  const body = {};
+/**
+ * Builds the platform block of the contract. Radio details are mandatory with Radio and
+ * sent empty otherwise, mirroring the server rules.
+ */
+export function platformPayload(types, stations, data) {
+  const selected = MEDIA_TYPES.filter(type => types.includes(type));
+  if (selected.length === 0) throw new Error('Marca al menos un tipo de medio: radio, televisión, prensa, digital o redes.');
+  const body = { media_types: selected, radio_stations: [], audience_count: null, radio_genre: '', tv_channel: '' };
+  if (selected.includes('radio')) {
+    const cleaned = stations.map(station => ({ name: String(station.name ?? '').trim(), frequency: String(station.frequency ?? '').trim() }));
+    if (cleaned.length === 0 || cleaned.length > MAX_STATIONS || cleaned.some(station => !station.name || !station.frequency)) throw new Error('Escribe el nombre y la frecuencia de cada emisora.');
+    const audience = String(data.get('audience_count') ?? '').trim();
+    if (!/^[0-9]{1,9}$/.test(audience) || Number(audience) > 100000000) throw new Error('Escribe la cantidad de oyentes solo con números, sin puntos ni comas.');
+    const genre = String(data.get('radio_genre') ?? '').trim();
+    if (!genre) throw new Error('Selecciona el género de la radio.');
+    Object.assign(body, { radio_stations: cleaned, audience_count: Number(audience), radio_genre: genre });
+  }
+  if (selected.includes('tv')) {
+    body.tv_channel = String(data.get('tv_channel') ?? '').trim();
+    if (!body.tv_channel) throw new Error('Escribe el canal o la señal de televisión.');
+  }
+  return body;
+}
+
+export function profilePayload(data, stations = []) {
+  const body = { media_name: '', ...platformPayload(data.getAll('media_types').map(String), stations, data) };
   for (const name of MEDIA_FIELDS) body[name] = String(data.get(name) ?? '').trim();
-  for (const name of ['media_name', 'frequency_channel', 'contact_name', 'province', 'city']) if (!body[name]) throw new Error('Completa los datos del medio, su ubicación y la persona de contacto.');
+  for (const name of ['media_name', 'contact_name', 'province', 'city']) if (!body[name]) throw new Error('Completa los datos del medio, su ubicación y la persona de contacto.');
   if (!/^\+?[0-9][0-9 ()-]{6,23}$/.test(body.phone)) throw new Error('Escribe un número telefónico válido, por ejemplo 0991234567.');
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(body.contact_email)) throw new Error('Escribe un correo de contacto válido.');
   for (const name of MEDIA_CHANNELS) if (body[name]) body[name] = normalizeLink(body[name]);
@@ -179,6 +205,37 @@ export async function initializeMediaPortal(root = document) {
   let resetToken = view === 'reset' ? new URLSearchParams(location.search).get('token') ?? '' : '';
   if (view === 'reset' && location.search) globalThis.history?.replaceState(null, '', location.pathname);
 
+  const typeGroup = root.querySelector('[data-media-types]');
+  const stationList = root.querySelector('[data-media-stations]');
+  const stationTemplate = root.querySelector('[data-media-station-template]');
+  const stationAdd = root.querySelector('[data-station-add]');
+  const readStations = () => [...(stationList?.querySelectorAll('[data-media-station]') ?? [])].map(row => ({ name: row.querySelector('[data-station-name]').value, frequency: row.querySelector('[data-station-frequency]').value }));
+  function addStation(station = {}) {
+    if (stationList.childElementCount >= MAX_STATIONS) return;
+    const row = stationTemplate.content.firstElementChild.cloneNode(true);
+    row.querySelector('[data-station-name]').value = station.name ?? '';
+    row.querySelector('[data-station-frequency]').value = station.frequency ?? '';
+    row.querySelector('[data-station-remove]').addEventListener('click', () => { row.remove(); stationAdd.hidden = false; });
+    stationList.append(row);
+    stationAdd.hidden = stationList.childElementCount >= MAX_STATIONS;
+  }
+  /** Sections follow the marked platforms; hidden controls are disabled so they neither validate nor submit. */
+  function syncSections() {
+    const selected = new Set([...profileForm.querySelectorAll('input[name="media_types"]:checked')].map(input => input.value));
+    for (const section of profileForm.querySelectorAll('[data-media-section]')) {
+      const active = selected.has(section.dataset.mediaSection);
+      section.hidden = !active;
+      for (const control of section.querySelectorAll('input, select, button')) control.disabled = !active;
+    }
+    if (selected.has('radio') && stationList.childElementCount === 0) addStation();
+    if (selected.size > 0) typeGroup.removeAttribute('data-invalid');
+  }
+  if (profileForm) {
+    stationAdd.addEventListener('click', () => { addStation(); stationList.lastElementChild?.querySelector('input')?.focus(); });
+    typeGroup.addEventListener('change', syncSections);
+    syncSections();
+  }
+
   function renderVideos(videos = []) {
     videoList.replaceChildren();
     for (const video of videos) {
@@ -198,6 +255,12 @@ export async function initializeMediaPortal(root = document) {
     if (!profile.registered && !profileForm.elements.namedItem('contact_email').value) profileForm.elements.namedItem('contact_email').value = profile.email ?? '';
     if (profile.registered) {
       for (const name of MEDIA_FIELDS) profileForm.elements.namedItem(name).value = String(profile[name] ?? '');
+      for (const input of profileForm.querySelectorAll('input[name="media_types"]')) input.checked = (profile.media_types ?? []).includes(input.value);
+      stationList.replaceChildren();
+      for (const station of profile.radio_stations ?? []) addStation(station);
+      profileForm.elements.namedItem('audience_count').value = profile.audience_count ?? '';
+      profileForm.elements.namedItem('radio_genre').value = profile.radio_genre ?? '';
+      profileForm.elements.namedItem('tv_channel').value = profile.tv_channel ?? '';
       // Restore the saved answers; a withdrawn image authorization must stay unchecked.
       for (const name of Object.keys(MEDIA_CONSENTS)) profileForm.elements.namedItem(name).checked = profile.consents?.[name.replace('_accepted', '')]?.accepted ?? true;
     }
@@ -207,6 +270,7 @@ export async function initializeMediaPortal(root = document) {
     statusHelp.textContent = STATUS_HELP[status] ?? 'Completa y guarda el registro de tu medio.';
     profileStatus.textContent = profile.registered ? `Estado de tu registro: ${status}.` : 'Aún no has guardado el registro de tu medio.';
     profileForm.querySelector('fieldset').disabled = !editable;
+    syncSections();
     // Videos are reported after the record exists, and keep being accepted once it is approved.
     videosPanel.hidden = !profile.registered;
     canAddVideos = profile.registered === true && profile.can_add_videos !== false;
@@ -247,7 +311,8 @@ export async function initializeMediaPortal(root = document) {
     message('Contraseña actualizada. Inicia sesión con tu nueva contraseña.');
   });
   submit(profileForm, async data => {
-    const saved = await api.saveProfile(profilePayload(data));
+    if (data.getAll('media_types').length === 0) { typeGroup.dataset.invalid = 'true'; typeGroup.querySelector('input').focus(); }
+    const saved = await api.saveProfile(profilePayload(data, readStations()));
     populate({ ...saved, email: profileForm.querySelector('[data-account-email]').value });
     message('Registro guardado. Ahora puedes agregar los links de los videos que publiques.');
   });

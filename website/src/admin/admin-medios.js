@@ -3,9 +3,10 @@ import { MIRROR_API_BASE, PRIMARY_API_BASE, resolveRuntimeOrigins } from '../fin
 export const MEDIA_STATUSES = Object.freeze(['Nuevo', 'En revisión', 'Aprobado', 'Rechazado']);
 const API = PRIMARY_API_BASE;
 const LOCAL_API = 'http://127.0.0.1:4174/api';
-const FILTERS = ['search', 'status', 'province'];
+export const MEDIA_TYPE_LABELS = Object.freeze({ radio: 'Radio', tv: 'Televisión', prensa: 'Prensa escrita', digital: 'Medio digital', redes: 'Redes sociales' });
+const FILTERS = ['search', 'status', 'province', 'media_type'];
 const DETAIL_FIELDS = Object.freeze([
-  ['media_name', 'Nombre del medio'], ['frequency_channel', 'Frecuencia / canal'], ['province', 'Provincia'], ['city', 'Ciudad'],
+  ['media_name', 'Nombre del medio'], ['media_types', 'Tipo de medio'], ['radio_stations', 'Emisoras y frecuencias'], ['audience_count', 'Oyentes (dato del medio)'], ['radio_genre', 'Género de la radio'], ['tv_channel', 'Canal de televisión'], ['province', 'Provincia'], ['city', 'Ciudad'],
   ['contact_name', 'Persona de contacto'], ['phone', 'Número telefónico'], ['contact_email', 'Correo de contacto'], ['account_email', 'Correo de la cuenta'],
   ['facebook', 'Facebook'], ['instagram', 'Instagram'], ['tiktok', 'TikTok'], ['youtube', 'YouTube'], ['website', 'Página web'], ['other_link', 'Otro canal'],
 ]);
@@ -19,6 +20,7 @@ export function normalizeMediaFilters(input = {}) {
     if (value) result[key] = value;
   }
   if (result.status && !MEDIA_STATUSES.includes(result.status)) throw new Error('Selecciona un estado válido.');
+  if (result.media_type && !Object.hasOwn(MEDIA_TYPE_LABELS, result.media_type)) throw new Error('Selecciona un tipo de medio válido.');
   if (result.search && result.search.length > 100) throw new Error('La búsqueda es demasiado larga.');
   result.page = Math.min(1000000, Math.max(1, Number.parseInt(input.page, 10) || 1));
   result.pageSize = [25, 50, 100].includes(Number(input.pageSize)) ? Number(input.pageSize) : 25;
@@ -124,6 +126,14 @@ function feedback(element, message, kind = '') {
   element.dataset.error = String(kind === 'error');
   element.dataset.success = String(kind === 'success');
 }
+/** Human-readable value for the platform fields of a record. */
+export function describeField(key, value) {
+  if (key === 'media_types') return (Array.isArray(value) ? value : []).map(type => MEDIA_TYPE_LABELS[type] ?? type).join(' · ');
+  if (key === 'radio_stations') return (Array.isArray(value) ? value : []).map(station => `${station.name} — ${station.frequency}`).join('\n');
+  if (key === 'audience_count') return value == null ? '' : new Intl.NumberFormat('es-EC').format(value);
+  return value == null ? '' : String(value);
+}
+
 /** Only https links become anchors; anything else is shown as plain text. */
 export function safeLink(value) {
   try { const url = new URL(String(value ?? '')); return url.protocol === 'https:' ? url.href : ''; } catch { return ''; }
@@ -249,8 +259,8 @@ export async function initializeMediaAdmin() {
           const td = node('td'); td.dataset.label = label;
           td.append(node('span', value)); if (secondary) td.append(node('small', secondary)); row.append(td); return td;
         };
-        cell('Medio', record.media_name).className = 'record-name';
-        cell('Frecuencia', record.frequency_channel);
+        cell('Medio', record.media_name, describeField('media_types', record.media_types)).className = 'record-name';
+        cell('Frecuencia', record.frequency_channel || '—', record.audience_count == null ? '' : `${describeField('audience_count', record.audience_count)} oyentes · ${record.radio_genre}`);
         cell('Ubicación', record.city || '—', record.province);
         const channels = node('span', undefined, 'admin-media-channels');
         for (const [key, label] of Object.entries(CHANNEL_LABELS)) {
@@ -324,7 +334,7 @@ export async function initializeMediaAdmin() {
     const dl = node('dl', undefined, 'detail-fields');
     for (const [key, label] of DETAIL_FIELDS) {
       const field = node('div'); const value = node('dd');
-      if (LINK_FIELDS.has(key)) value.append(linkNode(data[key])); else value.textContent = data[key] === '' || data[key] == null ? '—' : data[key];
+      if (LINK_FIELDS.has(key)) value.append(linkNode(data[key])); else { value.textContent = describeField(key, data[key]) || '—'; if (key === 'radio_stations') value.style.whiteSpace = 'pre-line'; }
       field.append(node('dt', label), value); dl.append(field);
     }
     const consentLabels = { conditions: 'Buenas prácticas y condiciones', privacy: 'Política de Privacidad', image: 'Uso de imagen y contenido' };

@@ -25,7 +25,11 @@ final class MediaRepository
     ];
     /** Public channels of a medium; every one is optional but at least one is required. */
     public const CHANNELS = ['facebook', 'instagram', 'tiktok', 'youtube', 'website', 'other_link'];
-    public const FIELDS = ['media_name', 'frequency_channel', 'contact_name', 'phone', 'contact_email', 'province', 'city',
+    /** A medium may operate on several platforms at once; at least one is required. */
+    public const MEDIA_TYPES = ['radio' => 'Radio', 'tv' => 'Televisión', 'prensa' => 'Prensa escrita', 'digital' => 'Medio digital', 'redes' => 'Redes sociales'];
+    public const RADIO_GENRES = ['Noticias e información', 'Musical variada', 'Popular y tropical', 'Folclórica y andina', 'Juvenil y pop', 'Romántica', 'Religiosa', 'Deportiva', 'Comunitaria', 'Otro'];
+    public const MAX_STATIONS = 10;
+    public const FIELDS = ['media_name', 'media_types', 'radio_stations', 'audience_count', 'radio_genre', 'tv_channel', 'contact_name', 'phone', 'contact_email', 'province', 'city',
         'facebook', 'instagram', 'tiktok', 'youtube', 'website', 'other_link', 'conditions_accepted', 'privacy_accepted', 'image_accepted'];
     /** Required consents block the save when rejected; image use is separate and optional. */
     public const CONSENTS = ['conditions' => true, 'privacy' => true, 'image' => false];
@@ -33,7 +37,8 @@ final class MediaRepository
     private const ARCHIVED = 'Eliminado';
     private const EDITABLE = ['Nuevo', 'En revisión'];
     // social_link keeps the first declared channel so lists and searches have one primary link.
-    private const PLAIN = ['media_name', 'frequency_channel', 'province', 'city', 'social_link', 'facebook', 'instagram', 'tiktok', 'youtube', 'website', 'other_link'];
+    // frequency_channel is derived from the declared stations and TV channel so lists keep one readable column.
+    private const PLAIN = ['media_name', 'media_types', 'radio_stations', 'audience_count', 'radio_genre', 'tv_channel', 'frequency_channel', 'province', 'city', 'social_link', 'facebook', 'instagram', 'tiktok', 'youtube', 'website', 'other_link'];
     private const ENCRYPTED = ['contact_name', 'phone', 'contact_email'];
     // Columns from the first accreditation form (008). They stay in the schema, unused, so no data is ever dropped.
     private const LEGACY_PLAIN = ['media_type' => '', 'program_name' => '', 'program_type' => '', 'contract' => '', 'people_count' => 0];
@@ -125,6 +130,12 @@ final class MediaRepository
             if (!in_array($status, self::STATUSES, true)) throw new InvalidArgumentException();
             $where[] = 'status = ?'; $parameters[] = $status;
         }
+        $type = trim((string) ($filters['media_type'] ?? ''));
+        if ($type !== '') {
+            if (!isset(self::MEDIA_TYPES[$type])) throw new InvalidArgumentException();
+            // Keys are stored comma-delimited on both ends, so a plain LIKE matches whole keys only.
+            $where[] = 'media_types LIKE ?'; $parameters[] = '%,' . $type . ',%';
+        }
         $province = trim((string) ($filters['province'] ?? ''));
         if ($province !== '') {
             if (!in_array($province, self::PROVINCES, true)) throw new InvalidArgumentException();
@@ -142,9 +153,9 @@ final class MediaRepository
         $count = $this->pdo->prepare('SELECT COUNT(*) FROM media_profiles WHERE ' . $condition);
         $count->execute($parameters);
         $total = (int) $count->fetchColumn();
-        $rows = $this->pdo->prepare('SELECT public_id, status, media_name, frequency_channel, province, city, social_link, facebook, instagram, tiktok, youtube, website, other_link, submitted_at, (SELECT COUNT(*) FROM media_videos v WHERE v.profile_id = media_profiles.id) AS videos_count, (SELECT COALESCE(SUM(v.views_count), 0) FROM media_videos v WHERE v.profile_id = media_profiles.id) AS views_total FROM media_profiles WHERE ' . $condition . ' ORDER BY submitted_at DESC, id DESC LIMIT ' . $perPage . ' OFFSET ' . (($page - 1) * $perPage));
+        $rows = $this->pdo->prepare('SELECT public_id, status, media_name, media_types, frequency_channel, audience_count, radio_genre, province, city, social_link, facebook, instagram, tiktok, youtube, website, other_link, submitted_at, (SELECT COUNT(*) FROM media_videos v WHERE v.profile_id = media_profiles.id) AS videos_count, (SELECT COALESCE(SUM(v.views_count), 0) FROM media_videos v WHERE v.profile_id = media_profiles.id) AS views_total FROM media_profiles WHERE ' . $condition . ' ORDER BY submitted_at DESC, id DESC LIMIT ' . $perPage . ' OFFSET ' . (($page - 1) * $perPage));
         $rows->execute($parameters);
-        $items = array_map(static fn (array $row): array => [...$row, 'videos_count' => (int) $row['videos_count'], 'views_total' => (int) $row['views_total']], $rows->fetchAll(PDO::FETCH_ASSOC));
+        $items = array_map(static fn (array $row): array => [...$row, 'media_types' => self::typeKeys((string) $row['media_types']), 'audience_count' => $row['audience_count'] === null ? null : (int) $row['audience_count'], 'videos_count' => (int) $row['videos_count'], 'views_total' => (int) $row['views_total']], $rows->fetchAll(PDO::FETCH_ASSOC));
         return ['items' => $items, 'page' => $page, 'per_page' => $perPage, 'total' => $total];
     }
 
@@ -287,9 +298,37 @@ final class MediaRepository
         $email = strtolower($text($input['contact_email'], 180));
         if (filter_var($email, FILTER_VALIDATE_EMAIL) === false) throw new InvalidArgumentException();
         if (!is_string($input['province']) || !in_array($input['province'], self::PROVINCES, true)) throw new InvalidArgumentException();
+        $types = $input['media_types'];
+        if (!is_array($types) || $types === [] || !array_is_list($types) || count($types) !== count(array_unique($types, SORT_REGULAR))) throw new InvalidArgumentException();
+        foreach ($types as $type) if (!is_string($type) || !isset(self::MEDIA_TYPES[$type])) throw new InvalidArgumentException();
+        $types = array_values(array_intersect(array_keys(self::MEDIA_TYPES), $types));
+        $stations = []; $audience = null; $genre = ''; $tvChannel = '';
+        if (in_array('radio', $types, true)) {
+            // Radio details are mandatory once Radio is declared: stations, self-reported audience and genre.
+            if (!is_array($input['radio_stations']) || !array_is_list($input['radio_stations']) || $input['radio_stations'] === [] || count($input['radio_stations']) > self::MAX_STATIONS) throw new InvalidArgumentException();
+            foreach ($input['radio_stations'] as $station) {
+                if ($station instanceof \stdClass) $station = (array) $station;
+                if (!is_array($station) || array_diff(array_keys($station), ['name', 'frequency']) !== [] || count($station) !== 2) throw new InvalidArgumentException();
+                $stations[] = ['name' => $text($station['name'], 140), 'frequency' => $text($station['frequency'], 40)];
+            }
+            if (!is_int($input['audience_count']) || $input['audience_count'] < 0 || $input['audience_count'] > 100000000) throw new InvalidArgumentException();
+            $audience = $input['audience_count'];
+            if (!is_string($input['radio_genre']) || !in_array($input['radio_genre'], self::RADIO_GENRES, true)) throw new InvalidArgumentException();
+            $genre = $input['radio_genre'];
+        } elseif ($input['radio_stations'] !== [] || $input['audience_count'] !== null || $input['radio_genre'] !== '') {
+            throw new InvalidArgumentException();
+        }
+        if (in_array('tv', $types, true)) $tvChannel = $text($input['tv_channel'], 120);
+        elseif ($input['tv_channel'] !== '') throw new InvalidArgumentException();
+        $summary = implode(' · ', array_filter([...array_map(static fn (array $station): string => $station['frequency'], $stations), $tvChannel]));
         $record = [
             'media_name' => $text($input['media_name'], 140),
-            'frequency_channel' => $text($input['frequency_channel'], 120),
+            'media_types' => ',' . implode(',', $types) . ',',
+            'radio_stations' => json_encode($stations, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),
+            'audience_count' => $audience,
+            'radio_genre' => $genre,
+            'tv_channel' => $tvChannel,
+            'frequency_channel' => substr($summary, 0, 120),
             'contact_name' => $text($input['contact_name'], 160),
             'phone' => $phone,
             'contact_email' => $email,
@@ -413,6 +452,9 @@ final class MediaRepository
     {
         $result = ['public_id' => $row['public_id'], 'status' => $row['status'], 'submitted_at' => $row['submitted_at'], 'updated_at' => $row['updated_at']];
         foreach (self::PLAIN as $field) $result[$field] = (string) $row[$field];
+        $result['media_types'] = self::typeKeys((string) ($row['media_types'] ?? ''));
+        $result['radio_stations'] = json_decode((string) ($row['radio_stations'] ?? '') ?: '[]', true, 8) ?: [];
+        $result['audience_count'] = ($row['audience_count'] ?? null) === null ? null : (int) $row['audience_count'];
         foreach (self::ENCRYPTED as $field) $result[$field] = ($row[$field . '_enc'] ?? null) === null || $row[$field . '_enc'] === '' ? '' : $this->crypto->decrypt($row[$field . '_enc']);
         return $result;
     }
@@ -438,6 +480,11 @@ final class MediaRepository
             $this->rollBack();
             throw $error;
         }
+    }
+
+    private static function typeKeys(string $stored): array
+    {
+        return array_values(array_filter(explode(',', $stored), static fn (string $key): bool => isset(self::MEDIA_TYPES[$key])));
     }
 
     /** Unicode scalar count without requiring mbstring; invalid UTF-8 is rejected. */

@@ -34,7 +34,7 @@ function media_json(array $payload): string { return json_encode($payload, JSON_
 media_close_session();
 $config = media_config();
 $pdo = Database::connect($config);
-foreach (['001_initial', '002_sheets_outbox', '003_vocero_accounts', '008_media_accounts', '009_media_videos', '010_media_video_views', '011_media_contact_channels', '012_media_consents'] as $migration) {
+foreach (['001_initial', '002_sheets_outbox', '003_vocero_accounts', '008_media_accounts', '009_media_videos', '010_media_video_views', '011_media_contact_channels', '012_media_consents', '013_media_types_radio'] as $migration) {
     $pdo->exec(file_get_contents(__DIR__ . '/../migrations/' . $migration . '_sqlite.sql'));
 }
 same('008_media_accounts', $pdo->query("SELECT version FROM schema_migrations WHERE version = '008_media_accounts'")->fetchColumn());
@@ -70,7 +70,8 @@ same('media', $login['user']['role']);
 $empty = media_body($router->handle('GET', '/api/media/profile', $origin));
 same(false, $empty['registered']);
 same('radio@example.invalid', $empty['email']);
-$record = ['media_name' => 'Radio Prueba', 'frequency_channel' => '99.9 FM', 'contact_name' => 'Persona Responsable', 'phone' => '0990000000',
+$record = ['media_name' => 'Radio Prueba', 'media_types' => ['radio', 'digital'], 'radio_stations' => [['name' => 'Radio Prueba Ambato', 'frequency' => '99.9 FM'], ['name' => 'Radio Prueba Riobamba', 'frequency' => '101.5 FM']],
+    'audience_count' => 25000, 'radio_genre' => 'Popular y tropical', 'tv_channel' => '', 'contact_name' => 'Persona Responsable', 'phone' => '0990000000',
     'contact_email' => 'Prensa@Example.invalid', 'province' => 'Tungurahua', 'city' => 'Ambato', 'facebook' => 'facebook.com/radioprueba',
     'instagram' => '', 'tiktok' => 'https://www.tiktok.com/@radioprueba', 'youtube' => '', 'website' => 'radioprueba.example', 'other_link' => '', 'conditions_accepted' => true, 'privacy_accepted' => true, 'image_accepted' => true];
 same(422, $router->handle('POST', '/api/media/profile', $json($login['csrf']), media_json([...$record, 'privacy_accepted' => false]))->status);
@@ -78,6 +79,14 @@ same(422, $router->handle('POST', '/api/media/profile', $json($login['csrf']), m
 same(422, $router->handle('POST', '/api/media/profile', $json($login['csrf']), media_json([...$record, 'facebook' => 'javascript:alert(1)']))->status);
 same(422, $router->handle('POST', '/api/media/profile', $json($login['csrf']), media_json([...$record, 'facebook' => '', 'tiktok' => '', 'website' => '']))->status);
 same(422, $router->handle('POST', '/api/media/profile', $json($login['csrf']), media_json([...$record, 'phone' => 'sin numero']))->status);
+// At least one platform; radio details are mandatory with Radio and forbidden without it.
+same(422, $router->handle('POST', '/api/media/profile', $json($login['csrf']), media_json([...$record, 'media_types' => []]))->status);
+same(422, $router->handle('POST', '/api/media/profile', $json($login['csrf']), media_json([...$record, 'media_types' => ['radio', 'podcast']]))->status);
+same(422, $router->handle('POST', '/api/media/profile', $json($login['csrf']), media_json([...$record, 'radio_stations' => []]))->status);
+same(422, $router->handle('POST', '/api/media/profile', $json($login['csrf']), media_json([...$record, 'audience_count' => '25000']))->status);
+same(422, $router->handle('POST', '/api/media/profile', $json($login['csrf']), media_json([...$record, 'radio_genre' => 'Inventado']))->status);
+same(422, $router->handle('POST', '/api/media/profile', $json($login['csrf']), media_json([...$record, 'media_types' => ['digital']]))->status);
+same(422, $router->handle('POST', '/api/media/profile', $json($login['csrf']), media_json([...$record, 'media_types' => ['radio', 'tv']]))->status);
 same(422, $router->handle('POST', '/api/media/profile', $json($login['csrf']), media_json([...$record, 'contact_email' => 'no-es-correo']))->status);
 same(422, $router->handle('POST', '/api/media/profile', $json($login['csrf']), media_json([...$record, 'province' => 'Provincia Inventada']))->status);
 same(422, $router->handle('POST', '/api/media/profile', $json($login['csrf']), media_json([...$record, 'social_link' => 'https://example.invalid/']))->status);
@@ -107,11 +116,14 @@ same(false, str_contains(implode('|', $stored), '0990000000'));
 same(false, str_contains(strtolower(implode('|', $stored)), 'prensa@'));
 same([], $saved['videos']);
 same(false, array_key_exists('people_count', $saved));
-$updated = media_body($router->handle('POST', '/api/media/profile', $json($login['csrf']), media_json([...$record, 'frequency_channel' => '101.5 FM'])));
-same('101.5 FM', $updated['frequency_channel']);
+$updated = media_body($router->handle('POST', '/api/media/profile', $json($login['csrf']), media_json([...$record, 'media_types' => ['tv', 'radio'], 'tv_channel' => 'Canal 25'])));
+same(['radio', 'tv'], $updated['media_types']);
+same('99.9 FM · 101.5 FM · Canal 25', $updated['frequency_channel']);
+same(25000, $updated['audience_count']);
+same('Radio Prueba Riobamba', $updated['radio_stations'][1]['name']);
 // Saving again without changes adds no evidence rows; withdrawing image use is allowed and recorded.
 same(3, (int) $pdo->query('SELECT COUNT(*) FROM media_consents')->fetchColumn());
-$withdrawn = media_body($router->handle('POST', '/api/media/profile', $json($login['csrf']), media_json([...$record, 'frequency_channel' => '101.5 FM', 'image_accepted' => false])));
+$withdrawn = media_body($router->handle('POST', '/api/media/profile', $json($login['csrf']), media_json([...$record, 'image_accepted' => false])));
 same(false, $withdrawn['consents']['image']['accepted']);
 same(true, $withdrawn['consents']['privacy']['accepted']);
 same(4, (int) $pdo->query('SELECT COUNT(*) FROM media_consents')->fetchColumn());
@@ -139,6 +151,10 @@ $list = media_body($router->handle('GET', '/api/medios?search=prueba&status=Nuev
 same(1, $list['pagination']['total']);
 same('Radio Prueba', $list['items'][0]['media_name']);
 same('Ambato', $list['items'][0]['city']);
+same(['radio', 'digital'], $list['items'][0]['media_types']);
+same(25000, $list['items'][0]['audience_count']);
+same(1, media_body($router->handle('GET', '/api/medios?media_type=radio', $origin))['pagination']['total']);
+same(0, media_body($router->handle('GET', '/api/medios?media_type=prensa', $origin))['pagination']['total']);
 same('https://www.tiktok.com/@radioprueba', $list['items'][0]['tiktok']);
 same(false, array_key_exists('contact_name', $list['items'][0]));
 same(1, media_body($router->handle('GET', '/api/medios?province=Tungurahua&search=ambato', $origin))['pagination']['total']);
@@ -147,7 +163,7 @@ same(false, array_key_exists('phone', $list['items'][0]));
 same(1, $list['summary']['byStatus']['Nuevo']);
 same(2, $list['summary']['videos']);
 same(2, $list['items'][0]['videos_count']);
-same(422, $router->handle('GET', '/api/medios?media_type=TV', $origin)->status);
+same(422, $router->handle('GET', '/api/medios?media_type=podcast', $origin)->status);
 same(422, $router->handle('GET', '/api/medios?status=Inventado', $origin)->status);
 $detail = media_body($router->handle('GET', '/api/medios/' . $publicId, $origin));
 same('https://facebook.com/radioprueba', $detail['social_link']);
@@ -184,6 +200,7 @@ $export = $router->handle('POST', '/api/medios/export', $admin, media_json(['sta
 same(200, $export->status);
 same(true, str_contains($export->body, 'Radio Prueba'));
 same(true, str_contains($export->body, 'Persona Responsable') && str_contains($export->body, 'https://radioprueba.example') && str_contains($export->body, 'Tungurahua'));
+same(true, str_contains($export->body, 'Radio Prueba Ambato (99.9 FM) | Radio Prueba Riobamba (101.5 FM)') && str_contains($export->body, 'Radio | Medio digital') && str_contains($export->body, ',25000,'));
 same(true, str_contains($export->body, 'https://www.tiktok.com/@radio/video/1 (1500 views)'));
 same(true, str_contains($export->body, ',2300,'));
 same('text/csv; charset=utf-8', $export->headers['Content-Type']);

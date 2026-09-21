@@ -6,11 +6,13 @@ import { apiBasesForCsp, LOCAL_API_BASE, PRIMARY_API_BASE } from '../finados/run
 
 // Server-owned text is incorporated at build time and escaped as HTML, never fetched by the browser.
 const consents = JSON.parse(readFileSync(new URL('../../backend/finados-api/resources/media-consents.json', import.meta.url), 'utf8'));
-export const mediaPortalScriptVersion = '20260921-medios-5';
+export const mediaPortalScriptVersion = '20260921-medios-6';
 
 const email = id => `<label class="vocero-field" for="${id}"><span>Correo electrónico</span><input id="${id}" name="email" type="email" autocomplete="username" maxlength="254" autocapitalize="none" spellcheck="false" required></label>`;
 const password = (id, label, autocomplete) => `<label class="vocero-field" for="${id}"><span>${label}</span><input id="${id}" name="${id.includes('confirmation') ? 'confirmation' : 'password'}" type="password" autocomplete="${autocomplete}" minlength="${autocomplete === 'current-password' ? '1' : '10'}" maxlength="128" required></label>`;
 const required = ' <span aria-hidden="true">*</span>';
+export const MEDIA_TYPES = Object.freeze({ radio: 'Radio', tv: 'Televisión', prensa: 'Prensa escrita', digital: 'Medio digital', redes: 'Redes sociales' });
+export const RADIO_GENRES = Object.freeze(['Noticias e información', 'Musical variada', 'Popular y tropical', 'Folclórica y andina', 'Juvenil y pop', 'Romántica', 'Religiosa', 'Deportiva', 'Comunitaria', 'Otro']);
 const legalLink = (key, label) => `<a href="${mediaLegalRoutes[key]}" target="_blank" rel="noopener noreferrer">${label}</a>`;
 const consent = (name, key, { optional = false } = {}) => `<label class="vocero-check"><input name="${name}" type="checkbox"${optional ? '' : ' required'} checked><span>${esc(consents[key].text)}${optional ? ' <small>Opcional</small>' : required}</span></label>`;
 const channel = (name, label, placeholder) => `<label class="vocero-field" for="${name}"><span>${label} <small>Opcional</small></span><input id="${name}" name="${name}" type="text" inputmode="url" maxlength="300" autocapitalize="none" spellcheck="false" placeholder="${placeholder}" data-media-channel></label>`;
@@ -23,11 +25,23 @@ function renderMediaForm() {
 <legend class="sr-only">Registro del medio</legend>
 <section aria-labelledby="media-data-title"><p class="vocero-eyebrow">01 · Tu medio</p><h2 id="media-data-title">Datos del medio</h2><p>Los campos con * son obligatorios.</p>
 <div class="vocero-fields">
-${field('media_name', 'Nombre del medio', 'type="text" maxlength="140" autocomplete="organization"')}
-${field('frequency_channel', 'Frecuencia / canal', 'type="text" maxlength="120" placeholder="Ej.: 99.9 FM, canal 25 o solo digital"')}
+<label class="vocero-field media-field-wide" for="media_name"><span>Nombre del medio${required}</span><input id="media_name" name="media_name" type="text" maxlength="140" autocomplete="organization" required></label>
+<fieldset class="media-types media-field-wide" data-media-types><legend>Tipo de medio${required} <small>Marca todos los que correspondan; al menos uno.</small></legend>
+<div class="media-types__options">${Object.entries(MEDIA_TYPES).map(([key, label]) => `<label><input type="checkbox" name="media_types" value="${key}"><span>${esc(label)}</span></label>`).join('')}</div></fieldset>
 <label class="vocero-field" for="province"><span>Provincia${required}</span><select id="province" name="province" autocomplete="address-level1" required><option value="">Selecciona una opción</option>${ecuadorProvinces.map(value => `<option value="${esc(value)}">${esc(value)}</option>`).join('')}</select></label>
 ${field('city', 'Ciudad', 'type="text" maxlength="100" autocomplete="address-level2"')}
 </div></section>
+<section aria-labelledby="media-radio-title" data-media-section="radio" hidden><p class="vocero-eyebrow">Radio</p><h2 id="media-radio-title">Emisoras, audiencia y género</h2>
+<p>Agrega cada emisora con su frecuencia. Si tu medio tiene más de una, usa «Agregar otra emisora».</p>
+<div class="media-stations" data-media-stations></div>
+<template data-media-station-template><div class="media-station" data-media-station><label class="vocero-field"><span>Nombre de la emisora${required}</span><input type="text" data-station-name maxlength="140" required></label><label class="vocero-field"><span>Frecuencia${required}</span><input type="text" data-station-frequency maxlength="40" placeholder="Ej.: 99.9 FM" required></label><button class="vocero-quiet" type="button" data-station-remove>Quitar</button></div></template>
+<button class="vocero-quiet" type="button" data-station-add>+ Agregar otra emisora</button>
+<div class="vocero-fields media-radio-fields">
+<label class="vocero-field" for="audience_count"><span>Cantidad de oyentes${required}</span><input id="audience_count" name="audience_count" type="number" min="0" max="100000000" step="1" inputmode="numeric" placeholder="Ej.: 25000" required aria-describedby="audience-help"><small id="audience-help">Audiencia estimada que reporta tu medio, solo números.</small></label>
+<label class="vocero-field" for="radio_genre"><span>Género de la radio${required}</span><select id="radio_genre" name="radio_genre" required><option value="">Selecciona una opción</option>${RADIO_GENRES.map(value => `<option value="${esc(value)}">${esc(value)}</option>`).join('')}</select></label>
+</div></section>
+<section aria-labelledby="media-tv-title" data-media-section="tv" hidden><p class="vocero-eyebrow">Televisión</p><h2 id="media-tv-title">Canal de televisión</h2>
+<div class="vocero-fields"><label class="vocero-field" for="tv_channel"><span>Canal o señal${required}</span><input id="tv_channel" name="tv_channel" type="text" maxlength="120" placeholder="Ej.: Canal 25 UHF o señal por cable" required></label></div></section>
 <section aria-labelledby="media-contact-title"><p class="vocero-eyebrow">02 · Contacto</p><h2 id="media-contact-title">Persona de contacto</h2>
 <div class="vocero-fields">
 ${field('contact_name', 'Nombre y apellido', 'type="text" maxlength="160" autocomplete="name"')}
