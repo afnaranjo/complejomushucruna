@@ -26,7 +26,9 @@ final class MediaRepository
     /** Public channels of a medium; every one is optional but at least one is required. */
     public const CHANNELS = ['facebook', 'instagram', 'tiktok', 'youtube', 'website', 'other_link'];
     public const FIELDS = ['media_name', 'frequency_channel', 'contact_name', 'phone', 'contact_email', 'province', 'city',
-        'facebook', 'instagram', 'tiktok', 'youtube', 'website', 'other_link', 'conditions_accepted'];
+        'facebook', 'instagram', 'tiktok', 'youtube', 'website', 'other_link', 'conditions_accepted', 'privacy_accepted', 'image_accepted'];
+    /** Required consents block the save when rejected; image use is separate and optional. */
+    public const CONSENTS = ['conditions' => true, 'privacy' => true, 'image' => false];
     public const MAX_VIDEOS = 100;
     private const ARCHIVED = 'Eliminado';
     private const EDITABLE = ['Nuevo', 'En revisión'];
@@ -38,6 +40,7 @@ final class MediaRepository
     private const LEGACY_ENCRYPTED = ['team_enc'];
     private readonly Audit $audit;
     private readonly array $conditions;
+    private readonly array $catalogue;
 
     public function __construct(private readonly PDO $pdo, private readonly Crypto $crypto, ?Audit $audit = null)
     {
@@ -51,7 +54,11 @@ final class MediaRepository
         if (!is_array($conditions) || !is_string($conditions['version'] ?? null) || !is_string($conditions['text'] ?? null)) {
             throw new RuntimeException('No se pudo cargar las condiciones de acreditación.');
         }
+        foreach (array_keys(self::CONSENTS) as $type) {
+            if (!is_string($catalogue[$type]['version'] ?? null) || !is_string($catalogue[$type]['text'] ?? null)) throw new RuntimeException('No se pudo cargar las condiciones de acreditación.');
+        }
         $this->conditions = $conditions;
+        $this->catalogue = $catalogue;
     }
 
     /** Own record for the authenticated media account, or null before the first save. */
@@ -62,7 +69,7 @@ final class MediaRepository
         $row = $statement->fetch();
         if ($row === false || $row['status'] === self::ARCHIVED) return null;
         return [...$this->present($row), 'editable' => in_array($row['status'], self::EDITABLE, true), 'videos' => $this->videos((int) $row['id']),
-            'can_add_videos' => $row['status'] !== 'Rechazado'];
+            'can_add_videos' => $row['status'] !== 'Rechazado', 'consents' => $this->consents((int) $row['id'])];
     }
 
     public function saveForAccount(int $accountId, array $input, string $ip): array
@@ -97,6 +104,8 @@ final class MediaRepository
                 $this->pdo->prepare('UPDATE media_profiles SET ' . $assignments . ' WHERE id = ?')->execute([...array_values($values), $existing['id']]);
                 $this->audit->log('media.profile_updated', null, 'media_profile', $existing['public_id'], [], $ip);
             }
+            $profileId = $existing === false ? (int) $this->pdo->query('SELECT id FROM media_profiles WHERE account_id = ' . (int) $accountId)->fetchColumn() : (int) $existing['id'];
+            $this->recordConsents($profileId, $input, $ip, $now);
             $this->commit();
         } catch (Throwable $error) {
             $this->rollBack();
@@ -179,6 +188,7 @@ final class MediaRepository
             'account_active' => $owner ? (int) $owner['active'] === 1 : false,
             'last_login_at' => $owner['last_login_at'] ?? null,
             'videos' => $this->videos((int) $row['id'], true),
+            'consents' => $this->consents((int) $row['id']),
             'notes' => array_map(static fn (array $note): array => [...$note, 'id' => (int) $note['id']], $notes->fetchAll(PDO::FETCH_ASSOC)),
         ];
     }
@@ -262,7 +272,10 @@ final class MediaRepository
     public static function validate(array $input): array
     {
         if (array_diff(array_keys($input), self::FIELDS) !== [] || array_diff(self::FIELDS, array_keys($input)) !== []) throw new InvalidArgumentException();
-        if ($input['conditions_accepted'] !== true) throw new InvalidArgumentException();
+        foreach (self::CONSENTS as $type => $required) {
+            $accepted = $input[$type . '_accepted'];
+            if (!is_bool($accepted) || ($required && $accepted !== true)) throw new InvalidArgumentException();
+        }
         $text = static function (mixed $value, int $max): string {
             if (!is_string($value)) throw new InvalidArgumentException();
             $value = trim(preg_replace('/\p{C}+/u', ' ', $value) ?? '');
@@ -358,6 +371,33 @@ final class MediaRepository
             foreach ($views as $id => $count) $update->execute([$count, $id, $row['id']]);
             $this->audit->log('media.video_views_updated', $actorId, 'media_profile', $publicId, ['count' => count($views)], $ip);
         });
+    }
+
+    /** Append-only evidence: a new row is written only when the answer or the accepted text changes. */
+    private function recordConsents(int $profileId, array $input, string $ip, string $now): void
+    {
+        $latest = $this->pdo->prepare('SELECT accepted, text_hash FROM media_consents WHERE profile_id = ? AND consent_type = ? ORDER BY recorded_at DESC, id DESC LIMIT 1');
+        $insert = $this->pdo->prepare('INSERT INTO media_consents (profile_id, consent_type, accepted, text_version, text_hash, ip_hash, recorded_at) VALUES (?, ?, ?, ?, ?, ?, ?)');
+        foreach (array_keys(self::CONSENTS) as $type) {
+            $accepted = (int) ($input[$type . '_accepted'] === true);
+            $hash = hash('sha256', $this->catalogue[$type]['text']);
+            $latest->execute([$profileId, $type]);
+            $previous = $latest->fetch();
+            if ($previous !== false && (int) $previous['accepted'] === $accepted && $previous['text_hash'] === $hash) continue;
+            $insert->execute([$profileId, $type, $accepted, $this->catalogue[$type]['version'], $hash, $this->crypto->lookup($ip), $now]);
+        }
+    }
+
+    /** Current answer per consent type, without IP or hashes. */
+    private function consents(int $profileId): array
+    {
+        $statement = $this->pdo->prepare('SELECT consent_type, accepted, text_version, recorded_at FROM media_consents WHERE profile_id = ? ORDER BY recorded_at, id');
+        $statement->execute([$profileId]);
+        $current = [];
+        foreach ($statement->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            $current[$row['consent_type']] = ['accepted' => (int) $row['accepted'] === 1, 'version' => (string) $row['text_version'], 'recorded_at' => (string) $row['recorded_at']];
+        }
+        return $current;
     }
 
     private function videos(int $profileId, bool $administrative = false): array

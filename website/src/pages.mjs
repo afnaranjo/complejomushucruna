@@ -32,6 +32,7 @@ import { renderMediaAccreditationBody } from './media-accreditation/page.mjs';
 import { renderAdminLoginPage, renderAdminMediosPage, renderAdminVocerosPage } from './admin/page.mjs';
 import { renderMediaLandingBody } from './medios/landing-page.mjs';
 import { renderMediaPortalPage } from './medios/portal-page.mjs';
+import { mediaLegalDocuments, mediaLegalRoutes, renderMediaLegalPage } from './medios/legal-page.mjs';
 
 const historyParagraphs = [
   'Al pie del volcán Carihuayrazo, cerca al Puñalica y de frente a los Llimpes, se levanta el Complejo Intercultural y Deportivo Mushuc Runa, en honor al hombre nuevo, que se abre espacio en este mundo globalizado. Desde la parte alta se puede apreciar la explanada que acoge a varios poblados de Ambato, Tisaleo, Quero y Cevallos. La obra que inició en el 2012 bajo la inspiración de Luis Alfonso Chango, tiene un toque campestre y natural, dotado de funcionalidad moderna. El proyecto fue inspirado en la reivindicación de los indígenas que hasta hace poco, sólo servían como peones de estas tierras.',
@@ -303,7 +304,7 @@ const finadosMediaPage = {
   headerVariant: 'finados',
   footerVariant: 'finados',
   heroImage: '/assets/images/acreditacion-medios-periodista.jpg?v=20260909',
-  stylesheet: '/assets/media-accreditation.css?v=20260921-medios-1',
+  stylesheet: '/assets/media-accreditation.css?v=20260921-medios-2',
   body: renderMediaLandingBody(),
 };
 
@@ -329,6 +330,7 @@ export const pages = Object.freeze([
   ...vocerosLegalPages,
   finadosMediaPage,
   ...['acceso', 'mi-registro', 'restablecer'].map(slug => ({ route: `/finados/medios/${slug}/`, title: 'Cuenta de medio', indexable: false, render: renderMediaPortalPage })),
+  ...Object.entries(mediaLegalDocuments).map(([documentKey, document]) => ({ route: mediaLegalRoutes[documentKey], title: document.title, description: document.summary, documentKey, indexable: false, render: renderMediaLegalPage })),
   finadosDignitiesPage,
   standsAccessPage,
 ]);

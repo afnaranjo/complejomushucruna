@@ -327,6 +327,13 @@ export async function initializeMediaAdmin() {
       if (LINK_FIELDS.has(key)) value.append(linkNode(data[key])); else value.textContent = data[key] === '' || data[key] == null ? '—' : data[key];
       field.append(node('dt', label), value); dl.append(field);
     }
+    const consentLabels = { conditions: 'Buenas prácticas y condiciones', privacy: 'Política de Privacidad', image: 'Uso de imagen y contenido' };
+    for (const [key, label] of Object.entries(consentLabels)) {
+      const answer = data.consents?.[key];
+      const field = node('div');
+      field.append(node('dt', label), node('dd', !answer ? 'Sin registro' : `${answer.accepted ? 'Aceptado' : 'No autorizado'} · ${dateTime(answer.recorded_at)}`));
+      dl.append(field);
+    }
     const videos = node('section', undefined, 'notes-section');
     const total = (data.videos ?? []).length;
     videos.append(node('h3', total === 1 ? 'Videos publicados (1)' : `Videos publicados (${total})`));

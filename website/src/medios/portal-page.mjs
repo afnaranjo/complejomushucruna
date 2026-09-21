@@ -1,15 +1,18 @@
 import { readFileSync } from 'node:fs';
 import { escapeHtml as esc } from '../render/html.mjs';
 import { ecuadorProvinces } from '../media-accreditation/page.mjs';
+import { mediaLegalRoutes } from './legal-page.mjs';
 import { apiBasesForCsp, LOCAL_API_BASE, PRIMARY_API_BASE } from '../finados/runtime-origins.mjs';
 
 // Server-owned text is incorporated at build time and escaped as HTML, never fetched by the browser.
 const consents = JSON.parse(readFileSync(new URL('../../backend/finados-api/resources/media-consents.json', import.meta.url), 'utf8'));
-export const mediaPortalScriptVersion = '20260921-medios-3';
+export const mediaPortalScriptVersion = '20260921-medios-5';
 
 const email = id => `<label class="vocero-field" for="${id}"><span>Correo electrónico</span><input id="${id}" name="email" type="email" autocomplete="username" maxlength="254" autocapitalize="none" spellcheck="false" required></label>`;
 const password = (id, label, autocomplete) => `<label class="vocero-field" for="${id}"><span>${label}</span><input id="${id}" name="${id.includes('confirmation') ? 'confirmation' : 'password'}" type="password" autocomplete="${autocomplete}" minlength="${autocomplete === 'current-password' ? '1' : '10'}" maxlength="128" required></label>`;
 const required = ' <span aria-hidden="true">*</span>';
+const legalLink = (key, label) => `<a href="${mediaLegalRoutes[key]}" target="_blank" rel="noopener noreferrer">${label}</a>`;
+const consent = (name, key, { optional = false } = {}) => `<label class="vocero-check"><input name="${name}" type="checkbox"${optional ? '' : ' required'} checked><span>${esc(consents[key].text)}${optional ? ' <small>Opcional</small>' : required}</span></label>`;
 const channel = (name, label, placeholder) => `<label class="vocero-field" for="${name}"><span>${label} <small>Opcional</small></span><input id="${name}" name="${name}" type="text" inputmode="url" maxlength="300" autocapitalize="none" spellcheck="false" placeholder="${placeholder}" data-media-channel></label>`;
 const field = (name, label, attrs) => `<label class="vocero-field" for="${name}"><span>${label}${required}</span><input id="${name}" name="${name}" ${attrs} required></label>`;
 
@@ -42,8 +45,13 @@ ${channel('youtube', 'YouTube', 'https://www.youtube.com/@tumedio')}
 ${channel('website', 'Página web', 'https://www.tumedio.com')}
 ${channel('other_link', 'Otro canal', 'X, Threads, WhatsApp Channel u otro')}
 </div></section>
-<label class="vocero-check"><input name="conditions_accepted" type="checkbox" required><span>${esc(consents.conditions.text)}${required}</span></label>
-<p class="vocero-field-help">La información se utilizará únicamente para gestionar el registro de tu medio y el contacto del evento.</p>
+<section aria-labelledby="media-consents-title"><p class="vocero-eyebrow">Aceptaciones</p><h2 id="media-consents-title">Políticas del registro</h2>
+<p>Las casillas ya vienen marcadas para que solo tengas que guardar. Puedes leer cada documento antes de aceptar; el uso de imagen es opcional.</p>
+${consent('conditions_accepted', 'conditions')}
+${consent('privacy_accepted', 'privacy')}
+${consent('image_accepted', 'image', { optional: true })}
+<p class="vocero-legal-links">${legalLink('practices', 'Buenas prácticas para medios')}${legalLink('privacy', 'Política de Privacidad')}${legalLink('image', 'Autorización de uso de imagen y contenido')}</p>
+</section>
 <div class="vocero-save"><button class="vocero-primary" type="submit">Guardar registro</button></div>
 </fieldset></form>
 <section class="media-videos" aria-labelledby="media-videos-title" data-media-videos hidden>
@@ -64,7 +72,7 @@ export function renderMediaPortalPage(page) {
     : mode === 'reset' ? `<div class="vocero-access-intro"><p class="vocero-eyebrow">Recupera tu acceso</p><h1>${title}</h1><p>Elige una contraseña de 10 a 128 caracteres.</p></div><form data-media-reset novalidate><fieldset disabled>${password('reset-password', 'Nueva contraseña', 'new-password')}${password('reset-confirmation', 'Confirma tu contraseña', 'new-password')}<button class="vocero-primary" type="submit">Guardar contraseña</button></fieldset></form><a href="/finados/medios/acceso/?modo=login">Volver a iniciar sesión</a>`
     : `<div class="vocero-access-intro"><p class="vocero-eyebrow">Registro de medios</p><h1>${title}</h1><p>Crea la cuenta de tu medio para completar el registro y consultar el estado de la acreditación.</p></div>
 <nav class="vocero-modes" aria-label="Acceso a tu cuenta"><button type="button" data-mode="register" aria-pressed="true">Crear cuenta</button><button type="button" data-mode="login" aria-pressed="false">Iniciar sesión</button></nav>
-<form data-media-register novalidate><fieldset disabled>${email('register-email')}${password('register-password', 'Contraseña', 'new-password')}<p class="vocero-field-help">De 10 a 128 caracteres. Puedes usar una frase larga.</p>${password('register-confirmation', 'Confirma tu contraseña', 'new-password')}<label class="vocero-check"><input name="privacyAcknowledged" type="checkbox" required><span>${esc(consents.account.text)}</span></label><button class="vocero-primary" type="submit">Crear cuenta</button></fieldset></form>
+<form data-media-register novalidate><fieldset disabled>${email('register-email')}${password('register-password', 'Contraseña', 'new-password')}<p class="vocero-field-help">De 10 a 128 caracteres. Puedes usar una frase larga.</p>${password('register-confirmation', 'Confirma tu contraseña', 'new-password')}<label class="vocero-check"><input name="privacyAcknowledged" type="checkbox" required checked><span>${esc(consents.account.text)}</span></label>${legalLink('privacy', 'Leer Política de Privacidad para medios')}<button class="vocero-primary" type="submit">Crear cuenta</button></fieldset></form>
 <form data-media-login novalidate hidden><fieldset disabled>${email('login-email')}${password('login-password', 'Contraseña', 'current-password')}<button class="vocero-primary" type="submit">Iniciar sesión</button></fieldset><details class="vocero-help"><summary>¿Olvidaste tu contraseña?</summary><p>Solicita al equipo de comunicación de Finados Mushuc Runa un enlace temporal para restablecer tu acceso.</p></details></form>`;
   return `<!doctype html><html lang="es"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">

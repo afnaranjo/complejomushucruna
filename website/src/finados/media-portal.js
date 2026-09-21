@@ -6,6 +6,7 @@ const ACCESS = '/finados/medios/acceso/?modo=login';
 const PROFILE = '/finados/medios/mi-registro/';
 
 export const MEDIA_CHANNELS = Object.freeze(['facebook', 'instagram', 'tiktok', 'youtube', 'website', 'other_link']);
+export const MEDIA_CONSENTS = Object.freeze({ conditions_accepted: true, privacy_accepted: true, image_accepted: false });
 export const MEDIA_FIELDS = Object.freeze(['media_name', 'frequency_channel', 'contact_name', 'phone', 'contact_email', 'province', 'city', ...MEDIA_CHANNELS]);
 export const STATUS_HELP = Object.freeze({
   Nuevo: 'Recibimos tu registro. Puedes actualizarlo mientras el equipo lo revisa.',
@@ -99,8 +100,10 @@ export function profilePayload(data) {
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(body.contact_email)) throw new Error('Escribe un correo de contacto válido.');
   for (const name of MEDIA_CHANNELS) if (body[name]) body[name] = normalizeLink(body[name]);
   if (!MEDIA_CHANNELS.some(name => body[name])) throw new Error('Agrega al menos un canal: una red social o la página web de tu medio.');
-  if (data.get('conditions_accepted') === null) throw new Error('Debes aceptar las condiciones de acreditación.');
-  body.conditions_accepted = true;
+  for (const [name, mandatory] of Object.entries(MEDIA_CONSENTS)) {
+    body[name] = data.get(name) !== null;
+    if (mandatory && !body[name]) throw new Error('Para registrarte debes aceptar las Buenas prácticas y la Política de Privacidad. El uso de imagen es opcional.');
+  }
   return body;
 }
 
@@ -195,7 +198,8 @@ export async function initializeMediaPortal(root = document) {
     if (!profile.registered && !profileForm.elements.namedItem('contact_email').value) profileForm.elements.namedItem('contact_email').value = profile.email ?? '';
     if (profile.registered) {
       for (const name of MEDIA_FIELDS) profileForm.elements.namedItem(name).value = String(profile[name] ?? '');
-      profileForm.elements.namedItem('conditions_accepted').checked = true;
+      // Restore the saved answers; a withdrawn image authorization must stay unchecked.
+      for (const name of Object.keys(MEDIA_CONSENTS)) profileForm.elements.namedItem(name).checked = profile.consents?.[name.replace('_accepted', '')]?.accepted ?? true;
     }
     const status = profile.registered ? profile.status : '';
     statusTitle.textContent = status || 'Registro pendiente';

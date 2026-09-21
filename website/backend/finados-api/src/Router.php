@@ -531,7 +531,7 @@ final class Router
 
     private function mediaExport(array $filters, int $actorId, string $ip, array $headers): Response
     {
-        $columns = ['public_id', 'status', 'submitted_at', 'media_name', 'frequency_channel', 'contact_name', 'phone', 'contact_email', 'account_email', 'province', 'city', 'facebook', 'instagram', 'tiktok', 'youtube', 'website', 'other_link', 'videos_count', 'views_total', 'video_links'];
+        $columns = ['public_id', 'status', 'submitted_at', 'media_name', 'frequency_channel', 'contact_name', 'phone', 'contact_email', 'account_email', 'province', 'city', 'facebook', 'instagram', 'tiktok', 'youtube', 'website', 'other_link', 'image_authorized', 'videos_count', 'views_total', 'video_links'];
         $stream = fopen('php://temp/maxmemory:2097152', 'w+');
         if ($stream === false) throw new \RuntimeException();
         try {
@@ -540,7 +540,7 @@ final class Router
             $rows = $this->media()->exportRows($filters);
             foreach ($rows as $detail) {
                 $links = array_column($detail['videos'] ?? [], 'url');
-                $detail = [...$detail, 'videos_count' => count($links), 'views_total' => array_sum(array_column($detail['videos'] ?? [], 'views_count')),
+                $detail = [...$detail, 'image_authorized' => ($detail['consents']['image']['accepted'] ?? false) ? 'Sí' : 'No', 'videos_count' => count($links), 'views_total' => array_sum(array_column($detail['videos'] ?? [], 'views_count')),
                     'video_links' => implode(' | ', array_map(static fn (array $video): string => $video['url'] . ' (' . $video['views_count'] . ' views)', $detail['videos'] ?? []))];
                 fputcsv($stream, array_map(static function (string $column) use ($detail): string {
                     $value = (string) ($detail[$column] ?? '');

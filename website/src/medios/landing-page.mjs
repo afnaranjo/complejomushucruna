@@ -33,6 +33,7 @@ export function renderMediaLandingBody() {
         <a class="media-submit" href="/finados/medios/acceso/">Crear cuenta de medio <span aria-hidden="true">↗</span></a>
         <a class="media-steps__login" href="/finados/medios/acceso/?modo=login">Ya tengo cuenta: iniciar sesión</a>
       </div>
+      <p class="media-steps__legal">Antes de registrarte puedes leer: <a href="/finados/medios/buenas-practicas/">Buenas prácticas para medios</a> · <a href="/finados/medios/politica-de-privacidad/">Política de Privacidad</a> · <a href="/finados/medios/uso-de-imagen/">Uso de imagen y contenido</a></p>
     </div>
   </section>`;
 }

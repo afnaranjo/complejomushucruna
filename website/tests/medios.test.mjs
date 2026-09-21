@@ -7,7 +7,7 @@ import { join } from 'node:path';
 import { readdir } from 'node:fs/promises';
 import { buildSite } from '../scripts/build.mjs';
 import { primaryNavigation } from '../src/data/site.mjs';
-import { MediaApiClient, MediaError, MEDIA_CHANNELS, MEDIA_FIELDS, normalizeLink, profilePayload } from '../src/finados/media-portal.js';
+import { MediaApiClient, MediaError, MEDIA_CHANNELS, MEDIA_CONSENTS, MEDIA_FIELDS, normalizeLink, profilePayload } from '../src/finados/media-portal.js';
 import { collectVideoViews, createMediaAdminClient, MEDIA_STATUSES, normalizeMediaFilters, renderMediaSummary, safeLink, topMediaViews } from '../src/admin/admin-medios.js';
 import { topVideoViews } from '../src/admin/admin.js';
 
@@ -27,6 +27,8 @@ test('el build publica la landing, las cuentas de medios y su panel sin tocar la
     assert.ok(files.includes(file), file);
   }
   const landing = await readFile(join(output, 'finados/medios/index.html'), 'utf8');
+  const voceroAccess = await readFile(join(output, 'finados/voceros/acceso/index.html'), 'utf8');
+  assert.doesNotMatch(voceroAccess, /type="checkbox"[^>]*checked/, 'las casillas de Voceros no cambian');
   assert.match(landing, /<h1 id="media-title">Registro<br>de medios<\/h1>/);
   assert.match(landing, /href="\/finados\/medios\/acceso\/"/);
   assert.match(landing, /href="\/finados\/medios\/acceso\/\?modo=login"/);
@@ -36,17 +38,33 @@ test('el build publica la landing, las cuentas de medios y su panel sin tocar la
 
   const access = await readFile(join(output, 'finados/medios/acceso/index.html'), 'utf8');
   assert.match(access, /data-media-register/);
+  // Alex pidió que las aceptaciones de Medios vengan marcadas; la persona puede desmarcarlas y el envío las sigue exigiendo.
+  assert.match(access, /name="privacyAcknowledged" type="checkbox" required checked/);
   assert.match(access, /data-media-login/);
   assert.match(access, /connect-src https:\/\/finados\.complejomushucruna\.com\/api\/ https:\/\/api\.expoferiamushucruna\.com\/api\//);
   assert.match(access, /form-action 'none'/);
   assert.doesNotMatch(access, /127\.0\.0\.1/);
 
   const profile = await readFile(join(output, 'finados/medios/mi-registro/index.html'), 'utf8');
-  for (const name of [...MEDIA_FIELDS, 'conditions_accepted']) assert.match(profile, new RegExp(`name="${name}"`), name);
+  for (const name of [...MEDIA_FIELDS, ...Object.keys(MEDIA_CONSENTS)]) assert.match(profile, new RegExp(`name="${name}"`), name);
   assert.deepEqual([...MEDIA_FIELDS], ['media_name', 'frequency_channel', 'contact_name', 'phone', 'contact_email', 'province', 'city', 'facebook', 'instagram', 'tiktok', 'youtube', 'website', 'other_link']);
   for (const channel of MEDIA_CHANNELS) assert.doesNotMatch(new RegExp(`name="${channel}"[^>]*required`).exec(profile)?.[0] ?? '', /required/, channel);
   assert.match(profile, /Completa al menos uno/);
   for (const retired of ['people_count', 'team', 'media_type', 'program_name', 'contract', 'social_link']) assert.doesNotMatch(profile, new RegExp(`name="${retired}"`), retired);
+  assert.match(profile, /name="conditions_accepted" type="checkbox" required checked/);
+  assert.match(profile, /name="privacy_accepted" type="checkbox" required checked/);
+  // Image use is a separate, optional consent: pre-checked for convenience, never required.
+  assert.match(profile, /name="image_accepted" type="checkbox" checked/);
+  for (const [route, title] of [['buenas-practicas', 'Buenas prácticas para medios'], ['politica-de-privacidad', 'Política de Privacidad para medios'], ['uso-de-imagen', 'Autorización de uso de imagen y contenido para medios']]) {
+    assert.match(profile, new RegExp(`href="/finados/medios/${route}/" target="_blank" rel="noopener noreferrer"`), route);
+    const legal = await readFile(join(output, `finados/medios/${route}/index.html`), 'utf8');
+    assert.match(legal, new RegExp(`<h1>${title}</h1>`), route);
+    assert.match(legal, /noindex, nofollow, noarchive/);
+    assert.match(legal, /data-consent-text="(conditions|privacy|image)"/);
+    assert.match(legal, /Volver a Medios/);
+    assert.doesNotMatch(legal, /Comunidad de Voceros|Políticas del Vocero/, route);
+  }
+  assert.match(access, /href="\/finados\/medios\/politica-de-privacidad\/"/);
   assert.match(profile, /data-media-video-form/);
   assert.match(profile, /Agregar video/);
 
@@ -94,9 +112,11 @@ test('el registro de medios arma el contrato exacto, exige contacto y al menos u
   const values = { media_name: ' Radio Prueba ', frequency_channel: '99.9 FM', contact_name: 'Persona Responsable', phone: '0991234567', contact_email: 'prensa@example.invalid',
     province: 'Tungurahua', city: 'Ambato', facebook: 'facebook.com/radioprueba', instagram: '', tiktok: '', youtube: '', website: 'radioprueba.example', other_link: '' };
   for (const [name, value] of Object.entries(values)) data.set(name, value);
-  assert.throws(() => profilePayload(data), /condiciones/);
-  data.set('conditions_accepted', 'on');
-  assert.deepEqual(profilePayload(data), { ...values, media_name: 'Radio Prueba', facebook: 'https://facebook.com/radioprueba', website: 'https://radioprueba.example', conditions_accepted: true });
+  assert.throws(() => profilePayload(data), /Buenas prácticas y la Política de Privacidad/);
+  data.set('conditions_accepted', 'on'); data.set('privacy_accepted', 'on');
+  assert.deepEqual(profilePayload(data), { ...values, media_name: 'Radio Prueba', facebook: 'https://facebook.com/radioprueba', website: 'https://radioprueba.example', conditions_accepted: true, privacy_accepted: true, image_accepted: false });
+  data.set('image_accepted', 'on');
+  assert.equal(profilePayload(data).image_accepted, true);
   assert.equal(normalizeLink('http://www.tiktok.com/@radio/video/1', 500), 'https://www.tiktok.com/@radio/video/1');
   for (const invalid of ['', 'no es un link', 'javascript:alert(1)', 'https://usuario:clave@example.com/', 'https://localhost/video']) assert.throws(() => normalizeLink(invalid), /link válido/, invalid);
   const broken = (name, value, message) => { const copy = new FormData(); for (const [key, item] of data.entries()) copy.set(key, item); copy.set(name, value); assert.throws(() => profilePayload(copy), message, name); };

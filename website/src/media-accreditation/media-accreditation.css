@@ -822,6 +822,18 @@
   font-weight: 700;
 }
 
+.media-steps__legal {
+  max-width: 70rem;
+  margin: 1.5rem auto 0;
+  color: rgba(36, 17, 70, 0.78);
+  font-size: 0.95rem;
+}
+
+.media-steps__legal a {
+  color: #241146;
+  font-weight: 700;
+}
+
 @media (max-width: 860px) {
   .media-steps__list {
     grid-template-columns: 1fr;

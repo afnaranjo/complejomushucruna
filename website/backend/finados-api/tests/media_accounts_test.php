@@ -34,7 +34,7 @@ function media_json(array $payload): string { return json_encode($payload, JSON_
 media_close_session();
 $config = media_config();
 $pdo = Database::connect($config);
-foreach (['001_initial', '002_sheets_outbox', '003_vocero_accounts', '008_media_accounts', '009_media_videos', '010_media_video_views', '011_media_contact_channels'] as $migration) {
+foreach (['001_initial', '002_sheets_outbox', '003_vocero_accounts', '008_media_accounts', '009_media_videos', '010_media_video_views', '011_media_contact_channels', '012_media_consents'] as $migration) {
     $pdo->exec(file_get_contents(__DIR__ . '/../migrations/' . $migration . '_sqlite.sql'));
 }
 same('008_media_accounts', $pdo->query("SELECT version FROM schema_migrations WHERE version = '008_media_accounts'")->fetchColumn());
@@ -72,7 +72,9 @@ same(false, $empty['registered']);
 same('radio@example.invalid', $empty['email']);
 $record = ['media_name' => 'Radio Prueba', 'frequency_channel' => '99.9 FM', 'contact_name' => 'Persona Responsable', 'phone' => '0990000000',
     'contact_email' => 'Prensa@Example.invalid', 'province' => 'Tungurahua', 'city' => 'Ambato', 'facebook' => 'facebook.com/radioprueba',
-    'instagram' => '', 'tiktok' => 'https://www.tiktok.com/@radioprueba', 'youtube' => '', 'website' => 'radioprueba.example', 'other_link' => '', 'conditions_accepted' => true];
+    'instagram' => '', 'tiktok' => 'https://www.tiktok.com/@radioprueba', 'youtube' => '', 'website' => 'radioprueba.example', 'other_link' => '', 'conditions_accepted' => true, 'privacy_accepted' => true, 'image_accepted' => true];
+same(422, $router->handle('POST', '/api/media/profile', $json($login['csrf']), media_json([...$record, 'privacy_accepted' => false]))->status);
+same(422, $router->handle('POST', '/api/media/profile', $json($login['csrf']), media_json([...$record, 'image_accepted' => 'sí']))->status);
 same(422, $router->handle('POST', '/api/media/profile', $json($login['csrf']), media_json([...$record, 'facebook' => 'javascript:alert(1)']))->status);
 same(422, $router->handle('POST', '/api/media/profile', $json($login['csrf']), media_json([...$record, 'facebook' => '', 'tiktok' => '', 'website' => '']))->status);
 same(422, $router->handle('POST', '/api/media/profile', $json($login['csrf']), media_json([...$record, 'phone' => 'sin numero']))->status);
@@ -94,6 +96,9 @@ same('https://facebook.com/radioprueba', $saved['social_link']);
 same('https://radioprueba.example', $saved['website']);
 same('', $saved['instagram']);
 same('Persona Responsable', $saved['contact_name']);
+same(['conditions', 'privacy', 'image'], array_keys($saved['consents']));
+same(true, $saved['consents']['image']['accepted']);
+same(3, (int) $pdo->query('SELECT COUNT(*) FROM media_consents')->fetchColumn());
 same('prensa@example.invalid', $saved['contact_email']);
 same('Ambato', $saved['city']);
 $stored = $pdo->query('SELECT contact_name_enc, phone_enc, contact_email_enc FROM media_profiles')->fetch();
@@ -104,6 +109,13 @@ same([], $saved['videos']);
 same(false, array_key_exists('people_count', $saved));
 $updated = media_body($router->handle('POST', '/api/media/profile', $json($login['csrf']), media_json([...$record, 'frequency_channel' => '101.5 FM'])));
 same('101.5 FM', $updated['frequency_channel']);
+// Saving again without changes adds no evidence rows; withdrawing image use is allowed and recorded.
+same(3, (int) $pdo->query('SELECT COUNT(*) FROM media_consents')->fetchColumn());
+$withdrawn = media_body($router->handle('POST', '/api/media/profile', $json($login['csrf']), media_json([...$record, 'frequency_channel' => '101.5 FM', 'image_accepted' => false])));
+same(false, $withdrawn['consents']['image']['accepted']);
+same(true, $withdrawn['consents']['privacy']['accepted']);
+same(4, (int) $pdo->query('SELECT COUNT(*) FROM media_consents')->fetchColumn());
+same(false, str_contains((string) $pdo->query('SELECT GROUP_CONCAT(ip_hash) FROM media_consents')->fetchColumn(), '192.0.2'));
 same(1, (int) $pdo->query('SELECT COUNT(*) FROM media_profiles')->fetchColumn());
 // The medium keeps adding the links of what it published.
 $firstVideo = media_body($router->handle('POST', '/api/media/videos', $json($login['csrf']), media_json(['url' => 'https://www.tiktok.com/@radio/video/1'])));
@@ -141,6 +153,8 @@ $detail = media_body($router->handle('GET', '/api/medios/' . $publicId, $origin)
 same('https://facebook.com/radioprueba', $detail['social_link']);
 same('0990000000', $detail['phone']);
 same('Persona Responsable', $detail['contact_name']);
+same(false, $detail['consents']['image']['accepted']);
+same(false, array_key_exists('ip_hash', $detail['consents']['image']));
 same('https://youtube.com/watch?v=abc', $detail['videos'][0]['url']);
 same('radio@example.invalid', $detail['account_email']);
 // Administration validates the views beside each reported link; they feed the Top 20.
