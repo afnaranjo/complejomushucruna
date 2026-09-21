@@ -244,6 +244,8 @@ export async function initializeMediaAdmin() {
         pendingAccounts.append(row);
       }
       pendingCount.textContent = String(data.items.length);
+      // Accounts without a saved record are easy to miss: surface them as soon as any exists.
+      if (data.items.length > 0) query('[data-pending-panel]').open = true;
       feedback(pendingMessage, data.items.length ? '' : 'No hay cuentas pendientes.');
     } catch (error) { pendingCount.textContent = '—'; fail(error, pendingMessage); }
   }
