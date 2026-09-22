@@ -2,6 +2,7 @@ import { routeOptions, site } from '../data/site.mjs';
 import { escapeHtml, externalAttributes } from '../render/html.mjs';
 import { renderFinadosFooter } from './footer.mjs';
 import { renderFinadosSponsors, sponsorAssetVersion } from './sponsors.mjs';
+import { dignitiesAssetVersion, renderDignitiesElection } from './dignities-election.mjs';
 import { renderFinadosNavigation } from './navigation.mjs';
 import { renderFairOpeningHeader, renderOpeningAssets } from './opening-header.mjs';
 
@@ -88,6 +89,7 @@ export function renderFinadosPage(page) {
   <link rel="stylesheet" href="/assets/finados/navigation.css?v=${navigationAssetVersion}">
   ${renderOpeningAssets()}
   <link rel="stylesheet" href="/assets/finados/sponsors.css?v=${sponsorAssetVersion}">
+  <link rel="stylesheet" href="/assets/finados/dignities-election.css?v=${dignitiesAssetVersion}">
   <script type="module" src="/assets/finados/finados.js?v=${campaignScriptVersion}"></script>
 </head>
 <body class="bg-lienzo font-sans text-night antialiased selection:bg-winay selection:text-night">
@@ -211,6 +213,8 @@ export function renderFinadosPage(page) {
       </div>
       <p class="sr-only">Legado que nos une. Memoria que se celebra.</p>
     </section>
+
+    ${renderDignitiesElection()}
 
     <section class="bg-white py-24 text-night sm:py-32">
       <div class="mx-auto grid w-[min(100%-2rem,88rem)] gap-10 lg:grid-cols-[0.85fr_1.15fr] lg:items-stretch">

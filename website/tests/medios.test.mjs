@@ -249,7 +249,7 @@ test('el empaquetado del backend incluye cada catálogo de resources y Medios ca
   for (const name of resources) assert.match(`resources/${name}`, pattern, `${name} debe viajar en el artefacto`);
   for (const name of ['src/MediaAuth.php', 'src/MediaRepository.php', 'src/MediaPasswordReset.php', 'migrations/008_media_accounts_mysql.sql', 'migrations/009_media_videos_mysql.sql']) assert.match(name, pattern, name);
   const router = await readFile(new URL('../backend/finados-api/src/Router.php', import.meta.url), 'utf8');
-  const constructor = /public function __construct[\s\S]*?\n    }\n/.exec(router)[0];
+  const constructor = /public function __construct[\s\S]*?\r?\n    }\r?\n/.exec(router)[0];
   assert.doesNotMatch(constructor, /Media/, 'el constructor del Router no debe depender de Medios');
 });
 
