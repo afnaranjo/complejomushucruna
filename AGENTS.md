@@ -1532,3 +1532,11 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Commit `a650a70` (`Añadir elección de dignidades Finados 2026`) sincronizado en `origin/main`. Prevuelo y despliegue frontend estándar aprobados con respaldo, credencial Sheets conservada y transferencia sin borrar archivos exclusivos. No se desplegó backend ni se ejecutaron migraciones.
 - Verificación independiente: Finados, SHOWS, CSS, SVG y diez WebP respondieron HTTP 200; los doce recursos coincidieron por SHA-256 con `dist` y ambas páginas contienen las versiones nuevas. Total: 14 comprobaciones, cero fallos.
 - Publicación externa: GitHub y frontend autorizados. Sin cambios en base de datos, DNS, formularios, registros de personas, Google Sheets, backend o sitio institucional del Complejo.
+
+### 2026-09-22 — Corrección visual de Las Ñañas y recarga de auspiciantes
+
+- Alex reportó que la fotografía de Las Ñañas invadía las letras, debía mostrarse sobre fondo blanco, la virgulilla de “Señorita” interfería con el antetítulo y los auspiciantes parecían desactualizados. Reenvió el maestro `AUSPICIANTES PARA WEB.svg`.
+- Las Ñañas se recompuso con el recorte transparente oficial ya presente en el proyecto, dentro del marco blanco del arte entregado y sin cubrir su nombre. El título recibió margen adaptable: 23,19 px en escritorio y 16 px en móvil durante la revisión real con Edge. No se generaron ni alteraron rostros.
+- El SVG reenviado resultó idéntico al publicado (321.306 bytes; SHA-256 `347d08ee2d56c9dfedb8d904ae55b03a737e1802a309983a5d5f38ebc34ca054`); el problema era de caché. Se renovó a `20260922-sponsors-4` en Finados y SHOWS. Dignidades pasó a `20260922-dignities-2`.
+- QA: 166 pruebas Node, 21 suites PHP y 10 de integración; build de 152 archivos, 40 HTML y 1.343 referencias. QA visual 1440 × 1000 y 390 × 844, imagen 1080 × 1350 y sin desbordes.
+- Commit técnico `4f4077a` publicado en `origin/main`. Prevuelo y despliegue frontend aprobados, con respaldo; sin backend ni migraciones. Verificación HTTPS 200 y SHA-256 idéntico para el WebP de Las Ñañas, el SVG de auspiciantes y el CSS. Git y producción actualizados.

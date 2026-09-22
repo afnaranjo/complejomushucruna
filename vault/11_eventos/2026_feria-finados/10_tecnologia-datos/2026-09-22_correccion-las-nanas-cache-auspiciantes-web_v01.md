@@ -1,7 +1,7 @@
 ---
 titulo: "Corrección de Las Ñañas y renovación de auspiciantes web"
 responsable: "tecnología/diseño"
-estado: listo_para_publicar
+estado: publicado
 ultima_actualizacion: 2026-09-22
 fuente: "Solicitud de Alex y SVG oficial reenviado el 22 de septiembre de 2026"
 confidencialidad: interno
@@ -31,4 +31,7 @@ Alex reportó tres problemas en la sección de elección de dignidades de `/fina
 
 ## Publicación
 
-Pendiente de integrar en `main`, publicar el frontend y verificar los hashes en HTTPS.
+- Commit `4f4077a` (`Corregir arte de Las Ñañas y renovar auspiciantes`) integrado por fast-forward y publicado en `origin/main`.
+- Prevuelo remoto aprobado. Despliegue frontend estándar completado con copia de seguridad recuperable, preservación de la configuración privada de Google Sheets y transferencia sin borrar archivos exclusivos. No se desplegó backend ni se ejecutaron migraciones.
+- Verificación independiente por HTTPS: `/finados/` y `/finados/shows/` respondieron HTTP 200 con las versiones nuevas; el WebP de Las Ñañas, el SVG de auspiciantes y la hoja CSS respondieron HTTP 200 y coincidieron byte por byte con `dist` mediante SHA-256.
+- Resultado: Git y producción actualizados. Sin cambios en base de datos, formularios, DNS, backend ni datos personales.
