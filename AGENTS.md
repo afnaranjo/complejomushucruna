@@ -1540,3 +1540,11 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - El SVG reenviado resultó idéntico al publicado (321.306 bytes; SHA-256 `347d08ee2d56c9dfedb8d904ae55b03a737e1802a309983a5d5f38ebc34ca054`); el problema era de caché. Se renovó a `20260922-sponsors-4` en Finados y SHOWS. Dignidades pasó a `20260922-dignities-2`.
 - QA: 166 pruebas Node, 21 suites PHP y 10 de integración; build de 152 archivos, 40 HTML y 1.343 referencias. QA visual 1440 × 1000 y 390 × 844, imagen 1080 × 1350 y sin desbordes.
 - Commit técnico `4f4077a` publicado en `origin/main`. Prevuelo y despliegue frontend aprobados, con respaldo; sin backend ni migraciones. Verificación HTTPS 200 y SHA-256 idéntico para el WebP de Las Ñañas, el SVG de auspiciantes y el CSS. Git y producción actualizados.
+
+### 2026-09-22 — Arte final de Las Ñañas y orden correcto de auspiciantes
+
+- Alex indicó que la reconstrucción anterior de Las Ñañas perdió estilo: pidió una foto más grande, conservar las tipografías y replicar su cuarta referencia. También precisó que el tramo de auspiciantes debía leerse `Credi Fácil | Cogarol · John Morris`, como en su tercera referencia.
+- Las Ñañas usa ahora la composición final entregada, con foto, corona, logotipos, rótulos y tipografías integrados. WebP 1080 × 1350, 181.942 bytes, SHA-256 `7eba4ca891fec5c388ea42657355971f6c8b78837bcc0af8d9dd45a8110a5346`.
+- La composición visible de auspiciantes se reprodujo desde el maestro vectorial, conservando organizador y demás logos y corrigiendo el separador/punto del tramo indicado. WebP 2321 × 650, 66.838 bytes, SHA-256 `13cbb1e0f2435ff8499fc8e549569ae82fa9502565eb64666de22655284a0cd3`. Versiones `20260922-dignities-3` y `20260922-sponsors-5`.
+- QA: 166 pruebas Node, 21 suites PHP, 10 integraciones; build de 152 archivos, 40 HTML y 1.343 referencias. Edge en 1440 × 1000 y 390 × 844, sin desbordes y con dimensiones/versiones correctas.
+- Commit `85de408` publicado en `origin/main`; prevuelo y despliegue frontend aprobados con respaldo. Producción respondió HTTP 200 y ambos activos coincidieron con `dist` por SHA-256. No hubo despliegue backend, migraciones ni cambios de datos.

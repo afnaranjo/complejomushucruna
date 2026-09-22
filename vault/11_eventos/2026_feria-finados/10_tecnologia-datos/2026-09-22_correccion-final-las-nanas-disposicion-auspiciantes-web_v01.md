@@ -1,7 +1,7 @@
 ---
 titulo: "Corrección final de Las Ñañas y disposición de auspiciantes"
 responsable: "tecnología/diseño"
-estado: listo_para_publicar
+estado: publicado
 ultima_actualizacion: 2026-09-22
 fuente: "Cuatro referencias visuales entregadas por Alex el 22 de septiembre de 2026"
 confidencialidad: interno
@@ -32,4 +32,7 @@ Alex indicó que la reconstrucción anterior de Las Ñañas había perdido parte
 
 ## Publicación
 
-Pendiente de integrar en `main`, publicar el frontend y comprobar por HTTPS los archivos finales.
+- Commit `85de408` (`Ajustar arte final de Las Ñañas y auspiciantes`) integrado por fast-forward y publicado en `origin/main`.
+- Prevuelo y despliegue frontend aprobados, con copia de seguridad recuperable, preservación de la configuración privada de Google Sheets y transferencia sin borrar archivos exclusivos. No se desplegó backend ni se ejecutaron migraciones.
+- Verificación independiente por HTTPS: `/finados/` y `/finados/shows/` respondieron HTTP 200 con `20260922-dignities-3` y `20260922-sponsors-5`. Los dos WebP respondieron HTTP 200 y sus SHA-256 coincidieron byte por byte con `dist`.
+- Resultado: Git y producción actualizados. Sin cambios en backend, base de datos, formularios, DNS ni datos personales.
