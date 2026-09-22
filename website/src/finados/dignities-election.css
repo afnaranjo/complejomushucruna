@@ -174,7 +174,7 @@
 }
 
 .dignity-ballot__header h3 {
-  margin: 0;
+  margin: clamp(1rem, 1.8vw, 1.45rem) 0 0;
   font: 400 clamp(3.6rem, 7.5vw, 7.4rem)/.88 "Anton", "Arial Narrow", sans-serif;
   text-transform: uppercase;
 }

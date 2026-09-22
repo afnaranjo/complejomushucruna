@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { readFile, stat } from 'node:fs/promises';
 
 import { pages } from '../src/pages.mjs';
@@ -13,7 +14,7 @@ const finadosPage = pages.find(page => page.route === '/finados/');
 const html = () => finadosPage.render(finadosPage);
 
 test('ordena los diez nominados por dignidad y conserva los nombres entregados', () => {
-  assert.equal(dignitiesAssetVersion, '20260922-dignities-1');
+  assert.equal(dignitiesAssetVersion, '20260922-dignities-2');
   assert.deepEqual(
     dignityCandidates.filter(candidate => candidate.category === 'rey-pan').map(candidate => candidate.name),
     ['Golpe a Golpe', 'Guaynaa', 'Hueveando', 'Kike Jav', 'Waldokinc', 'William Luna'],
@@ -53,11 +54,21 @@ test('los artes optimizados están presentes, son WebP y respetan el presupuesto
   }
 });
 
+test('Las Ñañas usa el arte corregido con el recorte oficial sobre fondo blanco', async () => {
+  const candidate = dignityCandidates.find(item => item.slug === 'las-nanas');
+  const buffer = await readFile(new URL(`../public${candidate.asset}`, import.meta.url));
+  assert.equal(
+    createHash('sha256').update(buffer).digest('hex'),
+    'fb0f6b39e9b4d5a41c758e47555b9b33fcf4adfb0ec8c1fc739974cb3eea50a7',
+  );
+});
+
 test('los estilos de la elección son aislados, responsivos y sin anchos rígidos', async () => {
   const css = await readFile(new URL('../src/finados/dignities-election.css', import.meta.url), 'utf8');
   assert.match(css, /\.dignities-election\s*\{/);
   assert.match(css, /\.dignity-candidates\s*\{[^}]*grid-template-columns:/s);
   assert.match(css, /@media \(max-width: 760px\)[\s\S]*\.dignity-candidates/);
   assert.match(css, /aspect-ratio:\s*1080\s*\/\s*1350/);
+  assert.match(css, /\.dignity-ballot__header h3\s*\{[^}]*margin:\s*clamp\([^;]+\)\s+0\s+0;/s);
   assert.doesNotMatch(css, /\.dignities-election[^}]*min-width:\s*10\d{2}px/s);
 });
