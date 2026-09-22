@@ -12,6 +12,8 @@ tags:
 
 # Pendientes ejecutivos
 
+- [x] Publicar la [[11_eventos/2026_feria-finados/10_tecnologia-datos/2026-09-22_eleccion-dignidades-actualizacion-auspiciantes-web_v01|elección de las próximas dignidades 2026 y el SVG nuevo de auspiciantes]]: diez candidaturas en orden, diseño Finados responsive, cachés renovadas y maestro compartido en Finados/SHOWS. `a650a70` en GitHub; 165 Node, 21 PHP y 10 integración; respaldo frontend y 14 comprobaciones HTTPS/SHA-256 sin fallos. Dignidades 2025 se preservó como histórico. Responsable: tecnología/diseño. Completado: 2026-09-22.
+
 - [ ] Completar la [[11_eventos/2026_feria-finados/05_marketing-comunicacion/03_pauta/2026-09-19_auditoria-campana-entradas-31-oct-whatsapp_v01|campaña activa de entradas del 31 de octubre]] sin aumentar gasto no autorizado: el segundo conjunto/anuncio ya está preparado **en pausa**, excluye `Folklore` y usa la misma publicación. Alex debe confirmar el tope diario total, la hora de corte de ventas del 31 de octubre y la capacidad de respuesta de WhatsApp antes de activarlo. Comprobar antes su revisión en Meta y después el estado y presupuesto por API. Responsable: Alex/pauta digital/Ventas. Fecha: antes de ampliar la campaña.
 - [ ] Verificar la entrega/elegibilidad de la publicación existente de Kjarkas y William Luna en Instagram y conciliar conversaciones con boletos pagados antes de escalar. La lectura final de Meta mostró un conjunto activo de USD 2,50/día y otro pausado, ambos sin `end_time`; el piloto de USD 10/día era solo propuesta. Responsable: pauta digital/Ventas/datos. Fecha: 2026-09-20–21.
 

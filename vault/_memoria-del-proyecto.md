@@ -12,6 +12,13 @@ tags:
 
 # Memoria del proyecto
 
+## 2026-09-22 — Elección de dignidades y auspiciantes publicados
+
+- `main` ya estaba sincronizada en `8bc93b5`. Se actualizó el SVG compartido de auspiciantes 2026 en Finados y SHOWS, con digest exacto `347d08ee…ca054` y caché `20260922-sponsors-3`; la página histórica Dignidades 2025 conserva su composición propia.
+- `/finados/` incorpora, debajo de la franja lila, la elección de Rey Pan y Señorita Colada Morada: seis y cuatro candidaturas en el orden recibido, diez artes WebP optimizados, CTA, fecha del 27 de octubre y diseño responsive de la línea Finados. El marco vacío del SVG de Las Ñañas se completó con el arte oficial ya publicado en el proyecto.
+- `a650a70` quedó en `origin/main`. Check completo aprobado: 165 pruebas Node, 21 suites PHP, 10 integración, 152 archivos, 40 HTML y 1.343 referencias. QA visual 1440/390 sin desbordes.
+- Prevuelo y despliegue frontend aprobados con respaldo. Verificación independiente: 14 respuestas HTTP 200; CSS, SVG y diez WebP iguales por SHA-256 al build; ambas páginas contienen las versiones nuevas. Sin backend, migraciones, base, DNS, formularios ni registros. Evidencia: [[11_eventos/2026_feria-finados/10_tecnologia-datos/2026-09-22_eleccion-dignidades-actualizacion-auspiciantes-web_v01|Elección de dignidades y auspiciantes]].
+
 ## 2026-09-19 — Auditoría de la campaña activa del 31 de octubre
 
 - Alex informó que lanzó `Finados 2026 - Entradas 31 octubre - WhatsApp`. La [[11_eventos/2026_feria-finados/05_marketing-comunicacion/03_pauta/2026-09-19_auditoria-campana-entradas-31-oct-whatsapp_v01|lectura de Meta]] confirmó una campaña activa con un solo conjunto/anuncio activos: `Folklore` cálido, USD 2,50/día, Ambato + 60 km, adultos, WhatsApp y optimización a conversaciones. El anuncio usa la publicación existente de Kjarkas y William Luna; el conjunto no tiene `end_time` visible.

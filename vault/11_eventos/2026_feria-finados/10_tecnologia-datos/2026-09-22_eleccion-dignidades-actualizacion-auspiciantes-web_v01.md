@@ -1,7 +1,7 @@
 ---
 titulo: "Elección de dignidades 2026 y auspiciantes web actualizados"
 responsable: "tecnología/diseño"
-estado: listo-para-publicar
+estado: publicado
 ultima_actualizacion: 2026-09-22
 fuente: "Solicitud de Alex y artes oficiales entregados el 22 de septiembre de 2026"
 confidencialidad: interno
@@ -37,4 +37,8 @@ Alex solicitó sincronizar `main`, actualizar el SVG de auspiciantes en todas la
 
 ## Publicación
 
-La publicación frontend y la integración a `origin/main` están autorizadas por esta solicitud. Completar aquí commit, respaldo, verificación HTTPS y estado final después de ejecutar el procedimiento estándar desde `main` limpia y sincronizada.
+- Implementación integrada por fast-forward y publicada en `origin/main` mediante `a650a70` (`Añadir elección de dignidades Finados 2026`). Antes de integrar se repitió `git fetch origin main`; no había divergencia.
+- El primer prevuelo WSL se detuvo localmente porque `.env.deploy` conservaba la ruta Windows de la llave. Se usó para la ejecución la copia privada ya instalada en WSL, con permisos `600`, sin mostrar, modificar ni versionar la llave o la configuración. No hubo conexión ni transferencia en ese primer intento.
+- Prevuelo estándar posterior aprobado sin cambios remotos. El despliegue repitió toda la validación, creó una copia de seguridad recuperable, conservó la credencial remota de Google Sheets y transfirió la salida estática sin borrar archivos exclusivos. No se desplegó una nueva release del backend ni se ejecutaron migraciones.
+- Verificación independiente posterior: `/finados/` y `/finados/shows/` respondieron HTTP 200 y contienen las versiones `20260922-dignities-1` y `20260922-sponsors-3`; CSS, SVG y diez WebP respondieron HTTP 200 y sus SHA-256 coincidieron byte por byte con `dist`. Total: 14 comprobaciones, cero fallos.
+- Resultado: Git y producción actualizados. Sin cambios en base de datos, DNS, formularios, registros de personas, backend, Sheets o páginas institucionales del Complejo.
