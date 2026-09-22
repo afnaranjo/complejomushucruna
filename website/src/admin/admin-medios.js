@@ -2,10 +2,12 @@ import { MIRROR_API_BASE, PRIMARY_API_BASE, resolveRuntimeOrigins } from '../fin
 
 export const TRAFFIC_LIGHT_LABELS = Object.freeze({ red: 'Rojo · En preparación', yellow: 'Amarillo · En avance', green: 'Verde · Listo' });
 export const MEDIA_STATUSES = Object.freeze(['Nuevo', 'En revisión', 'Aprobado', 'Rechazado']);
+/** Whether the organisation buys advertising in the medium. Internal: the medium never sees it. */
+export const PAID_MEDIA_LABELS = Object.freeze({ no: 'No pautado', yes: 'Pautado' });
 const API = PRIMARY_API_BASE;
 const LOCAL_API = 'http://127.0.0.1:4174/api';
 export const MEDIA_TYPE_LABELS = Object.freeze({ radio: 'Radio', tv: 'Televisión', prensa: 'Prensa escrita', digital: 'Medio digital', redes: 'Redes sociales' });
-const FILTERS = ['search', 'status', 'province', 'media_type'];
+const FILTERS = ['search', 'status', 'province', 'media_type', 'paid_media'];
 const DETAIL_FIELDS = Object.freeze([
   ['media_name', 'Nombre del medio'], ['media_types', 'Tipo de medio'], ['radio_stations', 'Emisoras y frecuencias'], ['audience_count', 'Oyentes (dato del medio)'], ['radio_genre', 'Género de la radio'], ['tv_channels', 'Canales de televisión'], ['province', 'Provincia'], ['city', 'Ciudad'],
   ['contact_name', 'Persona de contacto'], ['phone', 'Número telefónico'], ['contact_email', 'Correo de contacto'], ['account_email', 'Correo de la cuenta'],
@@ -21,6 +23,7 @@ export function normalizeMediaFilters(input = {}) {
   }
   if (result.status && !MEDIA_STATUSES.includes(result.status)) throw new Error('Selecciona un estado válido.');
   if (result.media_type && !Object.hasOwn(MEDIA_TYPE_LABELS, result.media_type)) throw new Error('Selecciona un tipo de medio válido.');
+  if (result.paid_media && !Object.hasOwn(PAID_MEDIA_LABELS, result.paid_media)) throw new Error('Selecciona una opción válida de pauta.');
   if (result.search && result.search.length > 100) throw new Error('La búsqueda es demasiado larga.');
   result.page = Math.min(1000000, Math.max(1, Number.parseInt(input.page, 10) || 1));
   result.pageSize = [25, 50, 100].includes(Number(input.pageSize)) ? Number(input.pageSize) : 25;
@@ -111,7 +114,7 @@ export function createMediaAdminClient(baseUrl = API, fetchImplementation = fetc
     list: filters => request('/medios?' + new URLSearchParams(filters)),
     detail: id => request(`/medios/${id}`),
     photo: id => request(`/medios/${id}/photo`, { blob: true }),
-    changeStatus: (id, status, trafficLight) => request(`/medios/${id}`, { method: 'PATCH', body: trafficLight === undefined ? { status } : { status, traffic_light: trafficLight } }),
+    changeStatus: (id, status, trafficLight, paidMedia) => request(`/medios/${id}`, { method: 'PATCH', body: { status, ...(trafficLight === undefined ? {} : { traffic_light: trafficLight }), ...(paidMedia === undefined ? {} : { paid_media: paidMedia }) } }),
     addNote: (id, body) => request(`/medios/${id}/notes`, { method: 'POST', body: { body } }),
     updateVideoViews: (id, views) => request(`/medios/${id}/video-views`, { method: 'PATCH', body: { video_views: views } }),
     archive: id => request(`/medios/${id}/delete`, { method: 'POST', body: {} }),
@@ -315,7 +318,10 @@ export async function initializeMediaAdmin() {
         const badge = node('span', record.status, 'status-badge'); badge.dataset.status = record.status;
         const lightKey = Object.hasOwn(TRAFFIC_LIGHT_LABELS, record.traffic_light) ? record.traffic_light : 'red';
         const lightMark = node('span', TRAFFIC_LIGHT_LABELS[lightKey], 'admin-media-light'); lightMark.dataset.light = lightKey;
+        const paidKey = Object.hasOwn(PAID_MEDIA_LABELS, record.paid_media) ? record.paid_media : 'no';
+        const paidMark = node('span', PAID_MEDIA_LABELS[paidKey], 'admin-media-paid'); paidMark.dataset.paid = paidKey;
         cell('Estado y semáforo', '').replaceChildren(badge, lightMark);
+        cell('Pauta', '').replaceChildren(paidMark);
         const open = node('button', 'Ver detalle', 'button-quiet'); open.type = 'button';
         open.setAttribute('aria-label', 'Ver detalle de ' + record.media_name);
         open.addEventListener('click', () => openDetail(record.public_id, open));
@@ -446,6 +452,7 @@ export async function initializeMediaAdmin() {
     detailContent.replaceChildren(submitted, photo, dl, videos);
     statusForm.elements.status.value = data.status;
     statusForm.elements.traffic_light.value = Object.hasOwn(TRAFFIC_LIGHT_LABELS, data.traffic_light) ? data.traffic_light : 'red';
+    statusForm.elements.paid_media.value = Object.hasOwn(PAID_MEDIA_LABELS, data.paid_media) ? data.paid_media : 'no';
     notes.replaceChildren();
     for (const note of data.notes ?? []) {
       const item = node('li'); item.append(node('p', note.body), node('small', `${note.author} · ${dateTime(note.created_at)}`)); notes.append(item);
@@ -492,7 +499,7 @@ export async function initializeMediaAdmin() {
       feedback(detailFeedback, 'No se puede aprobar: falta la foto de la persona responsable del medio.', 'error');
     }
   });
-  statusForm.addEventListener('submit', event => mutate(event, id => client.changeStatus(id, statusForm.elements.status.value, statusForm.elements.traffic_light.value), 'Estado y semáforo actualizados.', true));
+  statusForm.addEventListener('submit', event => mutate(event, id => client.changeStatus(id, statusForm.elements.status.value, statusForm.elements.traffic_light.value, statusForm.elements.paid_media.value), 'Estado, semáforo y pauta actualizados.', true));
   noteForm.addEventListener('submit', event => {
     const body = noteForm.elements.body.value.trim();
     if (!body) { event.preventDefault(); feedback(detailFeedback, 'Escribe una nota antes de guardar.', 'error'); return; }

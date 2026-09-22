@@ -8,7 +8,7 @@ import { readdir } from 'node:fs/promises';
 import { buildSite } from '../scripts/build.mjs';
 import { primaryNavigation } from '../src/data/site.mjs';
 import { channelsPayload, mediaInitials, TRAFFIC_LIGHTS, MediaApiClient, MediaError, MEDIA_CONSENTS, MEDIA_FIELDS, normalizeLink, platformPayload, profilePayload, validatePhoto } from '../src/finados/media-portal.js';
-import { collectVideoViews, createMediaAdminClient, describeField, MEDIA_STATUSES, normalizeMediaFilters, renderMediaSummary, safeLink, topMediaFollowers, topMediaViews, TRAFFIC_LIGHT_LABELS } from '../src/admin/admin-medios.js';
+import { collectVideoViews, createMediaAdminClient, describeField, MEDIA_STATUSES, normalizeMediaFilters, PAID_MEDIA_LABELS, renderMediaSummary, safeLink, topMediaFollowers, topMediaViews, TRAFFIC_LIGHT_LABELS } from '../src/admin/admin-medios.js';
 import { topVideoViews } from '../src/admin/admin.js';
 
 const json = (status, body) => ({ ok: status >= 200 && status < 300, status, json: async () => body });
@@ -89,6 +89,11 @@ test('el build publica la landing, las cuentas de medios y su panel sin tocar la
   assert.match(admin, /data-admin-medios/);
   assert.match(admin, /\/assets\/admin\/admin-medios\.js\?v=/);
   assert.doesNotMatch(admin, /\/assets\/admin\/admin\.js/);
+  // The paid-media flag is administrative: filter, column and dropdown live only in the panel.
+  assert.equal((admin.match(/<select name="paid_media"/g) ?? []).length, 2);
+  assert.match(admin, /<th scope="col">Pauta<\/th>/);
+  const mediaProfile = await readFile(join(output, 'finados/medios/mi-registro/index.html'), 'utf8');
+  assert.doesNotMatch(mediaProfile, /paid_media|Medio pautado/);
   const voceros = await readFile(join(output, 'admin/voceros/index.html'), 'utf8');
   for (const html of [admin, voceros]) {
     const order = [...html.matchAll(/class="admin-nav-link" href="([^"]+)"/g)].map(match => match[1]);
@@ -205,6 +210,8 @@ test('el panel de medios normaliza filtros, resume estados y restringe sus rutas
   assert.deepEqual(renderMediaSummary({ total: 3, byStatus: { Nuevo: 2, Aprobado: 1 }, videos: 5, views: 0 }).map(item => item.value), [3, 2, 1, 5, '0']);
   assert.deepEqual(normalizeMediaFilters({ media_type: 'radio', province: 'Azuay' }), { province: 'Azuay', media_type: 'radio', page: 1, pageSize: 25 });
   assert.throws(() => normalizeMediaFilters({ media_type: 'podcast' }), /tipo de medio válido/);
+  assert.deepEqual(normalizeMediaFilters({ paid_media: 'yes' }), { paid_media: 'yes', page: 1, pageSize: 25 });
+  assert.throws(() => normalizeMediaFilters({ paid_media: 'si' }), /opción válida de pauta/);
   assert.equal(safeLink('https://www.tiktok.com/@radio/video/1'), 'https://www.tiktok.com/@radio/video/1');
   for (const unsafe of ['javascript:alert(1)', 'http://example.com/', 'texto']) assert.equal(safeLink(unsafe), '', unsafe);
   const calls = [];
@@ -218,6 +225,9 @@ test('el panel de medios normaliza filtros, resume estados y restringe sus rutas
   assert.deepEqual(JSON.parse(calls.at(-1)[1].body), { status: 'Aprobado' });
   await client.changeStatus('a'.repeat(32), 'Aprobado', 'green');
   assert.deepEqual(JSON.parse(calls.at(-1)[1].body), { status: 'Aprobado', traffic_light: 'green' });
+  await client.changeStatus('a'.repeat(32), 'Aprobado', 'green', 'yes');
+  assert.deepEqual(JSON.parse(calls.at(-1)[1].body), { status: 'Aprobado', traffic_light: 'green', paid_media: 'yes' });
+  assert.deepEqual(Object.keys(PAID_MEDIA_LABELS), ['no', 'yes']);
   assert.deepEqual(Object.keys(TRAFFIC_LIGHT_LABELS), ['red', 'yellow', 'green']);
   assert.deepEqual(Object.keys(TRAFFIC_LIGHTS), ['red', 'yellow', 'green']);
   assert.equal(mediaInitials('  radio  prueba ambato '), 'RP');

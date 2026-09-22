@@ -40,7 +40,7 @@ final class Router
     private readonly Audit $audit;
     private readonly Crypto $crypto;
     private const FILTERS = ['search', 'status', 'city', 'main_network', 'previous_participation', 'date_from', 'date_to'];
-    private const MEDIA_FILTERS = ['search', 'status', 'province', 'media_type'];
+    private const MEDIA_FILTERS = ['search', 'status', 'province', 'media_type', 'paid_media'];
     private const METHODS = ['GET', 'POST', 'PATCH', 'OPTIONS'];
 
     public function __construct(private readonly Config $config, private readonly PDO $pdo)
@@ -519,11 +519,12 @@ final class Router
                 return $this->json(200, $detail, $headers);
             }
             if ($action === '' && $method === 'PATCH') {
-                $body = $this->body($server, $rawBody, ['status', 'traffic_light']);
+                $body = $this->body($server, $rawBody, ['status', 'traffic_light', 'paid_media']);
                 if ($body === []) throw new InvalidArgumentException();
                 foreach ($body as $value) if (!is_string($value)) throw new InvalidArgumentException();
                 if (isset($body['status'])) $this->media()->changeStatus($id, $body['status'], $user['id'], $ip);
                 if (isset($body['traffic_light'])) $this->media()->changeTrafficLight($id, $body['traffic_light'], $user['id'], $ip);
+                if (isset($body['paid_media'])) $this->media()->changePaidMedia($id, $body['paid_media'], $user['id'], $ip);
                 return $this->json(200, ['ok' => true], $headers);
             }
             if ($action !== '' && $method !== 'POST') return $notAllowed();
@@ -561,7 +562,7 @@ final class Router
 
     private function mediaExport(array $filters, int $actorId, string $ip, array $headers): Response
     {
-        $columns = ['public_id', 'status', 'traffic_light', 'submitted_at', 'media_name', 'media_types_label', 'radio_stations_label', 'audience_count', 'radio_genre', 'tv_channels_label', 'contact_name', 'phone', 'contact_email', 'account_email', 'province', 'city', 'channels_label', 'followers_total', 'has_photo', 'image_authorized', 'videos_count', 'views_total', 'video_links'];
+        $columns = ['public_id', 'status', 'traffic_light', 'paid_media', 'submitted_at', 'media_name', 'media_types_label', 'radio_stations_label', 'audience_count', 'radio_genre', 'tv_channels_label', 'contact_name', 'phone', 'contact_email', 'account_email', 'province', 'city', 'channels_label', 'followers_total', 'has_photo', 'image_authorized', 'videos_count', 'views_total', 'video_links'];
         $stream = fopen('php://temp/maxmemory:2097152', 'w+');
         if ($stream === false) throw new \RuntimeException();
         try {
@@ -574,6 +575,7 @@ final class Router
                 $detail['tv_channels_label'] = implode(' | ', $detail['tv_channels'] ?? []);
                 $detail['channels_label'] = implode(' | ', array_map(static fn (array $channel): string => (MediaRepository::CHANNEL_TYPES[$channel['type']] ?? $channel['type']) . ': ' . $channel['url'] . (is_int($channel['followers'] ?? null) ? ' (' . $channel['followers'] . ' seguidores)' : ''), $detail['channels'] ?? []));
                 $detail['has_photo'] = ($detail['photo']['available'] ?? false) ? 'Sí' : 'No';
+                $detail['paid_media'] = ($detail['paid_media'] ?? 'no') === 'yes' ? 'Sí' : 'No';
                 $detail['radio_stations_label'] = implode(' | ', array_map(static fn (array $station): string => $station['name'] . ' (' . $station['frequency'] . ')', $detail['radio_stations'] ?? []));
                 $detail = [...$detail, 'image_authorized' => ($detail['consents']['image']['accepted'] ?? false) ? 'Sí' : 'No', 'videos_count' => count($links), 'views_total' => array_sum(array_column($detail['videos'] ?? [], 'views_count')),
                     'video_links' => implode(' | ', array_map(static fn (array $video): string => $video['url'] . ' (' . $video['views_count'] . ' views)', $detail['videos'] ?? []))];

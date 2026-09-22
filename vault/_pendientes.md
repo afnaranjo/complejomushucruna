@@ -2,7 +2,7 @@
 titulo: "Pendientes ejecutivos"
 responsable: "dirección integral de la feria"
 estado: en-revision
-ultima_actualizacion: 2026-09-21
+ultima_actualizacion: 2026-09-22
 fuente: interna
 confidencialidad: interno
 tags:
@@ -231,6 +231,7 @@ tags:
 - [x] Desplegar backend → frontend la pantalla de videos como inicio del medio, el perfil detrás de la foto, el semáforo administrativo de `MEDIOS` (migración aditiva `015_media_traffic_light`) y la regla confirmada por Alex de habilitar los videos solo tras la aprobación (`cff955e`). Responsable: tecnología/dirección. Completado: 2026-09-21.
 - [ ] Revisar en navegador, en producción, la pantalla del medio: avatar arriba, abrir el perfil al tocarlo, semáforo y carga de videos con el registro aprobado. Responsable: Alex/comunicación. Fecha: por definir.
 - [x] Desplegar backend → frontend la foto obligatoria de la persona responsable en `MEDIOS`; verificación HTTPS aprobada y Voceros sin cambios. Responsable: tecnología. Completado: 2026-09-21.
+- [ ] Desplegar backend → frontend el campo administrativo `Medio pautado` Sí/No de Medios (migración aditiva `016_media_paid`, filtro, columna y CSV) y después marcar en el panel los medios a los que se les hace pauta mensual. Responsable: Alex/tecnología. Fecha: por definir.
 - [ ] Avisar al medio que está `Aprobado` sin foto que debe subir la de su persona responsable para poder agregar videos. Responsable: comunicación. Fecha: por definir.
 
 ## Regla

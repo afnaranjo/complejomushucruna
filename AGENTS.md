@@ -1511,3 +1511,14 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Datos (solo conteos): 122 fichas, 174 cuentas, 119 fotos y 99 videos de Voceros intactos; 4 cuentas de medios, 2 fichas en `Aprobado`, 1 de ellas con foto, 2 videos de medios reportados. Queda 1 ficha aprobada sin foto, que conserva su estado pero no puede agregar videos hasta subirla. No se crearon cuentas ni registros de prueba en producción.
 - Publicación externa: GitHub, backend y frontend autorizados. No se modificaron datos de Voceros ni de medios, DNS, Google Sheets, Meta ni otros proyectos.
 - Pendiente: avisar al medio aprobado sin foto que suba la de su persona responsable; revisión visual de Alex; decisión sobre el respaldo de `media-photos/`; validación legal de los textos.
+
+### 2026-09-22 — Campo administrativo `Medio pautado` en Medios
+
+- Alex pidió poder marcar en cada medio si la organización le hace pauta o no, porque a algunos medios se les paga mensualmente y a otros no, y así saber en cuáles hubo pauta.
+- Panel `/admin/medios/`: en el detalle, junto al estado y el semáforo, un desplegable `Medio pautado` con `No · Sin pauta` y `Sí · Pautado`; en la tabla, una columna `Pauta` con la marca; en los filtros, `Medio pautado` para listar solo pautados o solo sin pauta; en el CSV, la columna `paid_media` (`Sí`/`No`). Todo cambio queda auditado (`media.paid_media_changed`).
+- Es un dato interno de la organización: el medio no lo ve en su portal ni lo devuelve `GET /api/media/profile`; solo la proyección administrativa y el listado lo incluyen. `PATCH /api/medios/{id}` acepta `paid_media` con valores `yes`/`no`; cualquier otro valor devuelve 422.
+- Backend: migración aditiva `016_media_paid` (columna `paid_media`, inicia en `no`); no modifica ni borra registros, fotos, consentimientos o videos. En `Router.php` solo cambió el bloque de Medios. Ningún archivo de Voceros cambió.
+- QA: `npm run check` completo en verde con 161 pruebas Node, 21 suites PHP y 10 de integración; build de 141 archivos, 40 HTML y 1319 referencias; `git diff --check` limpio. Las pruebas verifican el valor inicial, el rechazo de valores inválidos, el filtro, la auditoría, la exportación y que la página de `Mi registro` del medio no contenga el campo. La interacción visual no se revisó en navegador desde esta sesión.
+- Commit: incluido en `Agregar campo de medio pautado al panel de Medios`.
+- Publicación externa: solo GitHub. **No está desplegado**; requiere autorización de Alex para backend → frontend con la migración 016. Las fichas existentes en producción quedarán en `No` hasta que administración las marque.
+- Pendiente: autorización de despliegue y, después, marcar en el panel los medios con pauta mensual.

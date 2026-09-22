@@ -70,3 +70,5 @@
 .admin-media-light::before { content: ""; width: .7rem; height: .7rem; border-radius: 50%; background: #e01b24; border: 1px solid rgba(36, 17, 70, .4); }
 .admin-media-light[data-light="yellow"]::before { background: #ffc42e; }
 .admin-media-light[data-light="green"]::before { background: #35c277; }
+.admin-media-paid { display: inline-block; padding: .15rem .5rem; border-radius: 999px; font-size: .72rem; font-weight: 700; background: rgba(36, 17, 70, .08); color: #4a4363; }
+.admin-media-paid[data-paid="yes"] { background: #ff2e8a; color: #241146; }

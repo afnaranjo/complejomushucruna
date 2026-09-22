@@ -47,7 +47,7 @@ function media_json(array $payload): string { return json_encode($payload, JSON_
 media_close_session();
 $config = media_config();
 $pdo = Database::connect($config);
-foreach (['001_initial', '002_sheets_outbox', '003_vocero_accounts', '008_media_accounts', '009_media_videos', '010_media_video_views', '011_media_contact_channels', '012_media_consents', '013_media_types_radio', '014_media_channels_photo', '015_media_traffic_light'] as $migration) {
+foreach (['001_initial', '002_sheets_outbox', '003_vocero_accounts', '008_media_accounts', '009_media_videos', '010_media_video_views', '011_media_contact_channels', '012_media_consents', '013_media_types_radio', '014_media_channels_photo', '015_media_traffic_light', '016_media_paid'] as $migration) {
     $pdo->exec(file_get_contents(__DIR__ . '/../migrations/' . $migration . '_sqlite.sql'));
 }
 same('008_media_accounts', $pdo->query("SELECT version FROM schema_migrations WHERE version = '008_media_accounts'")->fetchColumn());
@@ -267,6 +267,16 @@ same('yellow', media_body($router->handle('GET', '/api/medios/' . $publicId, $or
 same(['ok' => true], media_body($router->handle('PATCH', '/api/medios/' . $publicId, $admin, media_json(['status' => 'En revisión', 'traffic_light' => 'green']))));
 same('green', media_body($router->handle('GET', '/api/medios', $origin))['items'][0]['traffic_light']);
 same(2, (int) $pdo->query("SELECT COUNT(*) FROM audit_log WHERE event_type = 'media.traffic_light_changed'")->fetchColumn());
+// Paid media (whether the organisation buys advertising there) is internal: starts at 'no', only administration sets it.
+same('no', media_body($router->handle('GET', '/api/medios', $origin))['items'][0]['paid_media']);
+same(422, $router->handle('PATCH', '/api/medios/' . $publicId, $admin, media_json(['paid_media' => 'si']))->status);
+same(422, $router->handle('GET', '/api/medios?paid_media=maybe', $origin)->status);
+same(0, media_body($router->handle('GET', '/api/medios?paid_media=yes', $origin))['pagination']['total']);
+same(['ok' => true], media_body($router->handle('PATCH', '/api/medios/' . $publicId, $admin, media_json(['paid_media' => 'yes']))));
+same('yes', media_body($router->handle('GET', '/api/medios/' . $publicId, $origin))['paid_media']);
+same(1, media_body($router->handle('GET', '/api/medios?paid_media=yes', $origin))['pagination']['total']);
+same(0, media_body($router->handle('GET', '/api/medios?paid_media=no', $origin))['pagination']['total']);
+same(1, (int) $pdo->query("SELECT COUNT(*) FROM audit_log WHERE event_type = 'media.paid_media_changed'")->fetchColumn());
 same(422, $router->handle('PATCH', '/api/medios/' . $publicId, $admin, media_json(['status' => 'Eliminado']))->status);
 // Approval is refused while the photo is missing.
 $photoRow = $pdo->query('SELECT * FROM media_photos')->fetch(PDO::FETCH_ASSOC);
@@ -285,6 +295,7 @@ same(true, str_contains($export->body, 'Persona Responsable') && str_contains($e
 same(true, str_contains($export->body, 'Radio Prueba Ambato (99.9 FM) | Radio Prueba Riobamba (101.5 FM)') && str_contains($export->body, 'Radio | Medio digital') && str_contains($export->body, ',25000,'));
 same(true, str_contains($export->body, 'https://www.tiktok.com/@radio/video/1 (1500 views)'));
 same(true, str_contains($export->body, ',2300,'));
+same(true, str_contains($export->body, 'paid_media') && str_contains($export->body, ',green,Sí,'));
 same('text/csv; charset=utf-8', $export->headers['Content-Type']);
 $reset = media_body($router->handle('POST', '/api/medios/' . $publicId . '/password-reset', $admin, '{}'));
 same(1, preg_match('~^https://example\.invalid/finados/medios/restablecer/\?token=([a-f0-9]{64})$~D', $reset['resetUrl'], $token));
@@ -305,6 +316,8 @@ $relogin = media_body($router->handle('POST', '/api/media/auth/login', $json($me
 $own = media_body($router->handle('GET', '/api/media/profile', $origin));
 same('Aprobado', $own['status']);
 same('green', $own['traffic_light']);
+// The medium never sees whether it is a paid placement.
+same(false, array_key_exists('paid_media', $own));
 same(false, $own['editable']);
 same(false, array_key_exists('notes', $own));
 same(false, array_key_exists('views_count', $own['videos'][0]));

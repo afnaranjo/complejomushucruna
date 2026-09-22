@@ -41,6 +41,8 @@ final class MediaRepository
     public const MAX_VIDEOS = 100;
     /** Same three-step traffic light the Voceros programme uses; set only by administration. */
     public const TRAFFIC_LIGHTS = ['red', 'yellow', 'green'];
+    /** Whether the organisation buys advertising in this medium (016). Internal, set only by administration and never shown to the medium. */
+    public const PAID_MEDIA = ['no', 'yes'];
     private const ARCHIVED = 'Eliminado';
     private const EDITABLE = ['Nuevo', 'En revisión'];
     // social_link keeps the first declared channel so lists and searches have one primary link.
@@ -148,6 +150,11 @@ final class MediaRepository
             if (!in_array($province, self::PROVINCES, true)) throw new InvalidArgumentException();
             $where[] = 'province = ?'; $parameters[] = $province;
         }
+        $paid = trim((string) ($filters['paid_media'] ?? ''));
+        if ($paid !== '') {
+            if (!in_array($paid, self::PAID_MEDIA, true)) throw new InvalidArgumentException();
+            $where[] = 'paid_media = ?'; $parameters[] = $paid;
+        }
         $search = trim((string) ($filters['search'] ?? ''));
         if (self::length($search) > 100) throw new InvalidArgumentException();
         if ($search !== '') {
@@ -160,9 +167,9 @@ final class MediaRepository
         $count = $this->pdo->prepare('SELECT COUNT(*) FROM media_profiles WHERE ' . $condition);
         $count->execute($parameters);
         $total = (int) $count->fetchColumn();
-        $rows = $this->pdo->prepare('SELECT public_id, status, traffic_light, media_name, media_types, frequency_channel, audience_count, radio_genre, province, city, social_link, channels, facebook, instagram, tiktok, youtube, website, other_link, submitted_at, (SELECT COUNT(*) FROM media_videos v WHERE v.profile_id = media_profiles.id) AS videos_count, (SELECT COALESCE(SUM(v.views_count), 0) FROM media_videos v WHERE v.profile_id = media_profiles.id) AS views_total FROM media_profiles WHERE ' . $condition . ' ORDER BY submitted_at DESC, id DESC LIMIT ' . $perPage . ' OFFSET ' . (($page - 1) * $perPage));
+        $rows = $this->pdo->prepare('SELECT public_id, status, traffic_light, paid_media, media_name, media_types, frequency_channel, audience_count, radio_genre, province, city, social_link, channels, facebook, instagram, tiktok, youtube, website, other_link, submitted_at, (SELECT COUNT(*) FROM media_videos v WHERE v.profile_id = media_profiles.id) AS videos_count, (SELECT COALESCE(SUM(v.views_count), 0) FROM media_videos v WHERE v.profile_id = media_profiles.id) AS views_total FROM media_profiles WHERE ' . $condition . ' ORDER BY submitted_at DESC, id DESC LIMIT ' . $perPage . ' OFFSET ' . (($page - 1) * $perPage));
         $rows->execute($parameters);
-        $items = array_map(static function (array $row): array { $decoded = []; $legacy = array_flip(['facebook', 'instagram', 'tiktok', 'youtube', 'website', 'other_link']); return [...array_diff_key($row, $legacy), 'traffic_light' => self::light($row), 'channels' => $decoded = self::channelsOf($row), 'followers_total' => self::followersTotal($decoded), 'media_types' => self::typeKeys((string) $row['media_types']), 'audience_count' => $row['audience_count'] === null ? null : (int) $row['audience_count'], 'videos_count' => (int) $row['videos_count'], 'views_total' => (int) $row['views_total']]; }, $rows->fetchAll(PDO::FETCH_ASSOC));
+        $items = array_map(static function (array $row): array { $decoded = []; $legacy = array_flip(['facebook', 'instagram', 'tiktok', 'youtube', 'website', 'other_link']); return [...array_diff_key($row, $legacy), 'traffic_light' => self::light($row), 'paid_media' => self::paid($row), 'channels' => $decoded = self::channelsOf($row), 'followers_total' => self::followersTotal($decoded), 'media_types' => self::typeKeys((string) $row['media_types']), 'audience_count' => $row['audience_count'] === null ? null : (int) $row['audience_count'], 'videos_count' => (int) $row['videos_count'], 'views_total' => (int) $row['views_total']]; }, $rows->fetchAll(PDO::FETCH_ASSOC));
         return ['items' => $items, 'page' => $page, 'per_page' => $perPage, 'total' => $total];
     }
 
@@ -226,6 +233,11 @@ final class MediaRepository
         return in_array($row['traffic_light'] ?? null, self::TRAFFIC_LIGHTS, true) ? $row['traffic_light'] : 'red';
     }
 
+    private static function paid(array $row): string
+    {
+        return in_array($row['paid_media'] ?? null, self::PAID_MEDIA, true) ? $row['paid_media'] : 'no';
+    }
+
     private static function followersTotal(array $channels): int
     {
         return (int) array_sum(array_map(static fn (mixed $channel): int => is_array($channel) && is_int($channel['followers'] ?? null) ? $channel['followers'] : 0, $channels));
@@ -254,6 +266,8 @@ final class MediaRepository
         $owner = $account->fetch();
         return [
             ...$this->present($row),
+            // Internal commercial flag: only the administrative projection carries it.
+            'paid_media' => self::paid($row),
             'account_email' => $owner ? $this->crypto->decrypt($owner['email_enc']) : '',
             'account_active' => $owner ? (int) $owner['active'] === 1 : false,
             'last_login_at' => $owner['last_login_at'] ?? null,
@@ -283,6 +297,16 @@ final class MediaRepository
             if (self::light($row) === $light) return;
             $this->pdo->prepare('UPDATE media_profiles SET traffic_light = ?, updated_at = ? WHERE id = ?')->execute([$light, gmdate('Y-m-d H:i:s'), $row['id']]);
             $this->audit->log('media.traffic_light_changed', $actorId, 'media_profile', $publicId, [], $ip);
+        });
+    }
+
+    public function changePaidMedia(string $publicId, string $paid, int $actorId, string $ip = ''): void
+    {
+        if (!in_array($paid, self::PAID_MEDIA, true)) throw new InvalidArgumentException();
+        $this->mutate($publicId, function (array $row) use ($paid, $actorId, $ip, $publicId): void {
+            if (self::paid($row) === $paid) return;
+            $this->pdo->prepare('UPDATE media_profiles SET paid_media = ?, updated_at = ? WHERE id = ?')->execute([$paid, gmdate('Y-m-d H:i:s'), $row['id']]);
+            $this->audit->log('media.paid_media_changed', $actorId, 'media_profile', $publicId, [], $ip);
         });
     }
 
