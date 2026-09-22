@@ -14,7 +14,7 @@ const finadosPage = pages.find(page => page.route === '/finados/');
 const html = () => finadosPage.render(finadosPage);
 
 test('ordena los diez nominados por dignidad y conserva los nombres entregados', () => {
-  assert.equal(dignitiesAssetVersion, '20260922-dignities-2');
+  assert.equal(dignitiesAssetVersion, '20260922-dignities-3');
   assert.deepEqual(
     dignityCandidates.filter(candidate => candidate.category === 'rey-pan').map(candidate => candidate.name),
     ['Golpe a Golpe', 'Guaynaa', 'Hueveando', 'Kike Jav', 'Waldokinc', 'William Luna'],
@@ -54,12 +54,12 @@ test('los artes optimizados están presentes, son WebP y respetan el presupuesto
   }
 });
 
-test('Las Ñañas usa el arte corregido con el recorte oficial sobre fondo blanco', async () => {
+test('Las Ñañas usa la composición final completa con foto grande y tipografías integradas', async () => {
   const candidate = dignityCandidates.find(item => item.slug === 'las-nanas');
   const buffer = await readFile(new URL(`../public${candidate.asset}`, import.meta.url));
   assert.equal(
     createHash('sha256').update(buffer).digest('hex'),
-    'fb0f6b39e9b4d5a41c758e47555b9b33fcf4adfb0ec8c1fc739974cb3eea50a7',
+    '7eba4ca891fec5c388ea42657355971f6c8b78837bcc0af8d9dd45a8110a5346',
   );
 });
 
