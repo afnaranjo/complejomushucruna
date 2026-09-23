@@ -252,6 +252,7 @@ tags:
 - [ ] Revisar con Alex el calendario de Creadoras en producción: arrastrar una caja en escritorio, tocar un nombre y una hora en móvil, y comprobar que la bitácora refleja cada cambio. Responsable: Alex/comunicación. Fecha: por definir.
 - [ ] Decidir si se necesitan cuentas administrativas por persona: hoy el backend admite un solo usuario `admin`, así que la bitácora del calendario no distingue quién de coordinación hizo cada cambio. Responsable: Alex/tecnología. Fecha: por definir.
 - [ ] Corregir la Política de Privacidad de Creadoras: la ficha guarda ahora cédula, fecha de nacimiento y correo de contacto, y el texto publicado todavía declara solo nombre, WhatsApp, ciudad y redes. Hacerlo antes de difundir el registro. Responsable: dirección/legal. Fecha: por definir.
+- [x] Corregir `ACTUBRE` por `OCTUBRE` en los nueve artes afectados de la elección de dignidades, renovar caché, validar los diez hashes y publicar solo el frontend con respaldo y verificación HTTPS. Responsable: tecnología/diseño. Completado: 2026-09-23. Evidencia: [[11_eventos/2026_feria-finados/10_tecnologia-datos/2026-09-23_correccion-octubre-artes-dignidades-web_v01|Corrección de OCTUBRE en artes de dignidades]].
 
 ## Regla
 
