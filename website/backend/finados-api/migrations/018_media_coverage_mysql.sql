@@ -1,6 +1,6 @@
--- Records may now be created by coordination without an account; the account is linked later.
+-- Records may now be created by coordination without an account (the account is linked later).
 -- MariaDB refuses to change the nullability of a column that carries a foreign key, so the key is
--- dropped for the change and recreated right after.
+-- dropped for the change and recreated right after. Comments here must never contain a semicolon.
 ALTER TABLE media_profiles DROP FOREIGN KEY fk_media_profile_account;
 ALTER TABLE media_profiles MODIFY account_id BIGINT UNSIGNED NULL;
 ALTER TABLE media_profiles ADD CONSTRAINT fk_media_profile_account FOREIGN KEY (account_id) REFERENCES media_accounts(id);
