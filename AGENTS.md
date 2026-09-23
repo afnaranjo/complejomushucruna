@@ -1719,3 +1719,11 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Durante la publicación entraron dos commits de otra persona sobre los artes de dignidades y su cierre documental. Se integraron por rebase, sin tocar su trabajo ni reescribir su historial; el primer intento dejó el commit duplicado en la lista del rebase, se abortó y se rehízo limpio. `npm run check` volvió a pasar con ambos trabajos juntos antes de publicar.
 - Commit: `813f0c6`, más el cierre documental. Publicación externa: GitHub y frontend; el backend no cambió. Verificación por el espejo: `admin.css?v=20260923-13` y `admin-creadoras.js?v=20260923-creadoras-6` con SHA-256 idéntico al build, el filete presente en el CSS publicado y los artes de dignidades del trabajo ajeno también en línea.
 - Pendiente: la revisión visual de Alex; si el alto de las cajas sigue pareciendo excesivo, la altura por hora del calendario es lo que queda por ajustar.
+
+### 2026-09-23 — Retiro de Las Diablitas y ajuste de tres candidatas
+
+- Alex pidió hacer pull, retirar de `/finados/` el arte de Las Diablitas Taz Taz y acoplar las tres candidatas restantes. La categoría Señorita Colada Morada queda con Karina Chango, Kramelo Latino y Las Ñañas, y el texto pasó de cuatro a tres nominadas.
+- La cuadrícula usa tres columnas iguales en escritorio, dos en tablet y una en móvil; la caché cambió a `20260923-dignities-5`. El activo histórico retirado no se eliminó del repositorio.
+- QA: prueba específica 5/5 y `npm run check` completo con 204 pruebas Node, 25 suites PHP, 10 de integración, build de 184 archivos/62 HTML y 1.934 referencias. Revisión local sin desbordes en escritorio o móvil.
+- Commit técnico `0c5ba45` publicado en `origin/main`. Prevuelo y despliegue frontend completados con respaldo; no se desplegó backend ni se ejecutaron migraciones.
+- Verificación independiente en `complejomushucruna.com` y `finados.expoferiamushucruna.com`: página 200, nueve tarjetas, candidatura retirada, cuadrícula de tres y 9/9 artes vigentes iguales al build por SHA-256. Sin cambios de base de datos, DNS, Google Sheets o formularios.
