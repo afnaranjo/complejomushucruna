@@ -127,7 +127,9 @@ same([$cumbre], $detail['summary']['pautados_publicaron']['ids']);
 same([], $detail['summary']['pautados_sin_publicacion']['ids']);
 same([], $detail['summary']['sin_contrato_publicaron']['ids']);
 same([$mundo], $detail['summary']['sin_contrato_sin_publicacion']['ids']);
-same([$mundo], $detail['summary']['no_asistieron']['ids']);
+// Nadie fue marcado todavía, así que ninguno cuenta como asistente.
+same([], $detail['summary']['asistieron']['ids']);
+same([$cumbre, $mundo], $detail['summary']['no_asistieron']['ids']);
 same('Pautados sin publicación', $detail['summary']['pautados_sin_publicacion']['label']);
 // A radio mention counts as published even without a link.
 same(['ok' => true], coverage_body($router->handle('PATCH', '/api/media-events/' . $eventId . '/coverage/' . $mundo, $admin, $coverage('yes', 'mencion'))));
@@ -279,6 +281,11 @@ same(['ok' => true], coverage_body($router->handle('PATCH', '/api/media-events/'
 $detail = coverage_body($router->handle('GET', '/api/media-events/' . $rueda, $origin));
 same([$cumbre], $detail['summary']['asistieron']['ids']);
 same(true, in_array($mundo, $detail['summary']['no_asistieron']['ids'], true));
+// El check es binario: los dos grupos suman siempre el total del evento.
+same(count($detail['items']), count($detail['summary']['asistieron']['ids']) + count($detail['summary']['no_asistieron']['ids']));
+// Quien nunca fue marcado cuenta como no asistió, igual que se ve el check.
+$sinMarcar = array_values(array_filter($detail['items'], static fn (array $item): bool => $item['attended'] === null));
+foreach ($sinMarcar as $item) same(true, in_array($item['public_id'], $detail['summary']['no_asistieron']['ids'], true));
 same(0, count($detail['summary']['confirmaron']['ids']));
 foreach ($detail['items'] as $item) if ($item['public_id'] === $cumbre) { same('yes', $item['attended']); same('no', $item['confirmation']); }
 same(1, (int) $pdo->query("SELECT COUNT(*) FROM media_events WHERE name = 'Rueda de prensa Finados'")->fetchColumn());

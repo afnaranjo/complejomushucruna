@@ -219,7 +219,8 @@ export function coveragePayload(controls) {
 /** Big-number cards in the order the team reads them; the id list drives the click filter. */
 export function coverageBuckets(summary = {}) {
   const order = ['todos', 'confirmaron', 'no_confirmaron', 'asistieron', 'no_asistieron', 'pautados', 'pautados_publicaron', 'pautados_sin_publicacion', 'sin_contrato_publicaron', 'sin_contrato_sin_publicacion'];
-  return order.filter(key => summary[key]).map(key => ({ key, label: summary[key].label, count: (summary[key].ids ?? []).length, ids: new Set(summary[key].ids ?? []), alert: key === 'pautados_sin_publicacion' || key === 'no_confirmaron' }));
+  // Asistieron + No asistieron cubren el total, porque la asistencia es un check.
+  return order.filter(key => summary[key]).map(key => ({ key, label: summary[key].label, count: (summary[key].ids ?? []).length, ids: new Set(summary[key].ids ?? []), alert: ['pautados_sin_publicacion', 'no_confirmaron', 'no_asistieron'].includes(key) }));
 }
 
 function node(tag, text, className) {

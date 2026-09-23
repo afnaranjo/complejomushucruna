@@ -162,3 +162,27 @@ tr[data-origin="cuenta"] > td { background: rgba(0, 210, 214, .05); }
 .admin-media-add-video .feedback { min-height: 0; margin: 0; font-size: .78rem; }
 .admin-media-videos li { align-items: center; }
 @media (max-width: 640px) { .admin-media-add-video { padding: .6rem; } }
+
+/* Cobertura: anchos fijos para que el nombre del medio no se parta letra a letra */
+.admin-coverage-table { table-layout: fixed; }
+.admin-coverage-table th:nth-child(1), .admin-coverage-table td:nth-child(1) { width: 15rem; }
+.admin-coverage-table th:nth-child(2), .admin-coverage-table td:nth-child(2) { width: 8.5rem; }
+.admin-coverage-table th:nth-child(3), .admin-coverage-table td:nth-child(3) { width: 8.5rem; }
+.admin-coverage-table th:nth-child(4), .admin-coverage-table td:nth-child(4),
+.admin-coverage-table th:nth-child(5), .admin-coverage-table td:nth-child(5) { width: 4.5rem; }
+.admin-coverage-table th:nth-child(6), .admin-coverage-table td:nth-child(6) { width: 9.5rem; }
+.admin-coverage-table th:nth-child(7), .admin-coverage-table td:nth-child(7) { width: 5.5rem; }
+.admin-coverage-table th:nth-child(8), .admin-coverage-table td:nth-child(8) { width: 16rem; }
+.admin-coverage-table th:nth-child(9), .admin-coverage-table td:nth-child(9) { width: 11rem; }
+.admin-coverage-table th:nth-child(10), .admin-coverage-table td:nth-child(10) { width: 8rem; }
+.admin-coverage-table .record-name { overflow-wrap: break-word; word-break: normal; hyphens: auto; }
+.admin-coverage-table .record-name strong { display: block; font-size: .85rem; line-height: 1.25; }
+.admin-coverage-table .record-name small { margin-top: .2rem; }
+.admin-coverage-table .admin-media-origin { margin-top: .3rem; display: inline-block; white-space: nowrap; }
+.admin-coverage-table td { overflow-wrap: anywhere; }
+.admin-coverage-table .admin-media-coverage-links { max-height: 5rem; overflow: auto; }
+@media (max-width: 700px) {
+  .admin-coverage-table { table-layout: auto; }
+  .admin-coverage-table th, .admin-coverage-table td { width: auto !important; }
+  .admin-coverage-table .record-name strong { font-size: .95rem; }
+}

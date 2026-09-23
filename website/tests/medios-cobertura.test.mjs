@@ -36,6 +36,7 @@ test('el build publica el submenú Eventos de Medios, el alta desde coordinació
   assert.match(events, /Marca el check de «Asistió»/);
   // La tabla es ancha: se desplaza sola en escritorio y se apila en móvil.
   assert.match(events, /class="admin-coverage-scroll"/);
+  assert.equal((events.match(/<th scope="col">/g) ?? []).length, 10, 'la tabla conserva sus diez columnas');
   // La pestaña Medios refleja lo que viene de los eventos.
   assert.match(admin, /<th scope="col">Eventos<\/th>/);
   assert.match(events, /Volver a Medios/);
@@ -53,7 +54,7 @@ test('el build publica el submenú Eventos de Medios, el alta desde coordinació
   assert.match(admin, /<textarea name="tv_channel"/);
   assert.match(admin, /name="audience_count"/);
   assert.match(admin, /<select name="radio_genre">/);
-  assert.match(admin, /admin-medios\.js\?v=20260923-admin-medios-17/);
+  assert.match(admin, /admin-medios\.js\?v=20260923-admin-medios-18/);
   // Portal: invitation notice on access, suggestion and pending-claim notices on the profile.
   const access = await readFile(join(output, 'finados/medios/acceso/index.html'), 'utf8');
   assert.match(access, /data-media-invitation hidden/);
@@ -113,10 +114,12 @@ test('la cobertura por evento normaliza la fila y los big numbers conservan el o
   assert.equal(coveragePayload({ contracted: '', result: 'pendiente', people_count: 0, links: '', note: '', confirmation: 'yes' }).confirmation, 'yes');
   assert.equal(coveragePayload({ contracted: '', result: 'pendiente', people_count: 0, links: '', note: '', confirmation: '' }).confirmation, null);
   assert.deepEqual(coveragePayload({ contracted: '', result: 'inventado', people_count: 'x', links: '', note: '' }), { contracted: null, result: 'pendiente', people_count: 0, links: [], note: '', attended: null, confirmation: null });
-  const summary = { todos: { label: 'Todos', ids: ['a', 'b'] }, confirmaron: { label: 'Confirmaron asistencia', ids: ['a'] }, no_confirmaron: { label: 'Sin respuesta', ids: ['b'] }, asistieron: { label: 'Asistieron', ids: ['a'] }, no_asistieron: { label: 'No asistieron', ids: [] }, pautados: { label: 'Pautados', ids: ['a'] }, pautados_publicaron: { label: 'Pautados que publicaron', ids: [] }, pautados_sin_publicacion: { label: 'Pautados sin publicación', ids: ['a'] }, sin_contrato_publicaron: { label: 'Sin contrato que publicaron', ids: ['b'] }, sin_contrato_sin_publicacion: { label: 'Sin contrato sin publicación', ids: [] } };
+  const summary = { todos: { label: 'Todos', ids: ['a', 'b'] }, confirmaron: { label: 'Confirmaron asistencia', ids: ['a'] }, no_confirmaron: { label: 'Sin respuesta', ids: ['b'] }, asistieron: { label: 'Asistieron', ids: ['a'] }, no_asistieron: { label: 'No asistieron', ids: ['b'] }, pautados: { label: 'Pautados', ids: ['a'] }, pautados_publicaron: { label: 'Pautados que publicaron', ids: [] }, pautados_sin_publicacion: { label: 'Pautados sin publicación', ids: ['a'] }, sin_contrato_publicaron: { label: 'Sin contrato que publicaron', ids: ['b'] }, sin_contrato_sin_publicacion: { label: 'Sin contrato sin publicación', ids: [] } };
   const buckets = coverageBuckets(summary);
   // Attendance first (what the team checks the day of the event), then the commercial cross.
-  assert.deepEqual(buckets.map(bucket => [bucket.key, bucket.count, bucket.alert]), [['todos', 2, false], ['confirmaron', 1, false], ['no_confirmaron', 1, true], ['asistieron', 1, false], ['no_asistieron', 0, false], ['pautados', 1, false], ['pautados_publicaron', 0, false], ['pautados_sin_publicacion', 1, true], ['sin_contrato_publicaron', 1, false], ['sin_contrato_sin_publicacion', 0, false]]);
+  assert.deepEqual(buckets.map(bucket => [bucket.key, bucket.count, bucket.alert]), [['todos', 2, false], ['confirmaron', 1, false], ['no_confirmaron', 1, true], ['asistieron', 1, false], ['no_asistieron', 1, true], ['pautados', 1, false], ['pautados_publicaron', 0, false], ['pautados_sin_publicacion', 1, true], ['sin_contrato_publicaron', 1, false], ['sin_contrato_sin_publicacion', 0, false]]);
+  // Asistieron + No asistieron cubren a todos, porque la asistencia es un check.
+  assert.equal(buckets.find(b => b.key === 'asistieron').count + buckets.find(b => b.key === 'no_asistieron').count, buckets.find(b => b.key === 'todos').count);
   assert.ok(buckets.find(bucket => bucket.key === 'pautados_sin_publicacion').ids.has('a'));
   assert.deepEqual(Object.keys(ATTENDANCE_LABELS), ['', 'yes', 'no']);
   assert.deepEqual(Object.keys(CONFIRMATION_LABELS), ['pendiente', 'yes', 'no']);

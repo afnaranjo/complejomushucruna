@@ -783,10 +783,11 @@ final class MediaRepository
             'pautados_sin_publicacion' => ['label' => 'Pautados sin publicación', 'ids' => $bucket(static fn (array $item): bool => $paid($item) && !$published($item))],
             'sin_contrato_publicaron' => ['label' => 'Sin contrato que publicaron', 'ids' => $bucket(static fn (array $item): bool => !$paid($item) && $published($item))],
             'sin_contrato_sin_publicacion' => ['label' => 'Sin contrato sin publicación', 'ids' => $bucket(static fn (array $item): bool => !$paid($item) && !$published($item))],
-            'no_asistieron' => ['label' => 'No asistieron', 'ids' => $bucket(static fn (array $item): bool => $item['result'] === 'no_asistio' || $item['attended'] === 'no')],
+            // La asistencia se marca con un check, así que «asistieron» y «no asistieron» suman el total.
+            'asistieron' => ['label' => 'Asistieron', 'ids' => $bucket(static fn (array $item): bool => $item['attended'] === 'yes')],
+            'no_asistieron' => ['label' => 'No asistieron', 'ids' => $bucket(static fn (array $item): bool => $item['attended'] !== 'yes')],
             'confirmaron' => ['label' => 'Confirmaron asistencia', 'ids' => $bucket(static fn (array $item): bool => $item['confirmation'] === 'yes')],
             'no_confirmaron' => ['label' => 'Sin respuesta', 'ids' => $bucket(static fn (array $item): bool => $item['confirmation'] === null)],
-            'asistieron' => ['label' => 'Asistieron', 'ids' => $bucket(static fn (array $item): bool => $item['attended'] === 'yes')],
         ];
     }
 
