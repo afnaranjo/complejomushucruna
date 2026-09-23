@@ -1,6 +1,6 @@
 import { escapeHtml } from '../render/html.mjs';
 
-export const dignitiesAssetVersion = '20260923-dignities-4';
+export const dignitiesAssetVersion = '20260923-dignities-5';
 
 export const dignityCandidates = Object.freeze([
   { name: 'Golpe a Golpe', slug: 'golpe-a-golpe', category: 'rey-pan' },
@@ -11,7 +11,6 @@ export const dignityCandidates = Object.freeze([
   { name: 'William Luna', slug: 'william-luna', category: 'rey-pan' },
   { name: 'Karina Chango', slug: 'karina-chango', category: 'colada-morada' },
   { name: 'Kramelo Latino', slug: 'kramelo-latino', category: 'colada-morada' },
-  { name: 'Las Diablitas Taz Taz', slug: 'las-diablitas-taz-taz', category: 'colada-morada' },
   { name: 'Las Ñañas', slug: 'las-nanas', category: 'colada-morada' },
 ].map(candidate => Object.freeze({
   ...candidate,
@@ -29,7 +28,7 @@ const categories = Object.freeze([
     key: 'colada-morada',
     number: '02',
     title: 'Señorita Colada Morada',
-    intro: 'Cuatro nominadas. Una tradición que se renueva contigo. Haz escuchar tu elección.',
+    intro: 'Tres nominadas. Una tradición que se renueva contigo. Haz escuchar tu elección.',
   },
 ]);
 

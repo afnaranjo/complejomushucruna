@@ -13,17 +13,18 @@ import {
 const finadosPage = pages.find(page => page.route === '/finados/');
 const html = () => finadosPage.render(finadosPage);
 
-test('ordena los diez nominados por dignidad y conserva los nombres entregados', () => {
-  assert.equal(dignitiesAssetVersion, '20260923-dignities-4');
+test('ordena los nueve nominados vigentes por dignidad y conserva los nombres entregados', () => {
+  assert.equal(dignitiesAssetVersion, '20260923-dignities-5');
   assert.deepEqual(
     dignityCandidates.filter(candidate => candidate.category === 'rey-pan').map(candidate => candidate.name),
     ['Golpe a Golpe', 'Guaynaa', 'Hueveando', 'Kike Jav', 'Waldokinc', 'William Luna'],
   );
   assert.deepEqual(
     dignityCandidates.filter(candidate => candidate.category === 'colada-morada').map(candidate => candidate.name),
-    ['Karina Chango', 'Kramelo Latino', 'Las Diablitas Taz Taz', 'Las Ñañas'],
+    ['Karina Chango', 'Kramelo Latino', 'Las Ñañas'],
   );
-  assert.equal(new Set(dignityCandidates.map(candidate => candidate.asset)).size, 10);
+  assert.equal(new Set(dignityCandidates.map(candidate => candidate.asset)).size, 9);
+  assert.equal(dignityCandidates.some(candidate => candidate.slug === 'las-diablitas-taz-taz'), false);
 });
 
 test('la elección aparece debajo de la franja lila con fecha y llamados claros', () => {
@@ -39,8 +40,9 @@ test('la elección aparece debajo de la franja lila con fecha y llamados claros'
   assert.match(output, /Conoce a quienes quieren llevar la corona/);
   assert.match(output, /Apoya a tu favorito/);
   assert.match(output, /Vota en los canales oficiales/);
-  assert.equal((output.match(/class="dignity-candidate"/g) ?? []).length, 10);
-  assert.equal((output.match(/target="_blank" rel="noopener noreferrer"/g) ?? []).length >= 10, true);
+  assert.equal((output.match(/class="dignity-candidate"/g) ?? []).length, 9);
+  assert.equal((output.match(/target="_blank" rel="noopener noreferrer"/g) ?? []).length >= 9, true);
+  assert.doesNotMatch(output, /Las Diablitas|las-diablitas-taz-taz/);
   assert.equal(output.includes(renderDignitiesElection()), true);
 });
 
@@ -54,7 +56,7 @@ test('los artes optimizados están presentes, son WebP y respetan el presupuesto
   }
 });
 
-test('los diez artes conservan la composición aprobada y la fecha corregida a OCTUBRE', async () => {
+test('los nueve artes vigentes conservan la composición aprobada y la fecha corregida a OCTUBRE', async () => {
   const approvedHashes = new Map([
     ['golpe-a-golpe', '7c38b6fac9a1e37239bb3d270b9c33e7230530f80276589eddf8cfdac4c603cc'],
     ['guaynaa', 'f651f5a0b624e4fa51f4403a449c31a08e12917dc971b8294e27b7863cf6e976'],
@@ -64,7 +66,6 @@ test('los diez artes conservan la composición aprobada y la fecha corregida a O
     ['william-luna', 'b0613707608781dc160608d3c512bd40d1bba0f11ae43280893ede8a99b6a03a'],
     ['karina-chango', '998e68b01c9d5eb8dac630af89e1cea550452ab7e6218a43a5f4f043d832d961'],
     ['kramelo-latino', '73e25f7b442ae7c506d6a852c841ecc8dd207d07c81dc5635c62a9df46c550de'],
-    ['las-diablitas-taz-taz', '8997998999be6851af7bcac7e2ed740d410153e02488d67d324c12eeb26dc572'],
     ['las-nanas', '7eba4ca891fec5c388ea42657355971f6c8b78837bcc0af8d9dd45a8110a5346'],
   ]);
 
@@ -82,6 +83,7 @@ test('los estilos de la elección son aislados, responsivos y sin anchos rígido
   const css = await readFile(new URL('../src/finados/dignities-election.css', import.meta.url), 'utf8');
   assert.match(css, /\.dignities-election\s*\{/);
   assert.match(css, /\.dignity-candidates\s*\{[^}]*grid-template-columns:/s);
+  assert.match(css, /\.dignity-ballot--colada-morada \.dignity-candidates\s*\{[^}]*grid-template-columns:\s*repeat\(3,/s);
   assert.match(css, /@media \(max-width: 760px\)[\s\S]*\.dignity-candidates/);
   assert.match(css, /aspect-ratio:\s*1080\s*\/\s*1350/);
   assert.match(css, /\.dignity-ballot__header h3\s*\{[^}]*margin:\s*clamp\([^;]+\)\s+0\s+0;/s);
