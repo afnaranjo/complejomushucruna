@@ -205,7 +205,8 @@ export function fillAdminRecordForm(form, data = {}) {
 export function coveragePayload(controls) {
   const links = String(controls.links ?? '').split('\n').map(line => line.trim()).filter(Boolean).map(line => (/^https?:\/\//i.test(line) ? line : `https://${line}`));
   const people = Number.parseInt(controls.people_count, 10);
-  return { contracted: controls.contracted === 'yes' || controls.contracted === 'no' ? controls.contracted : null, result: Object.hasOwn(COVERAGE_RESULT_LABELS, controls.result) ? controls.result : 'pendiente', people_count: Number.isFinite(people) ? Math.max(0, Math.min(200, people)) : 0, links: [...new Set(links)], note: String(controls.note ?? '').trim(), attended: controls.attended === 'yes' || controls.attended === 'no' ? controls.attended : null };
+  const pick = value => (value === 'yes' || value === 'no' ? value : null);
+  return { contracted: pick(controls.contracted), result: Object.hasOwn(COVERAGE_RESULT_LABELS, controls.result) ? controls.result : 'pendiente', people_count: Number.isFinite(people) ? Math.max(0, Math.min(200, people)) : 0, links: [...new Set(links)], note: String(controls.note ?? '').trim(), attended: pick(controls.attended), confirmation: pick(controls.confirmation) };
 }
 
 /** Big-number cards in the order the team reads them; the id list drives the click filter. */
@@ -838,10 +839,12 @@ export async function initializeMediaEventsAdmin() {
     cell('Medio', name).className = 'record-name';
     const contracted = node('select'); for (const [value, label] of [['', 'Sin dato'], ['yes', 'Sí · Pautado'], ['no', 'No · Sin contrato']]) { const option = node('option', label); option.value = value; contracted.append(option); } contracted.value = item.contracted ?? ''; contracted.setAttribute('aria-label', `Contrato de ${item.media_name}`);
     cell('Contrato', contracted);
-    const confirmationKey = item.confirmation ?? 'pendiente';
-    const confirmation = node('span', item.linked ? CONFIRMATION_LABELS[confirmationKey] : 'Sin cuenta', 'admin-media-confirmation');
-    confirmation.dataset.confirmation = item.linked ? confirmationKey : 'sin-cuenta';
-    if (item.confirmed_at) confirmation.title = `Respondió ${dateTime(item.confirmed_at)}`;
+    const confirmation = node('select', undefined, 'admin-media-confirmation');
+    for (const [value, label] of [['', 'Sin respuesta'], ['yes', 'Confirmó'], ['no', 'No asistirá']]) { const option = node('option', label); option.value = value; confirmation.append(option); }
+    confirmation.value = item.confirmation ?? '';
+    confirmation.dataset.confirmation = item.confirmation ?? 'pendiente';
+    confirmation.setAttribute('aria-label', `Confirmación de ${item.media_name}`);
+    if (item.confirmed_at) confirmation.title = `Respondió ${dateTime(item.confirmed_at)}${item.linked ? '' : ' (registrado por coordinación)'}`;
     cell('Confirmó', confirmation);
     // Marcado = asistió, desmarcado = no asistió. Las observaciones puntuales van en la nota.
     const attended = node('input'); attended.type = 'checkbox'; attended.className = 'admin-attendance-check';
@@ -864,7 +867,7 @@ export async function initializeMediaEventsAdmin() {
     const state = node('small', item.updated_at ? `Guardado ${dateTime(item.updated_at)}` : '', 'admin-coverage-state');
     cell('Estado', state);
     const save = async () => {
-      const body = coveragePayload({ contracted: contracted.value, result: result.value, people_count: people.value, links: links.value, note: note.value, attended: attended.checked ? 'yes' : 'no' });
+      const body = coveragePayload({ contracted: contracted.value, result: result.value, people_count: people.value, links: links.value, note: note.value, attended: attended.checked ? 'yes' : 'no', confirmation: confirmation.value });
       state.textContent = 'Guardando…';
       try {
         await client.updateCoverage(current, item.public_id, body);
@@ -874,11 +877,12 @@ export async function initializeMediaEventsAdmin() {
         state.textContent = updated ? `Guardado ${dateTime(updated.updated_at)}` : 'Guardado';
         preview.replaceChildren(); for (const url of updated?.links ?? []) preview.append(linkNode(url));
         published.checked = (updated?.links ?? []).length > 0;
+        confirmation.dataset.confirmation = updated?.confirmation ?? 'pendiente';
         // The row stays visible while editing even if it leaves the active bucket; the numbers above already moved.
       } catch (error) { state.textContent = 'No se pudo guardar'; fail(error, tableMessage); }
     };
     const schedule = () => { globalThis.clearTimeout(timers.get(item.public_id)); timers.set(item.public_id, globalThis.setTimeout(save, 900)); };
-    for (const control of [contracted, attended, result, people, links, note]) { control.addEventListener('change', schedule); control.addEventListener('input', schedule); }
+    for (const control of [contracted, confirmation, attended, result, people, links, note]) { control.addEventListener('change', schedule); control.addEventListener('input', schedule); }
     return row;
   }
   async function loadCoverage(id) {

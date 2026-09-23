@@ -113,14 +113,13 @@ tr[data-origin="cuenta"] > td { background: rgba(0, 210, 214, .05); }
 .pending-accounts--open { padding: 1rem; }
 .admin-nav-link--child { margin-left: 1.5rem; opacity: .92; }
 @media (max-width: 720px) { .record-dialog .record-grid { grid-template-columns: 1fr; } }
-.admin-media-confirmation { display: inline-block; padding: .15rem .5rem; border-radius: 999px; font-size: .72rem; font-weight: 700; background: rgba(36, 17, 70, .08); color: #4a4363; }
-.admin-media-confirmation[data-confirmation="yes"] { background: rgba(53, 194, 119, .22); color: #1d5c3a; }
-.admin-media-confirmation[data-confirmation="no"] { background: rgba(224, 27, 36, .14); color: #8a1219; }
-.admin-media-confirmation[data-confirmation="sin-cuenta"] { background: transparent; color: #8b849b; font-weight: 500; }
+.admin-media-confirmation { font-weight: 600; }
+.admin-media-confirmation[data-confirmation="yes"] { background: rgba(53, 194, 119, .16); border-color: #35c277; }
+.admin-media-confirmation[data-confirmation="no"] { background: rgba(224, 27, 36, .1); border-color: #e01b24; }
 .admin-big-number[data-bucket="confirmaron"] strong, .admin-big-number[data-bucket="asistieron"] strong { color: #1d5c3a; }
 .admin-big-number[data-bucket="no_confirmaron"] strong { color: #b06a00; }
 .admin-cell-check { text-align: center; }
-.admin-attendance-check { width: 22px; height: 22px; min-height: 22px; margin: 0 auto; accent-color: #1c6854; cursor: pointer; }
+.admin-attendance-check { width: 17px; height: 17px; min-height: 17px; margin: 0 auto; accent-color: #1c6854; cursor: pointer; }
 .admin-attendance-check:disabled { accent-color: #94165e; cursor: default; opacity: 1; }
 .admin-panel-section { margin: 1.5rem 0 2rem; border-top: 2px solid #241146; padding-top: .5rem; }
 .admin-panel-drawer { margin-top: .5rem; padding: 1rem; border: 1px solid #c3b6c7; border-radius: .9rem; background: #fffaf2; }
@@ -133,3 +132,28 @@ tr[data-origin="cuenta"] > td { background: rgba(0, 210, 214, .05); }
 .admin-panel-event > summary { display: flex; gap: .75rem; align-items: baseline; flex-wrap: wrap; }
 .admin-panel-event > summary small { color: #665771; }
 .admin-panel-event__body { padding-top: .75rem; }
+
+/* Cobertura por evento: tabla ancha con scroll propio y controles cómodos en móvil */
+.admin-coverage-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.admin-coverage-table { min-width: 62rem; }
+.admin-coverage-table th, .admin-coverage-table td { vertical-align: top; }
+.admin-coverage-table select, .admin-coverage-table input[type="number"] { margin-top: 0; }
+@media (max-width: 700px) {
+  .admin-coverage-scroll { overflow-x: visible; }
+  .admin-coverage-table { min-width: 0; }
+  .admin-coverage-table tbody tr { grid-template-columns: 1fr 1fr; gap: 12px; padding: 16px 0; }
+  .admin-coverage-table td[data-label="Links"], .admin-coverage-table td[data-label="Nota"] { grid-column: 1 / -1; }
+  .admin-coverage-table td:last-child { text-align: left; }
+  .admin-coverage-table td:last-child::before { display: block; }
+  .admin-cell-check { text-align: left; }
+  .admin-attendance-check { margin: 0; }
+  .admin-events-bar > label { min-width: 0; width: 100%; }
+  .admin-event-form fieldset { display: grid; grid-template-columns: 1fr; width: 100%; }
+  .admin-big-numbers { grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr)); gap: .45rem; }
+  .admin-big-number { padding: .7rem .65rem; }
+  .admin-big-number strong { font-size: 1.6rem; }
+  .admin-panel-list li { flex-direction: column; align-items: flex-start; gap: .25rem; }
+  .admin-panel-event > summary { flex-direction: column; gap: .15rem; }
+  .workspace-actions { width: 100%; }
+  .workspace-actions .button-primary, .workspace-actions .button-quiet { flex: 1 1 auto; }
+}

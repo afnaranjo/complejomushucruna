@@ -769,7 +769,7 @@ final class MediaRepository
             'sin_contrato_sin_publicacion' => ['label' => 'Sin contrato sin publicación', 'ids' => $bucket(static fn (array $item): bool => !$paid($item) && !$published($item))],
             'no_asistieron' => ['label' => 'No asistieron', 'ids' => $bucket(static fn (array $item): bool => $item['result'] === 'no_asistio' || $item['attended'] === 'no')],
             'confirmaron' => ['label' => 'Confirmaron asistencia', 'ids' => $bucket(static fn (array $item): bool => $item['confirmation'] === 'yes')],
-            'no_confirmaron' => ['label' => 'Sin respuesta', 'ids' => $bucket(static fn (array $item): bool => $item['confirmation'] === null && $item['linked'])],
+            'no_confirmaron' => ['label' => 'Sin respuesta', 'ids' => $bucket(static fn (array $item): bool => $item['confirmation'] === null)],
             'asistieron' => ['label' => 'Asistieron', 'ids' => $bucket(static fn (array $item): bool => $item['attended'] === 'yes')],
         ];
     }
@@ -778,13 +778,18 @@ final class MediaRepository
     public function upsertCoverage(string $eventPublicId, string $profilePublicId, mixed $input, int $actorId, string $ip = ''): void
     {
         if ($input instanceof \stdClass) $input = (array) $input;
-        $fields = ['contracted', 'result', 'people_count', 'links', 'note', 'attended'];
+        $fields = ['contracted', 'result', 'people_count', 'links', 'note', 'attended', 'confirmation'];
         if (!is_array($input) || array_diff(array_keys($input), $fields) !== [] || array_diff(['contracted', 'result', 'people_count', 'links', 'note'], array_keys($input)) !== []) throw new InvalidArgumentException();
         $contracted = $input['contracted'];
         if ($contracted !== null && (!is_string($contracted) || !in_array($contracted, self::PAID_MEDIA, true))) throw new InvalidArgumentException();
         $attended = $input['attended'] ?? null;
         if ($attended === '') $attended = null;
         if ($attended !== null && (!is_string($attended) || !in_array($attended, self::ATTENDANCE, true))) throw new InvalidArgumentException();
+        // Coordination may register the answer a medium gave by phone or in person; the portal writes the same column.
+        $hasConfirmation = array_key_exists('confirmation', $input);
+        $confirmation = $input['confirmation'] ?? null;
+        if ($confirmation === '') $confirmation = null;
+        if ($confirmation !== null && (!is_string($confirmation) || !in_array($confirmation, self::ATTENDANCE, true))) throw new InvalidArgumentException();
         if (!is_string($input['result']) || !isset(self::COVERAGE_RESULTS[$input['result']])) throw new InvalidArgumentException();
         $people = filter_var($input['people_count'], FILTER_VALIDATE_INT, ['options' => ['min_range' => 0, 'max_range' => 200]]);
         if ($people === false) throw new InvalidArgumentException();
@@ -795,13 +800,17 @@ final class MediaRepository
         $note = trim(preg_replace('/\p{C}+/u', ' ', $input['note']) ?? '');
         if (self::length($note) > 2000) throw new InvalidArgumentException();
         $event = $this->eventRow($eventPublicId);
-        $this->mutate($profilePublicId, function (array $row) use ($event, $contracted, $input, $people, $links, $note, $attended, $actorId, $ip, $profilePublicId): void {
+        $this->mutate($profilePublicId, function (array $row) use ($event, $contracted, $input, $people, $links, $note, $attended, $hasConfirmation, $confirmation, $actorId, $ip, $profilePublicId): void {
             $now = gmdate('Y-m-d H:i:s');
             $json = json_encode($links, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
             $sql = $this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql'
                 ? 'INSERT INTO media_event_coverage (event_id, profile_id, contracted, result, people_count, links, note, attended, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE contracted = VALUES(contracted), result = VALUES(result), people_count = VALUES(people_count), links = VALUES(links), note = VALUES(note), attended = VALUES(attended), updated_at = VALUES(updated_at)'
                 : 'INSERT INTO media_event_coverage (event_id, profile_id, contracted, result, people_count, links, note, attended, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(event_id, profile_id) DO UPDATE SET contracted = excluded.contracted, result = excluded.result, people_count = excluded.people_count, links = excluded.links, note = excluded.note, attended = excluded.attended, updated_at = excluded.updated_at';
             $this->pdo->prepare($sql)->execute([$event['id'], $row['id'], $contracted, $input['result'], $people, $json, $note, $attended, $now]);
+            if ($hasConfirmation) {
+                $this->pdo->prepare('UPDATE media_event_coverage SET confirmation = ?, confirmed_at = ? WHERE event_id = ? AND profile_id = ?')
+                    ->execute([$confirmation, $confirmation === null ? null : $now, $event['id'], $row['id']]);
+            }
             $this->audit->log('media.coverage_updated', $actorId, 'media_profile', $profilePublicId, [], $ip);
         });
     }

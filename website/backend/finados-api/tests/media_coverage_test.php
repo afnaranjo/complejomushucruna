@@ -299,3 +299,20 @@ same('yes', $importer(['name' => 'Radio Con Contrato', 'contracted' => 'yes'])['
 same('no', $importer(['name' => 'Radio Sin Contrato', 'contracted' => 'no'])['paid_media']);
 same('no', $importer(['name' => 'Radio Sin Dato', 'contracted' => null])['paid_media']);
 coverage_close_session();
+
+// Coordination may register the answer a medium gave by phone; the same column the portal writes.
+$adminSession = coverage_body($router->handle('GET', '/api/auth/session', $origin));
+$adminLogin = coverage_body($router->handle('POST', '/api/auth/login', $json($adminSession['csrf']), coverage_json(['username' => 'admin', 'password' => $adminSecret])));
+$admin = $json($adminLogin['csrf']);
+$withConfirmation = static fn (?string $confirmation): string => coverage_json(['contracted' => 'yes', 'result' => 'pendiente', 'people_count' => 1, 'links' => [], 'note' => '', 'attended' => 'yes', 'confirmation' => $confirmation]);
+same(422, $router->handle('PATCH', '/api/media-events/' . $rueda . '/coverage/' . $mundo, $admin, $withConfirmation('quizá'))->status);
+same(['ok' => true], coverage_body($router->handle('PATCH', '/api/media-events/' . $rueda . '/coverage/' . $mundo, $admin, $withConfirmation('yes'))));
+$detail = coverage_body($router->handle('GET', '/api/media-events/' . $rueda, $origin));
+foreach ($detail['items'] as $item) if ($item['public_id'] === $mundo) { same('yes', $item['confirmation']); same(true, $item['confirmed_at'] !== null); }
+same(true, in_array($mundo, $detail['summary']['confirmaron']['ids'], true));
+// An empty answer clears it back to "no answer".
+same(['ok' => true], coverage_body($router->handle('PATCH', '/api/media-events/' . $rueda . '/coverage/' . $mundo, $admin, $withConfirmation(null))));
+$detail = coverage_body($router->handle('GET', '/api/media-events/' . $rueda, $origin));
+foreach ($detail['items'] as $item) if ($item['public_id'] === $mundo) { same(null, $item['confirmation']); same(null, $item['confirmed_at']); }
+same(true, in_array($mundo, $detail['summary']['no_confirmaron']['ids'], true));
+coverage_close_session();

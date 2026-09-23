@@ -809,7 +809,7 @@ final class Router
         if (preg_match('~^/api/media-events/([a-f0-9]{32})/coverage/([a-f0-9]{32})$~D', $path, $parts)) {
             if ($method !== 'PATCH') return $notAllowed();
             if ($query !== []) throw new InvalidArgumentException();
-            $this->media()->upsertCoverage($parts[1], $parts[2], $this->body($server, $rawBody, ['contracted', 'result', 'people_count', 'links', 'note', 'attended']), $user['id'], $ip);
+            $this->media()->upsertCoverage($parts[1], $parts[2], $this->body($server, $rawBody, ['contracted', 'result', 'people_count', 'links', 'note', 'attended', 'confirmation']), $user['id'], $ip);
             return $this->json(200, ['ok' => true], $headers);
         }
         if ($path === '/api/medios/export') {
