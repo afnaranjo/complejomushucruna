@@ -32,7 +32,10 @@ test('el build publica el submenú Eventos de Medios, el alta desde coordinació
   assert.match(events, /name="place"/);
   assert.match(events, /name="details"/);
   assert.match(events, /Crear evento e invitar a todos/);
-  assert.match(events, /<th scope="col">Confirmó<\/th><th scope="col">Asistió<\/th>/);
+  assert.match(events, /<th scope="col">Confirmó<\/th><th scope="col">Asistió<\/th><th scope="col">Link<\/th>/);
+  assert.match(events, /Marca el check de «Asistió»/);
+  // La pestaña Medios refleja lo que viene de los eventos.
+  assert.match(admin, /<th scope="col">Eventos<\/th>/);
   assert.match(events, /Volver a Medios/);
   // Main panel: add button, origin filter and column, claims section and the shared record dialog.
   assert.match(admin, /data-admin-add/);
@@ -43,7 +46,7 @@ test('el build publica el submenú Eventos de Medios, el alta desde coordinació
   assert.equal((admin.match(/name="media_types"/g) ?? []).length, 5, 'un checkbox por tipo en el diálogo de alta');
   assert.match(admin, /name="followers_validated"/);
   assert.match(admin, /name="representatives"/);
-  assert.match(admin, /admin-medios\.js\?v=20260923-admin-medios-14/);
+  assert.match(admin, /admin-medios\.js\?v=20260923-admin-medios-15/);
   // Portal: invitation notice on access, suggestion and pending-claim notices on the profile.
   const access = await readFile(join(output, 'finados/medios/acceso/index.html'), 'utf8');
   assert.match(access, /data-media-invitation hidden/);
@@ -90,6 +93,8 @@ test('el alta desde coordinación arma el cuerpo exacto: representantes por lín
 
 test('la cobertura por evento normaliza la fila y los big numbers conservan el orden y el grupo de alerta', () => {
   assert.deepEqual(coveragePayload({ contracted: 'yes', result: 'mencion', people_count: '2', links: 'facebook.com/share/1\nhttps://facebook.com/share/1\n', note: ' Entrevista ', attended: 'yes' }), { contracted: 'yes', result: 'mencion', people_count: 2, links: ['https://facebook.com/share/1'], note: 'Entrevista', attended: 'yes' });
+  // El check desmarcado se envía como «no asistió», no como «sin dato».
+  assert.equal(coveragePayload({ contracted: '', result: 'pendiente', people_count: 0, links: '', note: '', attended: 'no' }).attended, 'no');
   assert.deepEqual(coveragePayload({ contracted: '', result: 'inventado', people_count: 'x', links: '', note: '' }), { contracted: null, result: 'pendiente', people_count: 0, links: [], note: '', attended: null });
   const summary = { todos: { label: 'Todos', ids: ['a', 'b'] }, confirmaron: { label: 'Confirmaron asistencia', ids: ['a'] }, no_confirmaron: { label: 'Sin respuesta', ids: ['b'] }, asistieron: { label: 'Asistieron', ids: ['a'] }, no_asistieron: { label: 'No asistieron', ids: [] }, pautados: { label: 'Pautados', ids: ['a'] }, pautados_publicaron: { label: 'Pautados que publicaron', ids: [] }, pautados_sin_publicacion: { label: 'Pautados sin publicación', ids: ['a'] }, sin_contrato_publicaron: { label: 'Sin contrato que publicaron', ids: ['b'] }, sin_contrato_sin_publicacion: { label: 'Sin contrato sin publicación', ids: [] } };
   const buckets = coverageBuckets(summary);

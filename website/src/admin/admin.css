@@ -119,3 +119,6 @@ tr[data-origin="cuenta"] > td { background: rgba(0, 210, 214, .05); }
 .admin-media-confirmation[data-confirmation="sin-cuenta"] { background: transparent; color: #8b849b; font-weight: 500; }
 .admin-big-number[data-bucket="confirmaron"] strong, .admin-big-number[data-bucket="asistieron"] strong { color: #1d5c3a; }
 .admin-big-number[data-bucket="no_confirmaron"] strong { color: #b06a00; }
+.admin-cell-check { text-align: center; }
+.admin-attendance-check { width: 22px; height: 22px; min-height: 22px; margin: 0 auto; accent-color: #1c6854; cursor: pointer; }
+.admin-attendance-check:disabled { accent-color: #94165e; cursor: default; opacity: 1; }

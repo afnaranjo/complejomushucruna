@@ -399,6 +399,8 @@ export async function initializeMediaAdmin() {
         cell('Canales', '').replaceChildren(channels);
         if (record.followers_total > 0) channels.append(node('small', `${new Intl.NumberFormat('es-EC').format(record.followers_total)} seguidores declarados`));
         cell('Videos', record.videos_count === 1 ? '1 video' : `${record.videos_count ?? 0} videos`, `${new Intl.NumberFormat('es-EC').format(record.views_total ?? 0)} views`);
+        // Lo que viene de los eventos: publicaciones registradas por coordinación y asistencias confirmadas.
+        cell('Eventos', (record.event_links_count ?? 0) === 1 ? '1 publicación' : `${record.event_links_count ?? 0} publicaciones`, (record.events_attended ?? 0) === 1 ? 'asistió a 1 evento' : `asistió a ${record.events_attended ?? 0} eventos`);
         cell('Registro', dateTime(record.submitted_at));
         const badge = node('span', record.status, 'status-badge'); badge.dataset.status = record.status;
         const lightKey = Object.hasOwn(TRAFFIC_LIGHT_LABELS, record.traffic_light) ? record.traffic_light : 'red';
@@ -840,8 +842,15 @@ export async function initializeMediaEventsAdmin() {
     confirmation.dataset.confirmation = item.linked ? confirmationKey : 'sin-cuenta';
     if (item.confirmed_at) confirmation.title = `Respondió ${dateTime(item.confirmed_at)}`;
     cell('Confirmó', confirmation);
-    const attended = node('select'); for (const [value, label] of Object.entries(ATTENDANCE_LABELS)) { const option = node('option', label); option.value = value; attended.append(option); } attended.value = item.attended ?? ''; attended.setAttribute('aria-label', `Asistencia de ${item.media_name}`);
-    cell('Asistió', attended);
+    // Marcado = asistió, desmarcado = no asistió. Las observaciones puntuales van en la nota.
+    const attended = node('input'); attended.type = 'checkbox'; attended.className = 'admin-attendance-check';
+    attended.checked = item.attended === 'yes'; attended.setAttribute('aria-label', `Asistió ${item.media_name}`);
+    cell('Asistió', attended).className = 'admin-cell-check';
+    // Se marca solo cuando la cobertura ya tiene un link cargado.
+    const published = node('input'); published.type = 'checkbox'; published.className = 'admin-attendance-check'; published.disabled = true;
+    published.checked = (item.links ?? []).length > 0;
+    published.setAttribute('aria-label', `${item.media_name} ${published.checked ? 'tiene link publicado' : 'sin link publicado'}`);
+    cell('Link', published).className = 'admin-cell-check';
     const result = node('select'); for (const [value, label] of Object.entries(COVERAGE_RESULT_LABELS)) { const option = node('option', label); option.value = value; result.append(option); } result.value = item.result; result.setAttribute('aria-label', `Resultado de ${item.media_name}`);
     cell('Resultado', result);
     const people = node('input'); people.type = 'number'; people.min = '0'; people.max = '200'; people.step = '1'; people.value = String(item.people_count ?? 0); people.setAttribute('aria-label', `Personas de ${item.media_name}`);
@@ -854,7 +863,7 @@ export async function initializeMediaEventsAdmin() {
     const state = node('small', item.updated_at ? `Guardado ${dateTime(item.updated_at)}` : '', 'admin-coverage-state');
     cell('Estado', state);
     const save = async () => {
-      const body = coveragePayload({ contracted: contracted.value, result: result.value, people_count: people.value, links: links.value, note: note.value, attended: attended.value });
+      const body = coveragePayload({ contracted: contracted.value, result: result.value, people_count: people.value, links: links.value, note: note.value, attended: attended.checked ? 'yes' : 'no' });
       state.textContent = 'Guardando…';
       try {
         await client.updateCoverage(current, item.public_id, body);
@@ -863,6 +872,7 @@ export async function initializeMediaEventsAdmin() {
         const updated = fresh.items.find(entry => entry.public_id === item.public_id);
         state.textContent = updated ? `Guardado ${dateTime(updated.updated_at)}` : 'Guardado';
         preview.replaceChildren(); for (const url of updated?.links ?? []) preview.append(linkNode(url));
+        published.checked = (updated?.links ?? []).length > 0;
         // The row stays visible while editing even if it leaves the active bucket; the numbers above already moved.
       } catch (error) { state.textContent = 'No se pudo guardar'; fail(error, tableMessage); }
     };
