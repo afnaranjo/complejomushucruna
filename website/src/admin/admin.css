@@ -274,3 +274,10 @@ tr[data-origin="cuenta"] > td { background: rgba(0, 210, 214, .05); }
 .record-dialog--compact .record-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .shift-box[data-shared="true"] { border-left-width: 4px; }
 .shift-box { cursor: pointer; }
+.calendar-duration { margin-top: .5rem; color: #665771; font-size: .78rem; }
+.calendar-duration[data-error="true"] { color: #942d25; font-weight: 600; }
+.record-form__actions--split { justify-content: space-between; }
+.record-form__side { display: flex; flex-wrap: wrap; gap: .5rem; }
+.calendar-clipboard { margin-top: .5rem; padding: .5rem .75rem; border: 1px dashed #94165e; border-radius: .6rem; background: rgba(148, 22, 94, .07); font-size: .8rem; }
+.calendar-clipboard .button-quiet { min-height: 32px; padding: 4px 10px; margin-left: .5rem; font-size: .74rem; }
+.shift-box__handle { cursor: ns-resize; touch-action: none; height: 14px; }

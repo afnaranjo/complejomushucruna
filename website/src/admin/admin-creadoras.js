@@ -290,8 +290,9 @@ export function shiftPayload(form) {
   const end = value('end');
   if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) throw new TypeError('Elige el día del turno.');
   if (!/^\d{2}:\d{2}/.test(start) || !/^\d{2}:\d{2}/.test(end)) throw new TypeError('Escribe la hora de inicio y la de fin.');
-  const from = Number(start.slice(0, 2)) * 60 + Number(start.slice(3, 5));
-  const to = Number(end.slice(0, 2)) * 60 + Number(end.slice(3, 5));
+  const from = minutesFromTime(start);
+  const to = minutesFromTime(end);
+  if (to <= from) throw new TypeError('La hora de fin debe ser posterior a la de inicio. Revisa si elegiste a. m. en lugar de p. m.');
   if (to - from < STEP_MINUTES) throw new TypeError('El turno debe durar al menos 15 minutos.');
   return {
     creadora: value('creadora'),
@@ -300,6 +301,39 @@ export function shiftPayload(form) {
     place: value('place'),
     note: value('note'),
   };
+}
+
+/** Una copia del turno en otro día y otra hora, con la misma creadora y la misma duración. */
+export function pastedShift(shift, key, startMinutes) {
+  const moved = movedShift(shift, key, startMinutes);
+  return { creadora: shift.creadora, ...moved, place: shift.place ?? '', note: shift.note ?? '' };
+}
+
+/** Una copia del turno en el mismo hueco: sirve para repetirlo con otra creadora. */
+export function duplicatedShift(shift) {
+  return {
+    creadora: shift.creadora,
+    starts_at: String(shift.starts_at ?? '').slice(0, 16),
+    ends_at: String(shift.ends_at ?? '').slice(0, 16),
+    place: shift.place ?? '',
+    note: shift.note ?? '',
+  };
+}
+
+/** Cuánto dura lo que hay escrito en el formulario, para decirlo en palabras. */
+export function durationLabel(startMinutes, endMinutes) {
+  const minutes = endMinutes - startMinutes;
+  if (!Number.isFinite(minutes) || minutes <= 0) return '';
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  if (!hours) return `${rest} minutos`;
+  if (!rest) return hours === 1 ? '1 hora' : `${hours} horas`;
+  return `${hours} h ${rest} min`;
+}
+
+export function minutesFromTime(value) {
+  const match = /^(\d{2}):(\d{2})/.exec(String(value ?? ''));
+  return match === null ? null : Number(match[1]) * 60 + Number(match[2]);
 }
 
 /** Los valores del formulario para un turno ya guardado. */
@@ -364,7 +398,7 @@ export async function initializeAdminCreadoras() {
   const feedback = (message, kind = '') => { status.textContent = message; status.dataset.error = String(kind === 'error'); status.dataset.success = String(kind === 'success'); };
   const fail = error => { if (error.status === 401) { location.replace('/admin/'); return; } feedback(error.message, 'error'); };
 
-  const state = { view: 'week', anchor: dayKey(new Date()), shifts: [], creadoras: [], log: [], selected: '' };
+  const state = { view: 'week', anchor: dayKey(new Date()), shifts: [], creadoras: [], log: [], selected: '', clipboard: null };
   const grid = query('[data-calendar-grid]');
   const monthGrid = query('[data-calendar-month]');
   const list = query('[data-creadora-list]');
@@ -438,7 +472,43 @@ export async function initializeAdminCreadoras() {
       box.style.width = `calc(${(1 / columns) * 100}% - .4rem)`;
       if (columns > 1) box.dataset.shared = 'true';
       const handle = node('span', '', 'shift-box__handle');
+      handle.title = 'Arrastra para cambiar la hora de fin.';
       handle.setAttribute('aria-hidden', 'true');
+      // Arrastrar el borde inferior alarga o acorta el turno; al soltar se guarda.
+      handle.addEventListener('pointerdown', event => {
+        event.preventDefault();
+        event.stopPropagation();
+        const canvas = box.parentElement;
+        if (!canvas) return;
+        box.draggable = false;
+        handle.setPointerCapture(event.pointerId);
+        let minutes = minutesOf(shift.ends_at);
+        const preview = event_ => {
+          const rect = canvas.getBoundingClientRect();
+          minutes = minutesFromOffset((event_.clientY - rect.top) / rect.height);
+          const next = resizedShift(shift, minutes);
+          const geometry = shiftGeometry({ ...shift, ends_at: `${next.ends_at}:00` }, key);
+          if (geometry) box.style.height = `${geometry.height}%`;
+          box.querySelector('span').textContent = shiftLabel({ starts_at: shift.starts_at, ends_at: `${next.ends_at}:00` });
+        };
+        const finish = async () => {
+          handle.removeEventListener('pointermove', preview);
+          handle.removeEventListener('pointerup', finish);
+          handle.removeEventListener('pointercancel', cancel);
+          box.draggable = true;
+          await save(() => client.updateShift(shift.public_id, resizedShift(shift, minutes)));
+        };
+        const cancel = () => {
+          handle.removeEventListener('pointermove', preview);
+          handle.removeEventListener('pointerup', finish);
+          handle.removeEventListener('pointercancel', cancel);
+          box.draggable = true;
+          renderGrid();
+        };
+        handle.addEventListener('pointermove', preview);
+        handle.addEventListener('pointerup', finish);
+        handle.addEventListener('pointercancel', cancel);
+      });
       box.append(handle);
     }
     box.addEventListener('dragstart', event => { event.dataTransfer.setData('text/plain', `shift:${shift.public_id}`); event.dataTransfer.effectAllowed = 'move'; });
@@ -481,9 +551,16 @@ export async function initializeAdminCreadoras() {
       canvas.addEventListener('dragover', event => { event.preventDefault(); event.dataTransfer.dropEffect = 'move'; });
       const minutesAt = event => minutesFromOffset((event.clientY - canvas.getBoundingClientRect().top) / canvas.getBoundingClientRect().height);
       canvas.addEventListener('drop', event => drop(event, key, minutesAt(event)));
-      canvas.addEventListener('click', event => {
+      canvas.addEventListener('click', async event => {
         if (event.target !== canvas && !event.target.classList.contains('calendar-line')) return;
         if (!state.creadoras.length) { feedback('Primero agrega una creadora.', 'error'); return; }
+        if (state.clipboard) {
+          const copy = state.clipboard;
+          state.clipboard = null;
+          showClipboard();
+          await save(() => client.createShift(pastedShift(copy, key, minutesAt(event))));
+          return;
+        }
         const slot = defaultShift(key, minutesAt(event));
         openShiftDialog(null, { day: key, start: slot.starts_at.slice(11, 16), end: slot.ends_at.slice(11, 16) });
       });
@@ -556,7 +633,29 @@ export async function initializeAdminCreadoras() {
   const shiftTitle = shiftDialog?.querySelector('[data-shift-title]');
   const shiftFeedback = shiftDialog?.querySelector('[data-shift-feedback]');
   const removeButton = shiftDialog?.querySelector('[data-shift-remove]');
+  const duplicateButton = shiftDialog?.querySelector('[data-shift-duplicate]');
+  const copyButton = shiftDialog?.querySelector('[data-shift-copy]');
+  const durationLine = shiftDialog?.querySelector('[data-shift-duration]');
+  const clipboardBar = query('[data-clipboard]');
+  const clipboardLabel = query('[data-clipboard-label]');
   let editingShift = '';
+
+  function showDuration() {
+    if (!durationLine || !shiftForm) return;
+    const from = minutesFromTime(shiftForm.elements.start?.value);
+    const to = minutesFromTime(shiftForm.elements.end?.value);
+    const label = from === null || to === null ? '' : durationLabel(from, to);
+    durationLine.textContent = label ? `Dura ${label}.` : (from !== null && to !== null ? 'La hora de fin debe ser posterior a la de inicio.' : '');
+    durationLine.dataset.error = String(Boolean(from !== null && to !== null && !label));
+  }
+
+  function showClipboard() {
+    if (!clipboardBar) return;
+    clipboardBar.hidden = state.clipboard === null;
+    if (state.clipboard && clipboardLabel) clipboardLabel.textContent = `${state.clipboard.name} · ${shiftLabel(state.clipboard)}`;
+  }
+
+  query('[data-clipboard-cancel]')?.addEventListener('click', () => { state.clipboard = null; showClipboard(); feedback(''); });
 
   function openShiftDialog(shift, { creadora = '', day = state.anchor, start = '09:00', end = '12:00' } = {}) {
     if (!shiftForm) return;
@@ -573,6 +672,9 @@ export async function initializeAdminCreadoras() {
     }
     const values = shift ? shiftFormValues(shift) : { creadora: creadora || state.selected || state.creadoras[0]?.public_id || '', day, start, end, place: '', note: '' };
     for (const [name, value] of Object.entries(values)) if (shiftForm.elements[name]) shiftForm.elements[name].value = value;
+    if (duplicateButton) duplicateButton.hidden = !shift;
+    if (copyButton) copyButton.hidden = !shift;
+    showDuration();
     shiftDialog.showModal();
   }
 
@@ -599,6 +701,34 @@ export async function initializeAdminCreadoras() {
       if (shiftFeedback) { shiftFeedback.textContent = error.status === 409 ? 'Esa creadora ya tiene un turno a esa hora.' : error.message; shiftFeedback.dataset.error = 'true'; }
       if (error.status === 401) fail(error);
     }
+  });
+
+  for (const name of ['start', 'end']) shiftForm?.elements[name]?.addEventListener('input', showDuration);
+
+  // Duplicar deja el mismo hueco listo para otra creadora: se guarda como un turno nuevo.
+  duplicateButton?.addEventListener('click', async () => {
+    const shift = state.shifts.find(item => item.public_id === editingShift);
+    if (!shift) return;
+    try {
+      const data = await client.createShift(duplicatedShift(shift));
+      if (Array.isArray(data.log)) state.log = data.log;
+      editingShift = data.shift?.public_id ?? '';
+      shiftDialog.close();
+      await load(false);
+      feedback('Turno duplicado. Ábrelo para cambiarle la creadora o la hora.', 'success');
+    } catch (error) {
+      if (shiftFeedback) { shiftFeedback.textContent = error.status === 409 ? 'Esa creadora ya tiene un turno a esa hora: cambia la creadora o la hora antes de duplicar.' : error.message; shiftFeedback.dataset.error = 'true'; }
+    }
+  });
+
+  // Copiar guarda el turno para pegarlo donde se toque después.
+  copyButton?.addEventListener('click', () => {
+    const shift = state.shifts.find(item => item.public_id === editingShift);
+    if (!shift) return;
+    state.clipboard = { ...shift };
+    shiftDialog.close();
+    showClipboard();
+    feedback('Turno copiado. Toca una hora del calendario para pegarlo.', 'success');
   });
 
   removeButton?.addEventListener('click', async () => {

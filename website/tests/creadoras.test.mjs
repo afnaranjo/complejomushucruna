@@ -6,7 +6,8 @@ import { join } from 'node:path';
 import { buildSite } from '../scripts/build.mjs';
 import {
   createCreadoraAdminClient, creadoraPayload, CREADORA_FIELDS, dayKey, defaultShift, describeLogEntry, fillCreadoraForm, minutesFromOffset,
-  layoutDay, movedShift, rangeLabel, resizedShift, shiftFormValues, shiftGeometry, shiftLabel, shiftPayload, shiftView, viewRange, weekStart,
+  duplicatedShift, durationLabel, layoutDay, minutesFromTime, movedShift, pastedShift, rangeLabel, resizedShift,
+  shiftFormValues, shiftGeometry, shiftLabel, shiftPayload, shiftView, viewRange, weekStart,
   DAY_START_HOUR, DAY_END_HOUR, MAX_END_MINUTES, STEP_MINUTES,
 } from '../src/admin/admin-creadoras.js';
 
@@ -190,6 +191,10 @@ test('la sección de creadoras se publica con su calendario, su bitácora y su e
   assert.match(page, /data-shift-new/);
   assert.match(page, /data-shift-dialog/);
   for (const name of ['creadora', 'day', 'start', 'end']) assert.match(page, new RegExp(`name="${name}"`), name);
+  // Duplicar, copiar y pegar, además de crear.
+  for (const marker of ['data-shift-duplicate', 'data-shift-copy', 'data-shift-duration', 'data-clipboard', 'data-clipboard-cancel'])
+    assert.match(page, new RegExp(marker), marker);
+  assert.match(page, /su borde de abajo para cambiar la hora de fin/);
   // La ficha pide los datos de la persona, no solo el nombre.
   for (const name of ['cedula', 'birth_date', 'contact_email', 'followers_count', 'tiktok', 'instagram', 'facebook'])
     assert.match(page, new RegExp(`name="${name}"`), name);
@@ -250,10 +255,46 @@ test('el turno se puede agendar desde su propio formulario, sin arrastrar nada',
   assert.throws(() => shiftPayload(new Map([['creadora', 'a'], ['day', ''], ['start', '09:00'], ['end', '12:00']])), /Elige el día/);
   assert.throws(() => shiftPayload(new Map([['creadora', 'a'], ['day', '2026-10-30'], ['start', ''], ['end', '12:00']])), /hora de inicio/);
   assert.throws(() => shiftPayload(new Map([['creadora', 'a'], ['day', '2026-10-30'], ['start', '12:00'], ['end', '12:05']])), /al menos 15 minutos/);
-  assert.throws(() => shiftPayload(new Map([['creadora', 'a'], ['day', '2026-10-30'], ['start', '12:00'], ['end', '09:00']])), /al menos 15 minutos/);
+  // Un fin anterior al inicio se explica aparte, porque suele ser a. m. en vez de p. m.
+  assert.throws(() => shiftPayload(new Map([['creadora', 'a'], ['day', '2026-10-30'], ['start', '12:00'], ['end', '09:00']])), /posterior a la de inicio/);
 
   // Un turno guardado vuelve al formulario tal como está.
   assert.deepEqual(shiftFormValues({ creadora: 'b'.repeat(32), starts_at: '2026-10-30 09:00:00', ends_at: '2026-10-30 12:00:00', place: 'Tarima', note: 'Llega 15 antes' }),
     { creadora: 'b'.repeat(32), day: '2026-10-30', start: '09:00', end: '12:00', place: 'Tarima', note: 'Llega 15 antes' });
   assert.deepEqual(shiftFormValues({}), { creadora: '', day: '', start: '', end: '', place: '', note: '' });
+});
+
+test('copiar, pegar y duplicar conservan la creadora, la duración y el detalle', () => {
+  const shift = { public_id: 'a'.repeat(32), creadora: 'b'.repeat(32), name: 'Ana Creadora',
+    starts_at: '2026-10-30 09:00:00', ends_at: '2026-10-30 12:00:00', place: 'Plaza de la Luna', note: 'Llega antes' };
+
+  // Pegar lo lleva a otro día y otra hora sin perder las tres horas ni el detalle.
+  assert.deepEqual(pastedShift(shift, '2026-11-01', 15 * 60), {
+    creadora: 'b'.repeat(32), starts_at: '2026-11-01 15:00', ends_at: '2026-11-01 18:00',
+    place: 'Plaza de la Luna', note: 'Llega antes',
+  });
+
+  // Duplicar repite el mismo hueco, para reasignarlo después a otra creadora.
+  assert.deepEqual(duplicatedShift(shift), {
+    creadora: 'b'.repeat(32), starts_at: '2026-10-30 09:00', ends_at: '2026-10-30 12:00',
+    place: 'Plaza de la Luna', note: 'Llega antes',
+  });
+  // Un turno sin lugar ni nota se copia igual, sin arrastrar «undefined».
+  assert.deepEqual(duplicatedShift({ creadora: 'c', starts_at: '2026-10-30 09:00:00', ends_at: '2026-10-30 10:00:00' }),
+    { creadora: 'c', starts_at: '2026-10-30 09:00', ends_at: '2026-10-30 10:00', place: '', note: '' });
+});
+
+test('la duración se dice en palabras y el fin anterior al inicio se explica', () => {
+  assert.equal(durationLabel(9 * 60, 12 * 60), '3 horas');
+  assert.equal(durationLabel(9 * 60, 10 * 60), '1 hora');
+  assert.equal(durationLabel(9 * 60, 9 * 60 + 45), '45 minutos');
+  assert.equal(durationLabel(9 * 60, 10 * 60 + 30), '1 h 30 min');
+  assert.equal(durationLabel(12 * 60, 9 * 60), '', 'un fin anterior al inicio no tiene duración');
+  assert.equal(minutesFromTime('09:30'), 570);
+  assert.equal(minutesFromTime('09:30:00'), 570);
+  assert.equal(minutesFromTime(''), null);
+
+  // El caso real: elegir 12:00 a. m. en vez de p. m. deja el fin en medianoche.
+  assert.throws(() => shiftPayload(new Map([['creadora', 'a'], ['day', '2026-10-30'], ['start', '09:00'], ['end', '00:00']])),
+    /posterior a la de inicio.*a\. m\./s);
 });
