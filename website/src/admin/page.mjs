@@ -149,7 +149,7 @@ ${select('province', 'Provincia', ecuadorProvinces)}</div>
 </dialog>${mediaRecordDialog()}</main></div>`, ADMIN_MEDIOS_SCRIPT);
 }
 
-const ADMIN_MEDIOS_SCRIPT = '/assets/admin/admin-medios.js?v=20260922-admin-medios-13';
+const ADMIN_MEDIOS_SCRIPT = '/assets/admin/admin-medios.js?v=20260923-admin-medios-14';
 const PROVINCE_OPTIONS = ['Azuay', 'Bolívar', 'Cañar', 'Carchi', 'Chimborazo', 'Cotopaxi', 'El Oro', 'Esmeraldas', 'Galápagos', 'Guayas', 'Imbabura', 'Loja', 'Los Ríos', 'Manabí', 'Morona Santiago', 'Napo', 'Orellana', 'Pastaza', 'Pichincha', 'Santa Elena', 'Santo Domingo de los Tsáchilas', 'Sucumbíos', 'Tungurahua', 'Zamora Chinchipe'];
 
 /** Shared dialog: coordination creates or completes a medium without needing the medium's account. */
@@ -180,12 +180,12 @@ export function renderAdminMediosEventosPage(page) {
 <p class="feedback" data-admin-feedback role="status" aria-live="polite" aria-atomic="true"></p>
 <button type="button" class="button-quiet" data-session-retry hidden>Reintentar conexión</button>
 <section class="admin-events-bar" aria-label="Evento"><label>Evento<select data-event-select disabled><option>Cargando…</option></select></label>
-<form data-event-form class="admin-event-form"><fieldset disabled><label>Nuevo evento<input name="name" maxlength="160" placeholder="Ej.: Lanzamiento Finados 2026" required></label><label>Fecha<input name="event_date" type="date"></label><button class="button-quiet" type="submit">Crear evento</button></fieldset></form><p class="feedback" data-event-feedback role="status" aria-live="polite"></p></section>
+<form data-event-form class="admin-event-form"><fieldset disabled><label>Nuevo evento<input name="name" maxlength="160" placeholder="Ej.: Lanzamiento Finados 2026" required></label><label>Fecha<input name="event_date" type="date"></label><label>Lugar<input name="place" maxlength="160" placeholder="Ej.: Complejo Mushuc Runa"></label><label>Detalles<input name="details" maxlength="500" placeholder="Hora de acreditación, indicaciones"></label><button class="button-quiet" type="submit">Crear evento e invitar a todos</button></fieldset></form><p class="feedback" data-event-feedback role="status" aria-live="polite"></p></section>
 <section class="admin-big-numbers" aria-label="Resumen de cobertura" data-coverage-summary></section>
 <section class="records" aria-labelledby="coverage-title" data-records-region><div class="records-heading"><h2 id="coverage-title" tabindex="-1">Medios del evento</h2><p data-coverage-filter>—</p></div>
 <p data-coverage-message role="status">Cargando…</p>
-<p class="admin-coverage-help">Contrato y resultado alimentan los números de arriba. Toca un número para ver solo ese grupo; los cambios se guardan solos.</p>
-<table class="admin-coverage-table"><caption class="sr-only">Cobertura de cada medio en el evento</caption><thead><tr><th scope="col">Medio</th><th scope="col">Contrato</th><th scope="col">Resultado</th><th scope="col">Personas</th><th scope="col">Links</th><th scope="col">Nota</th><th scope="col">Estado</th></tr></thead><tbody data-coverage-rows></tbody></table></section>
+<p class="admin-coverage-help">Al crear un evento se invita a todos los medios: los que tienen cuenta confirman desde su portal y aquí ves su respuesta; tú registras quién asistió. Contrato, asistencia y resultado alimentan los números de arriba. Toca un número para ver solo ese grupo; los cambios se guardan solos.</p>
+<table class="admin-coverage-table"><caption class="sr-only">Cobertura de cada medio en el evento</caption><thead><tr><th scope="col">Medio</th><th scope="col">Contrato</th><th scope="col">Confirmó</th><th scope="col">Asistió</th><th scope="col">Resultado</th><th scope="col">Personas</th><th scope="col">Links</th><th scope="col">Nota</th><th scope="col">Estado</th></tr></thead><tbody data-coverage-rows></tbody></table></section>
 <section class="pending-accounts pending-accounts--open" aria-labelledby="coverage-add-title"><h2 id="coverage-add-title">Agregar medio al evento</h2><p>Busca un medio ya registrado (con cuenta o cargado por coordinación). Si no existe, créalo aquí y quedará marcado como cargado por coordinación.</p>
 <form data-coverage-add class="admin-coverage-add"><fieldset disabled><label class="search-field">Buscar medio<input type="search" name="search" maxlength="100" placeholder="Nombre del medio"></label><button class="button-quiet" type="submit">Buscar</button></fieldset></form>
 <ul class="admin-coverage-results" data-coverage-results aria-live="polite"></ul>

@@ -7,6 +7,8 @@ export const PAID_MEDIA_LABELS = Object.freeze({ no: 'No pautado', yes: 'Pautado
 /** Who created the record; coordination-created rows are tinted so the team sees which media still have no account. */
 export const ORIGIN_LABELS = Object.freeze({ cuenta: 'Con cuenta', coordinacion: 'Cargado por coordinación' });
 export const COVERAGE_RESULT_LABELS = Object.freeze({ pendiente: 'Pendiente', link: 'Publicó con link', mencion: 'Mención al aire (sin link)', sin_publicacion: 'No publicó', no_asistio: 'No asistió' });
+export const ATTENDANCE_LABELS = Object.freeze({ '': 'Sin registrar', yes: 'Asistió', no: 'No asistió' });
+export const CONFIRMATION_LABELS = Object.freeze({ pendiente: 'Sin respuesta', yes: 'Confirmó', no: 'No asistirá' });
 export const ADMIN_RECORD_FIELDS = Object.freeze(['media_name', 'media_types', 'frequency', 'tv_channel', 'province', 'city', 'program_name', 'representatives', 'channels', 'followers_validated', 'paid_media', 'contact_name', 'phone', 'contact_email']);
 const API = PRIMARY_API_BASE;
 const LOCAL_API = 'http://127.0.0.1:4174/api';
@@ -202,13 +204,13 @@ export function fillAdminRecordForm(form, data = {}) {
 export function coveragePayload(controls) {
   const links = String(controls.links ?? '').split('\n').map(line => line.trim()).filter(Boolean).map(line => (/^https?:\/\//i.test(line) ? line : `https://${line}`));
   const people = Number.parseInt(controls.people_count, 10);
-  return { contracted: controls.contracted === 'yes' || controls.contracted === 'no' ? controls.contracted : null, result: Object.hasOwn(COVERAGE_RESULT_LABELS, controls.result) ? controls.result : 'pendiente', people_count: Number.isFinite(people) ? Math.max(0, Math.min(200, people)) : 0, links: [...new Set(links)], note: String(controls.note ?? '').trim() };
+  return { contracted: controls.contracted === 'yes' || controls.contracted === 'no' ? controls.contracted : null, result: Object.hasOwn(COVERAGE_RESULT_LABELS, controls.result) ? controls.result : 'pendiente', people_count: Number.isFinite(people) ? Math.max(0, Math.min(200, people)) : 0, links: [...new Set(links)], note: String(controls.note ?? '').trim(), attended: controls.attended === 'yes' || controls.attended === 'no' ? controls.attended : null };
 }
 
 /** Big-number cards in the order the team reads them; the id list drives the click filter. */
 export function coverageBuckets(summary = {}) {
-  const order = ['todos', 'pautados', 'pautados_publicaron', 'pautados_sin_publicacion', 'sin_contrato_publicaron', 'sin_contrato_sin_publicacion', 'no_asistieron'];
-  return order.filter(key => summary[key]).map(key => ({ key, label: summary[key].label, count: (summary[key].ids ?? []).length, ids: new Set(summary[key].ids ?? []), alert: key === 'pautados_sin_publicacion' }));
+  const order = ['todos', 'confirmaron', 'no_confirmaron', 'asistieron', 'no_asistieron', 'pautados', 'pautados_publicaron', 'pautados_sin_publicacion', 'sin_contrato_publicaron', 'sin_contrato_sin_publicacion'];
+  return order.filter(key => summary[key]).map(key => ({ key, label: summary[key].label, count: (summary[key].ids ?? []).length, ids: new Set(summary[key].ids ?? []), alert: key === 'pautados_sin_publicacion' || key === 'no_confirmaron' }));
 }
 
 function node(tag, text, className) {
@@ -634,7 +636,7 @@ export async function initializeMediaAdmin() {
     const coverageList = node('ul', undefined, 'admin-media-coverage-list');
     for (const entry of data.coverage ?? []) {
       const item = node('li');
-      item.append(node('strong', entry.event_name), node('span', ` · ${entry.contracted === 'yes' ? 'Pautado' : entry.contracted === 'no' ? 'Sin contrato' : 'Contrato sin dato'} · ${COVERAGE_RESULT_LABELS[entry.result] ?? entry.result} · ${entry.people_count} persona(s)`));
+      item.append(node('strong', entry.event_name), node('span', ` · ${entry.event_date ?? 'sin fecha'} · ${entry.contracted === 'yes' ? 'Pautado' : entry.contracted === 'no' ? 'Sin contrato' : 'Contrato sin dato'} · ${CONFIRMATION_LABELS[entry.confirmation ?? 'pendiente']} · ${ATTENDANCE_LABELS[entry.attended ?? '']} · ${COVERAGE_RESULT_LABELS[entry.result] ?? entry.result} · ${entry.people_count} persona(s)`));
       for (const url of entry.links ?? []) { item.append(node('br'), linkNode(url)); }
       coverageList.append(item);
     }
@@ -801,7 +803,7 @@ export async function initializeMediaEventsAdmin() {
     const data = await client.events();
     eventSelect.replaceChildren();
     for (const event of data.items) {
-      const option = node('option', `${event.name}${event.event_date ? ` · ${event.event_date}` : ''} (${event.coverage_count})`); option.value = event.public_id; eventSelect.append(option);
+      const option = node('option', `${event.name}${event.event_date ? ` · ${event.event_date}` : ''} · ${event.confirmed_count ?? 0}/${event.coverage_count} confirmados`); option.value = event.public_id; eventSelect.append(option);
     }
     eventSelect.disabled = data.items.length === 0;
     if (!data.items.length) { feedback(tableMessage, 'Crea el primer evento para registrar la cobertura de los medios.'); summary.replaceChildren(); rows.replaceChildren(); return; }
@@ -833,6 +835,13 @@ export async function initializeMediaEventsAdmin() {
     cell('Medio', name).className = 'record-name';
     const contracted = node('select'); for (const [value, label] of [['', 'Sin dato'], ['yes', 'Sí · Pautado'], ['no', 'No · Sin contrato']]) { const option = node('option', label); option.value = value; contracted.append(option); } contracted.value = item.contracted ?? ''; contracted.setAttribute('aria-label', `Contrato de ${item.media_name}`);
     cell('Contrato', contracted);
+    const confirmationKey = item.confirmation ?? 'pendiente';
+    const confirmation = node('span', item.linked ? CONFIRMATION_LABELS[confirmationKey] : 'Sin cuenta', 'admin-media-confirmation');
+    confirmation.dataset.confirmation = item.linked ? confirmationKey : 'sin-cuenta';
+    if (item.confirmed_at) confirmation.title = `Respondió ${dateTime(item.confirmed_at)}`;
+    cell('Confirmó', confirmation);
+    const attended = node('select'); for (const [value, label] of Object.entries(ATTENDANCE_LABELS)) { const option = node('option', label); option.value = value; attended.append(option); } attended.value = item.attended ?? ''; attended.setAttribute('aria-label', `Asistencia de ${item.media_name}`);
+    cell('Asistió', attended);
     const result = node('select'); for (const [value, label] of Object.entries(COVERAGE_RESULT_LABELS)) { const option = node('option', label); option.value = value; result.append(option); } result.value = item.result; result.setAttribute('aria-label', `Resultado de ${item.media_name}`);
     cell('Resultado', result);
     const people = node('input'); people.type = 'number'; people.min = '0'; people.max = '200'; people.step = '1'; people.value = String(item.people_count ?? 0); people.setAttribute('aria-label', `Personas de ${item.media_name}`);
@@ -845,7 +854,7 @@ export async function initializeMediaEventsAdmin() {
     const state = node('small', item.updated_at ? `Guardado ${dateTime(item.updated_at)}` : '', 'admin-coverage-state');
     cell('Estado', state);
     const save = async () => {
-      const body = coveragePayload({ contracted: contracted.value, result: result.value, people_count: people.value, links: links.value, note: note.value });
+      const body = coveragePayload({ contracted: contracted.value, result: result.value, people_count: people.value, links: links.value, note: note.value, attended: attended.value });
       state.textContent = 'Guardando…';
       try {
         await client.updateCoverage(current, item.public_id, body);
@@ -858,7 +867,7 @@ export async function initializeMediaEventsAdmin() {
       } catch (error) { state.textContent = 'No se pudo guardar'; fail(error, tableMessage); }
     };
     const schedule = () => { globalThis.clearTimeout(timers.get(item.public_id)); timers.set(item.public_id, globalThis.setTimeout(save, 900)); };
-    for (const control of [contracted, result, people, links, note]) { control.addEventListener('change', schedule); control.addEventListener('input', schedule); }
+    for (const control of [contracted, attended, result, people, links, note]) { control.addEventListener('change', schedule); control.addEventListener('input', schedule); }
     return row;
   }
   async function loadCoverage(id) {
@@ -872,8 +881,8 @@ export async function initializeMediaEventsAdmin() {
     event.preventDefault();
     const name = eventForm.elements.name.value.trim(); const date = eventForm.elements.event_date.value || null;
     if (name.length < 3) { feedback(eventFeedback, 'Escribe el nombre del evento.', 'error'); return; }
-    eventForm.querySelector('fieldset').disabled = true; feedback(eventFeedback, 'Creando evento…');
-    try { const created = await client.createEvent({ name, event_date: date }); eventForm.reset(); feedback(eventFeedback, `Evento ${created.event.name} creado.`, 'success'); await loadEvents(created.event.public_id); }
+    eventForm.querySelector('fieldset').disabled = true; feedback(eventFeedback, 'Creando evento e invitando a todos los medios…');
+    try { const created = await client.createEvent({ name, event_date: date, place: eventForm.elements.place.value.trim(), details: eventForm.elements.details.value.trim() }); eventForm.reset(); feedback(eventFeedback, `Evento ${created.event.name} creado. Se invitó a ${created.event.coverage_count} medios; los que tienen cuenta lo verán en su portal para confirmar.`, 'success'); await loadEvents(created.event.public_id); }
     catch (error) { feedback(eventFeedback, error.status === 409 ? 'Ya existe un evento con ese nombre.' : error.message, 'error'); }
     finally { eventForm.querySelector('fieldset').disabled = false; }
   });
@@ -891,7 +900,7 @@ export async function initializeMediaEventsAdmin() {
         const item = node('li'); const button = node('button', present.has(record.public_id) ? `${record.media_name} · ya está en el evento` : `${record.media_name} · ${record.city || 'sin ciudad'}`, 'button-quiet'); button.type = 'button'; button.disabled = present.has(record.public_id);
         button.addEventListener('click', async () => {
           button.disabled = true; feedback(addFeedback, 'Agregando…');
-          try { await client.updateCoverage(current, record.public_id, coveragePayload({ contracted: record.paid_media === 'yes' ? 'yes' : '', result: 'pendiente', people_count: 0, links: '', note: '' })); searchInput.value = ''; addResults.replaceChildren(); await loadCoverage(current); await loadEvents(current); feedback(addFeedback, `${record.media_name} agregado al evento.`, 'success'); }
+          try { await client.updateCoverage(current, record.public_id, coveragePayload({ contracted: record.paid_media === 'yes' ? 'yes' : '', result: 'pendiente', people_count: 0, links: '', note: '', attended: '' })); searchInput.value = ''; addResults.replaceChildren(); await loadCoverage(current); await loadEvents(current); feedback(addFeedback, `${record.media_name} agregado al evento.`, 'success'); }
           catch (error) { button.disabled = false; fail(error, addFeedback); }
         });
         item.append(button); addResults.append(item);
@@ -918,7 +927,7 @@ export async function initializeMediaEventsAdmin() {
     recordForm.querySelector('fieldset').disabled = true; feedback(recordFeedback, 'Guardando…');
     try {
       const created = await client.create(body);
-      if (current) await client.updateCoverage(current, created.public_id, coveragePayload({ contracted: body.paid_media === 'yes' ? 'yes' : '', result: 'pendiente', people_count: 0, links: '', note: '' }));
+      if (current) await client.updateCoverage(current, created.public_id, coveragePayload({ contracted: body.paid_media === 'yes' ? 'yes' : '', result: 'pendiente', people_count: 0, links: '', note: '', attended: '' }));
       recordDialog.close(); searchInput.value = ''; addResults.replaceChildren();
       await loadCoverage(current); await loadEvents(current);
       feedback(addFeedback, `${created.media_name} creado y agregado al evento.`, 'success');

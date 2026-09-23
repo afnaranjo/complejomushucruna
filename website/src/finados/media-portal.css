@@ -320,3 +320,16 @@
 .vocero-notice p { margin: 0 0 .5rem; }
 .media-lookup-list { list-style: none; margin: 0; padding: 0; display: grid; gap: .4rem; }
 .media-lookup-list button { width: 100%; text-align: left; }
+
+/* Invitaciones a eventos dentro del portal del medio */
+.media-events-panel { margin: 1rem 0; border: 1px solid rgba(0, 210, 214, .5); border-radius: 1rem; background: rgba(0, 210, 214, .08); padding: .75rem 1rem; }
+.media-events-panel > summary { cursor: pointer; list-style: none; }
+.media-events-panel > summary::-webkit-details-marker { display: none; }
+.media-events-panel > summary > span { display: grid; gap: .1rem; }
+.media-events-list { list-style: none; margin: .75rem 0 0; padding: 0; display: grid; gap: .75rem; }
+.media-event { padding: .85rem 1rem; border-radius: .9rem; background: #fff; border-left: 5px solid #ffc42e; display: grid; gap: .5rem; }
+.media-event[data-answer="yes"] { border-left-color: #35c277; }
+.media-event[data-answer="no"] { border-left-color: #e01b24; }
+.media-event small, .media-event p { display: block; margin: 0; }
+.media-event__state { font-weight: 600; font-size: .9rem; }
+.media-event__actions { display: flex; flex-wrap: wrap; gap: .5rem; }

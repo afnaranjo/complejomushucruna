@@ -47,7 +47,7 @@ function media_json(array $payload): string { return json_encode($payload, JSON_
 media_close_session();
 $config = media_config();
 $pdo = Database::connect($config);
-foreach (['001_initial', '002_sheets_outbox', '003_vocero_accounts', '008_media_accounts', '009_media_videos', '010_media_video_views', '011_media_contact_channels', '012_media_consents', '013_media_types_radio', '014_media_channels_photo', '015_media_traffic_light', '016_media_paid', '018_media_coverage'] as $migration) {
+foreach (['001_initial', '002_sheets_outbox', '003_vocero_accounts', '008_media_accounts', '009_media_videos', '010_media_video_views', '011_media_contact_channels', '012_media_consents', '013_media_types_radio', '014_media_channels_photo', '015_media_traffic_light', '016_media_paid', '018_media_coverage', '019_media_event_attendance'] as $migration) {
     $pdo->exec(file_get_contents(__DIR__ . '/../migrations/' . $migration . '_sqlite.sql'));
 }
 same('008_media_accounts', $pdo->query("SELECT version FROM schema_migrations WHERE version = '008_media_accounts'")->fetchColumn());

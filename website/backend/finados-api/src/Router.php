@@ -696,6 +696,15 @@ final class Router
             if (array_keys($query) !== ['name']) throw new InvalidArgumentException();
             return $this->json(200, ['items' => $this->media()->lookupUnlinked($query['name'])], $headers);
         }
+        if ($path === '/api/media/attendance') {
+            $user = $this->mediaAuth()->requireUser();
+            if ($method !== 'POST') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+            if (!$this->config->isAllowedOrigin($origin) || !$validIp || $query !== []) throw new Forbidden();
+            $this->mediaAuth()->verifyCsrf($token);
+            $body = $this->body($server, $rawBody, ['event', 'answer']);
+            if (!is_string($body['event'] ?? null)) throw new InvalidArgumentException();
+            return $this->json(200, ['ok' => true, 'events' => $this->media()->confirmAttendance($user['id'], $body['event'], $body['answer'] ?? null, $ip)], $headers);
+        }
         if ($path === '/api/media/claim') {
             $user = $this->mediaAuth()->requireUser();
             if ($method !== 'POST') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
@@ -786,7 +795,7 @@ final class Router
             if ($query !== []) throw new InvalidArgumentException();
             if ($method === 'GET') return $this->json(200, ['items' => $this->media()->listEvents()], $headers);
             if ($method !== 'POST') return $notAllowed();
-            return $this->json(201, ['ok' => true, 'event' => $this->media()->createEvent($this->body($server, $rawBody, ['name', 'event_date']), $user['id'], $ip)], $headers);
+            return $this->json(201, ['ok' => true, 'event' => $this->media()->createEvent($this->body($server, $rawBody, ['name', 'event_date', 'place', 'details']), $user['id'], $ip)], $headers);
         }
         if (preg_match('~^/api/media-events/([a-f0-9]{32})$~D', $path, $parts)) {
             if ($method !== 'GET') return $notAllowed();
@@ -796,7 +805,7 @@ final class Router
         if (preg_match('~^/api/media-events/([a-f0-9]{32})/coverage/([a-f0-9]{32})$~D', $path, $parts)) {
             if ($method !== 'PATCH') return $notAllowed();
             if ($query !== []) throw new InvalidArgumentException();
-            $this->media()->upsertCoverage($parts[1], $parts[2], $this->body($server, $rawBody, ['contracted', 'result', 'people_count', 'links', 'note']), $user['id'], $ip);
+            $this->media()->upsertCoverage($parts[1], $parts[2], $this->body($server, $rawBody, ['contracted', 'result', 'people_count', 'links', 'note', 'attended']), $user['id'], $ip);
             return $this->json(200, ['ok' => true], $headers);
         }
         if ($path === '/api/medios/export') {

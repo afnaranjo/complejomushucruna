@@ -6,7 +6,7 @@ import { apiBasesForCsp, LOCAL_API_BASE, PRIMARY_API_BASE } from '../finados/run
 
 // Server-owned text is incorporated at build time and escaped as HTML, never fetched by the browser.
 const consents = JSON.parse(readFileSync(new URL('../../backend/finados-api/resources/media-consents.json', import.meta.url), 'utf8'));
-export const mediaPortalScriptVersion = '20260922-medios-12';
+export const mediaPortalScriptVersion = '20260923-medios-13';
 
 const email = id => `<label class="vocero-field" for="${id}"><span>Correo electrónico</span><input id="${id}" name="email" type="email" autocomplete="username" maxlength="254" autocapitalize="none" spellcheck="false" required></label>`;
 const password = (id, label, autocomplete) => `<label class="vocero-field" for="${id}"><span>${label}</span><input id="${id}" name="${id.includes('confirmation') ? 'confirmation' : 'password'}" type="password" autocomplete="${autocomplete}" minlength="${autocomplete === 'current-password' ? '1' : '10'}" maxlength="128" required></label>`;
@@ -30,7 +30,7 @@ function renderMediaForm() {
 <form data-media-video-form novalidate><fieldset disabled><label class="vocero-field" for="video_url"><span>Link del video${required}</span><input id="video_url" name="url" type="text" inputmode="url" maxlength="500" autocapitalize="none" spellcheck="false" placeholder="Ej.: https://www.tiktok.com/@tumedio/video/…" required></label><button class="vocero-primary" type="submit">Agregar video</button></fieldset></form>
 <p class="media-videos__count" data-media-video-count>Aún no has agregado videos.</p>
 <ol class="media-videos__list" data-media-video-list></ol>
-</section><div class="vocero-notice" data-media-claim hidden><p>Pediste vincular tu cuenta al medio <strong data-media-claim-name></strong>. Coordinación confirmará la vinculación; cuando lo haga, verás aquí tu registro completo.</p></div><div id="media-profile-panel" data-media-profile-panel>
+</section><details class="media-events-panel" data-media-events hidden><summary><span><span class="vocero-eyebrow">Invitaciones</span><strong>Eventos de la feria</strong><small data-media-events-summary>Sin invitaciones por responder.</small></span></summary><ul class="media-events-list" data-media-events-list></ul></details><div class="vocero-notice" data-media-claim hidden><p>Pediste vincular tu cuenta al medio <strong data-media-claim-name></strong>. Coordinación confirmará la vinculación; cuando lo haga, verás aquí tu registro completo.</p></div><div id="media-profile-panel" data-media-profile-panel>
 <section class="media-photo" aria-labelledby="media-photo-title" data-media-photo>
 <p class="vocero-eyebrow">Obligatoria</p><h2 id="media-photo-title">Foto de la persona responsable${required}</h2>
 <p id="media-photo-help">Sube una foto reciente de la <strong>persona responsable del medio</strong>: de frente y con el rostro visible. No uses el logotipo del medio ni una foto grupal. Es obligatoria para verificar su identidad y aprobar el registro; se guarda cifrada y subirla no autoriza por sí sola su publicación. JPG, PNG o WebP; máximo 5 MB.</p>

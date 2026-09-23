@@ -108,7 +108,7 @@ final class ImportMediaCoverageCommand
                     $detail = $repository->createByAdmin([
                         'media_name' => $group['name'], 'media_types' => $group['types'], 'frequency' => $group['frequency'], 'tv_channel' => $group['tv_channel'],
                         'province' => $group['province'], 'city' => $group['city'], 'program_name' => $group['program'], 'representatives' => $group['representatives'],
-                        'channels' => [], 'followers_validated' => $group['followers'], 'paid_media' => 'no', 'contact_name' => '', 'phone' => '', 'contact_email' => '',
+                        'channels' => [], 'followers_validated' => $group['followers'], 'paid_media' => $group['contracted'] === 'yes' ? 'yes' : 'no', 'contact_name' => '', 'phone' => '', 'contact_email' => '',
                     ], $actorId, '127.0.0.1');
                     $publicId = $detail['public_id'];
                     $created++;
@@ -127,11 +127,13 @@ final class ImportMediaCoverageCommand
     /** Existing records only receive what they lack; nothing the medium wrote is overwritten. */
     private static function complement(\PDO $pdo, string $publicId, array $group): void
     {
-        $row = $pdo->prepare('SELECT id, program_name, representatives, followers_validated FROM media_profiles WHERE public_id = ?');
+        $row = $pdo->prepare('SELECT id, program_name, representatives, followers_validated, paid_media FROM media_profiles WHERE public_id = ?');
         $row->execute([$publicId]);
         $current = $row->fetch();
         if ($current === false) throw new RuntimeException('Record vanished during import.');
         $values = [];
+        // The sheet is the commercial source: a contract there marks the record as paid. It never unmarks one.
+        if ($group['contracted'] === 'yes' && $current['paid_media'] !== 'yes') $values['paid_media'] = 'yes';
         if (trim((string) $current['program_name']) === '' && $group['program'] !== '') $values['program_name'] = $group['program'];
         $representatives = json_decode((string) ($current['representatives'] ?? '') ?: '[]', true) ?: [];
         if ($representatives === [] && $group['representatives'] !== []) $values['representatives'] = json_encode($group['representatives'], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE);

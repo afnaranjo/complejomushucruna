@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { buildSite } from '../scripts/build.mjs';
-import { adminRecordPayload, channelTypeFor, coverageBuckets, coveragePayload, createMediaAdminClient, fillAdminRecordForm, normalizeMediaFilters, ORIGIN_LABELS, COVERAGE_RESULT_LABELS } from '../src/admin/admin-medios.js';
+import { adminRecordPayload, ATTENDANCE_LABELS, channelTypeFor, CONFIRMATION_LABELS, coverageBuckets, coveragePayload, createMediaAdminClient, fillAdminRecordForm, normalizeMediaFilters, ORIGIN_LABELS, COVERAGE_RESULT_LABELS } from '../src/admin/admin-medios.js';
 import { MediaApiClient } from '../src/finados/media-portal.js';
 
 const json = (status, body) => ({ ok: status >= 200 && status < 300, status, json: async () => body });
@@ -28,6 +28,11 @@ test('el build publica el submenú Eventos de Medios, el alta desde coordinació
   assert.match(events, /data-coverage-rows/);
   assert.match(events, /data-coverage-create/);
   assert.match(events, /data-record-dialog/);
+  // 019: the event form invites everyone and the table shows confirmation and attendance.
+  assert.match(events, /name="place"/);
+  assert.match(events, /name="details"/);
+  assert.match(events, /Crear evento e invitar a todos/);
+  assert.match(events, /<th scope="col">Confirmó<\/th><th scope="col">Asistió<\/th>/);
   assert.match(events, /Volver a Medios/);
   // Main panel: add button, origin filter and column, claims section and the shared record dialog.
   assert.match(admin, /data-admin-add/);
@@ -38,7 +43,7 @@ test('el build publica el submenú Eventos de Medios, el alta desde coordinació
   assert.equal((admin.match(/name="media_types"/g) ?? []).length, 5, 'un checkbox por tipo en el diálogo de alta');
   assert.match(admin, /name="followers_validated"/);
   assert.match(admin, /name="representatives"/);
-  assert.match(admin, /admin-medios\.js\?v=20260922-admin-medios-13/);
+  assert.match(admin, /admin-medios\.js\?v=20260923-admin-medios-14/);
   // Portal: invitation notice on access, suggestion and pending-claim notices on the profile.
   const access = await readFile(join(output, 'finados/medios/acceso/index.html'), 'utf8');
   assert.match(access, /data-media-invitation hidden/);
@@ -47,7 +52,9 @@ test('el build publica el submenú Eventos de Medios, el alta desde coordinació
   assert.match(profile, /data-media-lookup hidden/);
   assert.match(profile, /data-media-lookup-list/);
   assert.match(profile, /data-media-claim hidden/);
-  assert.match(profile, /media-portal\.js\?v=20260922-medios-12/);
+  assert.match(profile, /data-media-events hidden/);
+  assert.match(profile, /data-media-events-list/);
+  assert.match(profile, /media-portal\.js\?v=20260923-medios-13/);
   // Voceros and Emprendedores untouched by the Medios change.
   assert.doesNotMatch(await readFile(join(output, 'finados/voceros/mi-registro/index.html'), 'utf8'), /data-media-lookup|data-media-claim/);
   assert.doesNotMatch(await readFile(join(output, 'admin/emprendedores/index.html'), 'utf8'), /data-admin-medios-eventos|data-record-dialog/);
@@ -82,12 +89,15 @@ test('el alta desde coordinación arma el cuerpo exacto: representantes por lín
 });
 
 test('la cobertura por evento normaliza la fila y los big numbers conservan el orden y el grupo de alerta', () => {
-  assert.deepEqual(coveragePayload({ contracted: 'yes', result: 'mencion', people_count: '2', links: 'facebook.com/share/1\nhttps://facebook.com/share/1\n', note: ' Entrevista ' }), { contracted: 'yes', result: 'mencion', people_count: 2, links: ['https://facebook.com/share/1'], note: 'Entrevista' });
-  assert.deepEqual(coveragePayload({ contracted: '', result: 'inventado', people_count: 'x', links: '', note: '' }), { contracted: null, result: 'pendiente', people_count: 0, links: [], note: '' });
-  const summary = { todos: { label: 'Todos', ids: ['a', 'b'] }, pautados: { label: 'Pautados', ids: ['a'] }, pautados_publicaron: { label: 'Pautados que publicaron', ids: [] }, pautados_sin_publicacion: { label: 'Pautados sin publicación', ids: ['a'] }, sin_contrato_publicaron: { label: 'Sin contrato que publicaron', ids: ['b'] }, sin_contrato_sin_publicacion: { label: 'Sin contrato sin publicación', ids: [] }, no_asistieron: { label: 'No asistieron', ids: [] } };
+  assert.deepEqual(coveragePayload({ contracted: 'yes', result: 'mencion', people_count: '2', links: 'facebook.com/share/1\nhttps://facebook.com/share/1\n', note: ' Entrevista ', attended: 'yes' }), { contracted: 'yes', result: 'mencion', people_count: 2, links: ['https://facebook.com/share/1'], note: 'Entrevista', attended: 'yes' });
+  assert.deepEqual(coveragePayload({ contracted: '', result: 'inventado', people_count: 'x', links: '', note: '' }), { contracted: null, result: 'pendiente', people_count: 0, links: [], note: '', attended: null });
+  const summary = { todos: { label: 'Todos', ids: ['a', 'b'] }, confirmaron: { label: 'Confirmaron asistencia', ids: ['a'] }, no_confirmaron: { label: 'Sin respuesta', ids: ['b'] }, asistieron: { label: 'Asistieron', ids: ['a'] }, no_asistieron: { label: 'No asistieron', ids: [] }, pautados: { label: 'Pautados', ids: ['a'] }, pautados_publicaron: { label: 'Pautados que publicaron', ids: [] }, pautados_sin_publicacion: { label: 'Pautados sin publicación', ids: ['a'] }, sin_contrato_publicaron: { label: 'Sin contrato que publicaron', ids: ['b'] }, sin_contrato_sin_publicacion: { label: 'Sin contrato sin publicación', ids: [] } };
   const buckets = coverageBuckets(summary);
-  assert.deepEqual(buckets.map(bucket => [bucket.key, bucket.count, bucket.alert]), [['todos', 2, false], ['pautados', 1, false], ['pautados_publicaron', 0, false], ['pautados_sin_publicacion', 1, true], ['sin_contrato_publicaron', 1, false], ['sin_contrato_sin_publicacion', 0, false], ['no_asistieron', 0, false]]);
-  assert.ok(buckets[3].ids.has('a'));
+  // Attendance first (what the team checks the day of the event), then the commercial cross.
+  assert.deepEqual(buckets.map(bucket => [bucket.key, bucket.count, bucket.alert]), [['todos', 2, false], ['confirmaron', 1, false], ['no_confirmaron', 1, true], ['asistieron', 1, false], ['no_asistieron', 0, false], ['pautados', 1, false], ['pautados_publicaron', 0, false], ['pautados_sin_publicacion', 1, true], ['sin_contrato_publicaron', 1, false], ['sin_contrato_sin_publicacion', 0, false]]);
+  assert.ok(buckets.find(bucket => bucket.key === 'pautados_sin_publicacion').ids.has('a'));
+  assert.deepEqual(Object.keys(ATTENDANCE_LABELS), ['', 'yes', 'no']);
+  assert.deepEqual(Object.keys(CONFIRMATION_LABELS), ['pendiente', 'yes', 'no']);
   assert.deepEqual(Object.keys(COVERAGE_RESULT_LABELS), ['pendiente', 'link', 'mencion', 'sin_publicacion', 'no_asistio']);
   assert.deepEqual(Object.keys(ORIGIN_LABELS), ['cuenta', 'coordinacion']);
   assert.deepEqual(normalizeMediaFilters({ origin: 'coordinacion' }), { origin: 'coordinacion', page: 1, pageSize: 25 });
@@ -120,6 +130,9 @@ test('los clientes del panel y del portal solo usan las rutas nuevas permitidas'
   assert.deepEqual(JSON.parse(portalCalls.at(-1)[1].body), { email: 'x@example.invalid', password: 'frase segura del medio', privacyAcknowledged: true, invitation: 'c'.repeat(64) });
   await api.register('x@example.invalid', 'frase segura del medio');
   assert.ok(!('invitation' in JSON.parse(portalCalls.at(-1)[1].body)));
+  await api.confirmAttendance('b'.repeat(32), 'yes');
+  assert.deepEqual(JSON.parse(portalCalls.at(-1)[1].body), { event: 'b'.repeat(32), answer: 'yes' });
+  assert.equal(portalCalls.at(-1)[0], 'https://finados.complejomushucruna.com/api/media/attendance');
   await assert.rejects(api.request('/invitation?token=corto'), /Ruta de API no permitida/);
   await assert.rejects(api.request('/lookup?name=a&extra=1'), /Ruta de API no permitida/);
 });

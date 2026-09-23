@@ -46,7 +46,7 @@ function coverage_json(array $payload): string { return json_encode($payload, JS
 coverage_close_session();
 $config = coverage_config();
 $pdo = Database::connect($config);
-foreach (['001_initial', '002_sheets_outbox', '003_vocero_accounts', '008_media_accounts', '009_media_videos', '010_media_video_views', '011_media_contact_channels', '012_media_consents', '013_media_types_radio', '014_media_channels_photo', '015_media_traffic_light', '016_media_paid', '018_media_coverage'] as $migration) {
+foreach (['001_initial', '002_sheets_outbox', '003_vocero_accounts', '008_media_accounts', '009_media_videos', '010_media_video_views', '011_media_contact_channels', '012_media_consents', '013_media_types_radio', '014_media_channels_photo', '015_media_traffic_light', '016_media_paid', '018_media_coverage', '019_media_event_attendance'] as $migration) {
     $pdo->exec(file_get_contents(__DIR__ . '/../migrations/' . $migration . '_sqlite.sql'));
 }
 same('018_media_coverage', $pdo->query("SELECT version FROM schema_migrations WHERE version = '018_media_coverage'")->fetchColumn());
@@ -216,4 +216,86 @@ $third = $repository->createByAdmin([...$record, 'media_name' => 'Radio Brisa 95
 $repository->archive($third['public_id'], 1, '192.0.2.81');
 same(null, $repository->find($third['public_id']));
 same(3, (int) $pdo->query('SELECT COUNT(*) FROM media_profiles')->fetchColumn());
+coverage_close_session();
+
+// ---------------------------------------------------------------- 019: invitation, confirmation and attendance
+coverage_close_session();
+$adminSession = coverage_body($router->handle('GET', '/api/auth/session', $origin));
+$adminLogin = coverage_body($router->handle('POST', '/api/auth/login', $json($adminSession['csrf']), coverage_json(['username' => 'admin', 'password' => $adminSecret])));
+$admin = $json($adminLogin['csrf']);
+// A new event invites every active medium at once; contract is pre-filled from each record.
+$active = (int) $pdo->query("SELECT COUNT(*) FROM media_profiles WHERE status <> 'Eliminado'")->fetchColumn();
+same(422, $router->handle('POST', '/api/media-events', $admin, coverage_json(['name' => 'Rueda de prensa Finados', 'event_date' => null, 'place' => str_repeat('x', 200), 'details' => '']))->status);
+$second = coverage_body($router->handle('POST', '/api/media-events', $admin, coverage_json(['name' => 'Rueda de prensa Finados', 'event_date' => '2026-10-01', 'place' => 'Complejo Mushuc Runa', 'details' => 'Acreditación desde las 09:00'])))['event'];
+same($active, $second['coverage_count']);
+same('Complejo Mushuc Runa', $second['place']);
+$rueda = $second['public_id'];
+$detail = coverage_body($router->handle('GET', '/api/media-events/' . $rueda, $origin));
+same($active, count($detail['items']));
+same('Acreditación desde las 09:00', $detail['event']['details']);
+same($active, count($detail['summary']['todos']['ids']));
+same(0, count($detail['summary']['confirmaron']['ids']));
+same(0, count($detail['summary']['asistieron']['ids']));
+// Only linked media can answer, so "Sin respuesta" counts just those.
+$linked = (int) $pdo->query("SELECT COUNT(*) FROM media_profiles WHERE status <> 'Eliminado' AND account_id IS NOT NULL")->fetchColumn();
+same($linked, count($detail['summary']['no_confirmaron']['ids']));
+$cumbreRow = null;
+foreach ($detail['items'] as $item) if ($item['public_id'] === $cumbre) $cumbreRow = $item;
+same('yes', $cumbreRow['contracted']);
+same(null, $cumbreRow['confirmation']);
+same(null, $cumbreRow['attended']);
+coverage_close_session();
+
+// The medium sees the invitation in its portal and answers it.
+$session = coverage_body($router->handle('GET', '/api/media/auth/session', $origin));
+$login = coverage_body($router->handle('POST', '/api/media/auth/login', $json($session['csrf']), coverage_json(['email' => 'cumbre@example.invalid', 'password' => $secret])));
+$own = coverage_body($router->handle('GET', '/api/media/profile', $origin));
+same(2, count($own['events']));
+$invitation = null;
+foreach ($own['events'] as $entry) if ($entry['public_id'] === $rueda) $invitation = $entry;
+same('Rueda de prensa Finados', $invitation['name']);
+same('Complejo Mushuc Runa', $invitation['place']);
+same(null, $invitation['confirmation']);
+same(false, array_key_exists('note', $invitation));
+same(422, $router->handle('POST', '/api/media/attendance', $json($login['csrf']), coverage_json(['event' => $rueda, 'answer' => 'tal vez']))->status);
+same(404, $router->handle('POST', '/api/media/attendance', $json($login['csrf']), coverage_json(['event' => str_repeat('d', 32), 'answer' => 'yes']))->status);
+$answered = coverage_body($router->handle('POST', '/api/media/attendance', $json($login['csrf']), coverage_json(['event' => $rueda, 'answer' => 'yes'])));
+foreach ($answered['events'] as $entry) if ($entry['public_id'] === $rueda) same('yes', $entry['confirmation']);
+// The answer can be changed, and the medium never sets its own attendance.
+$answered = coverage_body($router->handle('POST', '/api/media/attendance', $json($login['csrf']), coverage_json(['event' => $rueda, 'answer' => 'no'])));
+foreach ($answered['events'] as $entry) if ($entry['public_id'] === $rueda) { same('no', $entry['confirmation']); same(null, $entry['attended']); }
+// Without an allowed origin the request is refused before reaching the session guard.
+same(403, $router->handle('POST', '/api/media/attendance', ['REMOTE_ADDR' => '192.0.2.80', 'CONTENT_TYPE' => 'application/json'], coverage_json(['event' => $rueda, 'answer' => 'yes']))->status);
+coverage_close_session();
+
+// Coordination records who actually attended, for media with and without an account.
+$adminSession = coverage_body($router->handle('GET', '/api/auth/session', $origin));
+$adminLogin = coverage_body($router->handle('POST', '/api/auth/login', $json($adminSession['csrf']), coverage_json(['username' => 'admin', 'password' => $adminSecret])));
+$admin = $json($adminLogin['csrf']);
+$attendance = static fn (string $attended): string => coverage_json(['contracted' => 'yes', 'result' => 'pendiente', 'people_count' => 2, 'links' => [], 'note' => '', 'attended' => $attended]);
+same(422, $router->handle('PATCH', '/api/media-events/' . $rueda . '/coverage/' . $cumbre, $admin, $attendance('quizá'))->status);
+same(['ok' => true], coverage_body($router->handle('PATCH', '/api/media-events/' . $rueda . '/coverage/' . $cumbre, $admin, $attendance('yes'))));
+same(['ok' => true], coverage_body($router->handle('PATCH', '/api/media-events/' . $rueda . '/coverage/' . $mundo, $admin, $attendance('no'))));
+$detail = coverage_body($router->handle('GET', '/api/media-events/' . $rueda, $origin));
+same([$cumbre], $detail['summary']['asistieron']['ids']);
+same(true, in_array($mundo, $detail['summary']['no_asistieron']['ids'], true));
+same(0, count($detail['summary']['confirmaron']['ids']));
+foreach ($detail['items'] as $item) if ($item['public_id'] === $cumbre) { same('yes', $item['attended']); same('no', $item['confirmation']); }
+same(1, (int) $pdo->query("SELECT COUNT(*) FROM media_events WHERE name = 'Rueda de prensa Finados'")->fetchColumn());
+same(1, coverage_body($router->handle('GET', '/api/media-events', $origin))['items'][0]['confirmed_count'] === 0 ? 1 : 0);
+coverage_close_session();
+
+// ---------------------------------------------------------------- the sheet's contract belongs on the record
+// Medios is the source of truth: a contract in the sheet marks the record as paid, not only the event row.
+$importer = static function (array $group) use ($pdo, $config): array {
+    $repository = new MediaRepository($pdo, new Finados\Crypto($config));
+    return $repository->createByAdmin([
+        'media_name' => $group['name'], 'media_types' => ['radio'], 'frequency' => '', 'tv_channel' => '', 'province' => '', 'city' => '', 'program_name' => '',
+        'representatives' => [], 'channels' => [], 'followers_validated' => null,
+        'paid_media' => $group['contracted'] === 'yes' ? 'yes' : 'no', 'contact_name' => '', 'phone' => '', 'contact_email' => '',
+    ], 1, '127.0.0.1');
+};
+same('yes', $importer(['name' => 'Radio Con Contrato', 'contracted' => 'yes'])['paid_media']);
+same('no', $importer(['name' => 'Radio Sin Contrato', 'contracted' => 'no'])['paid_media']);
+same('no', $importer(['name' => 'Radio Sin Dato', 'contracted' => null])['paid_media']);
 coverage_close_session();

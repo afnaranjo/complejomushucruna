@@ -54,7 +54,7 @@ export class MediaApiClient {
     this.fetch = fetchImplementation;
   }
   async request(path, { body, blob = false } = {}) {
-    if (!/^\/(?:auth\/(?:session|register|login|logout|reset)|profile|videos|photo|claim|invitation\?token=[a-f0-9]{64}|lookup\?name=[^&#]{1,200})$/.test(path)) throw new Error('Ruta de API no permitida.');
+    if (!/^\/(?:auth\/(?:session|register|login|logout|reset)|profile|videos|photo|claim|attendance|invitation\?token=[a-f0-9]{64}|lookup\?name=[^&#]{1,200})$/.test(path)) throw new Error('Ruta de API no permitida.');
     if (body !== undefined && !this.#csrf) await this.session();
     const headers = { Accept: blob ? 'image/jpeg' : 'application/json' };
     const multipart = typeof FormData !== 'undefined' && body instanceof FormData;
@@ -86,6 +86,7 @@ export class MediaApiClient {
   invitation(token) { return this.request(`/invitation?token=${token}`); }
   lookup(name) { return this.request(`/lookup?name=${encodeURIComponent(name).slice(0, 200)}`); }
   claim(publicId) { return this.request('/claim', { body: { public_id: publicId } }); }
+  confirmAttendance(event, answer) { return this.request('/attendance', { body: { event, answer } }); }
   login(email, password) { return this.request('/auth/login', { body: { email, password } }); }
   async logout() { const result = await this.request('/auth/logout', { body: {} }); this.#csrf = ''; return result; }
   profile() { return this.request('/profile'); }
@@ -177,6 +178,12 @@ export function profilePayload(data, stations = [], tvChannels = [], channels = 
     if (mandatory && !body[name]) throw new Error('Para registrarte debes aceptar las Buenas prácticas y la Política de Privacidad. El uso de imagen es opcional.');
   }
   return body;
+}
+
+function eventDate(value) {
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return '';
+  const [year, month, day] = value.split('-').map(Number);
+  return new Intl.DateTimeFormat('es-EC', { dateStyle: 'long', timeZone: 'UTC' }).format(new Date(Date.UTC(year, month - 1, day)));
 }
 
 function showFeedback(element, message, error = false, { focus = true } = {}) {
@@ -359,8 +366,49 @@ export async function initializeMediaPortal(root = document) {
     }
     videoCount.textContent = videos.length === 0 ? 'Aún no has agregado videos.' : videos.length === 1 ? '1 video agregado.' : `${videos.length} videos agregados.`;
   }
+  function renderEvents(events = []) {
+    const panel = root.querySelector('[data-media-events]');
+    const list = root.querySelector('[data-media-events-list]');
+    if (!panel || !list) return;
+    list.replaceChildren();
+    if (!events.length) { panel.hidden = true; return; }
+    panel.hidden = false;
+    const pending = events.filter(event => event.confirmation === null).length;
+    const summary = root.querySelector('[data-media-events-summary]');
+    if (summary) summary.textContent = pending === 0 ? 'Sin invitaciones por responder.' : pending === 1 ? '1 invitación por responder.' : `${pending} invitaciones por responder.`;
+    panel.open = pending > 0;
+    for (const event of events) {
+      const item = document.createElement('li');
+      item.className = 'media-event';
+      item.dataset.answer = event.confirmation ?? 'pendiente';
+      const head = document.createElement('div');
+      const title = document.createElement('strong'); title.textContent = event.name;
+      const meta = document.createElement('small');
+      meta.textContent = [event.event_date ? eventDate(event.event_date) : '', event.place].filter(Boolean).join(' · ') || 'Fecha por confirmar';
+      head.append(title, meta);
+      if (event.details) { const details = document.createElement('p'); details.textContent = event.details; head.append(details); }
+      item.append(head);
+      const state = document.createElement('p'); state.className = 'media-event__state';
+      state.textContent = event.confirmation === 'yes' ? 'Confirmaste tu asistencia.' : event.confirmation === 'no' ? 'Indicaste que no podrás asistir.' : '¿Asistirás a este evento?';
+      const actions = document.createElement('div'); actions.className = 'media-event__actions';
+      for (const [answer, label, className] of [['yes', 'Confirmo mi asistencia', 'vocero-primary'], ['no', 'No podré asistir', 'vocero-quiet']]) {
+        const button = document.createElement('button'); button.type = 'button'; button.className = className; button.textContent = label;
+        button.disabled = event.confirmation === answer;
+        button.addEventListener('click', async () => {
+          for (const control of actions.querySelectorAll('button')) control.disabled = true;
+          try { const result = await api.confirmAttendance(event.public_id, answer); renderEvents(result.events ?? []); message(answer === 'yes' ? 'Confirmaste tu asistencia. Gracias.' : 'Registramos que no podrás asistir.'); }
+          catch (error) { for (const control of actions.querySelectorAll('button')) control.disabled = false; reportError(error); }
+        });
+        actions.append(button);
+      }
+      item.append(state, actions);
+      list.append(item);
+    }
+  }
+
   function populate(profile) {
     editable = profile.editable !== false;
+    renderEvents(profile.events ?? []);
     profileForm.querySelector('[data-account-email]').value = profile.email ?? '';
     if (!profile.registered && !profileForm.elements.namedItem('contact_email').value) profileForm.elements.namedItem('contact_email').value = profile.email ?? '';
     if (profile.registered) {

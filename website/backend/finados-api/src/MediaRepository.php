@@ -48,6 +48,8 @@ final class MediaRepository
     /** Outcome of a medium's coverage of one event, set by coordination. A link is not the only proof: radio mentions count too. */
     public const COVERAGE_RESULTS = ['pendiente' => 'Pendiente', 'link' => 'Publicó con link', 'mencion' => 'Mención al aire', 'sin_publicacion' => 'No publicó', 'no_asistio' => 'No asistió'];
     public const COVERAGE_PUBLISHED = ['link', 'mencion'];
+    /** The medium answers the invitation from its portal; coordination records who actually came (019). */
+    public const ATTENDANCE = ['yes', 'no'];
     /** Fields coordination may set when it creates or completes a record; contact data stays optional here. */
     public const ADMIN_FIELDS = ['media_name', 'media_types', 'frequency', 'tv_channel', 'province', 'city', 'program_name', 'representatives', 'channels', 'followers_validated', 'paid_media', 'contact_name', 'phone', 'contact_email'];
     public const MAX_REPRESENTATIVES = 20;
@@ -92,7 +94,7 @@ final class MediaRepository
         $statement->execute([$accountId]);
         $row = $statement->fetch();
         if ($row === false || $row['status'] === self::ARCHIVED) return null;
-        return [...$this->present($row), 'editable' => in_array($row['status'], self::EDITABLE, true), 'videos' => $this->videos((int) $row['id']),
+        return [...$this->present($row), 'editable' => in_array($row['status'], self::EDITABLE, true), 'videos' => $this->videos((int) $row['id']), 'events' => $this->invitationsForAccount($accountId),
             'can_add_videos' => $row['status'] === 'Aprobado' && $this->photoMeta((int) $row['id'])['available'], 'can_upload_photo' => $row['status'] !== 'Rechazado', 'photo_required' => true, 'consents' => $this->consents((int) $row['id']), 'photo' => $this->photoMeta((int) $row['id'])];
     }
 
@@ -633,16 +635,26 @@ final class MediaRepository
 
     public function listEvents(): array
     {
-        $rows = $this->pdo->query('SELECT e.public_id, e.name, e.event_date, e.created_at, (SELECT COUNT(*) FROM media_event_coverage c JOIN media_profiles p ON p.id = c.profile_id WHERE c.event_id = e.id AND p.status <> \'Eliminado\') AS coverage_count FROM media_events e ORDER BY e.event_date DESC, e.id DESC');
-        return array_map(static fn (array $row): array => ['public_id' => $row['public_id'], 'name' => $row['name'], 'event_date' => $row['event_date'], 'created_at' => $row['created_at'], 'coverage_count' => (int) $row['coverage_count']], $rows->fetchAll(PDO::FETCH_ASSOC));
+        $rows = $this->pdo->query("SELECT e.public_id, e.name, e.event_date, e.place, e.details, e.created_at, (SELECT COUNT(*) FROM media_event_coverage c JOIN media_profiles p ON p.id = c.profile_id WHERE c.event_id = e.id AND p.status <> 'Eliminado') AS coverage_count, (SELECT COUNT(*) FROM media_event_coverage c JOIN media_profiles p ON p.id = c.profile_id WHERE c.event_id = e.id AND p.status <> 'Eliminado' AND c.confirmation = 'yes') AS confirmed_count FROM media_events e ORDER BY e.event_date DESC, e.id DESC");
+        return array_map(static fn (array $row): array => ['public_id' => $row['public_id'], 'name' => $row['name'], 'event_date' => $row['event_date'], 'place' => (string) $row['place'], 'details' => (string) $row['details'],
+            'created_at' => $row['created_at'], 'coverage_count' => (int) $row['coverage_count'], 'confirmed_count' => (int) $row['confirmed_count']], $rows->fetchAll(PDO::FETCH_ASSOC));
     }
 
     public function createEvent(mixed $input, ?int $actorId, string $ip = ''): array
     {
         if ($input instanceof \stdClass) $input = (array) $input;
-        if (!is_array($input) || array_diff(array_keys($input), ['name', 'event_date']) !== [] || !is_string($input['name'] ?? null)) throw new InvalidArgumentException();
+        if (!is_array($input) || array_diff(array_keys($input), ['name', 'event_date', 'place', 'details']) !== [] || !is_string($input['name'] ?? null)) throw new InvalidArgumentException();
         $name = trim(preg_replace('/\s+/u', ' ', $input['name']) ?? '');
         if (self::length($name) < 3 || self::length($name) > 160) throw new InvalidArgumentException();
+        $text = static function (mixed $value, int $max): string {
+            if ($value === null) return '';
+            if (!is_string($value)) throw new InvalidArgumentException();
+            $value = trim(preg_replace('/\s+/u', ' ', preg_replace('/\p{C}+/u', ' ', $value) ?? '') ?? '');
+            if (self::length($value) > $max) throw new InvalidArgumentException();
+            return $value;
+        };
+        $place = $text($input['place'] ?? '', 160);
+        $details = $text($input['details'] ?? '', 500);
         $date = $input['event_date'] ?? null;
         if ($date === '') $date = null;
         if ($date !== null && (!is_string($date) || preg_match('/^(\d{4})-(\d{2})-(\d{2})$/D', $date, $parts) !== 1 || !checkdate((int) $parts[2], (int) $parts[3], (int) $parts[1]))) throw new InvalidArgumentException();
@@ -651,15 +663,28 @@ final class MediaRepository
         if ($existing->fetchColumn() !== false) throw new DuplicateRegistration();
         $publicId = bin2hex(random_bytes(16));
         $now = gmdate('Y-m-d H:i:s');
-        $this->pdo->prepare('INSERT INTO media_events (public_id, name, event_date, created_by_admin_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)')->execute([$publicId, $name, $date, $actorId, $now, $now]);
-        $this->audit->log('media_event.created', $actorId, 'media_event', $publicId, [], $ip);
-        return ['public_id' => $publicId, 'name' => $name, 'event_date' => $date, 'created_at' => $now, 'coverage_count' => 0];
+        $this->begin();
+        try {
+            $this->pdo->prepare('INSERT INTO media_events (public_id, name, event_date, place, details, created_by_admin_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')->execute([$publicId, $name, $date, $place, $details, $actorId, $now, $now]);
+            $eventId = (int) $this->pdo->lastInsertId();
+            // Every active medium is invited at once: those with an account see it in their portal and
+            // confirm; the rest are marked by coordination. Contract is pre-filled from the record.
+            $invited = $this->pdo->prepare("INSERT INTO media_event_coverage (event_id, profile_id, contracted, result, people_count, links, note, updated_at) SELECT ?, id, CASE WHEN paid_media = 'yes' THEN 'yes' ELSE NULL END, 'pendiente', 0, '[]', '', ? FROM media_profiles WHERE status <> ?");
+            $invited->execute([$eventId, $now, self::ARCHIVED]);
+            $count = $invited->rowCount();
+            $this->audit->log('media_event.created', $actorId, 'media_event', $publicId, ['count' => $count], $ip);
+            $this->commit();
+        } catch (Throwable $error) {
+            $this->rollBack();
+            throw $error;
+        }
+        return ['public_id' => $publicId, 'name' => $name, 'event_date' => $date, 'place' => $place, 'details' => $details, 'created_at' => $now, 'coverage_count' => $count];
     }
 
     private function eventRow(string $publicId): array
     {
         if (preg_match('/^[a-f0-9]{32}$/D', $publicId) !== 1) throw new InvalidArgumentException();
-        $query = $this->pdo->prepare('SELECT id, public_id, name, event_date FROM media_events WHERE public_id = ?');
+        $query = $this->pdo->prepare('SELECT id, public_id, name, event_date, place, details FROM media_events WHERE public_id = ?');
         $query->execute([$publicId]);
         $row = $query->fetch();
         if ($row === false) throw new OutOfBoundsException();
@@ -670,15 +695,18 @@ final class MediaRepository
     public function coverageForEvent(string $eventPublicId): array
     {
         $event = $this->eventRow($eventPublicId);
-        $rows = $this->pdo->prepare('SELECT p.public_id, p.media_name, p.media_types, p.frequency_channel, p.city, p.origin, p.account_id, p.paid_media, p.followers_validated, c.contracted, c.result, c.people_count, c.links, c.note, c.updated_at FROM media_event_coverage c JOIN media_profiles p ON p.id = c.profile_id WHERE c.event_id = ? AND p.status <> ? ORDER BY p.media_name');
+        $rows = $this->pdo->prepare('SELECT p.public_id, p.media_name, p.media_types, p.frequency_channel, p.city, p.origin, p.account_id, p.paid_media, p.followers_validated, c.contracted, c.result, c.people_count, c.links, c.note, c.confirmation, c.confirmed_at, c.attended, c.updated_at FROM media_event_coverage c JOIN media_profiles p ON p.id = c.profile_id WHERE c.event_id = ? AND p.status <> ? ORDER BY p.media_name');
         $rows->execute([$event['id'], self::ARCHIVED]);
         $items = array_map(static fn (array $row): array => [
             'public_id' => $row['public_id'], 'media_name' => $row['media_name'], 'media_types' => self::typeKeys((string) $row['media_types']), 'frequency_channel' => $row['frequency_channel'], 'city' => $row['city'],
             'origin' => self::origin($row), 'linked' => $row['account_id'] !== null, 'paid_media' => self::paid($row), 'followers_validated' => $row['followers_validated'] === null ? null : (int) $row['followers_validated'],
             'contracted' => in_array($row['contracted'], self::PAID_MEDIA, true) ? $row['contracted'] : null, 'result' => isset(self::COVERAGE_RESULTS[$row['result']]) ? $row['result'] : 'pendiente',
-            'people_count' => (int) $row['people_count'], 'links' => json_decode((string) ($row['links'] ?? '') ?: '[]', true, 4) ?: [], 'note' => (string) ($row['note'] ?? ''), 'updated_at' => $row['updated_at'],
+            'people_count' => (int) $row['people_count'], 'links' => json_decode((string) ($row['links'] ?? '') ?: '[]', true, 4) ?: [], 'note' => (string) ($row['note'] ?? ''),
+            'confirmation' => in_array($row['confirmation'], self::ATTENDANCE, true) ? $row['confirmation'] : null, 'confirmed_at' => $row['confirmed_at'],
+            'attended' => in_array($row['attended'], self::ATTENDANCE, true) ? $row['attended'] : null, 'updated_at' => $row['updated_at'],
         ], $rows->fetchAll(PDO::FETCH_ASSOC));
-        return ['event' => ['public_id' => $event['public_id'], 'name' => $event['name'], 'event_date' => $event['event_date']], 'summary' => self::coverageSummary($items), 'items' => $items];
+        return ['event' => ['public_id' => $event['public_id'], 'name' => $event['name'], 'event_date' => $event['event_date'], 'place' => (string) $event['place'], 'details' => (string) $event['details']],
+            'summary' => self::coverageSummary($items), 'items' => $items];
     }
 
     /** Big-number buckets: contract × outcome. Each bucket lists the public ids it contains so the panel can filter on click. */
@@ -694,7 +722,10 @@ final class MediaRepository
             'pautados_sin_publicacion' => ['label' => 'Pautados sin publicación', 'ids' => $bucket(static fn (array $item): bool => $paid($item) && !$published($item))],
             'sin_contrato_publicaron' => ['label' => 'Sin contrato que publicaron', 'ids' => $bucket(static fn (array $item): bool => !$paid($item) && $published($item))],
             'sin_contrato_sin_publicacion' => ['label' => 'Sin contrato sin publicación', 'ids' => $bucket(static fn (array $item): bool => !$paid($item) && !$published($item))],
-            'no_asistieron' => ['label' => 'No asistieron', 'ids' => $bucket(static fn (array $item): bool => $item['result'] === 'no_asistio')],
+            'no_asistieron' => ['label' => 'No asistieron', 'ids' => $bucket(static fn (array $item): bool => $item['result'] === 'no_asistio' || $item['attended'] === 'no')],
+            'confirmaron' => ['label' => 'Confirmaron asistencia', 'ids' => $bucket(static fn (array $item): bool => $item['confirmation'] === 'yes')],
+            'no_confirmaron' => ['label' => 'Sin respuesta', 'ids' => $bucket(static fn (array $item): bool => $item['confirmation'] === null && $item['linked'])],
+            'asistieron' => ['label' => 'Asistieron', 'ids' => $bucket(static fn (array $item): bool => $item['attended'] === 'yes')],
         ];
     }
 
@@ -702,9 +733,13 @@ final class MediaRepository
     public function upsertCoverage(string $eventPublicId, string $profilePublicId, mixed $input, int $actorId, string $ip = ''): void
     {
         if ($input instanceof \stdClass) $input = (array) $input;
-        if (!is_array($input) || array_diff(array_keys($input), ['contracted', 'result', 'people_count', 'links', 'note']) !== [] || array_diff(['contracted', 'result', 'people_count', 'links', 'note'], array_keys($input)) !== []) throw new InvalidArgumentException();
+        $fields = ['contracted', 'result', 'people_count', 'links', 'note', 'attended'];
+        if (!is_array($input) || array_diff(array_keys($input), $fields) !== [] || array_diff(['contracted', 'result', 'people_count', 'links', 'note'], array_keys($input)) !== []) throw new InvalidArgumentException();
         $contracted = $input['contracted'];
         if ($contracted !== null && (!is_string($contracted) || !in_array($contracted, self::PAID_MEDIA, true))) throw new InvalidArgumentException();
+        $attended = $input['attended'] ?? null;
+        if ($attended === '') $attended = null;
+        if ($attended !== null && (!is_string($attended) || !in_array($attended, self::ATTENDANCE, true))) throw new InvalidArgumentException();
         if (!is_string($input['result']) || !isset(self::COVERAGE_RESULTS[$input['result']])) throw new InvalidArgumentException();
         $people = filter_var($input['people_count'], FILTER_VALIDATE_INT, ['options' => ['min_range' => 0, 'max_range' => 200]]);
         if ($people === false) throw new InvalidArgumentException();
@@ -715,22 +750,66 @@ final class MediaRepository
         $note = trim(preg_replace('/\p{C}+/u', ' ', $input['note']) ?? '');
         if (self::length($note) > 2000) throw new InvalidArgumentException();
         $event = $this->eventRow($eventPublicId);
-        $this->mutate($profilePublicId, function (array $row) use ($event, $contracted, $input, $people, $links, $note, $actorId, $ip, $profilePublicId): void {
+        $this->mutate($profilePublicId, function (array $row) use ($event, $contracted, $input, $people, $links, $note, $attended, $actorId, $ip, $profilePublicId): void {
             $now = gmdate('Y-m-d H:i:s');
             $json = json_encode($links, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
             $sql = $this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql'
-                ? 'INSERT INTO media_event_coverage (event_id, profile_id, contracted, result, people_count, links, note, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE contracted = VALUES(contracted), result = VALUES(result), people_count = VALUES(people_count), links = VALUES(links), note = VALUES(note), updated_at = VALUES(updated_at)'
-                : 'INSERT INTO media_event_coverage (event_id, profile_id, contracted, result, people_count, links, note, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(event_id, profile_id) DO UPDATE SET contracted = excluded.contracted, result = excluded.result, people_count = excluded.people_count, links = excluded.links, note = excluded.note, updated_at = excluded.updated_at';
-            $this->pdo->prepare($sql)->execute([$event['id'], $row['id'], $contracted, $input['result'], $people, $json, $note, $now]);
+                ? 'INSERT INTO media_event_coverage (event_id, profile_id, contracted, result, people_count, links, note, attended, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE contracted = VALUES(contracted), result = VALUES(result), people_count = VALUES(people_count), links = VALUES(links), note = VALUES(note), attended = VALUES(attended), updated_at = VALUES(updated_at)'
+                : 'INSERT INTO media_event_coverage (event_id, profile_id, contracted, result, people_count, links, note, attended, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(event_id, profile_id) DO UPDATE SET contracted = excluded.contracted, result = excluded.result, people_count = excluded.people_count, links = excluded.links, note = excluded.note, attended = excluded.attended, updated_at = excluded.updated_at';
+            $this->pdo->prepare($sql)->execute([$event['id'], $row['id'], $contracted, $input['result'], $people, $json, $note, $attended, $now]);
             $this->audit->log('media.coverage_updated', $actorId, 'media_profile', $profilePublicId, [], $ip);
         });
     }
 
+    /** Events the authenticated medium was invited to, with what it may answer. Administrative notes stay out. */
+    public function invitationsForAccount(int $accountId): array
+    {
+        $profile = $this->pdo->prepare('SELECT id FROM media_profiles WHERE account_id = ? AND status <> ?');
+        $profile->execute([$accountId, self::ARCHIVED]);
+        $profileId = $profile->fetchColumn();
+        if ($profileId === false) return [];
+        $rows = $this->pdo->prepare('SELECT e.public_id, e.name, e.event_date, e.place, e.details, c.confirmation, c.confirmed_at, c.attended FROM media_event_coverage c JOIN media_events e ON e.id = c.event_id WHERE c.profile_id = ? ORDER BY e.event_date DESC, e.id DESC LIMIT 50');
+        $rows->execute([$profileId]);
+        return array_map(static fn (array $row): array => ['public_id' => $row['public_id'], 'name' => $row['name'], 'event_date' => $row['event_date'], 'place' => (string) $row['place'], 'details' => (string) $row['details'],
+            'confirmation' => in_array($row['confirmation'], self::ATTENDANCE, true) ? $row['confirmation'] : null, 'confirmed_at' => $row['confirmed_at'],
+            'attended' => in_array($row['attended'], self::ATTENDANCE, true) ? $row['attended'] : null], $rows->fetchAll(PDO::FETCH_ASSOC));
+    }
+
+    /** The medium answers its own invitation. It may change the answer; coordination records attendance separately. */
+    public function confirmAttendance(int $accountId, string $eventPublicId, mixed $answer, string $ip): array
+    {
+        if (!is_string($answer) || !in_array($answer, self::ATTENDANCE, true)) throw new InvalidArgumentException();
+        $event = $this->eventRow($eventPublicId);
+        $this->begin();
+        try {
+            $profile = $this->pdo->prepare('SELECT id, public_id FROM media_profiles WHERE account_id = ? AND status <> ?' . $this->rowLock());
+            $profile->execute([$accountId, self::ARCHIVED]);
+            $row = $profile->fetch();
+            if ($row === false) throw new Forbidden();
+            $now = gmdate('Y-m-d H:i:s');
+            $update = $this->pdo->prepare('UPDATE media_event_coverage SET confirmation = ?, confirmed_at = ?, updated_at = ? WHERE event_id = ? AND profile_id = ?');
+            $update->execute([$answer, $now, $now, $event['id'], $row['id']]);
+            if ($update->rowCount() === 0) {
+                // The medium was registered after the event was created: it joins the invitation list now.
+                $this->pdo->prepare("INSERT INTO media_event_coverage (event_id, profile_id, contracted, result, people_count, links, note, confirmation, confirmed_at, updated_at) VALUES (?, ?, NULL, 'pendiente', 0, '[]', '', ?, ?, ?)")
+                    ->execute([$event['id'], $row['id'], $answer, $now, $now]);
+            }
+            $this->audit->log('media.attendance_confirmed', null, 'media_profile', $row['public_id'], [], $ip);
+            $this->commit();
+        } catch (Throwable $error) {
+            $this->rollBack();
+            throw $error;
+        }
+        return $this->invitationsForAccount($accountId);
+    }
+
     private function coverageForProfile(int $profileId): array
     {
-        $rows = $this->pdo->prepare('SELECT e.public_id, e.name, e.event_date, c.contracted, c.result, c.people_count, c.links, c.note, c.updated_at FROM media_event_coverage c JOIN media_events e ON e.id = c.event_id WHERE c.profile_id = ? ORDER BY e.event_date DESC, e.id DESC');
+        $rows = $this->pdo->prepare('SELECT e.public_id, e.name, e.event_date, e.place, e.details, c.contracted, c.result, c.people_count, c.links, c.note, c.confirmation, c.confirmed_at, c.attended, c.updated_at FROM media_event_coverage c JOIN media_events e ON e.id = c.event_id WHERE c.profile_id = ? ORDER BY e.event_date DESC, e.id DESC');
         $rows->execute([$profileId]);
-        return array_map(static fn (array $row): array => ['event_public_id' => $row['public_id'], 'event_name' => $row['name'], 'event_date' => $row['event_date'],
+        return array_map(static fn (array $row): array => ['event_public_id' => $row['public_id'], 'event_name' => $row['name'], 'event_date' => $row['event_date'], 'place' => (string) $row['place'], 'details' => (string) $row['details'],
+            'confirmation' => in_array($row['confirmation'], self::ATTENDANCE, true) ? $row['confirmation'] : null, 'confirmed_at' => $row['confirmed_at'],
+            'attended' => in_array($row['attended'], self::ATTENDANCE, true) ? $row['attended'] : null,
             'contracted' => in_array($row['contracted'], self::PAID_MEDIA, true) ? $row['contracted'] : null, 'result' => isset(self::COVERAGE_RESULTS[$row['result']]) ? $row['result'] : 'pendiente', 'result_label' => self::COVERAGE_RESULTS[$row['result']] ?? 'Pendiente',
             'people_count' => (int) $row['people_count'], 'links' => json_decode((string) ($row['links'] ?? '') ?: '[]', true, 4) ?: [], 'note' => (string) ($row['note'] ?? ''), 'updated_at' => $row['updated_at']], $rows->fetchAll(PDO::FETCH_ASSOC));
     }
