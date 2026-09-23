@@ -333,3 +333,5 @@
 .media-event small, .media-event p { display: block; margin: 0; }
 .media-event__state { font-weight: 600; font-size: .9rem; }
 .media-event__actions { display: flex; flex-wrap: wrap; gap: .5rem; }
+.media-event[data-answer="checked"] { border-left-color: #00d2d6; }
+.media-accreditation-box { margin: 1rem 0; padding: 1rem 1.25rem; border-radius: 1rem; background: #fff; border: 1px solid rgba(36, 17, 70, .15); display: grid; gap: .75rem; }

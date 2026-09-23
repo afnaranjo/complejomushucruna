@@ -7,12 +7,12 @@ import { renderLayout } from '../src/render/layout.mjs';
 test('Finados y sus registros no cargan el CSS institucional del Complejo', () => {
   const campaignPages = pages.filter(page => page.route.startsWith('/finados/')
     || ['/acceso-compra-stands/', '/acreditacion-de-medios/'].includes(page.route));
-  assert.equal(campaignPages.length, 32);
+  assert.equal(campaignPages.length, 33);
   for (const page of campaignPages) {
     const html = page.render ? page.render(page) : renderLayout(page);
     assert.doesNotMatch(html, /href="\/assets\/styles\.css/, page.route);
     assert.doesNotMatch(html, /\/assets\/fonts\//, page.route);
-    if (!/\/(acceso|mi-registro|restablecer|verificar)\/$/.test(page.route)) {
+    if (!/\/(acceso|mi-registro|restablecer|verificar|acreditacion)\/$/.test(page.route)) {
       assert.match(html, /\/assets\/finados\/finados\.css\?v=20260916-7/, page.route);
       assert.match(html, /\/assets\/finados\/navigation\.css\?v=20260918-navigation-progress-1/, page.route);
       assert.match(html, /id="navegacion-principal"/, page.route);

@@ -686,6 +686,23 @@ final class Router
             $this->mediaAuth()->logout();
             return $this->json(200, ['ok' => true], $headers);
         }
+        if ($path === '/api/media/event') {
+            // Público: la página de acreditación a la que lleva el QR necesita el nombre, la fecha y el lugar.
+            if ($method !== 'GET') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+            if (array_keys($query) !== ['id']) throw new InvalidArgumentException();
+            $event = $this->media()->publicEvent($query['id']);
+            if ($event === null) throw new OutOfBoundsException();
+            return $this->json(200, ['ok' => true, 'event' => $event], $headers);
+        }
+        if ($path === '/api/media/checkin') {
+            $user = $this->mediaAuth()->requireUser();
+            if ($method !== 'POST') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+            if (!$this->config->isAllowedOrigin($origin) || !$validIp || $query !== []) throw new Forbidden();
+            $this->mediaAuth()->verifyCsrf($token);
+            $body = $this->body($server, $rawBody, ['event']);
+            if (!is_string($body['event'] ?? null)) throw new InvalidArgumentException();
+            return $this->json(200, ['ok' => true, 'events' => $this->media()->checkIn($user['id'], $body['event'], $ip)], $headers);
+        }
         if ($path === '/api/media/invitation') {
             // Public preview: tells the access page which record an invitation link opens, nothing more.
             if ($method !== 'GET') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);

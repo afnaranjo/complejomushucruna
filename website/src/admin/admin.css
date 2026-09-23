@@ -121,8 +121,12 @@ tr[data-origin="cuenta"] > td { background: rgba(0, 210, 214, .05); }
 .admin-cell-check { text-align: center; }
 .admin-attendance-check { width: 17px; height: 17px; min-height: 17px; margin: 0 auto; accent-color: #1c6854; cursor: pointer; }
 .admin-attendance-check:disabled { accent-color: #94165e; cursor: default; opacity: 1; }
-.admin-panel-section { margin: 1.5rem 0 2rem; border-top: 2px solid #241146; padding-top: .5rem; }
-.admin-panel-drawer { margin-top: .5rem; padding: 1rem; border: 1px solid #c3b6c7; border-radius: .9rem; background: #fffaf2; }
+/* Cada sección es una tarjeta. «Medios por evento» vive dentro de la de Medios, con su filete al costado. */
+.admin-panel-section { margin: 1.25rem 0; padding: 0 1.25rem 1.25rem; border: 1px solid #c3b6c7; border-top: 3px solid #241146; border-radius: .9rem; background: #fffaf2; }
+.admin-panel-subsection { margin-top: .25rem; padding-left: 1rem; border-left: 3px solid #94165e; }
+.admin-panel-subsection > .records-heading { padding: .75rem 0 .25rem; }
+.admin-panel-subsection h3 { font-size: .95rem; }
+.admin-panel-drawer { margin-top: .5rem; padding: 1rem; border: 1px solid #c3b6c7; border-radius: .9rem; background: #fff; }
 .admin-panel-list { list-style: none; margin: .5rem 0 0; padding: 0; display: grid; gap: .4rem; max-height: 26rem; overflow: auto; }
 .admin-panel-list li { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: .5rem .25rem; border-bottom: 1px solid #e3dae6; }
 .admin-panel-list strong { display: block; font-size: .9rem; }
@@ -152,6 +156,8 @@ tr[data-origin="cuenta"] > td { background: rgba(0, 210, 214, .05); }
   .admin-big-numbers { grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr)); gap: .45rem; }
   .admin-big-number { padding: .7rem .65rem; }
   .admin-big-number strong { font-size: 1.6rem; }
+  .admin-panel-section { padding: 0 .75rem .75rem; }
+  .admin-panel-subsection { padding-left: .6rem; }
   .admin-panel-list li { flex-direction: column; align-items: flex-start; gap: .25rem; }
   .admin-panel-event > summary { flex-direction: column; gap: .15rem; }
   .workspace-actions { width: 100%; }
@@ -186,3 +192,13 @@ tr[data-origin="cuenta"] > td { background: rgba(0, 210, 214, .05); }
   .admin-coverage-table th, .admin-coverage-table td { width: auto !important; }
   .admin-coverage-table .record-name strong { font-size: .95rem; }
 }
+
+/* Acreditación del evento: enlace y QR para imprimir */
+.admin-accreditation { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 1.5rem; align-items: start; margin: 1rem 0 1.5rem; padding: 1rem 1.25rem; border: 1px solid #c3b6c7; border-radius: 1rem; background: #fffaf2; }
+.admin-accreditation p { color: #665771; font-size: .85rem; margin-top: .35rem; }
+.admin-accreditation input { font-family: ui-monospace, monospace; font-size: .78rem; }
+.admin-accreditation__actions { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .6rem; }
+.admin-accreditation canvas { width: 170px; height: 170px; border-radius: .6rem; border: 1px solid #d9ced6; background: #fff; }
+.admin-accreditation .feedback { min-height: 0; margin: .5rem 0 0; font-size: .8rem; }
+.admin-checkin-mark { display: block; margin-top: .2rem; font-size: .62rem; color: #1c6854; font-weight: 700; }
+@media (max-width: 700px) { .admin-accreditation { grid-template-columns: 1fr; justify-items: start; } }

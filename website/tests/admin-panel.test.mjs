@@ -17,6 +17,11 @@ test('el panel es la primera pestaña, la primera pantalla tras iniciar sesión 
   assert.match(panel, /data-admin-panel/);
   for (const marker of ['data-panel-media', 'data-panel-events', 'data-panel-voceros']) assert.match(panel, new RegExp(marker), marker);
   assert.match(panel, /\/assets\/admin\/panel\.js\?v=/);
+  // La cobertura por evento es parte de Medios: vive dentro de esa sección, no como una sección hermana.
+  const medios = panel.slice(panel.indexOf('id="panel-medios-title"'), panel.indexOf('id="panel-voceros-title"'));
+  assert.match(medios, /class="admin-panel-subsection"[^>]*aria-labelledby="panel-eventos-title"/);
+  assert.match(medios, /<h3 id="panel-eventos-title">Medios por evento<\/h3>/);
+  assert.ok(medios.includes('data-panel-events'), 'los eventos se muestran dentro de Medios');
   assert.match(panel, /href="\/admin\/panel\/" aria-current="page"/);
   // El panel abre el menú: primero él, después los formularios.
   const order = [...panel.matchAll(/class="admin-nav-link(?: admin-nav-link--child)?" href="([^"]+)"/g)].map(match => match[1]);

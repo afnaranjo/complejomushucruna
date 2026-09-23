@@ -15,7 +15,7 @@ test('agrega un aviso de cookies compacto en páginas públicas y excluye admin'
   assert.ok(htmlFiles.length >= 14);
   for (const htmlFile of htmlFiles) {
     const html = await readFile(join(output, htmlFile), 'utf8');
-    if (htmlFile.startsWith('admin/') || /^finados\/(?:voceros|medios|emprendedores)\/(acceso|mi-registro|restablecer)\//.test(htmlFile)) {
+    if (htmlFile.startsWith('admin/') || /^finados\/(?:voceros|medios|emprendedores)\/(acceso|mi-registro|restablecer|acreditacion)\//.test(htmlFile)) {
       assert.doesNotMatch(html, /cookie-consent/);
       continue;
     }
@@ -37,7 +37,7 @@ test('agrega Meta Pixel en páginas públicas y excluye áreas privadas', async 
     const html = await readFile(join(output, htmlFile), 'utf8');
     const privateArea = htmlFile.startsWith('admin/')
       || /^finados\/(?:voceros|emprendedores)\/(acceso|mi-registro|restablecer|verificar)\//.test(htmlFile)
-      || /^finados\/medios\/(acceso|mi-registro|restablecer)\//.test(htmlFile);
+      || /^finados\/medios\/(acceso|mi-registro|restablecer|acreditacion)\//.test(htmlFile);
     if (privateArea) {
       assert.doesNotMatch(html, /1494610251215623/, `${htmlFile} no debe incluir Meta Pixel`);
       assert.doesNotMatch(html, /connect\.facebook\.net/, `${htmlFile} no debe cargar scripts de Meta`);

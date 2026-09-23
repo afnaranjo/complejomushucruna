@@ -1,4 +1,5 @@
-import { MIRROR_API_BASE, PRIMARY_API_BASE, resolveRuntimeOrigins } from '../finados/runtime-origins.mjs';
+import { isAllowedSiteOrigin, MIRROR_API_BASE, PRIMARY_API_BASE, resolveRuntimeOrigins } from '../finados/runtime-origins.mjs';
+import { qrcode } from '../finados/qrcode-generator.mjs';
 
 export const TRAFFIC_LIGHT_LABELS = Object.freeze({ red: 'Rojo · En preparación', yellow: 'Amarillo · En avance', green: 'Verde · Listo' });
 export const MEDIA_STATUSES = Object.freeze(['Nuevo', 'En revisión', 'Aprobado', 'Rechazado']);
@@ -214,6 +215,31 @@ export function coveragePayload(controls) {
   const people = Number.parseInt(controls.people_count, 10);
   const pick = value => (value === 'yes' || value === 'no' ? value : null);
   return { contracted: pick(controls.contracted), result: Object.hasOwn(COVERAGE_RESULT_LABELS, controls.result) ? controls.result : 'pendiente', people_count: Number.isFinite(people) ? Math.max(0, Math.min(200, people)) : 0, links: [...new Set(links)], note: String(controls.note ?? '').trim(), attended: pick(controls.attended), confirmation: pick(controls.confirmation) };
+}
+
+/** Enlace de acreditación de un evento: el mismo que viaja en el QR impreso. */
+export function accreditationUrl(eventId, siteOrigin) {
+  if (typeof eventId !== 'string' || !/^[a-f0-9]{32}$/.test(eventId)) throw new TypeError('Identificador de evento inválido.');
+  if (!isAllowedSiteOrigin(siteOrigin)) throw new TypeError('Origen de acreditación inválido.');
+  return `${siteOrigin}/finados/medios/acreditacion/?evento=${eventId}`;
+}
+
+/** Dibuja el QR del enlace en un canvas, para mostrarlo y descargarlo como imagen. */
+export function drawQr(canvas, value, { size = 560, quiet = 4 } = {}) {
+  const code = qrcode(0, 'M');
+  code.addData(value, 'Byte');
+  code.make();
+  const modules = code.getModuleCount();
+  canvas.width = size; canvas.height = size;
+  const context = canvas.getContext('2d');
+  if (!context) return canvas;
+  context.fillStyle = '#ffffff'; context.fillRect(0, 0, size, size);
+  const cell = size / (modules + quiet * 2);
+  context.fillStyle = '#241146';
+  for (let row = 0; row < modules; row += 1) for (let column = 0; column < modules; column += 1) {
+    if (code.isDark(row, column)) context.fillRect((column + quiet) * cell, (row + quiet) * cell, cell + 0.4, cell + 0.4);
+  }
+  return canvas;
 }
 
 /** Big-number cards in the order the team reads them; the id list drives the click filter. */
@@ -857,8 +883,31 @@ export async function initializeMediaEventsAdmin() {
     eventSelect.disabled = data.items.length === 0;
     if (!data.items.length) { feedback(tableMessage, 'Crea el primer evento para registrar la cobertura de los medios.'); summary.replaceChildren(); rows.replaceChildren(); return; }
     eventSelect.value = selectId && data.items.some(event => event.public_id === selectId) ? selectId : (current && data.items.some(event => event.public_id === current) ? current : data.items[0].public_id);
+    renderAccreditation(data.items.find(event => event.public_id === eventSelect.value) ?? null);
     await loadCoverage(eventSelect.value);
   }
+  const accreditation = query('[data-accreditation]');
+  const accreditationInput = query('[data-accreditation-url]');
+  const accreditationCanvas = query('[data-accreditation-qr]');
+  const accreditationDownload = query('[data-accreditation-download]');
+  const accreditationState = query('[data-accreditation-state]');
+  /** El enlace y el QR que se imprimen o se comparten para acreditar a los medios en la puerta. */
+  function renderAccreditation(event) {
+    if (!accreditation || !event) { if (accreditation) accreditation.hidden = true; return; }
+    const url = accreditationUrl(event.public_id, runtime.siteOrigin);
+    accreditation.hidden = false;
+    accreditationInput.value = url;
+    drawQr(accreditationCanvas, url);
+    accreditationCanvas.setAttribute('aria-label', `Código QR de acreditación de ${event.name}`);
+    accreditationDownload.download = `acreditacion-${event.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'evento'}.png`;
+    accreditationDownload.href = accreditationCanvas.toDataURL('image/png');
+    feedback(accreditationState, `${event.checked_in_count ?? 0} de ${event.coverage_count} medios registraron su llegada con este QR.`);
+  }
+  query('[data-accreditation-copy]')?.addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText(accreditationInput.value); feedback(accreditationState, 'Enlace copiado.', 'success'); }
+    catch { accreditationInput.select(); feedback(accreditationState, 'Copia el enlace manualmente.', 'error'); }
+  });
+
   function renderSummary() {
     summary.replaceChildren();
     for (const bucket of coverageBuckets(coverage.summary)) {
@@ -894,7 +943,9 @@ export async function initializeMediaEventsAdmin() {
     // Marcado = asistió, desmarcado = no asistió. Las observaciones puntuales van en la nota.
     const attended = node('input'); attended.type = 'checkbox'; attended.className = 'admin-attendance-check';
     attended.checked = item.attended === 'yes'; attended.setAttribute('aria-label', `Asistió ${item.media_name}`);
-    cell('Asistió', attended).className = 'admin-cell-check';
+    if (item.checked_in_at) attended.title = `Registró su llegada con el QR el ${dateTime(item.checked_in_at)}`;
+    const attendedCell = cell('Asistió', attended); attendedCell.className = 'admin-cell-check';
+    if (item.checked_in_at) attendedCell.append(node('small', 'con QR', 'admin-checkin-mark'));
     // Se marca solo cuando la cobertura ya tiene un link cargado.
     const published = node('input'); published.type = 'checkbox'; published.className = 'admin-attendance-check'; published.disabled = true;
     published.checked = (item.links ?? []).length > 0;
@@ -936,7 +987,7 @@ export async function initializeMediaEventsAdmin() {
     try { const data = await client.eventCoverage(id); if (own !== generation) return; coverage = data; activeBucket = 'todos'; renderSummary(); renderRows(); }
     catch (error) { if (own === generation) fail(error, tableMessage); }
   }
-  eventSelect.addEventListener('change', () => loadCoverage(eventSelect.value));
+  eventSelect.addEventListener('change', async () => { await loadCoverage(eventSelect.value); await loadEvents(eventSelect.value); });
   eventForm.addEventListener('submit', async event => {
     event.preventDefault();
     const name = eventForm.elements.name.value.trim(); const date = eventForm.elements.event_date.value || null;

@@ -55,7 +55,7 @@ function layout(page, content, script = '/assets/admin/admin.js?v=20260921-admin
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' blob:; font-src 'self'; connect-src ${connectSources}; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="admin-api-base" content="${api}">
 <link rel="icon" href="/assets/finados/favicon-finados.png">
-<link rel="stylesheet" href="/assets/admin/admin.css?v=20260923-5">
+<link rel="stylesheet" href="/assets/admin/admin.css?v=20260923-7">
 <script type="module" src="${script}"></script>
 </head><body class="admin-page">
 <a class="skip-link" href="#contenido">Ir al contenido</a>
@@ -150,7 +150,7 @@ ${select('province', 'Provincia', ecuadorProvinces)}</div>
 </dialog>${mediaRecordDialog()}</main></div>`, ADMIN_MEDIOS_SCRIPT);
 }
 
-const ADMIN_MEDIOS_SCRIPT = '/assets/admin/admin-medios.js?v=20260923-admin-medios-18';
+const ADMIN_MEDIOS_SCRIPT = '/assets/admin/admin-medios.js?v=20260923-admin-medios-19';
 const RADIO_GENRE_OPTIONS = ['Noticias e información', 'Musical variada', 'Popular y tropical', 'Folclórica y andina', 'Juvenil y pop', 'Romántica', 'Religiosa', 'Deportiva', 'Comunitaria', 'Otro'];
 const PROVINCE_OPTIONS = ['Azuay', 'Bolívar', 'Cañar', 'Carchi', 'Chimborazo', 'Cotopaxi', 'El Oro', 'Esmeraldas', 'Galápagos', 'Guayas', 'Imbabura', 'Loja', 'Los Ríos', 'Manabí', 'Morona Santiago', 'Napo', 'Orellana', 'Pastaza', 'Pichincha', 'Santa Elena', 'Santo Domingo de los Tsáchilas', 'Sucumbíos', 'Tungurahua', 'Zamora Chinchipe'];
 
@@ -185,6 +185,12 @@ export function renderAdminMediosEventosPage(page) {
 <button type="button" class="button-quiet" data-session-retry hidden>Reintentar conexión</button>
 <section class="admin-events-bar" aria-label="Evento"><label>Evento<select data-event-select disabled><option>Cargando…</option></select></label>
 <form data-event-form class="admin-event-form"><fieldset disabled><label>Nuevo evento<input name="name" maxlength="160" placeholder="Ej.: Lanzamiento Finados 2026" required></label><label>Fecha<input name="event_date" type="date"></label><label>Lugar<input name="place" maxlength="160" placeholder="Ej.: Complejo Mushuc Runa"></label><label>Detalles<input name="details" maxlength="500" placeholder="Hora de acreditación, indicaciones"></label><button class="button-quiet" type="submit">Crear evento e invitar a todos</button></fieldset></form><p class="feedback" data-event-feedback role="status" aria-live="polite"></p></section>
+<section class="admin-accreditation" data-accreditation hidden aria-labelledby="accreditation-title">
+<div><h2 id="accreditation-title">Acreditación del evento</h2><p>Comparte este enlace o imprime el QR. Quien lo abra inicia sesión o crea la cuenta de su medio y registra su llegada; eso marca su asistencia.</p>
+<label>Enlace de acreditación<input type="text" readonly data-accreditation-url autocomplete="off" spellcheck="false"></label>
+<div class="admin-accreditation__actions"><button type="button" class="button-quiet" data-accreditation-copy>Copiar enlace</button><a class="button-quiet" data-accreditation-download download>Descargar QR</a></div>
+<p class="feedback" data-accreditation-state role="status" aria-live="polite"></p></div>
+<canvas data-accreditation-qr width="560" height="560"></canvas></section>
 <section class="admin-big-numbers" aria-label="Resumen de cobertura" data-coverage-summary></section>
 <section class="records" aria-labelledby="coverage-title" data-records-region><div class="records-heading"><h2 id="coverage-title" tabindex="-1">Medios del evento</h2><p data-coverage-filter>—</p></div>
 <p data-coverage-message role="status">Cargando…</p>
@@ -236,8 +242,8 @@ export function renderAdminPanelPage(page) {
 <div class="workspace-heading"><div><p class="eyebrow">Finados 2026</p><h1>Panel</h1><p data-admin-user>Comprobando acceso…</p></div></div>
 <p class="feedback" data-admin-feedback role="status" aria-live="polite" aria-atomic="true">Cargando panel…</p>
 <button type="button" class="button-quiet" data-session-retry hidden>Reintentar conexión</button>
-<section class="admin-panel-section" aria-labelledby="panel-medios-title"><div class="records-heading"><div><h2 id="panel-medios-title">Medios</h2><p>Toca un número para ver la lista.</p></div></div><div data-panel-media></div></section>
-<section class="admin-panel-section" aria-labelledby="panel-eventos-title"><div class="records-heading"><div><h2 id="panel-eventos-title">Por evento</h2><p>Abre un evento para ver sus indicadores de cobertura.</p></div></div><div data-panel-events></div></section>
+<section class="admin-panel-section" aria-labelledby="panel-medios-title"><div class="records-heading"><div><h2 id="panel-medios-title">Medios</h2><p>Toca un número para ver la lista.</p></div></div><div data-panel-media></div>
+<section class="admin-panel-subsection" aria-labelledby="panel-eventos-title"><div class="records-heading"><div><h3 id="panel-eventos-title">Medios por evento</h3><p>Abre un evento para ver su cobertura.</p></div></div><div data-panel-events></div></section></section>
 <section class="admin-panel-section" aria-labelledby="panel-voceros-title"><div class="records-heading"><div><h2 id="panel-voceros-title">Voceros</h2><p>Toca un número para ver la lista.</p></div></div><div data-panel-voceros></div></section>
-</main></div>`, '/assets/admin/panel.js?v=20260923-admin-panel-1');
+</main></div>`, '/assets/admin/panel.js?v=20260923-admin-panel-2');
 }

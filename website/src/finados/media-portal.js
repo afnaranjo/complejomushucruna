@@ -54,7 +54,7 @@ export class MediaApiClient {
     this.fetch = fetchImplementation;
   }
   async request(path, { body, blob = false } = {}) {
-    if (!/^\/(?:auth\/(?:session|register|login|logout|reset)|profile|videos|photo|claim|attendance|invitation\?token=[a-f0-9]{64}|lookup\?name=[^&#]{1,200})$/.test(path)) throw new Error('Ruta de API no permitida.');
+    if (!/^\/(?:auth\/(?:session|register|login|logout|reset)|profile|videos|photo|claim|attendance|checkin|event\?id=[a-f0-9]{32}|invitation\?token=[a-f0-9]{64}|lookup\?name=[^&#]{1,200})$/.test(path)) throw new Error('Ruta de API no permitida.');
     if (body !== undefined && !this.#csrf) await this.session();
     const headers = { Accept: blob ? 'image/jpeg' : 'application/json' };
     const multipart = typeof FormData !== 'undefined' && body instanceof FormData;
@@ -87,6 +87,8 @@ export class MediaApiClient {
   lookup(name) { return this.request(`/lookup?name=${encodeURIComponent(name).slice(0, 200)}`); }
   claim(publicId) { return this.request('/claim', { body: { public_id: publicId } }); }
   confirmAttendance(event, answer) { return this.request('/attendance', { body: { event, answer } }); }
+  checkIn(event) { return this.request('/checkin', { body: { event } }); }
+  event(id) { return this.request(`/event?id=${id}`); }
   login(email, password) { return this.request('/auth/login', { body: { email, password } }); }
   async logout() { const result = await this.request('/auth/logout', { body: {} }); this.#csrf = ''; return result; }
   profile() { return this.request('/profile'); }
@@ -206,6 +208,72 @@ function validateForm(form) {
     throw new Error('Las contraseñas no coinciden.');
   }
   if (first) { first.focus(); throw new Error('Revisa los campos marcados antes de continuar.'); }
+}
+
+/** Página a la que lleva el QR de un evento: muestra el evento y guía al login, al registro o al check-in. */
+export async function initializeMediaAccreditation(root = document, location = globalThis.location) {
+  if (root.body?.dataset.mediaView !== 'acreditacion') return;
+  const feedback = root.querySelector('[data-vocero-feedback]');
+  const message = (text, error = false) => showFeedback(feedback, text, error, { focus: false });
+  const configuredBase = root.querySelector('meta[name="media-api-base"]')?.content;
+  const runtime = resolveMediaOrigins(location);
+  const base = location.hostname === 'finados.expoferiamushucruna.com' ? runtime.apiBase : configuredBase || runtime.apiBase;
+  const api = new MediaApiClient(base);
+  const id = new URLSearchParams(location.search ?? '').get('evento') ?? '';
+  const anonymous = root.querySelector('[data-accreditation-anonymous]');
+  const session = root.querySelector('[data-accreditation-session]');
+  const state = root.querySelector('[data-accreditation-state]');
+  const checkin = root.querySelector('[data-accreditation-checkin]');
+  const confirm = root.querySelector('[data-accreditation-confirm]');
+  const decline = root.querySelector('[data-accreditation-decline]');
+  if (!/^[a-f0-9]{32}$/.test(id)) { message('El enlace de acreditación no es válido. Pide uno nuevo a la organización.', true); return; }
+  for (const link of [root.querySelector('[data-accreditation-login]'), root.querySelector('[data-accreditation-register]')]) {
+    if (link) link.href = `${link.getAttribute('href')}${link.getAttribute('href').includes('?') ? '&' : '?'}evento=${id}`;
+  }
+  let event = null;
+  try {
+    event = (await api.event(id)).event;
+    root.querySelector('[data-accreditation-name]').textContent = event.name;
+    root.querySelector('[data-accreditation-meta]').textContent = [event.event_date ? eventDate(event.event_date) : 'Fecha por confirmar', event.place].filter(Boolean).join(' · ');
+    root.querySelector('[data-accreditation-details]').textContent = event.details ?? '';
+  } catch { message('No encontramos este evento. Revisa el enlace o pide uno nuevo a la organización.', true); return; }
+  function render(invitations = []) {
+    const own = invitations.find(entry => entry.public_id === id) ?? null;
+    session.hidden = false; anonymous.hidden = true;
+    const arrived = Boolean(own?.checked_in_at);
+    state.textContent = arrived ? 'Tu llegada quedó registrada. Gracias por acompañarnos.'
+      : own?.confirmation === 'yes' ? 'Confirmaste que asistirías. Cuando llegues al evento, registra tu asistencia.'
+      : own?.confirmation === 'no' ? 'Habías indicado que no podrías asistir. Si llegaste, registra tu asistencia.'
+      : '¿Vas a asistir a este evento? Confírmalo y, cuando llegues, registra tu asistencia.';
+    checkin.hidden = arrived;
+    confirm.hidden = arrived || own?.confirmation === 'yes';
+    decline.hidden = arrived || own?.confirmation === 'no';
+  }
+  const act = async (action, text) => {
+    for (const button of [checkin, confirm, decline]) button.disabled = true;
+    try { const result = await action(); render(result.events ?? []); message(text); }
+    catch (error) { message(error?.message ?? 'No se pudo completar la solicitud.', true); }
+    finally { for (const button of [checkin, confirm, decline]) button.disabled = false; }
+  };
+  checkin.addEventListener('click', () => act(() => api.checkIn(id), 'Registramos tu llegada. Gracias.'));
+  confirm.addEventListener('click', () => act(() => api.confirmAttendance(id, 'yes'), 'Confirmaste tu asistencia.'));
+  decline.addEventListener('click', () => act(() => api.confirmAttendance(id, 'no'), 'Registramos que no podrás asistir.'));
+  try {
+    const current = await api.session();
+    if (!current.authenticated || current.user?.role !== 'media') { anonymous.hidden = false; message('Inicia sesión o crea la cuenta de tu medio para acreditarte.'); return; }
+    const profile = await api.profile();
+    if (profile.registered !== true) {
+      anonymous.hidden = false;
+      root.querySelector('[data-accreditation-anonymous]').querySelector('p').textContent = 'Tu cuenta existe, pero todavía no guardas el registro de tu medio. Complétalo y vuelve a este enlace.';
+      root.querySelector('[data-accreditation-login]').textContent = 'Completar mi registro';
+      root.querySelector('[data-accreditation-login]').href = '/finados/medios/mi-registro/';
+      root.querySelector('[data-accreditation-register]').hidden = true;
+      message('Completa el registro de tu medio para acreditarte.');
+      return;
+    }
+    render(profile.events ?? []);
+    message('');
+  } catch (error) { anonymous.hidden = false; message(error?.status === 401 ? 'Inicia sesión o crea la cuenta de tu medio para acreditarte.' : (error?.message ?? 'No se pudo comprobar tu sesión.'), error?.status !== 401); }
 }
 
 export async function initializeMediaPortal(root = document) {
@@ -389,7 +457,9 @@ export async function initializeMediaPortal(root = document) {
       if (event.details) { const details = document.createElement('p'); details.textContent = event.details; head.append(details); }
       item.append(head);
       const state = document.createElement('p'); state.className = 'media-event__state';
-      state.textContent = event.confirmation === 'yes' ? 'Confirmaste tu asistencia.' : event.confirmation === 'no' ? 'Indicaste que no podrás asistir.' : '¿Asistirás a este evento?';
+      state.textContent = event.checked_in_at ? 'Registraste tu llegada a este evento.'
+        : event.confirmation === 'yes' ? 'Confirmaste tu asistencia. El día del evento registra tu llegada con el QR.'
+        : event.confirmation === 'no' ? 'Indicaste que no podrás asistir.' : '¿Asistirás a este evento?';
       const actions = document.createElement('div'); actions.className = 'media-event__actions';
       for (const [answer, label, className] of [['yes', 'Confirmo mi asistencia', 'vocero-primary'], ['no', 'No podré asistir', 'vocero-quiet']]) {
         const button = document.createElement('button'); button.type = 'button'; button.className = className; button.textContent = label;
@@ -401,6 +471,7 @@ export async function initializeMediaPortal(root = document) {
         });
         actions.append(button);
       }
+      if (event.checked_in_at) item.dataset.answer = 'checked';
       item.append(state, actions);
       list.append(item);
     }
@@ -599,4 +670,4 @@ export async function initializeMediaPortal(root = document) {
   await start();
 }
 
-if (typeof document !== 'undefined') initializeMediaPortal();
+if (typeof document !== 'undefined') { initializeMediaPortal(); initializeMediaAccreditation(); }

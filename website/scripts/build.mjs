@@ -81,7 +81,7 @@ export async function buildSite(outputDirectory = join(websiteRoot, 'dist'), { a
     const relativePath = page.route === '/' ? 'index.html' : `${page.route.slice(1)}index.html`;
     const target = join(output, relativePath);
     await mkdir(dirname(target), { recursive: true });
-    const accountPage = page.route.startsWith('/admin/') || /^\/finados\/(?:voceros|medios|emprendedores)\/(acceso|mi-registro|restablecer)\/$/.test(page.route);
+    const accountPage = page.route.startsWith('/admin/') || /^\/finados\/(?:voceros|medios|emprendedores)\/(acceso|mi-registro|restablecer|acreditacion)\/$/.test(page.route);
     const html = page.render ? page.render(accountPage ? { ...page, adminEnvironment, adminApiBase: developmentApi } : page) : renderLayout(page);
     await writeFile(target, `${html}\n`, 'utf8');
   }
@@ -177,7 +177,7 @@ export async function buildSite(outputDirectory = join(websiteRoot, 'dist'), { a
 
   const htmlFiles = (await listFiles(output)).filter((file) => file.endsWith('.html'));
   for (const htmlFile of htmlFiles) {
-    const accountPage = htmlFile.startsWith('admin/') || /^finados\/(?:voceros|medios|emprendedores)\/(acceso|mi-registro|restablecer)\//.test(htmlFile);
+    const accountPage = htmlFile.startsWith('admin/') || /^finados\/(?:voceros|medios|emprendedores)\/(acceso|mi-registro|restablecer|acreditacion)\//.test(htmlFile);
     if (accountPage) continue;
     const path = join(output, htmlFile);
     const html = await readFile(path, 'utf8');

@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { buildSite } from '../scripts/build.mjs';
-import { adminRecordPayload, ATTENDANCE_LABELS, channelTypeFor, CONFIRMATION_LABELS, coverageBuckets, coveragePayload, createMediaAdminClient, fillAdminRecordForm, normalizeMediaFilters, ORIGIN_LABELS, COVERAGE_RESULT_LABELS } from '../src/admin/admin-medios.js';
+import { accreditationUrl, adminRecordPayload, ATTENDANCE_LABELS, channelTypeFor, CONFIRMATION_LABELS, coverageBuckets, coveragePayload, createMediaAdminClient, fillAdminRecordForm, normalizeMediaFilters, ORIGIN_LABELS, COVERAGE_RESULT_LABELS } from '../src/admin/admin-medios.js';
 import { MediaApiClient } from '../src/finados/media-portal.js';
 
 const json = (status, body) => ({ ok: status >= 200 && status < 300, status, json: async () => body });
@@ -37,6 +37,10 @@ test('el build publica el submenú Eventos de Medios, el alta desde coordinació
   // La tabla es ancha: se desplaza sola en escritorio y se apila en móvil.
   assert.match(events, /class="admin-coverage-scroll"/);
   assert.equal((events.match(/<th scope="col">/g) ?? []).length, 10, 'la tabla conserva sus diez columnas');
+  // Acreditación: enlace y QR del evento para imprimir o compartir.
+  assert.match(events, /data-accreditation-url/);
+  assert.match(events, /<canvas data-accreditation-qr/);
+  assert.match(events, /data-accreditation-download download/);
   // La pestaña Medios refleja lo que viene de los eventos.
   assert.match(admin, /<th scope="col">Eventos<\/th>/);
   assert.match(events, /Volver a Medios/);
@@ -54,7 +58,7 @@ test('el build publica el submenú Eventos de Medios, el alta desde coordinació
   assert.match(admin, /<textarea name="tv_channel"/);
   assert.match(admin, /name="audience_count"/);
   assert.match(admin, /<select name="radio_genre">/);
-  assert.match(admin, /admin-medios\.js\?v=20260923-admin-medios-18/);
+  assert.match(admin, /admin-medios\.js\?v=20260923-admin-medios-19/);
   // Portal: invitation notice on access, suggestion and pending-claim notices on the profile.
   const access = await readFile(join(output, 'finados/medios/acceso/index.html'), 'utf8');
   assert.match(access, /data-media-invitation hidden/);
@@ -129,6 +133,24 @@ test('la cobertura por evento normaliza la fila y los big numbers conservan el o
   assert.throws(() => normalizeMediaFilters({ origin: 'otro' }), /origen válido/);
 });
 
+test('la acreditación tiene enlace propio por evento y una página pública que guía al login', async () => {
+  const output = await mkdtemp(join(tmpdir(), 'mushuc-acreditacion-'));
+  const files = await buildSite(output);
+  assert.ok(files.includes('finados/medios/acreditacion/index.html'));
+  const page = await readFile(join(output, 'finados/medios/acreditacion/index.html'), 'utf8');
+  assert.match(page, /data-media-view="acreditacion"/);
+  assert.match(page, /noindex, nofollow, noarchive/);
+  // Sin sesión guía a iniciar sesión o crear cuenta; con sesión aparecen confirmar y registrar llegada.
+  for (const marker of ['data-accreditation-anonymous', 'data-accreditation-login', 'data-accreditation-register', 'data-accreditation-checkin', 'data-accreditation-confirm', 'data-accreditation-decline']) {
+    assert.match(page, new RegExp(marker), marker);
+  }
+  assert.doesNotMatch(page, /cookie-consent|fbevents/, 'es un área de cuenta: sin pixel ni cookies');
+  assert.doesNotMatch(page, /127\.0\.0\.1/);
+  assert.equal(accreditationUrl('a'.repeat(32), 'https://complejomushucruna.com'), `https://complejomushucruna.com/finados/medios/acreditacion/?evento=${'a'.repeat(32)}`);
+  assert.throws(() => accreditationUrl('corto', 'https://complejomushucruna.com'), /Identificador/);
+  assert.throws(() => accreditationUrl('a'.repeat(32), 'https://otro.example'), /Origen/);
+});
+
 test('los clientes del panel y del portal solo usan las rutas nuevas permitidas', async () => {
   const calls = [];
   const client = createMediaAdminClient('https://finados.complejomushucruna.com/api', async (url, options) => { calls.push([url, options]); return url.endsWith('/auth/session') ? json(200, { authenticated: true, csrf: 'admin-token' }) : json(200, { ok: true, items: [] }); });
@@ -160,6 +182,12 @@ test('los clientes del panel y del portal solo usan las rutas nuevas permitidas'
   assert.deepEqual(JSON.parse(portalCalls.at(-1)[1].body), { email: 'x@example.invalid', password: 'frase segura del medio', privacyAcknowledged: true, invitation: 'c'.repeat(64) });
   await api.register('x@example.invalid', 'frase segura del medio');
   assert.ok(!('invitation' in JSON.parse(portalCalls.at(-1)[1].body)));
+  await api.checkIn('b'.repeat(32));
+  assert.equal(portalCalls.at(-1)[0], 'https://finados.complejomushucruna.com/api/media/checkin');
+  assert.deepEqual(JSON.parse(portalCalls.at(-1)[1].body), { event: 'b'.repeat(32) });
+  await api.event('b'.repeat(32));
+  assert.equal(portalCalls.at(-1)[0], `https://finados.complejomushucruna.com/api/media/event?id=${'b'.repeat(32)}`);
+  await assert.rejects(api.request('/event?id=corto'), /Ruta de API no permitida/);
   await api.confirmAttendance('b'.repeat(32), 'yes');
   assert.deepEqual(JSON.parse(portalCalls.at(-1)[1].body), { event: 'b'.repeat(32), answer: 'yes' });
   assert.equal(portalCalls.at(-1)[0], 'https://finados.complejomushucruna.com/api/media/attendance');

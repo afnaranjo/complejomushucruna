@@ -32,6 +32,7 @@ import { renderMediaAccreditationBody } from './media-accreditation/page.mjs';
 import { renderAdminEmprendedoresPage, renderAdminLoginPage, renderAdminMediosEventosPage, renderAdminMediosPage, renderAdminPanelPage, renderAdminVocerosPage } from './admin/page.mjs';
 import { renderMediaLandingBody } from './medios/landing-page.mjs';
 import { renderMediaPortalPage } from './medios/portal-page.mjs';
+import { renderMediaAccreditationPage } from './medios/accreditation-page.mjs';
 import { mediaLegalDocuments, mediaLegalRoutes, renderMediaLegalPage } from './medios/legal-page.mjs';
 import { renderEmprendedoresPage } from './emprendedores/landing-page.mjs';
 import { renderEmprendedorPortalPage } from './emprendedores/portal-page.mjs';
@@ -353,6 +354,7 @@ export const pages = Object.freeze([
   ...vocerosLegalPages,
   finadosMediaPage,
   ...['acceso', 'mi-registro', 'restablecer'].map(slug => ({ route: `/finados/medios/${slug}/`, title: 'Cuenta de medio', indexable: false, render: renderMediaPortalPage })),
+  { route: '/finados/medios/acreditacion/', title: 'Acreditación de medios', indexable: false, render: renderMediaAccreditationPage },
   ...Object.entries(mediaLegalDocuments).map(([documentKey, document]) => ({ route: mediaLegalRoutes[documentKey], title: document.title, description: document.summary, documentKey, indexable: false, render: renderMediaLegalPage })),
   finadosEmprendedoresPage,
   emprendedorVerificationPage,

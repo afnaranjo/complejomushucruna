@@ -46,7 +46,7 @@ function coverage_json(array $payload): string { return json_encode($payload, JS
 coverage_close_session();
 $config = coverage_config();
 $pdo = Database::connect($config);
-foreach (['001_initial', '002_sheets_outbox', '003_vocero_accounts', '008_media_accounts', '009_media_videos', '010_media_video_views', '011_media_contact_channels', '012_media_consents', '013_media_types_radio', '014_media_channels_photo', '015_media_traffic_light', '016_media_paid', '018_media_coverage', '019_media_event_attendance'] as $migration) {
+foreach (['001_initial', '002_sheets_outbox', '003_vocero_accounts', '008_media_accounts', '009_media_videos', '010_media_video_views', '011_media_contact_channels', '012_media_consents', '013_media_types_radio', '014_media_channels_photo', '015_media_traffic_light', '016_media_paid', '018_media_coverage', '019_media_event_attendance', '020_media_event_checkin'] as $migration) {
     $pdo->exec(file_get_contents(__DIR__ . '/../migrations/' . $migration . '_sqlite.sql'));
 }
 same('018_media_coverage', $pdo->query("SELECT version FROM schema_migrations WHERE version = '018_media_coverage'")->fetchColumn());
@@ -363,4 +363,43 @@ same(404, $router->handle('PATCH', '/api/medios/' . $senales . '/videos', $admin
 same(1, count(coverage_body($router->handle('GET', '/api/medios/' . $senales, $origin))['videos']));
 same(1, (int) $pdo->query("SELECT COUNT(*) FROM audit_log WHERE event_type = 'media.video_removed_by_admin'")->fetchColumn());
 same(2, (int) $pdo->query("SELECT COUNT(*) FROM audit_log WHERE event_type = 'media.video_added_by_admin'")->fetchColumn());
+coverage_close_session();
+
+// ---------------------------------------------------------------- 020: accreditation link and check-in
+coverage_close_session();
+// The QR destination is public: it only names the event, never a medium.
+$public = coverage_body($router->handle('GET', '/api/media/event?id=' . $rueda, ['REMOTE_ADDR' => '198.51.100.30']));
+same('Rueda de prensa Finados', $public['event']['name']);
+same('Complejo Mushuc Runa', $public['event']['place']);
+same(['public_id', 'name', 'event_date', 'place', 'details'], array_keys($public['event']));
+same(404, $router->handle('GET', '/api/media/event?id=' . str_repeat('e', 32), $origin)->status);
+// Un identificador mal formado responde como uno inexistente: no revela nada.
+same(404, $router->handle('GET', '/api/media/event?id=corto', $origin)->status);
+same(401, $router->handle('POST', '/api/media/checkin', $json('x'), coverage_json(['event' => $rueda]))->status);
+// The medium registers its arrival: that is what marks attendance.
+$session = coverage_body($router->handle('GET', '/api/media/auth/session', $origin));
+$login = coverage_body($router->handle('POST', '/api/media/auth/login', $json($session['csrf']), coverage_json(['email' => 'cumbre@example.invalid', 'password' => $secret])));
+$before = coverage_body($router->handle('GET', '/api/media/profile', $origin));
+foreach ($before['events'] as $entry) if ($entry['public_id'] === $rueda) { same('no', $entry['confirmation']); same(null, $entry['checked_in_at']); }
+same(404, $router->handle('POST', '/api/media/checkin', $json($login['csrf']), coverage_json(['event' => str_repeat('e', 32)]))->status);
+$arrived = coverage_body($router->handle('POST', '/api/media/checkin', $json($login['csrf']), coverage_json(['event' => $rueda])));
+$own = null;
+foreach ($arrived['events'] as $entry) if ($entry['public_id'] === $rueda) $own = $entry;
+same(true, $own['checked_in_at'] !== null);
+same('yes', $own['attended']);
+// Arriving overrides a previous "I cannot attend", and the first timestamp is kept.
+same('no', $own['confirmation']);
+$again = coverage_body($router->handle('POST', '/api/media/checkin', $json($login['csrf']), coverage_json(['event' => $rueda])));
+foreach ($again['events'] as $entry) if ($entry['public_id'] === $rueda) same($own['checked_in_at'], $entry['checked_in_at']);
+coverage_close_session();
+$adminSession = coverage_body($router->handle('GET', '/api/auth/session', $origin));
+$adminLogin = coverage_body($router->handle('POST', '/api/auth/login', $json($adminSession['csrf']), coverage_json(['username' => 'admin', 'password' => $adminSecret])));
+$admin = $json($adminLogin['csrf']);
+$detail = coverage_body($router->handle('GET', '/api/media-events/' . $rueda, $origin));
+same(true, in_array($cumbre, $detail['summary']['registrados']['ids'], true));
+same(true, in_array($cumbre, $detail['summary']['asistieron']['ids'], true));
+foreach ($detail['items'] as $item) if ($item['public_id'] === $cumbre) same(true, $item['checked_in_at'] !== null);
+$events = coverage_body($router->handle('GET', '/api/media-events', $origin))['items'];
+foreach ($events as $event) if ($event['public_id'] === $rueda) same(1, $event['checked_in_count']);
+same(2, (int) $pdo->query("SELECT COUNT(*) FROM audit_log WHERE event_type = 'media.checked_in'")->fetchColumn());
 coverage_close_session();
