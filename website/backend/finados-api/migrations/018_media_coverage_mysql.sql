@@ -1,5 +1,9 @@
 -- Records may now be created by coordination without an account; the account is linked later.
+-- MariaDB refuses to change the nullability of a column that carries a foreign key, so the key is
+-- dropped for the change and recreated right after.
+ALTER TABLE media_profiles DROP FOREIGN KEY fk_media_profile_account;
 ALTER TABLE media_profiles MODIFY account_id BIGINT UNSIGNED NULL;
+ALTER TABLE media_profiles ADD CONSTRAINT fk_media_profile_account FOREIGN KEY (account_id) REFERENCES media_accounts(id);
 ALTER TABLE media_profiles ADD COLUMN origin VARCHAR(16) NOT NULL DEFAULT 'cuenta', ADD COLUMN representatives TEXT NULL, ADD COLUMN followers_validated BIGINT UNSIGNED NULL, ADD COLUMN claim_account_id BIGINT UNSIGNED NULL, ADD COLUMN claim_requested_at DATETIME NULL;
 
 CREATE TABLE IF NOT EXISTS media_events (
