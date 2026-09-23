@@ -246,6 +246,8 @@ tags:
 - [ ] Revisar en `/admin/medios/eventos/` el evento «Lanzamiento Finados 2026»: completar los 4 «pendiente», corregir «Radio centro - Estereo San Miguel» (ciudad «Centro del País» sin provincia) y los seguidores de «Radio Stereo Buenas Nuevas» (la hoja decía «2,4»). Responsable: comunicación. Fecha: por definir.
 - [ ] Confirmar en coordinación si «RADIO BRISA 95.3» (Ambato) es la misma radio que «Brisa Stereo» (Píllaro) ya registrada, y si «RADIO ESTÉREO SAN MIGUEL» (Salcedo) debe unirse a «Radio centro - Estereo San Miguel»; si es así, unir manualmente y retirar el duplicado. Responsable: comunicación. Fecha: por definir.
 - [ ] Avisar al medio que está `Aprobado` sin foto que debe subir la de su persona responsable para poder agregar videos. Responsable: comunicación. Fecha: por definir.
+- [ ] Probar la acreditación en el próximo evento de medios: imprimir el QR, comprobar en el ingreso que una persona con cuenta y otra sin cuenta completen el recorrido desde el celular, y revisar después el indicador «Se registraron con el QR». Responsable: comunicación. Fecha: próximo evento.
+- [ ] Definir quién atiende la puerta con el QR y qué se hace si un medio llega sin poder crear la cuenta en el momento (hoy coordinación puede marcar su asistencia desde el panel). Responsable: comunicación. Fecha: por definir.
 
 ## Regla
 
