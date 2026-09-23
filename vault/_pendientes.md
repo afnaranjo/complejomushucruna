@@ -248,6 +248,9 @@ tags:
 - [ ] Avisar al medio que está `Aprobado` sin foto que debe subir la de su persona responsable para poder agregar videos. Responsable: comunicación. Fecha: por definir.
 - [ ] Probar la acreditación en el próximo evento de medios: imprimir el QR, comprobar en el ingreso que una persona con cuenta y otra sin cuenta completen el recorrido desde el celular, y revisar después el indicador «Se registraron con el QR». Responsable: comunicación. Fecha: próximo evento.
 - [ ] Definir quién atiende la puerta con el QR y qué se hace si un medio llega sin poder crear la cuenta en el momento (hoy coordinación puede marcar su asistencia desde el panel). Responsable: comunicación. Fecha: por definir.
+- [ ] Validar con el responsable o su asesoría legal las Condiciones de participación y la Política de Privacidad de Creadoras de Contenido, y ratificar el plazo de conservación de tres años, antes de difundir el registro. Responsable: dirección/legal. Fecha: por definir.
+- [ ] Revisar con Alex el calendario de Creadoras en producción: arrastrar una caja en escritorio, tocar un nombre y una hora en móvil, y comprobar que la bitácora refleja cada cambio. Responsable: Alex/comunicación. Fecha: por definir.
+- [ ] Decidir si se necesitan cuentas administrativas por persona: hoy el backend admite un solo usuario `admin`, así que la bitácora del calendario no distingue quién de coordinación hizo cada cambio. Responsable: Alex/tecnología. Fecha: por definir.
 
 ## Regla
 
