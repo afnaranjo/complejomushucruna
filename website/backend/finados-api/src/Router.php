@@ -9,7 +9,7 @@ use OutOfBoundsException;
 use PDO;
 use Throwable;
 
-foreach (['Config', 'Database', 'Crypto', 'Audit', 'VocerosRepository', 'Auth', 'VoceroAuth', 'VoceroProfile', 'VoceroPasswordReset', 'MediaAuth', 'MediaRepository', 'MediaPasswordReset', 'EmprendedorAuth', 'EmprendedorRepository', 'EmprendedorPasswordReset', 'CreadoraAuth', 'CreadoraRepository', 'CreadoraPasswordReset'] as $dependency) {
+foreach (['Config', 'Database', 'Crypto', 'Audit', 'VocerosRepository', 'Auth', 'VoceroAuth', 'VoceroProfile', 'VoceroPasswordReset', 'MediaAuth', 'MediaRepository', 'MediaPasswordReset', 'EmprendedorAuth', 'EmprendedorRepository', 'EmprendedorPasswordReset', 'CreadoraAuth', 'CreadoraRepository', 'CreadoraPasswordReset', 'NewsRepository'] as $dependency) {
     require_once __DIR__ . '/' . $dependency . '.php';
 }
 
@@ -41,6 +41,7 @@ final class Router
     private ?EmprendedorRepository $emprendedorInstance = null;
     private ?CreadoraAuth $creadoraAuthInstance = null;
     private ?CreadoraRepository $creadoraInstance = null;
+    private ?NewsRepository $newsInstance = null;
     private readonly Audit $audit;
     private readonly Crypto $crypto;
     private const FILTERS = ['search', 'status', 'city', 'main_network', 'previous_participation', 'date_from', 'date_to'];
@@ -247,6 +248,9 @@ final class Router
             if ($path === '/api/panel' && $method === 'GET') {
                 if ($query !== []) throw new InvalidArgumentException();
                 return $this->json(200, $this->panelSummary(), $headers);
+            }
+            if ($path === '/api/noticias' || str_starts_with($path, '/api/noticias/')) {
+                return $this->news($method, $path, $query, $server, $rawBody, $ip, $user, $headers);
             }
             if ($path === '/api/creadoras' || str_starts_with($path, '/api/creadoras/')) {
                 return $this->creadoraAdmin($method, $path, $query, $server, $rawBody, $ip, $user, $headers);
@@ -594,6 +598,41 @@ final class Router
                 return $this->json(201, ['resetUrl' => $resetOrigin . '/finados/emprendedores/restablecer/?token=' . $raw], $headers);
             }
             return $notAllowed();
+        }
+        return $this->error(404, 'not_found', 'Recurso no encontrado.', $headers);
+    }
+
+    /** El tema central de la campaña, que todos los paneles muestran arriba. */
+    private function news(string $method, string $path, array $query, array $server, string $rawBody, mixed $ip, array $user, array $headers): Response
+    {
+        $repository = $this->newsInstance ??= new NewsRepository($this->pdo, $this->audit);
+        if ($path === '/api/noticias') {
+            if ($method !== 'GET') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+            if ($query !== []) throw new InvalidArgumentException();
+            return $this->json(200, $repository->overview(), $headers);
+        }
+        if ($query !== []) throw new InvalidArgumentException();
+        if ($path === '/api/noticias/fases') {
+            if ($method !== 'POST') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+            $body = $this->body($server, $rawBody, ['title', 'detail', 'starts_on', 'ends_on', 'accent']);
+            return $this->json(201, ['ok' => true, ...$repository->createPhase($body, $user['id'], $ip)], $headers);
+        }
+        if (preg_match('~^/api/noticias/fases/([a-f0-9]{32})$~D', $path, $parts)) {
+            if ($method === 'PATCH') {
+                $body = $this->body($server, $rawBody, ['title', 'detail', 'starts_on', 'ends_on', 'accent']);
+                return $this->json(200, ['ok' => true, ...$repository->updatePhase($parts[1], $body, $user['id'], $ip)], $headers);
+            }
+            if ($method === 'POST') return $this->json(200, ['ok' => true, ...$repository->deletePhase($parts[1], $user['id'], $ip)], $headers);
+            return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+        }
+        if ($path === '/api/noticias/avisos') {
+            if ($method !== 'POST') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+            $body = $this->body($server, $rawBody, ['body', 'starts_on', 'ends_on']);
+            return $this->json(201, ['ok' => true, ...$repository->createNotice($body, $user['id'], $ip)], $headers);
+        }
+        if (preg_match('~^/api/noticias/avisos/([a-f0-9]{32})$~D', $path, $parts)) {
+            if ($method !== 'POST') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+            return $this->json(200, ['ok' => true, ...$repository->deleteNotice($parts[1], $user['id'], $ip)], $headers);
         }
         return $this->error(404, 'not_found', 'Recurso no encontrado.', $headers);
     }

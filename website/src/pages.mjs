@@ -32,7 +32,8 @@ import { renderMediaAccreditationBody } from './media-accreditation/page.mjs';
 import { renderCreadorasLandingPage } from './creadoras/landing-page.mjs';
 import { renderCreadoraPortalPage } from './creadoras/portal-page.mjs';
 import { renderCreadoraLegalPage } from './creadoras/legal-page.mjs';
-import { renderAdminCreadorasPage,
+import { renderAdminNoticiasPage,
+  renderAdminCreadorasPage,
   renderAdminEmprendedoresPage, renderAdminLoginPage, renderAdminMediosEventosPage, renderAdminMediosPage, renderAdminPanelPage, renderAdminVocerosPage } from './admin/page.mjs';
 import { renderMediaLandingBody } from './medios/landing-page.mjs';
 import { renderMediaPortalPage } from './medios/portal-page.mjs';
@@ -349,6 +350,7 @@ export const pages = Object.freeze([
   { route: '/admin/medios/eventos/', title: 'Medios · Eventos · Administración', indexable: false, render: renderAdminMediosEventosPage },
   { route: '/admin/emprendedores/', title: 'Emprendedores · Administración', indexable: false, render: renderAdminEmprendedoresPage },
   { route: '/admin/creadoras/', title: 'Creadoras · Administración', indexable: false, render: renderAdminCreadorasPage },
+  { route: '/admin/noticias/', title: 'Noticias · Administración', indexable: false, render: renderAdminNoticiasPage },
   { route: '/finados/creadoras/', title: 'Creadoras de contenido · Finados 2026', indexable: false, render: renderCreadorasLandingPage },
   { route: '/finados/creadoras/acceso/', title: 'Tu cuenta de creadora', indexable: false, render: renderCreadoraPortalPage },
   { route: '/finados/creadoras/mi-registro/', title: 'Mi registro · Creadoras', indexable: false, render: renderCreadoraPortalPage },

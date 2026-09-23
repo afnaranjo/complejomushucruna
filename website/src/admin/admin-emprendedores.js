@@ -1,5 +1,6 @@
 import { isAllowedSiteOrigin, MIRROR_API_BASE, PRIMARY_API_BASE, PRIMARY_SITE_ORIGIN, resolveRuntimeOrigins } from '../finados/runtime-origins.mjs';
 import './sidebar.js?v=20260923-admin-sidebar-1';
+import './campaign-banner.js?v=20260923-noticias-1';
 
 export const EMPRENDEDOR_STATUSES = Object.freeze(['Nuevo', 'En revisión', 'Aprobado', 'Rechazado']);
 export const EMPRENDEDOR_LEVELS = Object.freeze(['En preparación', 'Primer video', 'En camino', 'Constante', 'Destacado', 'Referente', 'Tope']);

@@ -162,6 +162,15 @@ export async function buildSite(outputDirectory = join(websiteRoot, 'dist'), { a
   ], { cwd: websiteRoot });
   // El plegado del menú lateral lo comparten las cuatro pantallas administrativas.
   await copyFile(join(websiteRoot, 'src', 'admin', 'sidebar.js'), join(adminAssets, 'sidebar.js'));
+  // La banda del tema central la comparten todos los paneles y, como ellos, no lleva la API local a producción.
+  const campaignBannerScript = await readFile(join(websiteRoot, 'src', 'admin', 'campaign-banner.js'), 'utf8');
+  await writeFile(join(adminAssets, 'campaign-banner.js'), campaignBannerScript.replace(
+    "const LOCAL_API = 'http://127.0.0.1:4174/api';",
+    adminEnvironment === 'production' ? 'const LOCAL_API = null;' : `const LOCAL_API = '${developmentApi}';`), 'utf8');
+  const adminNoticiasScript = await readFile(join(websiteRoot, 'src', 'admin', 'admin-noticias.js'), 'utf8');
+  await writeFile(join(adminAssets, 'admin-noticias.js'), adminNoticiasScript.replace(
+    "const LOCAL_API = 'http://127.0.0.1:4174/api';",
+    adminEnvironment === 'production' ? 'const LOCAL_API = null;' : `const LOCAL_API = '${developmentApi}';`), 'utf8');
   const adminScript = await readFile(join(websiteRoot, 'src', 'admin', 'admin.js'), 'utf8');
   await writeFile(join(adminAssets, 'admin.js'), adminEnvironment === 'production'
     ? adminScript.replace("const LOCAL_API = 'http://127.0.0.1:4174/api';", 'const LOCAL_API = null;')

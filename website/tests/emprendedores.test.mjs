@@ -107,7 +107,7 @@ test('el build publica la landing, el portal, la validación, los cinco document
   const voceros = await readFile(join(output, 'admin/voceros/index.html'), 'utf8');
   for (const html of [admin, voceros]) {
     const order = [...html.matchAll(/class="admin-nav-link" href="([^"]+)"/g)].map(match => match[1]);
-    assert.deepEqual(order, ['/admin/panel/', '/admin/voceros/', '/admin/medios/', '/admin/emprendedores/', '/admin/creadoras/']);
+    assert.deepEqual(order, ['/admin/noticias/', '/admin/panel/', '/admin/voceros/', '/admin/medios/', '/admin/emprendedores/', '/admin/creadoras/']);
   }
   assert.match(voceros, /name="kit_status"/, 'el panel de Voceros conserva su kit');
 });

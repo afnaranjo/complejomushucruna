@@ -1,6 +1,7 @@
 import { isAllowedSiteOrigin, MIRROR_API_BASE, PRIMARY_API_BASE, resolveRuntimeOrigins } from '../finados/runtime-origins.mjs';
 import { qrcode } from '../finados/qrcode-generator.mjs';
 import './sidebar.js?v=20260923-admin-sidebar-1';
+import './campaign-banner.js?v=20260923-noticias-1';
 
 export const TRAFFIC_LIGHT_LABELS = Object.freeze({ red: 'Rojo · En preparación', yellow: 'Amarillo · En avance', green: 'Verde · Listo' });
 export const MEDIA_STATUSES = Object.freeze(['Nuevo', 'En revisión', 'Aprobado', 'Rechazado']);

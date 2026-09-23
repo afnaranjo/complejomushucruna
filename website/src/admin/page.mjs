@@ -8,6 +8,7 @@ import { apiBasesForCsp, LOCAL_API_BASE, PRIMARY_API_BASE } from '../finados/run
 const options = values => values.map(value => `<option value="${esc(value)}">${esc(value)}</option>`).join('');
 const select = (name, label, values) => `<label>${label}<select name="${name}"><option value="">Todos</option>${options(values)}</select></label>`;
 const ADMIN_FORMS = Object.freeze([
+  { route: '/admin/noticias/', label: 'Noticias', description: 'Tema central de la campaña', marker: 'N' },
   { route: '/admin/panel/', label: 'Panel', description: 'Resumen de todo', marker: 'P' },
   { route: '/admin/voceros/', label: 'Voceros', description: 'Registros y seguimiento', marker: 'V' },
   { route: '/admin/medios/', label: 'Medios', description: 'Acreditación de medios', marker: 'M', children: [{ route: '/admin/medios/eventos/', label: 'Eventos', description: 'Cobertura por evento' }] },
@@ -15,7 +16,7 @@ const ADMIN_FORMS = Object.freeze([
   { route: '/admin/creadoras/', label: 'Creadoras', description: 'Contenido y calendario', marker: 'C' },
 ]);
 // Public landing that each panel returns to from its header.
-const PANEL_LANDINGS = Object.freeze({ '/admin/panel/': ['/finados/', 'Volver a Finados'], '/admin/voceros/': ['/finados/voceros/', 'Volver a Voceros'], '/admin/medios/': ['/finados/medios/', 'Volver a Medios'], '/admin/medios/eventos/': ['/finados/medios/', 'Volver a Medios'], '/admin/emprendedores/': ['/finados/emprendedores/', 'Volver a Emprendedores'], '/admin/creadoras/': ['/finados/creadoras/', 'Volver a Creadoras'] });
+const PANEL_LANDINGS = Object.freeze({ '/admin/noticias/': ['/finados/', 'Volver a Finados'], '/admin/panel/': ['/finados/', 'Volver a Finados'], '/admin/voceros/': ['/finados/voceros/', 'Volver a Voceros'], '/admin/medios/': ['/finados/medios/', 'Volver a Medios'], '/admin/medios/eventos/': ['/finados/medios/', 'Volver a Medios'], '/admin/emprendedores/': ['/finados/emprendedores/', 'Volver a Emprendedores'], '/admin/creadoras/': ['/finados/creadoras/', 'Volver a Creadoras'] });
 const PROGRESS_LEVELS = ['En preparación', 'Primer paso', 'Gorra', 'Kit completo', 'Trae a los tuyos', 'Noche de concierto', 'Tope'];
 const VIDEO_SLOTS = Object.freeze([1, 2, 3, 4, 5]);
 const videoSlotControls = (prefix = 'video') => VIDEO_SLOTS.map(slot => `<label class="admin-video-control"><span class="admin-video-check"><input type="checkbox" name="${prefix}_${slot}_enabled" value="1"><strong>Video ${slot}</strong></span><span class="admin-video-date"><span>Habilitado desde</span><input type="date" name="${prefix}_${slot}_enabled_at" aria-label="Fecha de habilitación del video ${slot}"></span></label>`).join('');
@@ -46,6 +47,9 @@ function adminSidebar(page) {
 </details>
 </aside>`;
 }
+
+/** La banda del tema central: el mismo bloque arriba de cada panel. */
+const campaignBanner = '<section class="campaign-banner" data-campaign-banner hidden aria-label="Tema central de la campaña"></section>';
 
 function layout(page, content, script = '/assets/admin/admin.js?v=20260923-admin-sidebar-1') {
   const api = page.adminEnvironment === 'development' ? (page.adminApiBase ?? LOCAL_API_BASE) : PRIMARY_API_BASE;
@@ -89,7 +93,7 @@ export function renderAdminLoginPage(page) {
 }
 
 export function renderAdminVocerosPage(page) {
-  return layout(page, `<div class="admin-shell">${adminSidebar(page)}<main id="contenido" class="admin-workspace" data-admin-voceros>
+  return layout(page, `<div class="admin-shell">${adminSidebar(page)}<main id="contenido" class="admin-workspace" data-admin-voceros>${campaignBanner}
 <div class="workspace-heading"><div><p class="eyebrow">Finados 2026</p><h1>Registros de Voceros</h1><p data-admin-user>Comprobando acceso…</p></div><button type="button" class="button-primary" data-admin-export disabled>Exportar CSV</button></div>
 <p class="feedback" data-admin-feedback role="status" aria-live="polite" aria-atomic="true"></p>
 <button type="button" class="button-quiet" data-session-retry hidden>Reintentar conexión</button>
@@ -124,7 +128,7 @@ ${select('previous_participation', 'Participación anterior', PREVIOUS_PARTICIPA
 }
 
 export function renderAdminMediosPage(page) {
-  return layout(page, `<div class="admin-shell">${adminSidebar(page)}<main id="contenido" class="admin-workspace" data-admin-medios>
+  return layout(page, `<div class="admin-shell">${adminSidebar(page)}<main id="contenido" class="admin-workspace" data-admin-medios>${campaignBanner}
 <div class="workspace-heading"><div><p class="eyebrow">Finados 2026</p><h1>Registros de Medios</h1><p data-admin-user>Comprobando acceso…</p></div><div class="workspace-actions"><button type="button" class="button-primary" data-admin-add disabled>Agregar medio</button><button type="button" class="button-quiet" data-admin-export disabled>Exportar CSV</button></div></div>
 <p class="feedback" data-admin-feedback role="status" aria-live="polite" aria-atomic="true"></p>
 <button type="button" class="button-quiet" data-session-retry hidden>Reintentar conexión</button>
@@ -186,7 +190,7 @@ function mediaRecordDialog() {
 }
 
 export function renderAdminMediosEventosPage(page) {
-  return layout(page, `<div class="admin-shell">${adminSidebar(page)}<main id="contenido" class="admin-workspace" data-admin-medios-eventos>
+  return layout(page, `<div class="admin-shell">${adminSidebar(page)}<main id="contenido" class="admin-workspace" data-admin-medios-eventos>${campaignBanner}
 <div class="workspace-heading"><div><p class="eyebrow">Finados 2026 · Medios</p><h1>Cobertura por evento</h1><p data-admin-user>Comprobando acceso…</p></div></div>
 <p class="feedback" data-admin-feedback role="status" aria-live="polite" aria-atomic="true"></p>
 <button type="button" class="button-quiet" data-session-retry hidden>Reintentar conexión</button>
@@ -212,7 +216,7 @@ ${mediaRecordDialog()}</main></div>`, ADMIN_MEDIOS_SCRIPT);
 }
 
 export function renderAdminEmprendedoresPage(page) {
-  return layout(page, `<div class="admin-shell">${adminSidebar(page)}<main id="contenido" class="admin-workspace" data-admin-emprendedores>
+  return layout(page, `<div class="admin-shell">${adminSidebar(page)}<main id="contenido" class="admin-workspace" data-admin-emprendedores>${campaignBanner}
 <div class="workspace-heading"><div><p class="eyebrow">Finados 2026 · De emprendedor a influencer</p><h1>Registros de Emprendedores</h1><p data-admin-user>Comprobando acceso…</p></div><button type="button" class="button-primary" data-admin-export disabled>Exportar CSV</button></div>
 <p class="feedback" data-admin-feedback role="status" aria-live="polite" aria-atomic="true"></p>
 <button type="button" class="button-quiet" data-session-retry hidden>Reintentar conexión</button>
@@ -244,11 +248,56 @@ ${select('main_network', 'Red principal', ['TikTok', 'Instagram', 'Facebook'])}<
 </dialog></main></div>`, '/assets/admin/admin-emprendedores.js?v=20260923-admin-sidebar-1');
 }
 
+export function renderAdminNoticiasPage(page) {
+  return layout(page, `<div class="admin-shell">${adminSidebar(page)}<main id="contenido" class="admin-workspace" data-admin-noticias>
+<div class="workspace-heading"><div><p class="eyebrow">Finados 2026</p><h1>Noticias</h1><p data-admin-user>Comprobando acceso…</p></div>
+<div class="workspace-actions"><button type="button" class="button-quiet" data-notice-new>Publicar aviso</button><button type="button" class="button-primary" data-phase-new>Agregar tramo</button></div></div>
+<p class="feedback" data-admin-feedback role="status" aria-live="polite" aria-atomic="true">Cargando noticias…</p>
+<section class="admin-panel-section" aria-labelledby="mapa-title">
+<div class="records-heading"><div><h2 id="mapa-title">Mapa de la campaña</h2><p>El tema central de cada tramo. Es lo que ve el equipo arriba de cada panel.</p></div></div>
+<ol class="campaign-map" data-phase-list></ol>
+</section>
+<section class="admin-panel-section" aria-labelledby="avisos-title">
+<div class="records-heading"><div><h2 id="avisos-title">Avisos</h2><p>Mensajes puntuales. Con fechas se muestran solo mientras están vigentes.</p></div></div>
+<ol class="campaign-notices" data-notice-list></ol>
+</section>
+<dialog class="record-dialog record-dialog--compact" data-phase-dialog aria-label="Tramo de la campaña">
+<form method="dialog" class="record-form">
+<div class="records-heading"><div><h2 data-phase-title>Agregar tramo</h2><p>Desde qué fecha hasta qué fecha y con qué tema.</p></div></div>
+<div class="record-grid">
+<label class="record-grid__wide">Tema<input name="title" maxlength="160" required placeholder="Ej.: Revelación + Preventa"></label>
+<label class="record-grid__wide">Detalle<input name="detail" maxlength="300" placeholder="Ej.: Comercial · mixto · feria"></label>
+<label>Desde<input name="starts_on" type="date" required></label>
+<label>Hasta<input name="ends_on" type="date" required></label>
+<label class="record-grid__wide">Color<input name="accent" type="color" value="#94165e"></label>
+</div>
+<p class="feedback" data-phase-feedback role="status" aria-live="polite"></p>
+<div class="record-form__actions record-form__actions--split">
+<span class="record-form__side"><button type="button" class="button-quiet" data-phase-remove hidden>Quitar</button></span>
+<span class="record-form__side"><button type="submit" value="cancel" class="button-quiet">Cancelar</button><button type="submit" value="save" class="button-primary">Guardar</button></span>
+</div>
+</form>
+</dialog>
+<dialog class="record-dialog record-dialog--compact" data-notice-dialog aria-label="Aviso">
+<form method="dialog" class="record-form">
+<div class="records-heading"><div><h2>Publicar aviso</h2><p>Se muestra arriba de todos los paneles mientras esté vigente.</p></div></div>
+<div class="record-grid">
+<label class="record-grid__wide">Aviso<input name="body" maxlength="400" required placeholder="Ej.: Esta semana grabamos con audiovisual"></label>
+<label>Desde<input name="starts_on" type="date"></label>
+<label>Hasta<input name="ends_on" type="date"></label>
+</div>
+<p class="feedback" data-notice-feedback role="status" aria-live="polite"></p>
+<div class="record-form__actions"><button type="submit" value="cancel" class="button-quiet">Cancelar</button><button type="submit" value="save" class="button-primary">Publicar</button></div>
+</form>
+</dialog>
+</main></div>`, '/assets/admin/admin-noticias.js?v=20260923-noticias-1');
+}
+
 export function renderAdminCreadorasPage(page) {
   const statuses = ['Activa', 'Nuevo', 'En pausa'].map(value => `<option value="${esc(value)}">${esc(value)}</option>`).join('');
   const networks = Object.entries({ tiktok: 'TikTok', instagram: 'Instagram', facebook: 'Facebook', youtube: 'YouTube', otro: 'Otra red' })
     .map(([value, label]) => `<option value="${esc(value)}">${esc(label)}</option>`).join('');
-  return layout(page, `<div class="admin-shell">${adminSidebar(page)}<main id="contenido" class="admin-workspace" data-admin-creadoras>
+  return layout(page, `<div class="admin-shell">${adminSidebar(page)}<main id="contenido" class="admin-workspace" data-admin-creadoras>${campaignBanner}
 <div class="workspace-heading"><div><p class="eyebrow">Finados 2026</p><h1>Creadoras de contenido</h1><p data-admin-user>Comprobando acceso…</p></div>
 <div class="workspace-actions"><button type="button" class="button-quiet" data-creadora-new>Agregar creadora</button><button type="button" class="button-primary" data-shift-new>Agregar turno</button></div></div>
 <p class="feedback" data-admin-feedback role="status" aria-live="polite" aria-atomic="true">Cargando calendario…</p>
@@ -345,7 +394,7 @@ export function renderAdminCreadorasPage(page) {
 }
 
 export function renderAdminPanelPage(page) {
-  return layout(page, `<div class="admin-shell">${adminSidebar(page)}<main id="contenido" class="admin-workspace" data-admin-panel>
+  return layout(page, `<div class="admin-shell">${adminSidebar(page)}<main id="contenido" class="admin-workspace" data-admin-panel>${campaignBanner}
 <div class="workspace-heading"><div><p class="eyebrow">Finados 2026</p><h1>Panel</h1><p data-admin-user>Comprobando acceso…</p></div></div>
 <p class="feedback" data-admin-feedback role="status" aria-live="polite" aria-atomic="true">Cargando panel…</p>
 <button type="button" class="button-quiet" data-session-retry hidden>Reintentar conexión</button>

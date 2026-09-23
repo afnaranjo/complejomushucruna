@@ -8,7 +8,7 @@ import { buildSite } from '../scripts/build.mjs';
 import { pages } from '../src/pages.mjs';
 import { eventLabel, panelCards } from '../src/admin/panel.js';
 
-test('el panel es la primera pestaña, la primera pantalla tras iniciar sesión y trae sus tres secciones', async () => {
+test('el panel es la primera pantalla tras iniciar sesión y trae sus tres secciones', async () => {
   const output = await mkdtemp(join(tmpdir(), 'mushuc-panel-'));
   const files = await buildSite(output);
   assert.ok(files.includes('admin/panel/index.html'));
@@ -23,9 +23,9 @@ test('el panel es la primera pestaña, la primera pantalla tras iniciar sesión 
   assert.match(medios, /<h3 id="panel-eventos-title">Medios por evento<\/h3>/);
   assert.ok(medios.includes('data-panel-events'), 'los eventos se muestran dentro de Medios');
   assert.match(panel, /href="\/admin\/panel\/" aria-current="page"/);
-  // El panel abre el menú: primero él, después los formularios.
+  // Noticias abre el menú porque manda sobre todo lo demás; el panel va justo después.
   const order = [...panel.matchAll(/class="admin-nav-link(?: admin-nav-link--child)?" href="([^"]+)"/g)].map(match => match[1]);
-  assert.deepEqual(order, ['/admin/panel/', '/admin/voceros/', '/admin/medios/', '/admin/medios/eventos/', '/admin/emprendedores/', '/admin/creadoras/']);
+  assert.deepEqual(order, ['/admin/noticias/', '/admin/panel/', '/admin/voceros/', '/admin/medios/', '/admin/medios/eventos/', '/admin/emprendedores/', '/admin/creadoras/']);
   // Al iniciar sesión se llega al panel, no a Voceros.
   const login = await readFile(join(output, 'assets/admin/admin.js'), 'utf8');
   assert.match(login, /redirect\('\/admin\/panel\/'\)/);
