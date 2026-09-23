@@ -12,6 +12,8 @@ export const VIEWS = Object.freeze({ day: 'Día', week: 'Semana', month: 'Mes' }
 export const DAY_START_HOUR = 6;
 export const DAY_END_HOUR = 24;
 export const STEP_MINUTES = 15;
+/** El día se cierra a las 23:59: el backend no acepta «24:00» como hora. */
+export const MAX_END_MINUTES = DAY_END_HOUR * 60 - 1;
 const DAY_NAMES = ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo'];
 const MONTH_NAMES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
 
@@ -202,7 +204,7 @@ export function movedShift(shift, key, startMinutes) {
   const to = minutesOf(shift.ends_at);
   if (from === null || to === null) throw new TypeError('Turno sin horas válidas.');
   const length = to - from;
-  const start = Math.max(DAY_START_HOUR * 60, Math.min(startMinutes, DAY_END_HOUR * 60 - length));
+  const start = Math.max(DAY_START_HOUR * 60, Math.min(startMinutes, MAX_END_MINUTES - length));
   return { starts_at: formatMoment(key, start), ends_at: formatMoment(key, start + length) };
 }
 
@@ -210,14 +212,51 @@ export function movedShift(shift, key, startMinutes) {
 export function resizedShift(shift, endMinutes) {
   const from = minutesOf(shift.starts_at);
   if (from === null) throw new TypeError('Turno sin horas válidas.');
-  const end = Math.max(from + STEP_MINUTES, Math.min(endMinutes, DAY_END_HOUR * 60));
+  const end = Math.max(from + STEP_MINUTES, Math.min(endMinutes, MAX_END_MINUTES));
   const key = String(shift.starts_at).slice(0, 10);
   return { starts_at: formatMoment(key, from), ends_at: formatMoment(key, end) };
 }
 
 export function defaultShift(key, startMinutes, hours = 3) {
-  const start = Math.max(DAY_START_HOUR * 60, Math.min(startMinutes, DAY_END_HOUR * 60 - hours * 60));
-  return { starts_at: formatMoment(key, start), ends_at: formatMoment(key, start + hours * 60) };
+  const start = Math.max(DAY_START_HOUR * 60, Math.min(startMinutes, MAX_END_MINUTES - hours * 60));
+  return { starts_at: formatMoment(key, start), ends_at: formatMoment(key, Math.min(start + hours * 60, MAX_END_MINUTES)) };
+}
+
+/**
+ * Varias creadoras pueden venir a la misma hora, así que las cajas que coinciden en el tiempo
+ * se reparten el ancho de la columna en vez de taparse. Cada grupo que se solapa se divide en
+ * tantas columnas como haga falta.
+ */
+export function layoutDay(shifts, key) {
+  const boxes = shifts
+    .map(shift => ({ shift, geometry: shiftGeometry(shift, key) }))
+    .filter(entry => entry.geometry !== null)
+    .sort((a, b) => a.geometry.top - b.geometry.top || a.geometry.height - b.geometry.height);
+  const placed = [];
+  let group = [];
+  let groupEnd = -1;
+  const close = () => {
+    if (!group.length) return;
+    const columns = [];
+    for (const entry of group) {
+      let index = columns.findIndex(end => end <= entry.geometry.top + 0.0001);
+      if (index === -1) { index = columns.length; columns.push(0); }
+      columns[index] = entry.geometry.top + entry.geometry.height;
+      entry.column = index;
+    }
+    for (const entry of group) {
+      placed.push({ ...entry.geometry, shift: entry.shift, column: entry.column, columns: columns.length });
+    }
+    group = [];
+    groupEnd = -1;
+  };
+  for (const entry of boxes) {
+    if (group.length && entry.geometry.top >= groupEnd - 0.0001) close();
+    group.push(entry);
+    groupEnd = Math.max(groupEnd, entry.geometry.top + entry.geometry.height);
+  }
+  close();
+  return placed;
 }
 
 export function shiftLabel(shift) {
@@ -242,6 +281,38 @@ export function describeLogEntry(entry = {}) {
 
 export const CREADORA_FIELDS = Object.freeze(['full_name', 'cedula', 'birth_date', 'whatsapp', 'contact_email', 'city',
   'status', 'main_network', 'followers_count', 'social_link', 'tiktok', 'instagram', 'facebook', 'note']);
+
+/** Del formulario del turno al cuerpo que entiende el servidor. */
+export function shiftPayload(form) {
+  const value = name => String(form.get(name) ?? '').trim();
+  const day = value('day');
+  const start = value('start');
+  const end = value('end');
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) throw new TypeError('Elige el día del turno.');
+  if (!/^\d{2}:\d{2}/.test(start) || !/^\d{2}:\d{2}/.test(end)) throw new TypeError('Escribe la hora de inicio y la de fin.');
+  const from = Number(start.slice(0, 2)) * 60 + Number(start.slice(3, 5));
+  const to = Number(end.slice(0, 2)) * 60 + Number(end.slice(3, 5));
+  if (to - from < STEP_MINUTES) throw new TypeError('El turno debe durar al menos 15 minutos.');
+  return {
+    creadora: value('creadora'),
+    starts_at: `${day} ${start.slice(0, 5)}`,
+    ends_at: `${day} ${end.slice(0, 5)}`,
+    place: value('place'),
+    note: value('note'),
+  };
+}
+
+/** Los valores del formulario para un turno ya guardado. */
+export function shiftFormValues(shift = {}) {
+  return {
+    creadora: shift.creadora ?? '',
+    day: String(shift.starts_at ?? '').slice(0, 10),
+    start: String(shift.starts_at ?? '').slice(11, 16),
+    end: String(shift.ends_at ?? '').slice(11, 16),
+    place: shift.place ?? '',
+    note: shift.note ?? '',
+  };
+}
 
 export function creadoraPayload(form) {
   const value = name => String(form.get(name) ?? '').trim();
@@ -319,9 +390,9 @@ export async function initializeAdminCreadoras() {
       open.addEventListener('click', event => { event.stopPropagation(); editCreadora(creadora); });
       item.append(body, node('span', `${creadora.shift_count ?? 0}`, 'creadora-chip__count'), open);
       item.addEventListener('click', () => {
-        state.selected = state.selected === creadora.public_id ? '' : creadora.public_id;
+        state.selected = creadora.public_id;
         renderCreadoras();
-        feedback(state.selected ? `«${creadora.full_name}» seleccionada: toca una hora del calendario para asignarle un turno.` : '');
+        openShiftDialog(null, { creadora: creadora.public_id });
       });
       item.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); item.click(); } });
       item.addEventListener('dragstart', event => { event.dataTransfer.setData('text/plain', `creadora:${creadora.public_id}`); event.dataTransfer.effectAllowed = 'copy'; });
@@ -348,7 +419,7 @@ export async function initializeAdminCreadoras() {
     } catch (error) { fail(error); await load(false); }
   }
 
-  function shiftBox(shift, key, { absolute }) {
+  function shiftBox(shift, key, { absolute, placement = null }) {
     const box = node('article', undefined, 'shift-box');
     box.dataset.shift = shift.public_id;
     box.draggable = true;
@@ -356,29 +427,24 @@ export async function initializeAdminCreadoras() {
     box.append(node('strong', shift.name), node('span', shiftLabel(shift)));
     if (shift.place) box.append(node('small', shift.place));
     if (absolute) {
-      const geometry = shiftGeometry(shift, key);
+      const geometry = placement ?? shiftGeometry(shift, key);
       if (geometry === null) return null;
       box.style.top = `${geometry.top}%`;
       box.style.height = `${geometry.height}%`;
-      const handle = node('button', '', 'shift-box__handle');
-      handle.type = 'button';
-      handle.setAttribute('aria-label', `Cambiar la duración del turno de ${shift.name}`);
-      handle.addEventListener('pointerdown', event => event.stopPropagation());
-      handle.addEventListener('click', async () => {
-        const answer = prompt(`¿A qué hora termina el turno de ${shift.name}?`, String(shift.ends_at).slice(11, 16));
-        if (answer === null) return;
-        const parts = /^(\d{1,2}):(\d{2})$/.exec(answer.trim());
-        if (!parts) { feedback('Escribe la hora como 18:30.', 'error'); return; }
-        await save(() => client.updateShift(shift.public_id, resizedShift(shift, Number(parts[1]) * 60 + Number(parts[2]))));
-      });
+      // Cuando varias coinciden en la hora, cada una ocupa su porción de la columna.
+      const columns = geometry.columns ?? 1;
+      const column = geometry.column ?? 0;
+      box.style.left = `calc(${(column / columns) * 100}% + .2rem)`;
+      box.style.width = `calc(${(1 / columns) * 100}% - .4rem)`;
+      if (columns > 1) box.dataset.shared = 'true';
+      const handle = node('span', '', 'shift-box__handle');
+      handle.setAttribute('aria-hidden', 'true');
       box.append(handle);
     }
     box.addEventListener('dragstart', event => { event.dataTransfer.setData('text/plain', `shift:${shift.public_id}`); event.dataTransfer.effectAllowed = 'move'; });
-    box.addEventListener('dblclick', async () => {
-      if (!confirm(`¿Quitar del calendario el turno de ${shift.name} (${shiftLabel(shift)})?`)) return;
-      await save(() => client.removeShift(shift.public_id));
-    });
-    box.title = `${shift.name} · ${shiftLabel(shift)}${shift.place ? ` · ${shift.place}` : ''}\nArrastra para mover. Doble clic para quitar.`;
+    box.addEventListener('click', event => { event.stopPropagation(); editShift(shift); });
+    box.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); editShift(shift); } });
+    box.title = `${shift.name} · ${shiftLabel(shift)}${shift.place ? ` · ${shift.place}` : ''}\nArrastra para mover, o toca para abrir el turno.`;
     return box;
   }
 
@@ -415,13 +481,14 @@ export async function initializeAdminCreadoras() {
       canvas.addEventListener('dragover', event => { event.preventDefault(); event.dataTransfer.dropEffect = 'move'; });
       const minutesAt = event => minutesFromOffset((event.clientY - canvas.getBoundingClientRect().top) / canvas.getBoundingClientRect().height);
       canvas.addEventListener('drop', event => drop(event, key, minutesAt(event)));
-      canvas.addEventListener('click', async event => {
+      canvas.addEventListener('click', event => {
         if (event.target !== canvas && !event.target.classList.contains('calendar-line')) return;
-        if (!state.selected) { feedback('Elige primero una creadora de la lista y toca de nuevo la hora.'); return; }
-        await save(() => client.createShift({ creadora: state.selected, ...defaultShift(key, minutesAt(event)) }));
+        if (!state.creadoras.length) { feedback('Primero agrega una creadora.', 'error'); return; }
+        const slot = defaultShift(key, minutesAt(event));
+        openShiftDialog(null, { day: key, start: slot.starts_at.slice(11, 16), end: slot.ends_at.slice(11, 16) });
       });
-      for (const shift of state.shifts) {
-        const box = shiftBox(shift, key, { absolute: true });
+      for (const placement of layoutDay(state.shifts, key)) {
+        const box = shiftBox(placement.shift, key, { absolute: true, placement });
         if (box) canvas.append(box);
       }
       column.append(canvas);
@@ -483,6 +550,63 @@ export async function initializeAdminCreadoras() {
   query('[data-calendar-previous]')?.addEventListener('click', async () => { state.anchor = shiftView(state.view, state.anchor, -1); await load(); });
   query('[data-calendar-next]')?.addEventListener('click', async () => { state.anchor = shiftView(state.view, state.anchor, 1); await load(); });
   query('[data-calendar-today]')?.addEventListener('click', async () => { state.anchor = dayKey(new Date()); await load(); });
+
+  const shiftDialog = query('[data-shift-dialog]');
+  const shiftForm = shiftDialog?.querySelector('form');
+  const shiftTitle = shiftDialog?.querySelector('[data-shift-title]');
+  const shiftFeedback = shiftDialog?.querySelector('[data-shift-feedback]');
+  const removeButton = shiftDialog?.querySelector('[data-shift-remove]');
+  let editingShift = '';
+
+  function openShiftDialog(shift, { creadora = '', day = state.anchor, start = '09:00', end = '12:00' } = {}) {
+    if (!shiftForm) return;
+    editingShift = shift?.public_id ?? '';
+    if (shiftTitle) shiftTitle.textContent = shift ? `Turno de ${shift.name}` : 'Agregar turno';
+    if (shiftFeedback) { shiftFeedback.textContent = ''; shiftFeedback.dataset.error = 'false'; }
+    if (removeButton) removeButton.hidden = !shift;
+    const options = shiftForm.elements.creadora;
+    options.replaceChildren();
+    for (const person of state.creadoras) {
+      const option = node('option', person.full_name);
+      option.value = person.public_id;
+      options.append(option);
+    }
+    const values = shift ? shiftFormValues(shift) : { creadora: creadora || state.selected || state.creadoras[0]?.public_id || '', day, start, end, place: '', note: '' };
+    for (const [name, value] of Object.entries(values)) if (shiftForm.elements[name]) shiftForm.elements[name].value = value;
+    shiftDialog.showModal();
+  }
+
+  function editShift(shift) { openShiftDialog(shift); }
+
+  query('[data-shift-new]')?.addEventListener('click', () => {
+    if (!state.creadoras.length) { feedback('Primero agrega una creadora.', 'error'); return; }
+    openShiftDialog(null);
+  });
+
+  shiftForm?.addEventListener('submit', async event => {
+    if (event.submitter?.value === 'cancel') return;
+    event.preventDefault();
+    let payload;
+    try { payload = shiftPayload(new FormData(shiftForm)); }
+    catch (error) { if (shiftFeedback) { shiftFeedback.textContent = error.message; shiftFeedback.dataset.error = 'true'; } return; }
+    try {
+      const data = editingShift ? await client.updateShift(editingShift, payload) : await client.createShift(payload);
+      if (Array.isArray(data.log)) state.log = data.log;
+      shiftDialog.close();
+      await load(false);
+      feedback(editingShift ? 'Turno actualizado.' : 'Turno agregado al calendario.', 'success');
+    } catch (error) {
+      if (shiftFeedback) { shiftFeedback.textContent = error.status === 409 ? 'Esa creadora ya tiene un turno a esa hora.' : error.message; shiftFeedback.dataset.error = 'true'; }
+      if (error.status === 401) fail(error);
+    }
+  });
+
+  removeButton?.addEventListener('click', async () => {
+    if (!editingShift || !confirm('¿Quitar este turno del calendario?')) return;
+    const id = editingShift;
+    shiftDialog.close();
+    await save(() => client.removeShift(id));
+  });
 
   const dialog = query('[data-creadora-dialog]');
   const dialogTitle = dialog?.querySelector('[data-dialog-title]');

@@ -270,3 +270,7 @@ tr[data-origin="cuenta"] > td { background: rgba(0, 210, 214, .05); }
 @media (max-width: 700px) { .record-dialog { width: 100%; max-width: 100%; max-height: 100dvh; border-radius: 0; padding: 1.1rem; } }
 .creadora-chip { flex-wrap: wrap; }
 .creadora-chip__edit { flex: 1 1 100%; margin-top: .35rem; padding: .25rem 0; border: 0; background: none; color: #94165e; font-size: .72rem; font-weight: 650; text-align: left; text-decoration: underline; text-underline-offset: 3px; }
+.record-dialog--compact { width: min(34rem, calc(100vw - 2rem)); }
+.record-dialog--compact .record-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.shift-box[data-shared="true"] { border-left-width: 4px; }
+.shift-box { cursor: pointer; }

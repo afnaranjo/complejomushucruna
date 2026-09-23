@@ -6,8 +6,8 @@ import { join } from 'node:path';
 import { buildSite } from '../scripts/build.mjs';
 import {
   createCreadoraAdminClient, creadoraPayload, CREADORA_FIELDS, dayKey, defaultShift, describeLogEntry, fillCreadoraForm, minutesFromOffset,
-  movedShift, rangeLabel, resizedShift, shiftGeometry, shiftLabel, shiftView, viewRange, weekStart,
-  DAY_START_HOUR, DAY_END_HOUR, STEP_MINUTES,
+  layoutDay, movedShift, rangeLabel, resizedShift, shiftFormValues, shiftGeometry, shiftLabel, shiftPayload, shiftView, viewRange, weekStart,
+  DAY_START_HOUR, DAY_END_HOUR, MAX_END_MINUTES, STEP_MINUTES,
 } from '../src/admin/admin-creadoras.js';
 
 test('el calendario ofrece día, semana y mes, y pide al servidor el rango exacto de cada vista', () => {
@@ -48,17 +48,25 @@ test('arrastrar una caja conserva su duración, la estira desde abajo y nunca se
   const moved = movedShift(shift, '2026-10-31', 14 * 60);
   assert.deepEqual(moved, { starts_at: '2026-10-31 14:00', ends_at: '2026-10-31 17:00' });
 
-  // Soltarla al final del día la recoloca para que quepa entera.
+  // Soltarla al final del día la recoloca para que quepa entera, y nunca produce «24:00»,
+  // que el servidor rechaza por hora inválida.
   const late = movedShift(shift, '2026-10-31', DAY_END_HOUR * 60 - 30);
-  assert.equal(late.ends_at, `2026-10-31 ${DAY_END_HOUR}:00`.replace('24:00', '24:00'));
-  assert.equal(late.starts_at, '2026-10-31 21:00');
+  assert.equal(late.ends_at, '2026-10-31 23:59');
+  assert.equal(late.starts_at, '2026-10-31 20:59');
 
   // Estirar mueve solo el final y respeta el mínimo de un cuarto de hora.
   assert.deepEqual(resizedShift(shift, 19 * 60), { starts_at: '2026-10-30 09:00', ends_at: '2026-10-30 19:00' });
   assert.deepEqual(resizedShift(shift, 8 * 60), { starts_at: '2026-10-30 09:00', ends_at: `2026-10-30 09:${STEP_MINUTES}` });
+  assert.equal(resizedShift(shift, 26 * 60).ends_at, '2026-10-30 23:59');
 
-  // Una caja nueva nace con tres horas desde donde se soltó.
+  // Una caja nueva nace con tres horas desde donde se soltó, sin pasarse de la medianoche.
   assert.deepEqual(defaultShift('2026-11-01', 10 * 60), { starts_at: '2026-11-01 10:00', ends_at: '2026-11-01 13:00' });
+  assert.equal(defaultShift('2026-11-01', 23 * 60).ends_at, '2026-11-01 23:59');
+  assert.equal(MAX_END_MINUTES, DAY_END_HOUR * 60 - 1);
+  // Ninguna hora generada llega a «24:00».
+  for (const minutes of [0, 6 * 60, 20 * 60, 23 * 60 + 30, 24 * 60]) {
+    for (const value of Object.values(defaultShift('2026-11-01', minutes))) assert.doesNotMatch(value, /24:/, String(minutes));
+  }
 
   assert.throws(() => movedShift({ starts_at: 'ayer', ends_at: 'hoy' }, '2026-11-01', 600), TypeError);
 });
@@ -178,6 +186,10 @@ test('la sección de creadoras se publica con su calendario, su bitácora y su e
   assert.match(page, /data-calendar-log/);
   assert.match(page, /data-creadora-list/);
   assert.match(page, /data-creadora-dialog/);
+  // Se puede agendar sin arrastrar: hay un botón y un formulario propio del turno.
+  assert.match(page, /data-shift-new/);
+  assert.match(page, /data-shift-dialog/);
+  for (const name of ['creadora', 'day', 'start', 'end']) assert.match(page, new RegExp(`name="${name}"`), name);
   // La ficha pide los datos de la persona, no solo el nombre.
   for (const name of ['cedula', 'birth_date', 'contact_email', 'followers_count', 'tiktok', 'instagram', 'facebook'])
     assert.match(page, new RegExp(`name="${name}"`), name);
@@ -203,4 +215,45 @@ test('la fecha de hoy se calcula en el calendario local, sin saltos por zona hor
   assert.equal(dayKey(night), '2026-10-30');
   const morning = new Date(2026, 9, 30, 0, 15);
   assert.equal(dayKey(morning), '2026-10-30');
+});
+
+test('varias creadoras a la misma hora se reparten el ancho en vez de taparse', () => {
+  const key = '2026-10-30';
+  const a = { public_id: 'a', starts_at: `${key} 09:00:00`, ends_at: `${key} 12:00:00` };
+  const b = { public_id: 'b', starts_at: `${key} 09:00:00`, ends_at: `${key} 11:00:00` };
+  const c = { public_id: 'c', starts_at: `${key} 10:00:00`, ends_at: `${key} 11:00:00` };
+  // Tres turnos que coinciden ocupan tres columnas distintas del mismo día.
+  const together = layoutDay([a, b, c], key);
+  assert.equal(together.length, 3);
+  assert.deepEqual(together.map(entry => entry.columns), [3, 3, 3]);
+  assert.deepEqual([...new Set(together.map(entry => entry.column))].sort(), [0, 1, 2]);
+
+  // Uno que empieza cuando el otro terminó recupera el ancho completo.
+  const apart = layoutDay([a, { public_id: 'd', starts_at: `${key} 12:00:00`, ends_at: `${key} 14:00:00` }], key);
+  assert.deepEqual(apart.map(entry => entry.columns), [1, 1]);
+
+  // Los turnos de otro día no entran en el reparto.
+  assert.equal(layoutDay([{ public_id: 'e', starts_at: '2026-10-31 09:00:00', ends_at: '2026-10-31 10:00:00' }], key).length, 0);
+  assert.deepEqual(layoutDay([], key), []);
+});
+
+test('el turno se puede agendar desde su propio formulario, sin arrastrar nada', () => {
+  const form = new Map([['creadora', 'a'.repeat(32)], ['day', '2026-10-30'], ['start', '09:00'], ['end', '12:00'],
+    ['place', ' Plaza de la Luna '], ['note', '']]);
+  assert.deepEqual(shiftPayload(form), {
+    creadora: 'a'.repeat(32), starts_at: '2026-10-30 09:00', ends_at: '2026-10-30 12:00',
+    place: 'Plaza de la Luna', note: '',
+  });
+  // Los navegadores mandan la hora con segundos; el servidor recibe siempre hora y minuto.
+  assert.equal(shiftPayload(new Map([['creadora', 'a'], ['day', '2026-10-30'], ['start', '09:00:00'], ['end', '12:30:00']])).ends_at, '2026-10-30 12:30');
+  // Lo incompleto o absurdo se detiene antes de salir a la red.
+  assert.throws(() => shiftPayload(new Map([['creadora', 'a'], ['day', ''], ['start', '09:00'], ['end', '12:00']])), /Elige el día/);
+  assert.throws(() => shiftPayload(new Map([['creadora', 'a'], ['day', '2026-10-30'], ['start', ''], ['end', '12:00']])), /hora de inicio/);
+  assert.throws(() => shiftPayload(new Map([['creadora', 'a'], ['day', '2026-10-30'], ['start', '12:00'], ['end', '12:05']])), /al menos 15 minutos/);
+  assert.throws(() => shiftPayload(new Map([['creadora', 'a'], ['day', '2026-10-30'], ['start', '12:00'], ['end', '09:00']])), /al menos 15 minutos/);
+
+  // Un turno guardado vuelve al formulario tal como está.
+  assert.deepEqual(shiftFormValues({ creadora: 'b'.repeat(32), starts_at: '2026-10-30 09:00:00', ends_at: '2026-10-30 12:00:00', place: 'Tarima', note: 'Llega 15 antes' }),
+    { creadora: 'b'.repeat(32), day: '2026-10-30', start: '09:00', end: '12:00', place: 'Tarima', note: 'Llega 15 antes' });
+  assert.deepEqual(shiftFormValues({}), { creadora: '', day: '', start: '', end: '', place: '', note: '' });
 });

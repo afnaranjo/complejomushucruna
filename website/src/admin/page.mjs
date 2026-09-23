@@ -61,7 +61,7 @@ function layout(page, content, script = '/assets/admin/admin.js?v=20260923-admin
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' blob:; font-src 'self'; connect-src ${connectSources}; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="admin-api-base" content="${api}">
 <link rel="icon" href="/assets/finados/favicon-finados.png">
-<link rel="stylesheet" href="/assets/admin/admin.css?v=20260923-8">
+<link rel="stylesheet" href="/assets/admin/admin.css?v=20260923-9">
 <script type="module" src="${script}"></script>
 </head><body class="admin-page">
 <a class="skip-link" href="#contenido">Ir al contenido</a>
@@ -156,7 +156,7 @@ ${select('province', 'Provincia', ecuadorProvinces)}</div>
 </dialog>${mediaRecordDialog()}</main></div>`, ADMIN_MEDIOS_SCRIPT);
 }
 
-const ADMIN_CREADORAS_SCRIPT = '/assets/admin/admin-creadoras.js?v=20260923-creadoras-1';
+const ADMIN_CREADORAS_SCRIPT = '/assets/admin/admin-creadoras.js?v=20260923-creadoras-2';
 const ADMIN_MEDIOS_SCRIPT = '/assets/admin/admin-medios.js?v=20260923-admin-medios-20';
 const RADIO_GENRE_OPTIONS = ['Noticias e información', 'Musical variada', 'Popular y tropical', 'Folclórica y andina', 'Juvenil y pop', 'Romántica', 'Religiosa', 'Deportiva', 'Comunitaria', 'Otro'];
 const PROVINCE_OPTIONS = ['Azuay', 'Bolívar', 'Cañar', 'Carchi', 'Chimborazo', 'Cotopaxi', 'El Oro', 'Esmeraldas', 'Galápagos', 'Guayas', 'Imbabura', 'Loja', 'Los Ríos', 'Manabí', 'Morona Santiago', 'Napo', 'Orellana', 'Pastaza', 'Pichincha', 'Santa Elena', 'Santo Domingo de los Tsáchilas', 'Sucumbíos', 'Tungurahua', 'Zamora Chinchipe'];
@@ -250,7 +250,7 @@ export function renderAdminCreadorasPage(page) {
     .map(([value, label]) => `<option value="${esc(value)}">${esc(label)}</option>`).join('');
   return layout(page, `<div class="admin-shell">${adminSidebar(page)}<main id="contenido" class="admin-workspace" data-admin-creadoras>
 <div class="workspace-heading"><div><p class="eyebrow">Finados 2026</p><h1>Creadoras de contenido</h1><p data-admin-user>Comprobando acceso…</p></div>
-<div class="workspace-actions"><button type="button" class="button-primary" data-creadora-new>Agregar creadora</button></div></div>
+<div class="workspace-actions"><button type="button" class="button-quiet" data-creadora-new>Agregar creadora</button><button type="button" class="button-primary" data-shift-new>Agregar turno</button></div></div>
 <p class="feedback" data-admin-feedback role="status" aria-live="polite" aria-atomic="true">Cargando calendario…</p>
 <div class="calendar-bar">
 <div class="calendar-views" role="group" aria-label="Vista del calendario">
@@ -268,19 +268,34 @@ export function renderAdminCreadorasPage(page) {
 <div class="calendar-layout">
 <aside class="calendar-people" aria-labelledby="creadoras-title">
 <h2 id="creadoras-title">Creadoras</h2>
-<p>Arrastra un nombre al calendario, o tócalo y luego toca la hora. Toca «Ver ficha» para revisar o completar sus datos.</p>
+<p>Toca un nombre para agendarle un turno, o arrástralo al calendario. «Ver ficha» abre sus datos.</p>
 <ul data-creadora-list></ul>
 </aside>
 <section class="calendar-board" aria-label="Calendario de turnos">
 <div class="calendar-grid" data-calendar-grid></div>
 <div class="calendar-month" data-calendar-month hidden></div>
-<p class="calendar-help">Arrastra una caja para moverla de día u hora. Doble clic para quitarla del calendario.</p>
+<p class="calendar-help">Arrastra una caja para moverla de día u hora, o toca una caja para abrir su turno. Varias creadoras pueden coincidir a la misma hora: se muestran lado a lado.</p>
 </section>
 </div>
 <section class="admin-panel-section" aria-labelledby="bitacora-title">
 <div class="records-heading"><div><h2 id="bitacora-title">Cambios del calendario</h2><p>Quién cambió qué y cómo quedó. Lo más reciente primero.</p></div></div>
 <ol class="calendar-log" data-calendar-log></ol>
 </section>
+<dialog class="record-dialog record-dialog--compact" data-shift-dialog aria-label="Turno del calendario">
+<form method="dialog" class="record-form">
+<div class="records-heading"><div><h2 data-shift-title>Agregar turno</h2><p>Varias creadoras pueden tener el mismo día y la misma hora.</p></div></div>
+<div class="record-grid">
+<label class="record-grid__wide">Creadora<select name="creadora" data-shift-creadora required></select></label>
+<label>Día<input name="day" type="date" required></label>
+<label>Lugar<input name="place" maxlength="160" placeholder="Opcional"></label>
+<label>Hora de inicio<input name="start" type="time" step="900" required></label>
+<label>Hora de fin<input name="end" type="time" step="900" required></label>
+<label class="record-grid__wide">Nota<input name="note" maxlength="400" placeholder="Opcional"></label>
+</div>
+<p class="feedback" data-shift-feedback role="status" aria-live="polite"></p>
+<div class="record-form__actions"><button type="button" class="button-quiet" data-shift-remove hidden>Quitar del calendario</button><button type="submit" value="cancel" class="button-quiet">Cancelar</button><button type="submit" value="save" class="button-primary">Guardar turno</button></div>
+</form>
+</dialog>
 <dialog class="record-dialog" data-creadora-dialog aria-label="Ficha de la creadora">
 <form method="dialog" class="record-form">
 <div class="records-heading"><div><h2 data-dialog-title>Agregar creadora</h2><p>Los datos personales se guardan cifrados y solo los ve coordinación.</p></div></div>
