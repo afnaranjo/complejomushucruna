@@ -240,17 +240,27 @@ export function describeLogEntry(entry = {}) {
   return parts.join(' ');
 }
 
+export const CREADORA_FIELDS = Object.freeze(['full_name', 'cedula', 'birth_date', 'whatsapp', 'contact_email', 'city',
+  'status', 'main_network', 'followers_count', 'social_link', 'tiktok', 'instagram', 'facebook', 'note']);
+
 export function creadoraPayload(form) {
   const value = name => String(form.get(name) ?? '').trim();
-  return {
-    full_name: value('full_name'),
-    status: value('status') || 'Activa',
-    whatsapp: value('whatsapp'),
-    city: value('city'),
-    main_network: value('main_network'),
-    social_link: value('social_link'),
-    note: value('note'),
-  };
+  const payload = {};
+  for (const name of CREADORA_FIELDS) payload[name] = value(name);
+  payload.status = payload.status || 'Activa';
+  payload.followers_count = payload.followers_count === '' ? 0 : Number(payload.followers_count);
+  return payload;
+}
+
+/** Vuelca una ficha guardada en el formulario para revisarla o corregirla. */
+export function fillCreadoraForm(form, creadora = {}) {
+  for (const name of CREADORA_FIELDS) {
+    const field = form.elements?.[name];
+    if (!field) continue;
+    const value = creadora[name];
+    field.value = value === undefined || value === null ? '' : String(value);
+  }
+  return form;
 }
 
 // --- Pantalla -------------------------------------------------------------------------------
@@ -304,7 +314,10 @@ export async function initializeAdminCreadoras() {
       body.append(node('strong', creadora.full_name));
       const detail = [creadora.main_network_label, creadora.city].filter(Boolean).join(' · ');
       if (detail) body.append(node('small', detail));
-      item.append(body, node('span', `${creadora.shift_count ?? 0}`, 'creadora-chip__count'));
+      const open = node('button', 'Ver ficha', 'creadora-chip__edit');
+      open.type = 'button';
+      open.addEventListener('click', event => { event.stopPropagation(); editCreadora(creadora); });
+      item.append(body, node('span', `${creadora.shift_count ?? 0}`, 'creadora-chip__count'), open);
       item.addEventListener('click', () => {
         state.selected = state.selected === creadora.public_id ? '' : creadora.public_id;
         renderCreadoras();
@@ -472,15 +485,30 @@ export async function initializeAdminCreadoras() {
   query('[data-calendar-today]')?.addEventListener('click', async () => { state.anchor = dayKey(new Date()); await load(); });
 
   const dialog = query('[data-creadora-dialog]');
-  query('[data-creadora-new]')?.addEventListener('click', () => { dialog.querySelector('form').reset(); dialog.showModal(); });
+  const dialogTitle = dialog?.querySelector('[data-dialog-title]');
+  let editing = '';
+  function editCreadora(creadora) {
+    editing = creadora.public_id;
+    if (dialogTitle) dialogTitle.textContent = `Ficha de ${creadora.full_name}`;
+    fillCreadoraForm(dialog.querySelector('form'), creadora);
+    dialog.showModal();
+  }
+  query('[data-creadora-new]')?.addEventListener('click', () => {
+    editing = '';
+    if (dialogTitle) dialogTitle.textContent = 'Agregar creadora';
+    dialog.querySelector('form').reset();
+    dialog.showModal();
+  });
   dialog?.querySelector('form')?.addEventListener('submit', async event => {
     if (event.submitter?.value === 'cancel') return;
     event.preventDefault();
+    const payload = creadoraPayload(new FormData(event.target));
     try {
-      await client.create(creadoraPayload(new FormData(event.target)));
+      if (editing) await client.update(editing, payload);
+      else await client.create(payload);
       dialog.close();
       await load(false);
-      feedback('Creadora agregada.', 'success');
+      feedback(editing ? 'Ficha actualizada.' : 'Creadora agregada.', 'success');
     } catch (error) { fail(error); }
   });
 

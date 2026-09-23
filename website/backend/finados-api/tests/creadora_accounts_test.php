@@ -47,7 +47,7 @@ $config = creadora_config();
 $pdo = Database::connect($config);
 foreach (['001_initial', '002_sheets_outbox', '003_vocero_accounts', '008_media_accounts', '009_media_videos', '010_media_video_views', '011_media_contact_channels',
     '012_media_consents', '013_media_types_radio', '014_media_channels_photo', '015_media_traffic_light', '016_media_paid', '017_emprendedor_accounts',
-    '018_media_coverage', '019_media_event_attendance', '020_media_event_checkin', '021_creadora_accounts'] as $migration) {
+    '018_media_coverage', '019_media_event_attendance', '020_media_event_checkin', '021_creadora_accounts', '022_creadora_identity'] as $migration) {
     $pdo->exec(file_get_contents(__DIR__ . '/../migrations/' . $migration . '_sqlite.sql'));
 }
 same('021_creadora_accounts', $pdo->query("SELECT version FROM schema_migrations WHERE version = '021_creadora_accounts'")->fetchColumn());
@@ -83,6 +83,35 @@ same('0990000011', $ana['whatsapp']);
 same(409, $router->handle('POST', '/api/creadoras', $json($csrf), creadora_json(['full_name' => 'ana creadora']))->status);
 $sofia = creadora_body($router->handle('POST', '/api/creadoras', $json($csrf), creadora_json(['full_name' => 'Sofía Contenido', 'main_network' => 'instagram'])))['creadora'];
 same(2, count(creadora_body($router->handle('GET', '/api/creadoras', $origin))['items']));
+
+// La ficha guarda la identidad de la persona: cédula, nacimiento, correo, redes y seguidores.
+same(422, $router->handle('POST', '/api/creadoras', $json($csrf), creadora_json(['full_name' => 'Prueba Cedula', 'cedula' => '18000']))->status);
+same(422, $router->handle('POST', '/api/creadoras', $json($csrf), creadora_json(['full_name' => 'Prueba Fecha', 'birth_date' => '1990-13-40']))->status);
+same(422, $router->handle('POST', '/api/creadoras', $json($csrf), creadora_json(['full_name' => 'Prueba Futuro', 'birth_date' => '2030-01-01']))->status);
+same(422, $router->handle('POST', '/api/creadoras', $json($csrf), creadora_json(['full_name' => 'Prueba Correo', 'contact_email' => 'no-es-correo']))->status);
+same(422, $router->handle('POST', '/api/creadoras', $json($csrf), creadora_json(['full_name' => 'Prueba Red', 'tiktok' => 'http://tiktok.com/@x']))->status);
+same(422, $router->handle('POST', '/api/creadoras', $json($csrf), creadora_json(['full_name' => 'Prueba Seguidores', 'followers_count' => -5]))->status);
+$completa = creadora_body($router->handle('POST', '/api/creadoras', $json($csrf), creadora_json([
+    'full_name' => 'Lucía Full', 'cedula' => '1801234567', 'birth_date' => '1998-04-12', 'contact_email' => 'Lucia@Example.Invalid',
+    'whatsapp' => '0990000033', 'city' => 'Ambato', 'main_network' => 'tiktok',
+    'tiktok' => 'https://www.tiktok.com/@lucia', 'instagram' => 'https://instagram.com/lucia', 'facebook' => '', 'followers_count' => '12500'])))['creadora'];
+same('1801234567', $completa['cedula']);
+same('1998-04-12', $completa['birth_date']);
+same('lucia@example.invalid', $completa['contact_email']);
+same(12500, $completa['followers_count']);
+same('https://www.tiktok.com/@lucia', $completa['tiktok']);
+same(true, is_int($completa['age']) && $completa['age'] >= 27);
+// Dos fichas activas no comparten cédula.
+same(409, $router->handle('POST', '/api/creadoras', $json($csrf), creadora_json(['full_name' => 'Otra Persona', 'cedula' => '1801234567']))->status);
+// Cédula, nacimiento y correo se guardan cifrados.
+$row = $pdo->query("SELECT cedula_enc, birth_date_enc, contact_email_enc FROM creadoras WHERE full_name = 'Lucía Full'")->fetch(PDO::FETCH_ASSOC);
+same(false, str_contains($row['cedula_enc'], '1801234567'));
+same(false, str_contains($row['birth_date_enc'], '1998'));
+same(false, str_contains($row['contact_email_enc'], 'lucia'));
+// Editar sin volver a mandar la cédula la conserva.
+$editada = creadora_body($router->handle('PATCH', '/api/creadoras/' . $completa['public_id'], $json($csrf), creadora_json(['full_name' => 'Lucía Full', 'city' => 'Quito'])))['creadora'];
+same('1801234567', $editada['cedula']);
+same('Quito', $editada['city']);
 
 // El WhatsApp se guarda cifrado: la columna no contiene el número en claro.
 $stored = (string) $pdo->query("SELECT whatsapp_enc FROM creadoras WHERE full_name = 'Ana Creadora'")->fetchColumn();
@@ -133,7 +162,7 @@ same(true, str_contains($reassigned['log'][0]['detail'], 'Ana Creadora'));
 // El calendario se pide por rango y trae turnos, creadoras y bitácora de una sola vez.
 $calendar = creadora_body($router->handle('GET', '/api/creadoras/calendario?from=2026-10-26&to=2026-11-02', $origin));
 same(2, count($calendar['shifts']));
-same(2, count($calendar['creadoras']));
+same(3, count($calendar['creadoras']));
 same(true, count($calendar['log']) >= 4);
 same(422, $router->handle('GET', '/api/creadoras/calendario?from=2026-11-02&to=2026-10-26', $origin)->status);
 same(422, $router->handle('GET', '/api/creadoras/calendario?from=2026-10-26&to=2027-06-01', $origin)->status);
@@ -217,8 +246,8 @@ same(true, str_contains($log[0]['detail'], 'retirada'));
 same(422, $router->handle('POST', '/api/creadoras/turnos', $json($admin['csrf']), creadora_json([
     'creadora' => $valeria['public_id'], 'starts_at' => '2026-11-02 10:00', 'ends_at' => '2026-11-02 12:00']))->status);
 // Y desaparece de la lista de trabajo sin perderse del historial.
-same(2, count(creadora_body($router->handle('GET', '/api/creadoras', $origin))['items']));
-same(3, (int) $pdo->query('SELECT COUNT(*) FROM creadoras')->fetchColumn());
+same(3, count(creadora_body($router->handle('GET', '/api/creadoras', $origin))['items']));
+same(4, (int) $pdo->query('SELECT COUNT(*) FROM creadoras')->fetchColumn());
 
 // El resto de secciones sigue intacto.
 same(0, (int) $pdo->query('SELECT COUNT(*) FROM voceros')->fetchColumn());

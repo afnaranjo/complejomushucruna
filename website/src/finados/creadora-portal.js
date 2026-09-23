@@ -68,17 +68,15 @@ export function describeShift(shift = {}) {
   return `${weekday} ${Number(day)} de ${MONTH_NAMES[Number(month) - 1]} · ${hour}:${minute} a ${end[1]}:${end[2]}`;
 }
 
+export const PROFILE_FIELDS = Object.freeze(['full_name', 'cedula', 'birth_date', 'whatsapp', 'city',
+  'main_network', 'social_link', 'followers_count', 'tiktok', 'instagram', 'facebook']);
+
 export function profilePayload(form) {
   const value = name => String(form.get(name) ?? '').trim();
-  return {
-    full_name: value('full_name'),
-    whatsapp: value('whatsapp'),
-    city: value('city'),
-    main_network: value('main_network'),
-    social_link: value('social_link'),
-    policies_accepted: form.get('policies_accepted') !== null,
-    privacy_accepted: form.get('privacy_accepted') !== null,
-  };
+  const payload = { policies_accepted: form.get('policies_accepted') !== null, privacy_accepted: form.get('privacy_accepted') !== null };
+  for (const name of PROFILE_FIELDS) payload[name] = value(name);
+  payload.followers_count = payload.followers_count === '' ? 0 : Number(payload.followers_count);
+  return payload;
 }
 
 export function initializeCreadoraPortal() {
@@ -183,7 +181,7 @@ export function initializeCreadoraPortal() {
     const mail = form.querySelector('[data-account-email]');
     if (mail && emailValue) mail.value = emailValue;
     if (!profile) return;
-    for (const name of ['full_name', 'whatsapp', 'city', 'main_network', 'social_link']) {
+    for (const name of PROFILE_FIELDS) {
       const input = form.querySelector(`[name="${name}"]`);
       if (input && profile[name] !== undefined) input.value = profile[name] ?? '';
     }

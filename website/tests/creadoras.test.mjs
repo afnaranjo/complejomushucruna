@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { buildSite } from '../scripts/build.mjs';
 import {
-  createCreadoraAdminClient, creadoraPayload, dayKey, defaultShift, describeLogEntry, minutesFromOffset,
+  createCreadoraAdminClient, creadoraPayload, CREADORA_FIELDS, dayKey, defaultShift, describeLogEntry, fillCreadoraForm, minutesFromOffset,
   movedShift, rangeLabel, resizedShift, shiftGeometry, shiftLabel, shiftView, viewRange, weekStart,
   DAY_START_HOUR, DAY_END_HOUR, STEP_MINUTES,
 } from '../src/admin/admin-creadoras.js';
@@ -136,13 +136,31 @@ test('el cliente administrativo solo llama a las rutas de creadoras y exige CSRF
   assert.throws(() => createCreadoraAdminClient('https://otro.example/api'), /Origen de API no permitido/);
 });
 
-test('el formulario de alta recorta y normaliza lo que escribe coordinación', () => {
-  const form = new Map([['full_name', '  Ana Creadora  '], ['whatsapp', ' 0990000011 '], ['city', 'Ambato'],
-    ['main_network', 'tiktok'], ['social_link', 'https://www.tiktok.com/@ana'], ['note', ' Tardes '], ['status', '']]);
+test('la ficha recoge los datos de la persona y el formulario los recorta', () => {
+  const form = new Map([['full_name', '  Ana Creadora  '], ['cedula', ' 1801234567 '], ['birth_date', '1998-04-12'],
+    ['whatsapp', ' 0990000011 '], ['contact_email', ' ana@example.invalid '], ['city', 'Ambato'],
+    ['main_network', 'tiktok'], ['social_link', 'https://www.tiktok.com/@ana'], ['followers_count', ' 12500 '],
+    ['tiktok', 'https://www.tiktok.com/@ana'], ['instagram', ''], ['facebook', ''], ['note', ' Tardes '], ['status', '']]);
   assert.deepEqual(creadoraPayload(form), {
-    full_name: 'Ana Creadora', status: 'Activa', whatsapp: '0990000011', city: 'Ambato',
-    main_network: 'tiktok', social_link: 'https://www.tiktok.com/@ana', note: 'Tardes',
+    full_name: 'Ana Creadora', cedula: '1801234567', birth_date: '1998-04-12', whatsapp: '0990000011',
+    contact_email: 'ana@example.invalid', city: 'Ambato', status: 'Activa', main_network: 'tiktok',
+    followers_count: 12500, social_link: 'https://www.tiktok.com/@ana',
+    tiktok: 'https://www.tiktok.com/@ana', instagram: '', facebook: '', note: 'Tardes',
   });
+  // Sin seguidores escritos se manda cero, no una cadena vacía que el servidor rechazaría.
+  assert.equal(creadoraPayload(new Map([['full_name', 'Ana'], ['followers_count', '']])).followers_count, 0);
+});
+
+test('la ficha guardada se vuelca en el formulario para revisarla o corregirla', () => {
+  const elements = Object.fromEntries(CREADORA_FIELDS.map(name => [name, { value: 'previo' }]));
+  const form = fillCreadoraForm({ elements }, {
+    full_name: 'Ana Creadora', cedula: '1801234567', followers_count: 12500, city: null, note: undefined,
+  });
+  assert.equal(form.elements.full_name.value, 'Ana Creadora');
+  assert.equal(form.elements.cedula.value, '1801234567');
+  assert.equal(form.elements.followers_count.value, '12500', 'los números llegan como texto al campo');
+  assert.equal(form.elements.city.value, '', 'un dato ausente limpia el campo, no arrastra el anterior');
+  assert.equal(form.elements.note.value, '');
 });
 
 test('la sección de creadoras se publica con su calendario, su bitácora y su entrada de menú', async t => {
@@ -160,6 +178,9 @@ test('la sección de creadoras se publica con su calendario, su bitácora y su e
   assert.match(page, /data-calendar-log/);
   assert.match(page, /data-creadora-list/);
   assert.match(page, /data-creadora-dialog/);
+  // La ficha pide los datos de la persona, no solo el nombre.
+  for (const name of ['cedula', 'birth_date', 'contact_email', 'followers_count', 'tiktok', 'instagram', 'facebook'])
+    assert.match(page, new RegExp(`name="${name}"`), name);
   assert.match(page, /Cambios del calendario/);
   assert.match(page, /noindex, nofollow, noarchive/);
   // La semana viene marcada de entrada.

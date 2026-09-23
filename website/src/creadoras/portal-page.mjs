@@ -19,13 +19,23 @@ function profileForm() {
 <p>Con esto la coordinación sabe a quién llamar y dónde publicas. Los campos con * son obligatorios.</p>
 <div class="vocero-fields">
 ${field('full_name', 'Nombre y apellido', 'autocomplete="name" minlength="3" maxlength="160"')}
+${field('cedula', 'Cédula', 'inputmode="numeric" pattern="[0-9]{10}" minlength="10" maxlength="10" placeholder="Ej.: 1801234567"')}
+${field('birth_date', 'Fecha de nacimiento', 'type="date"', true)}
 ${field('whatsapp', 'Número de WhatsApp', 'type="tel" autocomplete="tel" inputmode="numeric" pattern="09[0-9]{8}" maxlength="10" placeholder="Ej.: 0995874566"')}
 <label class="vocero-field" for="account-email"><span>Correo de tu cuenta</span><input id="account-email" type="email" data-account-email readonly aria-describedby="email-help"><small id="email-help">Este correo está vinculado a tu cuenta.</small></label>
 ${field('city', 'Ciudad', 'autocomplete="address-level2" maxlength="100"', true)}
 <label class="vocero-field" for="campo-main_network"><span>¿En qué red publicas más?</span><select id="campo-main_network" name="main_network"><option value="">Sin definir</option>${networks}</select></label>
-${field('social_link', 'Enlace de tu cuenta', 'type="url" maxlength="400" pattern="https://.*" placeholder="https://"', true)}
+${field('social_link', 'Enlace de tu cuenta principal', 'type="url" maxlength="400" pattern="https://.*" placeholder="https://"', true)}
+${field('followers_count', 'Seguidores en esa cuenta', 'type="number" min="0" step="1" inputmode="numeric" placeholder="0"', true)}
 </div></section>
-<section class="vocero-consents" aria-labelledby="consents-title"><p class="vocero-eyebrow">02 · Consentimientos</p><h2 id="consents-title">Revisa y confirma</h2>
+<section aria-labelledby="redes-title"><p class="vocero-eyebrow">02 · Tus redes</p><h2 id="redes-title">Dónde publicas</h2>
+<p>Comparte las cuentas donde vas a publicar. Todas son opcionales; usa enlaces que empiecen con https://.</p>
+<div class="vocero-fields">
+${field('tiktok', 'TikTok', 'type="url" maxlength="400" pattern="https://.*" placeholder="https://"', true)}
+${field('instagram', 'Instagram', 'type="url" maxlength="400" pattern="https://.*" placeholder="https://"', true)}
+${field('facebook', 'Facebook', 'type="url" maxlength="400" pattern="https://.*" placeholder="https://"', true)}
+</div></section>
+<section class="vocero-consents" aria-labelledby="consents-title"><p class="vocero-eyebrow">03 · Consentimientos</p><h2 id="consents-title">Revisa y confirma</h2>
 <label class="vocero-check"><input type="checkbox" name="policies_accepted" required><span>${esc(consents.policies.text)}</span></label>
 <label class="vocero-check"><input type="checkbox" name="privacy_accepted" required><span>${esc(consents.privacy.text)}</span></label>
 <nav class="vocero-legal-links" aria-label="Documentos de consentimiento"><a href="${BASE}/condiciones/" target="_blank" rel="noopener noreferrer">Condiciones de participación</a><a href="${BASE}/politica-de-privacidad/" target="_blank" rel="noopener noreferrer">Política de Privacidad</a></nav>

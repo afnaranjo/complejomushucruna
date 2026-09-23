@@ -259,3 +259,14 @@ tr[data-origin="cuenta"] > td { background: rgba(0, 210, 214, .05); }
   .calendar-month__day { min-height: 4.5rem; }
   .calendar-log li { grid-template-columns: minmax(0, 1fr); gap: .15rem; }
 }
+
+/* El diálogo de ficha: centrado, acotado al alto de la ventana y con scroll propio. */
+.record-dialog { width: min(52rem, calc(100vw - 2rem)); max-height: min(88dvh, 56rem); margin: auto; padding: 1.5rem; border: 1px solid #c3b6c7; border-radius: .9rem; background: #fffaf2; color: #241146; overflow: auto; }
+.record-dialog::backdrop { background: #160b2fcc; }
+.record-dialog .records-heading { padding: 0 0 1rem; }
+.record-dialog .records-heading h2 { font-size: 1.15rem; }
+.record-form { display: grid; gap: .5rem; }
+.record-form__actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .5rem; margin-top: 1rem; padding-top: .9rem; border-top: 1px solid #e3dae6; }
+@media (max-width: 700px) { .record-dialog { width: 100%; max-width: 100%; max-height: 100dvh; border-radius: 0; padding: 1.1rem; } }
+.creadora-chip { flex-wrap: wrap; }
+.creadora-chip__edit { flex: 1 1 100%; margin-top: .35rem; padding: .25rem 0; border: 0; background: none; color: #94165e; font-size: .72rem; font-weight: 650; text-align: left; text-decoration: underline; text-underline-offset: 3px; }

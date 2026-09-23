@@ -268,7 +268,7 @@ export function renderAdminCreadorasPage(page) {
 <div class="calendar-layout">
 <aside class="calendar-people" aria-labelledby="creadoras-title">
 <h2 id="creadoras-title">Creadoras</h2>
-<p>Arrastra un nombre al calendario, o tócalo y luego toca la hora.</p>
+<p>Arrastra un nombre al calendario, o tócalo y luego toca la hora. Toca «Ver ficha» para revisar o completar sus datos.</p>
 <ul data-creadora-list></ul>
 </aside>
 <section class="calendar-board" aria-label="Calendario de turnos">
@@ -281,16 +281,25 @@ export function renderAdminCreadorasPage(page) {
 <div class="records-heading"><div><h2 id="bitacora-title">Cambios del calendario</h2><p>Quién cambió qué y cómo quedó. Lo más reciente primero.</p></div></div>
 <ol class="calendar-log" data-calendar-log></ol>
 </section>
-<dialog class="record-dialog" data-creadora-dialog aria-label="Agregar creadora">
+<dialog class="record-dialog" data-creadora-dialog aria-label="Ficha de la creadora">
 <form method="dialog" class="record-form">
-<h2>Agregar creadora</h2>
-<label>Nombre y apellido<input name="full_name" maxlength="160" required></label>
-<label>Estado<select name="status">${statuses}</select></label>
+<div class="records-heading"><div><h2 data-dialog-title>Agregar creadora</h2><p>Los datos personales se guardan cifrados y solo los ve coordinación.</p></div></div>
+<div class="record-grid">
+<label class="record-grid__wide">Nombre y apellido<input name="full_name" maxlength="160" required></label>
+<label>Cédula<input name="cedula" inputmode="numeric" pattern="[0-9]{10}" maxlength="10" placeholder="Ej.: 1801234567"></label>
+<label>Fecha de nacimiento<input name="birth_date" type="date"></label>
 <label>WhatsApp<input name="whatsapp" maxlength="32" inputmode="tel" placeholder="0990000000"></label>
+<label>Correo de contacto<input name="contact_email" type="email" maxlength="254"></label>
 <label>Ciudad<input name="city" maxlength="120"></label>
+<label>Estado<select name="status">${statuses}</select></label>
 <label>Red principal<select name="main_network"><option value="">Sin definir</option>${networks}</select></label>
-<label>Enlace de su cuenta<input name="social_link" type="url" maxlength="400" placeholder="https://"></label>
-<label>Nota de coordinación<textarea name="note" rows="3" maxlength="2000"></textarea></label>
+<label>Seguidores declarados<input name="followers_count" type="number" min="0" step="1" inputmode="numeric" placeholder="0"></label>
+<label class="record-grid__wide">Enlace principal de su cuenta<input name="social_link" type="url" maxlength="400" placeholder="https://"></label>
+<label>TikTok<input name="tiktok" type="url" maxlength="400" placeholder="https://"></label>
+<label>Instagram<input name="instagram" type="url" maxlength="400" placeholder="https://"></label>
+<label class="record-grid__wide">Facebook<input name="facebook" type="url" maxlength="400" placeholder="https://"></label>
+<label class="record-grid__wide">Nota de coordinación<textarea name="note" rows="3" maxlength="2000"></textarea></label>
+</div>
 <div class="record-form__actions"><button type="submit" value="cancel" class="button-quiet">Cancelar</button><button type="submit" value="save" class="button-primary">Guardar</button></div>
 </form>
 </dialog>

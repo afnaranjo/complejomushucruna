@@ -36,6 +36,8 @@ final class CreadoraRepository
     private const MIN_MINUTES = 15;
     private const MAX_MINUTES = 24 * 60;
     private const CONSENTS = ['policies' => true, 'privacy' => true];
+    /** Enlaces públicos que puede declarar. El principal se elige aparte. */
+    public const LINKS = ['tiktok' => 'TikTok', 'instagram' => 'Instagram', 'facebook' => 'Facebook'];
     /** Las horas del calendario son de Ecuador. Aquí no se convierte nada: se escribe y se lee igual. */
     private const ZONE_OFFSET = '-5 hours';
 
@@ -76,14 +78,17 @@ final class CreadoraRepository
     {
         $values = $this->validate($input, true);
         $this->assertNameAvailable($values['full_name'], null);
+        $this->assertCedulaAvailable($values['cedula'], null);
         $now = gmdate('Y-m-d H:i:s');
         $publicId = bin2hex(random_bytes(16));
-        $insert = $this->pdo->prepare('INSERT INTO creadoras (public_id, account_id, status, origin, full_name, name_idx, whatsapp_enc, whatsapp_idx, city, main_network, social_link, note, created_by_admin_id, submitted_at, updated_at)'
-            . " VALUES (?, NULL, ?, 'coordinacion', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $insert = $this->pdo->prepare('INSERT INTO creadoras (public_id, account_id, status, origin, full_name, name_idx, whatsapp_enc, whatsapp_idx, city, main_network, social_link, note,'
+            . ' cedula_enc, cedula_idx, birth_date_enc, contact_email_enc, tiktok, instagram, facebook, followers_count, created_by_admin_id, submitted_at, updated_at)'
+            . " VALUES (?, NULL, ?, 'coordinacion', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         $insert->execute([$publicId, $values['status'], $values['full_name'], $this->crypto->lookup($values['full_name']),
-            $values['whatsapp'] === '' ? '' : $this->crypto->encrypt($values['whatsapp']),
-            $values['whatsapp'] === '' ? '' : $this->crypto->lookup($values['whatsapp']),
-            $values['city'], $values['main_network'], $values['social_link'], $values['note'], $adminId, $now, $now]);
+            $this->secret($values['whatsapp']), $this->index($values['whatsapp']),
+            $values['city'], $values['main_network'], $values['social_link'], $values['note'],
+            $this->secret($values['cedula']), $this->index($values['cedula']), $this->secret($values['birth_date']), $this->secret($values['contact_email']),
+            $values['tiktok'], $values['instagram'], $values['facebook'], $values['followers_count'], $adminId, $now, $now]);
         $this->audit->log('creadora.created_by_admin', $adminId, 'creadora', $publicId, [], $ip);
         return $this->byPublicId($publicId);
     }
@@ -93,11 +98,14 @@ final class CreadoraRepository
         $current = $this->rowByPublicId($publicId);
         $values = $this->validate($input, false, $current);
         $this->assertNameAvailable($values['full_name'], (int) $current['id']);
-        $update = $this->pdo->prepare('UPDATE creadoras SET status = ?, full_name = ?, name_idx = ?, whatsapp_enc = ?, whatsapp_idx = ?, city = ?, main_network = ?, social_link = ?, note = ?, updated_at = ? WHERE id = ?');
+        $this->assertCedulaAvailable($values['cedula'], (int) $current['id']);
+        $update = $this->pdo->prepare('UPDATE creadoras SET status = ?, full_name = ?, name_idx = ?, whatsapp_enc = ?, whatsapp_idx = ?, city = ?, main_network = ?, social_link = ?, note = ?,'
+            . ' cedula_enc = ?, cedula_idx = ?, birth_date_enc = ?, contact_email_enc = ?, tiktok = ?, instagram = ?, facebook = ?, followers_count = ?, updated_at = ? WHERE id = ?');
         $update->execute([$values['status'], $values['full_name'], $this->crypto->lookup($values['full_name']),
-            $values['whatsapp'] === '' ? '' : $this->crypto->encrypt($values['whatsapp']),
-            $values['whatsapp'] === '' ? '' : $this->crypto->lookup($values['whatsapp']),
+            $this->secret($values['whatsapp']), $this->index($values['whatsapp']),
             $values['city'], $values['main_network'], $values['social_link'], $values['note'],
+            $this->secret($values['cedula']), $this->index($values['cedula']), $this->secret($values['birth_date']), $this->secret($values['contact_email']),
+            $values['tiktok'], $values['instagram'], $values['facebook'], $values['followers_count'],
             gmdate('Y-m-d H:i:s'), $current['id']]);
         $this->audit->log('creadora.updated_by_admin', $adminId, 'creadora', $publicId, [], $ip);
         return $this->byPublicId($publicId);
@@ -145,23 +153,30 @@ final class CreadoraRepository
         $values = $this->validate($input, $current === null, $current ?: null, true);
         $this->assertConsents($input);
         $this->assertNameAvailable($values['full_name'], $current ? (int) $current['id'] : null);
+        $this->assertCedulaAvailable($values['cedula'], $current ? (int) $current['id'] : null);
         $now = gmdate('Y-m-d H:i:s');
         $whatsapp = $values['whatsapp'];
         if ($whatsapp === '') throw new InvalidArgumentException('Escribe tu número de WhatsApp.');
         if ($current === null) {
             $publicId = bin2hex(random_bytes(16));
-            $insert = $this->pdo->prepare('INSERT INTO creadoras (public_id, account_id, status, origin, full_name, name_idx, whatsapp_enc, whatsapp_idx, city, main_network, social_link, note, created_by_admin_id, submitted_at, updated_at)'
-                . " VALUES (?, ?, 'Nuevo', 'cuenta', ?, ?, ?, ?, ?, ?, ?, '', NULL, ?, ?)");
+            $insert = $this->pdo->prepare('INSERT INTO creadoras (public_id, account_id, status, origin, full_name, name_idx, whatsapp_enc, whatsapp_idx, city, main_network, social_link, note,'
+                . ' cedula_enc, cedula_idx, birth_date_enc, contact_email_enc, tiktok, instagram, facebook, followers_count, created_by_admin_id, submitted_at, updated_at)'
+                . " VALUES (?, ?, 'Nuevo', 'cuenta', ?, ?, ?, ?, ?, ?, ?, '', ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, ?)");
             $insert->execute([$publicId, $accountId, $values['full_name'], $this->crypto->lookup($values['full_name']),
                 $this->crypto->encrypt($whatsapp), $this->crypto->lookup($whatsapp),
-                $values['city'], $values['main_network'], $values['social_link'], $now, $now]);
+                $values['city'], $values['main_network'], $values['social_link'],
+                $this->secret($values['cedula']), $this->index($values['cedula']), $this->secret($values['birth_date']), $this->secret($values['contact_email']),
+                $values['tiktok'], $values['instagram'], $values['facebook'], $values['followers_count'], $now, $now]);
             $creadoraId = (int) $this->pdo->lastInsertId();
         } else {
             $creadoraId = (int) $current['id'];
             $publicId = $current['public_id'];
-            $this->pdo->prepare('UPDATE creadoras SET full_name = ?, name_idx = ?, whatsapp_enc = ?, whatsapp_idx = ?, city = ?, main_network = ?, social_link = ?, updated_at = ? WHERE id = ?')
+            $this->pdo->prepare('UPDATE creadoras SET full_name = ?, name_idx = ?, whatsapp_enc = ?, whatsapp_idx = ?, city = ?, main_network = ?, social_link = ?,'
+                . ' cedula_enc = ?, cedula_idx = ?, birth_date_enc = ?, contact_email_enc = ?, tiktok = ?, instagram = ?, facebook = ?, followers_count = ?, updated_at = ? WHERE id = ?')
                 ->execute([$values['full_name'], $this->crypto->lookup($values['full_name']), $this->crypto->encrypt($whatsapp), $this->crypto->lookup($whatsapp),
-                    $values['city'], $values['main_network'], $values['social_link'], $now, $creadoraId]);
+                    $values['city'], $values['main_network'], $values['social_link'],
+                    $this->secret($values['cedula']), $this->index($values['cedula']), $this->secret($values['birth_date']), $this->secret($values['contact_email']),
+                    $values['tiktok'], $values['instagram'], $values['facebook'], $values['followers_count'], $now, $creadoraId]);
         }
         $this->recordConsents($creadoraId, $input, $ip, $now);
         $this->audit->log('creadora.profile_saved', null, 'creadora', $publicId, [], $ip);
@@ -322,6 +337,14 @@ final class CreadoraRepository
             'main_network' => $row['main_network'],
             'main_network_label' => self::NETWORKS[$row['main_network']] ?? '',
             'social_link' => $row['social_link'],
+            'cedula' => $this->reveal($row['cedula_enc'] ?? ''),
+            'birth_date' => $this->reveal($row['birth_date_enc'] ?? ''),
+            'age' => $this->age($this->reveal($row['birth_date_enc'] ?? '')),
+            'contact_email' => $this->reveal($row['contact_email_enc'] ?? ''),
+            'tiktok' => $row['tiktok'] ?? '',
+            'instagram' => $row['instagram'] ?? '',
+            'facebook' => $row['facebook'] ?? '',
+            'followers_count' => (int) ($row['followers_count'] ?? 0),
             'note' => $row['note'],
             'shift_count' => isset($row['shift_count']) ? (int) $row['shift_count'] : null,
             'submitted_at' => $row['submitted_at'],
@@ -345,7 +368,37 @@ final class CreadoraRepository
             $whatsapp = ($current['whatsapp_enc'] ?? '') === '' ? '' : $this->crypto->decrypt($current['whatsapp_enc']);
         }
         if ($whatsapp !== '' && !preg_match('~^[0-9+][0-9 ]{6,19}$~D', $whatsapp)) throw new InvalidArgumentException('El número de WhatsApp no es válido.');
+        $cedula = preg_replace('/\D+/', '', (string) ($input['cedula'] ?? '')) ?? '';
+        if ($cedula === '' && $current !== null && !array_key_exists('cedula', $input)) $cedula = $this->reveal($current['cedula_enc'] ?? '');
+        if ($cedula !== '' && !preg_match('~^[0-9]{10}$~D', $cedula)) throw new InvalidArgumentException('La cédula debe tener diez dígitos.');
+        $birth = $this->text($input['birth_date'] ?? '', 10);
+        if ($birth === '' && $current !== null && !array_key_exists('birth_date', $input)) $birth = $this->reveal($current['birth_date_enc'] ?? '');
+        if ($birth !== '') {
+            if (!preg_match('~^(\d{4})-(\d{2})-(\d{2})$~D', $birth, $parts) || !checkdate((int) $parts[2], (int) $parts[3], (int) $parts[1])) {
+                throw new InvalidArgumentException('La fecha de nacimiento no es válida.');
+            }
+            if ($birth > substr($this->localNow(), 0, 10)) throw new InvalidArgumentException('La fecha de nacimiento no puede estar en el futuro.');
+        }
+        $contactEmail = mb_strtolower($this->text($input['contact_email'] ?? '', 254));
+        if ($contactEmail === '' && $current !== null && !array_key_exists('contact_email', $input)) $contactEmail = $this->reveal($current['contact_email_enc'] ?? '');
+        if ($contactEmail !== '' && !filter_var($contactEmail, FILTER_VALIDATE_EMAIL)) throw new InvalidArgumentException('El correo de contacto no es válido.');
+        $links = [];
+        foreach (array_keys(self::LINKS) as $key) {
+            $link = $this->text($input[$key] ?? ($current[$key] ?? ''), 400);
+            if ($link !== '' && !preg_match('~^https://[^\s]+$~D', $link)) throw new InvalidArgumentException('Los enlaces deben empezar con https://');
+            $links[$key] = $link;
+        }
+        $followers = $input['followers_count'] ?? ($current['followers_count'] ?? 0);
+        if (is_string($followers)) $followers = trim($followers) === '' ? 0 : $followers;
+        if (!is_numeric($followers) || (int) $followers < 0 || (int) $followers > 1000000000) throw new InvalidArgumentException('La cantidad de seguidores no es válida.');
         return [
+            'cedula' => $cedula,
+            'birth_date' => $birth,
+            'contact_email' => $contactEmail,
+            'tiktok' => $links['tiktok'],
+            'instagram' => $links['instagram'],
+            'facebook' => $links['facebook'],
+            'followers_count' => (int) $followers,
             'full_name' => $name,
             'status' => $creating && !$selfService ? ($this->text($input['status'] ?? 'Activa', 32) ?: 'Activa') : $status,
             'whatsapp' => $whatsapp,
@@ -354,6 +407,40 @@ final class CreadoraRepository
             'social_link' => $link,
             'note' => $selfService ? ($current['note'] ?? '') : $this->text($input['note'] ?? ($current['note'] ?? ''), 2000),
         ];
+    }
+
+    private function secret(string $value): string
+    {
+        return $value === '' ? '' : $this->crypto->encrypt($value);
+    }
+
+    private function index(string $value): string
+    {
+        return $value === '' ? '' : $this->crypto->lookup($value);
+    }
+
+    private function reveal(string $value): string
+    {
+        return $value === '' ? '' : $this->crypto->decrypt($value);
+    }
+
+    /** Años cumplidos, para que coordinación sepa si trata con una persona menor de edad. */
+    private function age(string $birth): ?int
+    {
+        if ($birth === '') return null;
+        $today = substr($this->localNow(), 0, 10);
+        $years = (int) substr($today, 0, 4) - (int) substr($birth, 0, 4);
+        if (substr($today, 5) < substr($birth, 5)) $years--;
+        return max(0, $years);
+    }
+
+    /** La cédula identifica a la persona: dos fichas activas no pueden compartirla. */
+    private function assertCedulaAvailable(string $cedula, ?int $exceptId): void
+    {
+        if ($cedula === '') return;
+        $statement = $this->pdo->prepare("SELECT id FROM creadoras WHERE cedula_idx = ? AND status <> 'Retirada'" . ($exceptId === null ? '' : ' AND id <> ?'));
+        $statement->execute($exceptId === null ? [$this->crypto->lookup($cedula)] : [$this->crypto->lookup($cedula), $exceptId]);
+        if ($statement->fetch(PDO::FETCH_ASSOC) !== false) throw new DuplicateRegistration('Ya existe una creadora con esa cédula.');
     }
 
     private function assertNameAvailable(string $name, ?int $exceptId): void

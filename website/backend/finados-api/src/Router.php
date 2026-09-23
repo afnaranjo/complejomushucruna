@@ -655,7 +655,7 @@ final class Router
             if ($method === 'POST') {
                 if (!$this->config->isAllowedOrigin($origin) || !$validIp) throw new Forbidden();
                 $auth->verifyCsrf($token);
-                $body = $this->body($server, $rawBody, ['full_name', 'whatsapp', 'city', 'main_network', 'social_link', 'policies_accepted', 'privacy_accepted']);
+                $body = $this->body($server, $rawBody, ['full_name', 'whatsapp', 'city', 'main_network', 'social_link', 'policies_accepted', 'privacy_accepted', 'cedula', 'birth_date', 'contact_email', 'tiktok', 'instagram', 'facebook', 'followers_count']);
                 $saved = $this->creadoras()->saveForAccount($user['id'], $body, $ip);
                 return $this->json(200, ['ok' => true, 'profile' => $saved, ...$this->creadoras()->shiftsForAccount($user['id'])], $headers);
             }
@@ -683,7 +683,7 @@ final class Router
             }
             if ($method !== 'POST') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
             if ($query !== []) throw new InvalidArgumentException();
-            $body = $this->body($server, $rawBody, ['full_name', 'status', 'whatsapp', 'city', 'main_network', 'social_link', 'note']);
+            $body = $this->body($server, $rawBody, ['full_name', 'status', 'whatsapp', 'city', 'main_network', 'social_link', 'note', 'cedula', 'birth_date', 'contact_email', 'tiktok', 'instagram', 'facebook', 'followers_count']);
             return $this->json(201, ['ok' => true, 'creadora' => $repository->createByAdmin($body, $user['id'], $ip)], $headers);
         }
         if ($path === '/api/creadoras/calendario') {
@@ -715,7 +715,7 @@ final class Router
             if ($query !== []) throw new InvalidArgumentException();
             if ($method === 'GET') return $this->json(200, ['creadora' => $repository->byPublicId($parts[1])], $headers);
             if ($method === 'PATCH') {
-                $body = $this->body($server, $rawBody, ['full_name', 'status', 'whatsapp', 'city', 'main_network', 'social_link', 'note']);
+                $body = $this->body($server, $rawBody, ['full_name', 'status', 'whatsapp', 'city', 'main_network', 'social_link', 'note', 'cedula', 'birth_date', 'contact_email', 'tiktok', 'instagram', 'facebook', 'followers_count']);
                 return $this->json(200, ['ok' => true, 'creadora' => $repository->updateByAdmin($parts[1], $body, $user['id'], $ip)], $headers);
             }
             return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
