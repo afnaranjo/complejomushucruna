@@ -9,7 +9,7 @@ use OutOfBoundsException;
 use PDO;
 use Throwable;
 
-foreach (['Config', 'Database', 'Crypto', 'Audit', 'VocerosRepository', 'Auth', 'VoceroAuth', 'VoceroProfile', 'VoceroPasswordReset', 'MediaAuth', 'MediaRepository', 'MediaPasswordReset'] as $dependency) {
+foreach (['Config', 'Database', 'Crypto', 'Audit', 'VocerosRepository', 'Auth', 'VoceroAuth', 'VoceroProfile', 'VoceroPasswordReset', 'MediaAuth', 'MediaRepository', 'MediaPasswordReset', 'EmprendedorAuth', 'EmprendedorRepository', 'EmprendedorPasswordReset'] as $dependency) {
     require_once __DIR__ . '/' . $dependency . '.php';
 }
 
@@ -37,10 +37,13 @@ final class Router
     private ?MediaAuth $mediaAuthInstance = null;
     private readonly VocerosRepository $repository;
     private ?MediaRepository $mediaInstance = null;
+    private ?EmprendedorAuth $emprendedorAuthInstance = null;
+    private ?EmprendedorRepository $emprendedorInstance = null;
     private readonly Audit $audit;
     private readonly Crypto $crypto;
     private const FILTERS = ['search', 'status', 'city', 'main_network', 'previous_participation', 'date_from', 'date_to'];
     private const MEDIA_FILTERS = ['search', 'status', 'province', 'media_type', 'paid_media'];
+    private const EMPRENDEDOR_FILTERS = ['search', 'status', 'city', 'main_network'];
     private const METHODS = ['GET', 'POST', 'PATCH', 'OPTIONS'];
 
     public function __construct(private readonly Config $config, private readonly PDO $pdo)
@@ -92,6 +95,13 @@ final class Router
                 if ($method !== 'GET') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
                 if ($query !== []) throw new InvalidArgumentException();
                 $verification = $this->repository->publicVerification($parts[1]);
+                if ($verification === null) throw new OutOfBoundsException();
+                return $this->json(200, ['ok' => true, 'verification' => $verification], $headers);
+            }
+            if (preg_match('~^/api/emprendedores/verify/([a-f0-9]{32})$~D', $path, $parts)) {
+                if ($method !== 'GET') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+                if ($query !== []) throw new InvalidArgumentException();
+                $verification = $this->emprendedor()->publicVerification($parts[1]);
                 if ($verification === null) throw new OutOfBoundsException();
                 return $this->json(200, ['ok' => true, 'verification' => $verification], $headers);
             }
@@ -206,6 +216,11 @@ final class Router
                 $saved = $profile->saveVideo($user['id'], (int) $parts[1], $body['url'], $ip);
                 return $this->json(200, ['ok' => true, ...$saved], $headers);
             }
+            // Entrepreneur accounts use their own session scope, isolated from Voceros, Medios and administration.
+            if (str_starts_with($path, '/api/emprendedor/')) {
+                $response = $this->emprendedorAccount($method, $path, $query, $server, $rawBody, $post, $files, $origin, $ip, $token, $headers);
+                if ($response !== null) return $response;
+            }
             // Media accounts use their own session scope, isolated from Voceros and administration.
             if (str_starts_with($path, '/api/media/')) {
                 $response = $this->mediaAccount($method, $path, $query, $server, $rawBody, $files, $origin, $ip, $token, $headers);
@@ -220,6 +235,9 @@ final class Router
             if ($path === '/api/auth/logout' && $method === 'POST') {
                 $this->auth->logout();
                 return $this->json(200, ['ok' => true], $headers);
+            }
+            if ($path === '/api/emprendedores' || str_starts_with($path, '/api/emprendedores/') || $path === '/api/emprendedor-accounts' || str_starts_with($path, '/api/emprendedor-accounts/') || in_array($path, ['/api/emprendedor-dashboard', '/api/emprendedor-video-schedule'], true)) {
+                return $this->emprendedorAdmin($method, $path, $query, $server, $rawBody, $origin, $refererOrigin, $ip, $user, $headers);
             }
             if ($path === '/api/medios' || str_starts_with($path, '/api/medios/') || $path === '/api/media-accounts' || str_starts_with($path, '/api/media-accounts/')) {
                 return $this->mediaAdmin($method, $path, $query, $server, $rawBody, $origin, $refererOrigin, $ip, $user, $headers);
@@ -363,6 +381,246 @@ final class Router
         } catch (Throwable) {
             error_log('Finados API request failed.');
             return $this->error(500, 'internal_error', 'No se pudo completar la solicitud.', $headers);
+        }
+    }
+
+    // Entrepreneur services load on first use, like Medios, so a fault there never takes down the other programmes.
+    private function emprendedorAuth(): EmprendedorAuth
+    {
+        return $this->emprendedorAuthInstance ??= new EmprendedorAuth($this->pdo, $this->config);
+    }
+
+    private function emprendedor(): EmprendedorRepository
+    {
+        return $this->emprendedorInstance ??= new EmprendedorRepository($this->pdo, $this->crypto, $this->audit);
+    }
+
+    private function emprendedorAccount(string $method, string $path, array $query, array $server, string $rawBody, array $post, array $files, ?string $origin, mixed $ip, string $token, array $headers): ?Response
+    {
+        $validIp = is_string($ip) && inet_pton($ip) !== false;
+        $auth = $this->emprendedorAuth();
+        if ($path === '/api/emprendedor/auth/session') {
+            if ($method !== 'GET') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+            try { $user = $auth->requireUser(); } catch (Unauthorized) { $user = null; }
+            return $this->json(200, ['authenticated' => $user !== null, 'user' => $user, 'csrf' => $auth->csrfToken()], $headers);
+        }
+        if (in_array($path, ['/api/emprendedor/auth/register', '/api/emprendedor/auth/login', '/api/emprendedor/auth/logout', '/api/emprendedor/auth/reset'], true)) {
+            if ($method !== 'POST') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+            if (!$this->config->isAllowedOrigin($origin) || !$validIp) throw new Forbidden();
+            $auth->verifyCsrf($token);
+            if ($query !== []) throw new InvalidArgumentException();
+            if ($path === '/api/emprendedor/auth/reset') {
+                $body = $this->body($server, $rawBody, ['token', 'password']);
+                if (!is_string($body['token'] ?? null) || !is_string($body['password'] ?? null)) throw new InvalidArgumentException();
+                (new EmprendedorPasswordReset($this->pdo, $this->config))->consume($body['token'], $body['password'], $ip);
+                $auth->logout();
+                return $this->json(200, ['ok' => true, 'csrf' => $auth->csrfToken()], $headers);
+            }
+            if ($path === '/api/emprendedor/auth/register') {
+                $body = $this->body($server, $rawBody, ['email', 'password', 'privacyAcknowledged']);
+                if (!is_string($body['email'] ?? null) || !is_string($body['password'] ?? null) || !is_bool($body['privacyAcknowledged'] ?? null)) throw new InvalidArgumentException();
+                $auth->register($body['email'], $body['password'], $body['privacyAcknowledged'], $ip);
+                return $this->json(202, ['ok' => true, 'message' => 'Cuenta creada; inicia sesión.'], $headers);
+            }
+            if ($path === '/api/emprendedor/auth/login') {
+                $body = $this->body($server, $rawBody, ['email', 'password']);
+                if (!is_string($body['email'] ?? null) || !is_string($body['password'] ?? null)) throw new InvalidArgumentException();
+                $result = $auth->login($body['email'], $body['password'], $ip);
+                try { $this->audit->log('emprendedor_account.login', null, 'emprendedor_account', $result['user']['public_id'], [], $ip); }
+                catch (Throwable $error) { $auth->logout(); throw $error; }
+                return $this->json(200, ['authenticated' => true, ...$result], $headers);
+            }
+            $user = $auth->requireUser();
+            $this->audit->log('emprendedor_account.logout', null, 'emprendedor_account', $user['public_id'], [], $ip);
+            $auth->logout();
+            return $this->json(200, ['ok' => true], $headers);
+        }
+        if (in_array($path, ['/api/emprendedor/profile', '/api/emprendedor/photo'], true)) {
+            $user = $auth->requireUser();
+            if (!in_array($method, $path === '/api/emprendedor/profile' ? ['GET', 'POST'] : ['GET'], true)) return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+            if ($query !== []) throw new InvalidArgumentException();
+            if ($method === 'POST') {
+                // Same multipart contract as the Voceros form: text fields plus an optional photo.
+                if (!$this->config->isAllowedOrigin($origin) || !$validIp) throw new Forbidden();
+                $auth->verifyCsrf($token);
+                $length = $server['CONTENT_LENGTH'] ?? null;
+                if ($length !== null && ((!is_string($length) && !is_int($length)) || preg_match('/^\d+$/D', (string) $length) !== 1)) throw new InvalidArgumentException();
+                if (($length !== null && (float) $length > self::PHOTO_UPLOAD_BYTES + self::PROFILE_REQUEST_OVERHEAD_BYTES) || strlen($rawBody) > self::PHOTO_UPLOAD_BYTES + self::PROFILE_REQUEST_OVERHEAD_BYTES) throw new RequestBodyError(413, 'payload_too_large');
+                if (strtolower(trim(explode(';', $server['CONTENT_TYPE'] ?? '')[0])) !== 'multipart/form-data') throw new RequestBodyError(415, 'unsupported_media_type');
+                $fieldBytes = 0;
+                foreach ($post as $field => $value) {
+                    if (!is_string($value)) throw new InvalidArgumentException();
+                    $fieldBytes += strlen((string) $field) + strlen($value);
+                }
+                if ($fieldBytes > self::PROFILE_REQUEST_OVERHEAD_BYTES) throw new RequestBodyError(413, 'payload_too_large');
+                $upload = null;
+                if ($files !== []) {
+                    $upload = $files['fotografia'] ?? null;
+                    if (count($files) !== 1 || !is_array($upload)) throw new InvalidArgumentException();
+                    if (($upload['error'] ?? null) === UPLOAD_ERR_NO_FILE) $upload = null;
+                    elseif (($upload['error'] ?? null) !== UPLOAD_ERR_OK || !is_string($upload['tmp_name'] ?? null) || !is_int($upload['size'] ?? null) || !is_uploaded_file($upload['tmp_name'])) throw new InvalidArgumentException();
+                    elseif ($upload['size'] > self::PHOTO_UPLOAD_BYTES) throw new RequestBodyError(413, 'payload_too_large');
+                }
+                $saved = $this->emprendedor()->saveForAccount($user['id'], $post, $upload, new EmprendedorPhotoStorage($this->config, $this->crypto), $ip);
+                return $this->json(200, ['registered' => true, 'email' => $user['email'], ...$saved], $headers);
+            }
+            if ($path === '/api/emprendedor/photo') {
+                $headers['Content-Type'] = 'image/jpeg'; $headers['Cache-Control'] = 'private, no-store';
+                return new Response(200, $headers, $this->emprendedor()->photoForAccount($user['id'], new EmprendedorPhotoStorage($this->config, $this->crypto)));
+            }
+            $own = $this->emprendedor()->forAccount($user['id']);
+            return $this->json(200, $own === null
+                ? ['registered' => false, 'email' => $user['email'], 'status' => null, 'editable' => true, 'photo' => ['available' => false, 'width' => null, 'height' => null, 'created_at' => null]]
+                : ['registered' => true, 'email' => $user['email'], ...$own], $headers);
+        }
+        if (preg_match('~^/api/emprendedor/videos/([1-5])$~D', $path, $parts)) {
+            $user = $auth->requireUser();
+            if ($method !== 'POST') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+            if (!$this->config->isAllowedOrigin($origin) || !$validIp || $query !== []) throw new Forbidden();
+            $auth->verifyCsrf($token);
+            $body = $this->body($server, $rawBody, ['url']);
+            $saved = $this->emprendedor()->saveVideoForAccount($user['id'], (int) $parts[1], $body['url'] ?? null, $ip);
+            return $this->json(200, ['ok' => true, 'registered' => true, 'email' => $user['email'], ...$saved], $headers);
+        }
+        // Anything else under this prefix belongs to no programme; never fall through to the administrative guard.
+        return $this->error(404, 'not_found', 'Recurso no encontrado.', $headers);
+    }
+
+    /** Administrative entrepreneur routes; the caller already enforced the admin session and CSRF for writes. */
+    private function emprendedorAdmin(string $method, string $path, array $query, array $server, string $rawBody, ?string $origin, ?string $refererOrigin, mixed $ip, array $user, array $headers): Response
+    {
+        $notAllowed = fn (): Response => $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+        if (!is_string($ip) || inet_pton($ip) === false) throw new Forbidden();
+        $repository = $this->emprendedor();
+        if ($path === '/api/emprendedores') {
+            if ($method !== 'GET') return $notAllowed();
+            $result = $repository->list($this->emprendedorFilters($query, true));
+            return $this->json(200, ['items' => $result['items'], 'pagination' => [
+                'page' => $result['page'], 'pageSize' => $result['per_page'], 'total' => $result['total'],
+                'pages' => (int) ceil($result['total'] / $result['per_page']),
+            ]], $headers);
+        }
+        if ($path === '/api/emprendedor-dashboard') {
+            if ($method !== 'GET') return $notAllowed();
+            if ($query !== []) throw new InvalidArgumentException();
+            return $this->json(200, $repository->dashboard(), $headers);
+        }
+        if ($path === '/api/emprendedor-accounts') {
+            if ($method !== 'GET') return $notAllowed();
+            if ($query !== []) throw new InvalidArgumentException();
+            return $this->json(200, ['items' => $repository->pendingAccounts()], $headers);
+        }
+        if ($path === '/api/emprendedor-video-schedule') {
+            if ($query !== []) throw new InvalidArgumentException();
+            if ($method === 'GET') return $this->json(200, ['video_slots' => $repository->videoSchedule()], $headers);
+            if ($method !== 'PATCH') return $notAllowed();
+            $body = $this->body($server, $rawBody, ['video_slots']);
+            $repository->updateVideoSchedule($body['video_slots'] ?? null, $user['id'], $ip);
+            return $this->json(200, ['ok' => true, 'video_slots' => $repository->videoSchedule()], $headers);
+        }
+        if ($path === '/api/emprendedores/export') {
+            if ($method !== 'POST') return $notAllowed();
+            if ($query !== []) throw new InvalidArgumentException();
+            return $this->emprendedorExport($this->emprendedorFilters($this->body($server, $rawBody, self::EMPRENDEDOR_FILTERS)), $user['id'], $ip, $headers);
+        }
+        if (preg_match('~^/api/emprendedor-accounts/([a-f0-9]{32})/delete$~D', $path, $parts)) {
+            if ($method !== 'POST') return $notAllowed();
+            if ($query !== []) throw new InvalidArgumentException();
+            $this->body($server, $rawBody, []);
+            $repository->archiveAccount($parts[1], $user['id'], $ip);
+            return $this->json(200, ['ok' => true], $headers);
+        }
+        if (preg_match('~^/api/emprendedores/([a-f0-9]{32})/photo$~D', $path, $parts)) {
+            if ($method !== 'GET') return $notAllowed();
+            if ($query !== []) throw new InvalidArgumentException();
+            $jpeg = $repository->photoForAdmin($parts[1], new EmprendedorPhotoStorage($this->config, $this->crypto), $user['id'], $ip);
+            $headers['Content-Type'] = 'image/jpeg'; $headers['Cache-Control'] = 'private, no-store';
+            return new Response(200, $headers, $jpeg);
+        }
+        if (preg_match('~^/api/emprendedores/([a-f0-9]{32})/progress$~D', $path, $parts)) {
+            if ($method !== 'PATCH') return $notAllowed();
+            if ($query !== []) throw new InvalidArgumentException();
+            $body = $this->body($server, $rawBody, ['followers_count', 'level', 'traffic_light', 'video_views']);
+            $repository->updateProgress($parts[1], $body, $user['id'], $ip);
+            return $this->json(200, ['ok' => true], $headers);
+        }
+        if (preg_match('~^/api/emprendedores/([a-f0-9]{32})(?:/(delete|notes|password-reset))?$~D', $path, $parts)) {
+            $id = $parts[1]; $action = $parts[2] ?? '';
+            if ($query !== []) throw new InvalidArgumentException();
+            if ($action === '' && $method === 'GET') {
+                $detail = $repository->find($id);
+                if ($detail === null) throw new OutOfBoundsException();
+                $this->audit->log('emprendedor.viewed', $user['id'], 'emprendedor_profile', $id, [], $ip);
+                return $this->json(200, $detail, $headers);
+            }
+            if ($action === '' && $method === 'PATCH') {
+                $body = $this->body($server, $rawBody, ['status']);
+                if (!is_string($body['status'] ?? null)) throw new InvalidArgumentException();
+                $repository->changeStatus($id, $body['status'], $user['id'], $ip);
+                return $this->json(200, ['ok' => true], $headers);
+            }
+            if ($action !== '' && $method !== 'POST') return $notAllowed();
+            if ($action === 'notes') {
+                $body = $this->body($server, $rawBody, ['body']);
+                if (!is_string($body['body'] ?? null)) throw new InvalidArgumentException();
+                $repository->addNote($id, $body['body'], $user['id'], $ip);
+                return $this->json(201, ['ok' => true], $headers);
+            }
+            if ($action === 'delete') {
+                $this->body($server, $rawBody, []);
+                $repository->archive($id, $user['id'], $ip);
+                return $this->json(200, ['ok' => true], $headers);
+            }
+            if ($action === 'password-reset') {
+                if (!$this->config->isAllowedOrigin($origin)) throw new Forbidden();
+                $this->body($server, $rawBody, []);
+                $raw = (new EmprendedorPasswordReset($this->pdo, $this->config))->create($id, $user['id'], $ip);
+                $resetOrigin = $origin ?? $refererOrigin ?? $this->config->allowedOrigin();
+                return $this->json(201, ['resetUrl' => $resetOrigin . '/finados/emprendedores/restablecer/?token=' . $raw], $headers);
+            }
+            return $notAllowed();
+        }
+        return $this->error(404, 'not_found', 'Recurso no encontrado.', $headers);
+    }
+
+    private function emprendedorFilters(array $input, bool $pagination = false): array
+    {
+        $allowed = $pagination ? [...self::EMPRENDEDOR_FILTERS, 'page', 'pageSize'] : self::EMPRENDEDOR_FILTERS;
+        if (array_diff(array_keys($input), $allowed) !== []) throw new InvalidArgumentException();
+        foreach ($input as $value) if (!is_string($value)) throw new InvalidArgumentException();
+        if (isset($input['pageSize'])) { $input['per_page'] = $input['pageSize']; unset($input['pageSize']); }
+        return $input;
+    }
+
+    private function emprendedorExport(array $filters, int $actorId, string $ip, array $headers): Response
+    {
+        $columns = ['public_id', 'status', 'traffic_light', 'submitted_at', 'full_name', 'cedula', 'birth_date', 'age_at_submission', 'whatsapp', 'email', 'city', 'business_name', 'product', 'stand_code', 'main_network', 'tiktok', 'instagram', 'facebook', 'previous_participation', 'followers_count', 'level', 'level_label', 'has_photo', 'videos_submitted', 'views_total', 'video_links'];
+        $stream = fopen('php://temp/maxmemory:2097152', 'w+');
+        if ($stream === false) throw new \RuntimeException();
+        try {
+            fwrite($stream, "\xEF\xBB\xBF");
+            fputcsv($stream, $columns, ',', '"', '', "\r\n");
+            $rows = $this->emprendedor()->exportRows($filters);
+            foreach ($rows as $detail) {
+                $videos = array_filter($detail['progress']['videos'] ?? [], static fn (array $video): bool => $video['url'] !== '');
+                $detail = [...$detail, 'followers_count' => $detail['progress']['followers_count'], 'level' => $detail['progress']['level'], 'level_label' => $detail['progress']['level_label'],
+                    'has_photo' => ($detail['photo']['available'] ?? false) ? 'Sí' : 'No', 'videos_submitted' => count($videos), 'views_total' => array_sum(array_column($videos, 'views_count')),
+                    'video_links' => implode(' | ', array_map(static fn (array $video): string => 'Video ' . $video['slot'] . ': ' . $video['url'] . ' (' . $video['views_count'] . ' views)', $videos))];
+                fputcsv($stream, array_map(static function (string $column) use ($detail): string {
+                    $value = (string) ($detail[$column] ?? '');
+                    // Also protect formulas hidden behind whitespace/control characters.
+                    return preg_match('/^[\x00-\x20]*[=+@-]/', $value) ? "'" . $value : $value;
+                }, $columns), ',', '"', '', "\r\n");
+            }
+            $this->audit->log('emprendedor.exported', $actorId, 'emprendedor_profile', null, ['count' => count($rows)], $ip);
+            rewind($stream);
+            $csv = stream_get_contents($stream);
+            if ($csv === false) throw new \RuntimeException();
+            $headers['Content-Type'] = 'text/csv; charset=utf-8';
+            $headers['Content-Disposition'] = 'attachment; filename="emprendedores-' . gmdate('Y-m-d') . '.csv"';
+            return new Response(200, $headers, $csv);
+        } finally {
+            fclose($stream);
         }
     }
 

@@ -235,6 +235,9 @@ tags:
 - [x] Desplegar backend → frontend la foto obligatoria de la persona responsable en `MEDIOS`; verificación HTTPS aprobada y Voceros sin cambios. Responsable: tecnología. Completado: 2026-09-21.
 - [x] Desplegar backend → frontend el campo administrativo `Medio pautado` Sí/No de Medios (migración aditiva `016_media_paid`, filtro, columna y CSV); verificación HTTPS aprobada y datos de Voceros intactos. Responsable: tecnología/dirección. Completado: 2026-09-22.
 - [ ] Marcar en `/admin/medios/` los medios a los que la organización les hace pauta mensual (hoy los 14 registros están en `No`). Responsable: Alex/comunicación. Fecha: por definir.
+- [ ] Desplegar backend → frontend la sección `Emprendedor` (migración aditiva `017_emprendedor_accounts`, rutas `/api/emprendedor/*` y `/api/emprendedores*`, landing, portal, verificación, cinco documentos y panel) y probar en producción crear cuenta → ficha con foto → gafete → calendario → video → views. Responsable: Alex/tecnología. Fecha: por definir.
+- [ ] Validar con el responsable o su asesoría legal los cinco textos del programa `De emprendedor a influencer` (políticas, bases, privacidad, imagen, derechos), confirmar las etiquetas de los siete niveles (hoy provisionales: En preparación, Primer video, En camino, Constante, Destacado, Referente, Tope) y publicar criterios y reconocimientos en las Bases antes de comunicarlos. Responsable: dirección/legal/comunicación. Fecha: por definir.
+- [ ] Decidir si `bin/backup.php` incluye también `emprendedor-photos/` (hoy, igual que `media-photos/`, queda fuera del respaldo verificado). Responsable: Alex/tecnología. Fecha: por definir.
 - [ ] Avisar al medio que está `Aprobado` sin foto que debe subir la de su persona responsable para poder agregar videos. Responsable: comunicación. Fecha: por definir.
 
 ## Regla

@@ -16,7 +16,8 @@ const json = (status, body) => ({ ok: status >= 200 && status < 300, status, jso
 test('MEDIOS aparece en el submenú de Finados inmediatamente después de VOCEROS', () => {
   const children = primaryNavigation.find(item => item.href === '/finados/').children.map(item => item.label);
   assert.equal(children.indexOf('MEDIOS'), children.indexOf('VOCEROS') + 1);
-  assert.equal(children.at(-1), 'MEDIOS');
+  assert.equal(children.indexOf('EMPRENDEDOR'), children.indexOf('MEDIOS') + 1);
+  assert.equal(children.at(-1), 'EMPRENDEDOR');
 });
 
 test('el build publica la landing, las cuentas de medios y su panel sin tocar la acreditación vigente', async () => {
@@ -97,7 +98,7 @@ test('el build publica la landing, las cuentas de medios y su panel sin tocar la
   const voceros = await readFile(join(output, 'admin/voceros/index.html'), 'utf8');
   for (const html of [admin, voceros]) {
     const order = [...html.matchAll(/class="admin-nav-link" href="([^"]+)"/g)].map(match => match[1]);
-    assert.deepEqual(order, ['/admin/voceros/', '/admin/medios/']);
+    assert.deepEqual(order, ['/admin/voceros/', '/admin/medios/', '/admin/emprendedores/']);
   }
   assert.match(admin, /href="\/admin\/medios\/" aria-current="page"/);
   assert.match(voceros, /href="\/admin\/voceros\/" aria-current="page"/);

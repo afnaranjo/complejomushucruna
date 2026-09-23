@@ -27,7 +27,7 @@ final class Audit
                 'note_id', 'count', 'followers_count', 'level', 'videos_unlocked', 'slot' => is_int($value) && $value >= 0,
                 'filters' => $eventType === 'vocero.exported' && $this->safeFilters($value),
                 'account_public_id' => $eventType === 'vocero.profile_saved' && is_string($value) && preg_match('/^[a-f0-9]{32}$/D', $value) === 1,
-                'traffic_light' => $eventType === 'vocero.progress_updated' && in_array($value, VocerosRepository::TRAFFIC_LIGHTS, true),
+                'traffic_light' => in_array($eventType, ['vocero.progress_updated', 'emprendedor.progress_updated'], true) && in_array($value, VocerosRepository::TRAFFIC_LIGHTS, true),
                 'kit_status' => $eventType === 'vocero.progress_updated' && in_array($value, VocerosRepository::KIT_STATUSES, true),
                 default => false,
             };

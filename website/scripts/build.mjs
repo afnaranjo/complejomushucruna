@@ -81,7 +81,7 @@ export async function buildSite(outputDirectory = join(websiteRoot, 'dist'), { a
     const relativePath = page.route === '/' ? 'index.html' : `${page.route.slice(1)}index.html`;
     const target = join(output, relativePath);
     await mkdir(dirname(target), { recursive: true });
-    const accountPage = page.route.startsWith('/admin/') || /^\/finados\/(?:voceros|medios)\/(acceso|mi-registro|restablecer)\/$/.test(page.route);
+    const accountPage = page.route.startsWith('/admin/') || /^\/finados\/(?:voceros|medios|emprendedores)\/(acceso|mi-registro|restablecer)\/$/.test(page.route);
     const html = page.render ? page.render(accountPage ? { ...page, adminEnvironment, adminApiBase: developmentApi } : page) : renderLayout(page);
     await writeFile(target, `${html}\n`, 'utf8');
   }
@@ -136,6 +136,12 @@ export async function buildSite(outputDirectory = join(websiteRoot, 'dist'), { a
     "const LOCAL_API = 'http://127.0.0.1:4174/api';",
     adminEnvironment === 'production' ? 'const LOCAL_API = null;' : `const LOCAL_API = '${developmentApi}';`), 'utf8');
 
+  await cp(join(websiteRoot, 'src', 'finados', 'emprendedor-verification.js'), join(finadosAssets, 'emprendedor-verification.js'));
+  const emprendedorPortalScript = await readFile(join(websiteRoot, 'src', 'finados', 'emprendedor-portal.js'), 'utf8');
+  await writeFile(join(finadosAssets, 'emprendedor-portal.js'), emprendedorPortalScript.replace(
+    "const LOCAL_API = 'http://127.0.0.1:4174/api';",
+    adminEnvironment === 'production' ? 'const LOCAL_API = null;' : `const LOCAL_API = '${developmentApi}';`), 'utf8');
+
   await cp(join(websiteRoot, 'src', 'finados', 'media-portal.css'), join(finadosAssets, 'media-portal.css'));
   const mediaPortalScript = await readFile(join(websiteRoot, 'src', 'finados', 'media-portal.js'), 'utf8');
   await writeFile(join(finadosAssets, 'media-portal.js'), mediaPortalScript.replace(
@@ -154,6 +160,11 @@ export async function buildSite(outputDirectory = join(websiteRoot, 'dist'), { a
     ? adminScript.replace("const LOCAL_API = 'http://127.0.0.1:4174/api';", 'const LOCAL_API = null;')
     : adminScript.replace("const LOCAL_API = 'http://127.0.0.1:4174/api';", `const LOCAL_API = '${developmentApi}';`), 'utf8');
 
+  const adminEmprendedorScript = await readFile(join(websiteRoot, 'src', 'admin', 'admin-emprendedores.js'), 'utf8');
+  await writeFile(join(adminAssets, 'admin-emprendedores.js'), adminEmprendedorScript.replace(
+    "const LOCAL_API = 'http://127.0.0.1:4174/api';",
+    adminEnvironment === 'production' ? 'const LOCAL_API = null;' : `const LOCAL_API = '${developmentApi}';`), 'utf8');
+
   const adminMediaScript = await readFile(join(websiteRoot, 'src', 'admin', 'admin-medios.js'), 'utf8');
   await writeFile(join(adminAssets, 'admin-medios.js'), adminMediaScript.replace(
     "const LOCAL_API = 'http://127.0.0.1:4174/api';",
@@ -161,13 +172,13 @@ export async function buildSite(outputDirectory = join(websiteRoot, 'dist'), { a
 
   const htmlFiles = (await listFiles(output)).filter((file) => file.endsWith('.html'));
   for (const htmlFile of htmlFiles) {
-    const accountPage = htmlFile.startsWith('admin/') || /^finados\/(?:voceros|medios)\/(acceso|mi-registro|restablecer)\//.test(htmlFile);
+    const accountPage = htmlFile.startsWith('admin/') || /^finados\/(?:voceros|medios|emprendedores)\/(acceso|mi-registro|restablecer)\//.test(htmlFile);
     if (accountPage) continue;
     const path = join(output, htmlFile);
     const html = await readFile(path, 'utf8');
     const route = `/${htmlFile.replace(/index\.html$/, '')}`;
     let updatedHtml = injectCookieConsent(injectInvitationOpeningHeader(html, route));
-    if (!/^finados\/voceros\/verificar\//.test(htmlFile)) updatedHtml = injectMetaPixel(updatedHtml);
+    if (!/^finados\/(?:voceros|emprendedores)\/verificar\//.test(htmlFile)) updatedHtml = injectMetaPixel(updatedHtml);
     await writeFile(path, updatedHtml, 'utf8');
   }
 

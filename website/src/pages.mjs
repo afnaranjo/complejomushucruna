@@ -29,10 +29,14 @@ import { renderVocerosPage } from './finados/voceros-page.mjs';
 import { renderVoceroPortalPage } from './finados/vocero-portal-page.mjs';
 import { renderVoceroVerificationPage } from './finados/vocero-verification-page.mjs';
 import { renderMediaAccreditationBody } from './media-accreditation/page.mjs';
-import { renderAdminLoginPage, renderAdminMediosPage, renderAdminVocerosPage } from './admin/page.mjs';
+import { renderAdminEmprendedoresPage, renderAdminLoginPage, renderAdminMediosPage, renderAdminVocerosPage } from './admin/page.mjs';
 import { renderMediaLandingBody } from './medios/landing-page.mjs';
 import { renderMediaPortalPage } from './medios/portal-page.mjs';
 import { mediaLegalDocuments, mediaLegalRoutes, renderMediaLegalPage } from './medios/legal-page.mjs';
+import { renderEmprendedoresPage } from './emprendedores/landing-page.mjs';
+import { renderEmprendedorPortalPage } from './emprendedores/portal-page.mjs';
+import { renderEmprendedorVerificationPage } from './emprendedores/verification-page.mjs';
+import { emprendedorLegalDocuments, emprendedorLegalRoutes, renderEmprendedorLegalPage } from './emprendedores/legal-page.mjs';
 
 const historyParagraphs = [
   'Al pie del volcán Carihuayrazo, cerca al Puñalica y de frente a los Llimpes, se levanta el Complejo Intercultural y Deportivo Mushuc Runa, en honor al hombre nuevo, que se abre espacio en este mundo globalizado. Desde la parte alta se puede apreciar la explanada que acoge a varios poblados de Ambato, Tisaleo, Quero y Cevallos. La obra que inició en el 2012 bajo la inspiración de Luis Alfonso Chango, tiene un toque campestre y natural, dotado de funcionalidad moderna. El proyecto fue inspirado en la reivindicación de los indígenas que hasta hace poco, sólo servían como peones de estas tierras.',
@@ -308,6 +312,22 @@ const finadosMediaPage = {
   body: renderMediaLandingBody(),
 };
 
+const finadosEmprendedoresPage = {
+  route: '/finados/emprendedores/',
+  title: 'Emprendedores',
+  description: 'Programa De emprendedor a influencer de Finados Mushuc Runa 2026: registro, videos, niveles y gafete para expositores.',
+  indexable: false,
+  render: renderEmprendedoresPage,
+};
+
+const emprendedorVerificationPage = {
+  route: '/finados/emprendedores/verificar/',
+  title: 'Validación de gafete de emprendedor',
+  description: 'Confirma el nivel y el semáforo de un emprendedor participante de Finados Mushuc Runa 2026.',
+  indexable: false,
+  render: renderEmprendedorVerificationPage,
+};
+
 const standsAccessPage = {
   route: '/acceso-compra-stands/',
   title: 'Acceso para compra de stands',
@@ -320,6 +340,7 @@ export const pages = Object.freeze([
   { route: '/admin/', title: 'Iniciar sesión', indexable: false, render: renderAdminLoginPage },
   { route: '/admin/voceros/', title: 'Voceros · Administración', indexable: false, render: renderAdminVocerosPage },
   { route: '/admin/medios/', title: 'Medios · Administración', indexable: false, render: renderAdminMediosPage },
+  { route: '/admin/emprendedores/', title: 'Emprendedores · Administración', indexable: false, render: renderAdminEmprendedoresPage },
   ...mainPages,
   ...archivePages,
   finadosPreview,
@@ -331,6 +352,10 @@ export const pages = Object.freeze([
   finadosMediaPage,
   ...['acceso', 'mi-registro', 'restablecer'].map(slug => ({ route: `/finados/medios/${slug}/`, title: 'Cuenta de medio', indexable: false, render: renderMediaPortalPage })),
   ...Object.entries(mediaLegalDocuments).map(([documentKey, document]) => ({ route: mediaLegalRoutes[documentKey], title: document.title, description: document.summary, documentKey, indexable: false, render: renderMediaLegalPage })),
+  finadosEmprendedoresPage,
+  emprendedorVerificationPage,
+  ...['acceso', 'mi-registro', 'restablecer'].map(slug => ({ route: `/finados/emprendedores/${slug}/`, title: 'Cuenta de Emprendedor', indexable: false, render: renderEmprendedorPortalPage })),
+  ...Object.entries(emprendedorLegalDocuments).map(([documentKey, document]) => ({ route: emprendedorLegalRoutes[documentKey], title: document.title, description: document.summary, documentKey, indexable: false, render: renderEmprendedorLegalPage })),
   finadosDignitiesPage,
   standsAccessPage,
 ]);

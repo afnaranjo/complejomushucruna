@@ -1,6 +1,7 @@
 import { escapeHtml as esc } from '../render/html.mjs';
 import { STATUSES, PREVIOUS_PARTICIPATION } from './admin.js';
 import { MEDIA_STATUSES, MEDIA_TYPE_LABELS } from './admin-medios.js';
+import { EMPRENDEDOR_LEVELS, EMPRENDEDOR_STATUSES } from './admin-emprendedores.js';
 import { ecuadorProvinces } from '../media-accreditation/page.mjs';
 import { apiBasesForCsp, LOCAL_API_BASE, PRIMARY_API_BASE } from '../finados/runtime-origins.mjs';
 
@@ -9,7 +10,10 @@ const select = (name, label, values) => `<label>${label}<select name="${name}"><
 const ADMIN_FORMS = Object.freeze([
   { route: '/admin/voceros/', label: 'Voceros', description: 'Registros y seguimiento', marker: 'V' },
   { route: '/admin/medios/', label: 'Medios', description: 'Acreditación de medios', marker: 'M' },
+  { route: '/admin/emprendedores/', label: 'Emprendedores', description: 'De emprendedor a influencer', marker: 'E' },
 ]);
+// Public landing that each panel returns to from its header.
+const PANEL_LANDINGS = Object.freeze({ '/admin/voceros/': ['/finados/voceros/', 'Volver a Voceros'], '/admin/medios/': ['/finados/medios/', 'Volver a Medios'], '/admin/emprendedores/': ['/finados/emprendedores/', 'Volver a Emprendedores'] });
 const PROGRESS_LEVELS = ['En preparación', 'Primer paso', 'Gorra', 'Kit completo', 'Trae a los tuyos', 'Noche de concierto', 'Tope'];
 const VIDEO_SLOTS = Object.freeze([1, 2, 3, 4, 5]);
 const videoSlotControls = (prefix = 'video') => VIDEO_SLOTS.map(slot => `<label class="admin-video-control"><span class="admin-video-check"><input type="checkbox" name="${prefix}_${slot}_enabled" value="1"><strong>Video ${slot}</strong></span><span class="admin-video-date"><span>Habilitado desde</span><input type="date" name="${prefix}_${slot}_enabled_at" aria-label="Fecha de habilitación del video ${slot}"></span></label>`).join('');
@@ -52,7 +56,7 @@ function layout(page, content, script = '/assets/admin/admin.js?v=20260921-admin
 <script type="module" src="${script}"></script>
 </head><body class="admin-page">
 <a class="skip-link" href="#contenido">Ir al contenido</a>
-<header class="admin-header"><a href="${page.route === '/admin/medios/' ? '/finados/medios/' : '/finados/voceros/'}" aria-label="${page.route === '/admin/medios/' ? 'Volver a Medios' : 'Volver a Voceros'}"><img src="/assets/finados/logo-finados.svg" width="132" height="60" alt="Finados Mushuc Runa"></a><span class="header-context">Administración${['/admin/voceros/', '/admin/medios/'].includes(page.route) ? ' <span aria-hidden="true">/</span> Formularios' : ''}</span></header>
+<header class="admin-header"><a href="${(PANEL_LANDINGS[page.route] ?? PANEL_LANDINGS['/admin/voceros/'])[0]}" aria-label="${(PANEL_LANDINGS[page.route] ?? PANEL_LANDINGS['/admin/voceros/'])[1]}"><img src="/assets/finados/logo-finados.svg" width="132" height="60" alt="Finados Mushuc Runa"></a><span class="header-context">Administración${Object.hasOwn(PANEL_LANDINGS, page.route) ? ' <span aria-hidden="true">/</span> Formularios' : ''}</span></header>
 ${content}
 <noscript><p class="notice">Activa JavaScript para iniciar sesión y administrar los registros.</p></noscript>
 </body></html>`;
@@ -139,4 +143,37 @@ ${select('province', 'Provincia', ecuadorProvinces)}</div>
 <section class="notes-section"><h3>Notas internas</h3><ol data-notes></ol><form data-note-form><fieldset disabled><label>Añadir nota<textarea name="body" rows="3" maxlength="2000" required></textarea></label><button class="button-primary" type="submit">Guardar nota</button></fieldset></form></section>
 <div class="detail-danger-zone"><p>¿Este registro ya no debe tener acceso?</p><button type="button" class="button-danger" data-admin-delete disabled>Retirar registro</button></div>
 </dialog></main></div>`, '/assets/admin/admin-medios.js?v=20260922-admin-medios-12');
+}
+
+export function renderAdminEmprendedoresPage(page) {
+  return layout(page, `<div class="admin-shell">${adminSidebar(page)}<main id="contenido" class="admin-workspace" data-admin-emprendedores>
+<div class="workspace-heading"><div><p class="eyebrow">Finados 2026 · De emprendedor a influencer</p><h1>Registros de Emprendedores</h1><p data-admin-user>Comprobando acceso…</p></div><button type="button" class="button-primary" data-admin-export disabled>Exportar CSV</button></div>
+<p class="feedback" data-admin-feedback role="status" aria-live="polite" aria-atomic="true"></p>
+<button type="button" class="button-quiet" data-session-retry hidden>Reintentar conexión</button>
+<section aria-label="Resumen de todos los registros" class="summary" data-admin-dashboard aria-busy="true"></section>
+<details class="activity"><summary>Estados de todos los registros</summary><div class="activity-columns"><div><h2>Por estado</h2><dl data-status-counts></dl></div></div></details>
+<section class="admin-global-videos" aria-labelledby="global-videos-title"><div class="records-heading"><div><h2 id="global-videos-title">Habilitación global de videos</h2><p>Estas fechas aplican para todos los emprendedores. Cuando llegue la fecha, podrán pegar el enlace del video habilitado.</p></div><p data-global-video-summary>—</p></div><form data-global-video-form><fieldset disabled><div class="admin-video-list">${videoSlotControls('schedule_video')}</div><button class="button-primary" type="submit">Guardar fechas globales</button></fieldset></form><p class="feedback" data-global-video-feedback role="status" aria-live="polite">Cargando fechas…</p></section>
+<section class="followers-leaderboard video-views-leaderboard" aria-labelledby="video-views-leaderboard-title"><div class="records-heading"><div><h2 id="video-views-leaderboard-title">Top 20 por visualizaciones de videos</h2><p>Ranking rápido de los videos con más views validadas por coordinación.</p></div><p data-video-views-leaderboard-count>—</p></div><ol data-video-views-leaderboard aria-live="polite"></ol></section>
+<section class="followers-leaderboard" aria-labelledby="followers-leaderboard-title"><div class="records-heading"><div><h2 id="followers-leaderboard-title">Top 20 por seguidores</h2><p>Ranking rápido basado en la cantidad de seguidores validados por coordinación.</p></div><p data-followers-leaderboard-count>—</p></div><ol data-followers-leaderboard aria-live="polite"></ol></section>
+<form class="filters" data-admin-filters><fieldset disabled data-panel-fields>
+<legend>Filtrar registros</legend>
+<div class="filter-grid"><label class="search-field">Buscar<input type="search" name="search" maxlength="180" placeholder="Nombre, emprendimiento, producto, stand, cédula o teléfono"></label>
+${select('status', 'Estado', EMPRENDEDOR_STATUSES)}<label>Ciudad exacta<input name="city" maxlength="100" placeholder="Todas las ciudades"></label>
+${select('main_network', 'Red principal', ['TikTok', 'Instagram', 'Facebook'])}</div>
+<div class="filter-actions"><button type="submit" class="button-primary">Aplicar filtros</button><button type="reset" class="button-quiet">Limpiar</button><label>Por página<select name="pageSize"><option>25</option><option>50</option><option>100</option></select></label></div>
+</fieldset></form>
+<section class="records" aria-labelledby="records-title" aria-busy="true" data-records-region><div class="records-heading"><h2 id="records-title" tabindex="-1">Registros</h2><p data-record-count>—</p></div>
+<p data-list-message role="status">Cargando registros…</p>
+<table><caption class="sr-only">Emprendedores registrados. Abre un registro para revisar sus datos, progreso y notas.</caption><thead><tr><th scope="col">Emprendedor</th><th scope="col">Contacto</th><th scope="col">Ciudad / red</th><th scope="col">Registro</th><th scope="col">Videos</th><th scope="col">Nivel</th><th scope="col">Estado y semáforo</th><th scope="col"><span class="sr-only">Acciones</span></th></tr></thead><tbody data-records></tbody></table>
+<nav class="pagination" aria-label="Paginación de registros"><button class="button-quiet" data-previous disabled>← Anterior</button><span data-page-label>Página —</span><button class="button-quiet" data-next disabled>Siguiente →</button></nav></section>
+<details class="pending-accounts" data-pending-panel><summary><span><strong id="pending-accounts-title">Cuentas pendientes de ficha</strong><small>Última sección. Ábrela solo cuando necesites revisar cuentas creadas sin formulario.</small></span><span data-pending-count>—</span></summary><div class="pending-accounts-body" aria-labelledby="pending-accounts-title"><p class="feedback" data-pending-message role="status" aria-live="polite">Cargando cuentas…</p><div class="pending-accounts-table"><table><caption class="sr-only">Cuentas creadas que todavía no completan su ficha</caption><thead><tr><th scope="col">Correo</th><th scope="col">Creada</th><th scope="col">Estado</th><th scope="col"><span class="sr-only">Acciones</span></th></tr></thead><tbody data-pending-accounts></tbody></table></div></div></details>
+<dialog class="detail-dialog" aria-labelledby="detail-title" data-detail><div class="detail-heading"><h2 id="detail-title" tabindex="-1">Detalle del emprendedor</h2><button type="button" class="button-quiet" data-detail-close aria-label="Cerrar detalle">Cerrar ×</button></div>
+<p class="feedback" data-detail-feedback role="status" aria-live="polite" aria-atomic="true"></p><div data-detail-content></div>
+<div class="detail-danger-zone"><p>¿Este registro ya no debe tener acceso?</p><button type="button" class="button-danger" data-admin-delete disabled>Retirar registro</button></div>
+<section class="admin-photo" data-admin-photo aria-label="Fotografía privada"><h3>Fotografía para identificación y gafete</h3><p data-admin-photo-message role="status">Sin fotografía</p><img data-admin-photo-image alt="Fotografía privada del emprendedor" hidden><a class="button-quiet" data-admin-photo-download hidden>Descargar fotografía</a></section>
+<section class="admin-reset"><h3>Recuperar acceso</h3><button type="button" class="button-quiet" data-admin-reset disabled>Generar enlace temporal</button><div data-reset-output hidden><label>Enlace temporal<input type="text" readonly data-reset-url autocomplete="off" spellcheck="false"></label><button type="button" class="button-quiet" data-reset-copy>Copiar enlace</button></div><p class="feedback" data-reset-feedback role="status" aria-live="polite"></p></section>
+<form data-status-form><fieldset disabled><label>Estado del registro<select name="status" required>${options(EMPRENDEDOR_STATUSES)}</select></label><button class="button-primary" type="submit">Guardar estado</button></fieldset></form>
+<section class="admin-progress" aria-labelledby="admin-progress-title"><div class="admin-progress-heading"><div><h3 id="admin-progress-title">Progreso del emprendedor</h3><p>Registra los seguidores validados, el nivel, el semáforo y las views validadas de cada video. Las fechas se configuran una sola vez en la sección global.</p></div><span data-admin-progress-summary>Sin actualizar</span></div><form data-progress-form><fieldset disabled><div class="admin-progress-grid"><label>Seguidores validados<input type="number" name="followers_count" min="0" max="1000000000" step="1" required></label><label>Nivel<select name="level" required>${EMPRENDEDOR_LEVELS.map((label, index) => `<option value="${index}">${index} · ${esc(label)}</option>`).join('')}</select></label><label>Semáforo<select name="traffic_light" required><option value="red">Rojo · En preparación</option><option value="yellow">Amarillo · En avance</option><option value="green">Verde · Listo</option></select></label></div><div class="admin-videos" data-admin-videos></div><button class="button-primary" type="submit">Guardar progreso</button></fieldset></form><p class="feedback" data-progress-feedback role="status" aria-live="polite"></p></section>
+<section class="notes-section"><h3>Notas internas</h3><ol data-notes></ol><form data-note-form><fieldset disabled><label>Añadir nota<textarea name="body" rows="3" maxlength="2000" required></textarea></label><button class="button-primary" type="submit">Guardar nota</button></fieldset></form></section>
+</dialog></main></div>`, '/assets/admin/admin-emprendedores.js?v=20260922-emprendedores-1');
 }

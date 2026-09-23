@@ -7,7 +7,7 @@ import { renderLayout } from '../src/render/layout.mjs';
 test('Finados y sus registros no cargan el CSS institucional del Complejo', () => {
   const campaignPages = pages.filter(page => page.route.startsWith('/finados/')
     || ['/acceso-compra-stands/', '/acreditacion-de-medios/'].includes(page.route));
-  assert.equal(campaignPages.length, 22);
+  assert.equal(campaignPages.length, 32);
   for (const page of campaignPages) {
     const html = page.render ? page.render(page) : renderLayout(page);
     assert.doesNotMatch(html, /href="\/assets\/styles\.css/, page.route);
