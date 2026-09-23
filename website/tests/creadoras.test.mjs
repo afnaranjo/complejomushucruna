@@ -314,8 +314,9 @@ test('cada creadora conserva su color, y arrastrando se lee a dónde va el turno
   // El color sale del identificador: no cambia al recargar ni al reordenar la lista.
   assert.deepEqual(color, creadoraColor(id));
   assert.ok(CREADORA_HUES.includes(color.hue));
-  assert.match(color.soft, /^hsl\(\d+ 74% 93%\)$/);
-  assert.match(color.edge, /^hsl\(\d+ 55% 42%\)$/);
+  // El fondo es un tinte muy claro para no competir con el texto; el filete sí va saturado.
+  assert.match(color.soft, /^hsl\(\d+ 78% 97%\)$/);
+  assert.match(color.edge, /^hsl\(\d+ 58% 45%\)$/);
   // Creadoras distintas no comparten color mientras quepan en la paleta.
   const hues = new Set(Array.from({ length: CREADORA_HUES.length }, (_, index) => creadoraColor(`${index}`.padStart(32, '0')).hue));
   assert.ok(hues.size > 1, 'la paleta reparte matices distintos');

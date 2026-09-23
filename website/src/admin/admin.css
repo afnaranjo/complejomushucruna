@@ -233,12 +233,17 @@ tr[data-origin="cuenta"] > td { background: rgba(0, 210, 214, .05); }
 .calendar-day h3 { font-size: .74rem; text-transform: capitalize; text-align: center; padding-bottom: .35rem; color: #241146; }
 .calendar-canvas { position: relative; height: 36rem; border: 1px solid #ddd2de; border-radius: .5rem; background: #fff; overflow: hidden; }
 .calendar-line { display: block; height: calc(100% / 18); border-bottom: 1px solid #efe8f0; }
-.shift-box { position: absolute; left: .2rem; right: .2rem; overflow: hidden; padding: .3rem .4rem; border-radius: .45rem; border: 1px solid #94165e; background: linear-gradient(#fbe6f0, #f7d4e6); color: #241146; cursor: grab; }
-.shift-box strong { display: block; font-size: .74rem; line-height: 1.15; overflow-wrap: anywhere; }
-.shift-box span { display: block; font-size: .68rem; color: #6c2448; font-variant-numeric: tabular-nums; }
-.shift-box small { display: block; font-size: .64rem; color: #665771; }
+/* La caja dice lo justo y en una línea: el color identifica desde el filete, sin tapar el texto. */
+.shift-box { position: absolute; left: .2rem; right: .2rem; display: grid; align-content: start; gap: 1px; overflow: hidden;
+  padding: .22rem .4rem .22rem .5rem; border-radius: .4rem; border: 1px solid rgba(36, 17, 70, .14); border-left: 4px solid var(--shift-edge, #94165e);
+  background: var(--shift-soft, #fff); color: #241146; cursor: grab; }
+.shift-box > strong, .shift-box > span, .shift-box > small { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.shift-box > strong { font-size: .7rem; font-weight: 700; line-height: 1.25; color: var(--shift-ink, #241146); }
+.shift-box > span { font-size: .66rem; line-height: 1.2; color: #5b5170; font-variant-numeric: tabular-nums; }
+.shift-box > small { font-size: .61rem; line-height: 1.2; color: #6f6483; }
 .shift-box__handle { position: absolute; left: 0; right: 0; bottom: 0; height: 10px; border: 0; padding: 0; background: transparent; cursor: ns-resize; }
-.shift-box__handle::after { content: ""; display: block; width: 2rem; height: 3px; margin: 3px auto 0; border-radius: 3px; background: #94165e; opacity: .55; }
+.shift-box__handle::after { content: ""; display: block; width: 1.6rem; height: 2px; margin: 4px auto 0; border-radius: 2px; background: var(--shift-edge, #94165e); opacity: .4; }
+.shift-box:hover .shift-box__handle::after { opacity: .8; }
 .calendar-month__header { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: .3rem; text-transform: capitalize; font-size: .7rem; color: #665771; padding-bottom: .3rem; }
 .calendar-month__body { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: .3rem; }
 .calendar-month__day { min-height: 6.5rem; border: 1px solid #ddd2de; border-radius: .5rem; background: #fff; padding: .3rem; display: grid; align-content: start; gap: .25rem; }
@@ -272,8 +277,7 @@ tr[data-origin="cuenta"] > td { background: rgba(0, 210, 214, .05); }
 .creadora-chip__edit { flex: 1 1 100%; margin-top: .35rem; padding: .25rem 0; border: 0; background: none; color: #94165e; font-size: .72rem; font-weight: 650; text-align: left; text-decoration: underline; text-underline-offset: 3px; }
 .record-dialog--compact { width: min(34rem, calc(100vw - 2rem)); }
 .record-dialog--compact .record-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.shift-box[data-shared="true"] { border-left-width: 4px; }
-.shift-box { cursor: pointer; }
+.shift-box[data-shared="true"] { border-left-width: 5px; }
 .calendar-duration { margin-top: .5rem; color: #665771; font-size: .78rem; }
 .calendar-duration[data-error="true"] { color: #942d25; font-weight: 600; }
 .record-form__actions--split { justify-content: space-between; }
@@ -284,11 +288,9 @@ tr[data-origin="cuenta"] > td { background: rgba(0, 210, 214, .05); }
 
 /* Cada creadora tiene su color: el mismo en la lista y en sus cajas del calendario. */
 .creadora-chip { border-left: 5px solid var(--shift-edge, #d9ced6); }
-.shift-box { background: var(--shift-soft, #fbe6f0); border-color: var(--shift-edge, #94165e); color: var(--shift-ink, #241146); transition: box-shadow .12s, opacity .12s; touch-action: none; }
-.shift-box span { color: var(--shift-ink, #6c2448); }
-.shift-box:hover { box-shadow: 0 2px 10px rgba(36, 17, 70, .22); }
+.shift-box { transition: box-shadow .12s, opacity .12s, border-color .12s; touch-action: none; }
+.shift-box:hover { box-shadow: 0 1px 8px rgba(36, 17, 70, .16); border-color: rgba(36, 17, 70, .28); border-left-color: var(--shift-edge, #94165e); }
 .shift-box[data-dragging="true"] { opacity: .45; box-shadow: none; }
-.shift-box__handle::after { background: var(--shift-edge, #94165e); }
 /* La etiqueta que acompaña al puntero mientras se arrastra. */
 .shift-ghost { position: fixed; top: 0; left: 0; z-index: 60; pointer-events: none; padding: .35rem .6rem; border-radius: .5rem; background: #241146; color: #f4eada; font-size: .78rem; font-weight: 650; white-space: nowrap; box-shadow: 0 6px 18px rgba(36, 17, 70, .35); }
 
@@ -311,4 +313,6 @@ tr[data-origin="cuenta"] > td { background: rgba(0, 210, 214, .05); }
 .shift-content__list .admin-panel-empty { border: 0; background: none; padding: 0; }
 .shift-content__form { display: grid; gap: .5rem; margin-top: .6rem; padding: .75rem; border: 1px dashed #b3a4bd; border-radius: .6rem; background: #fff; }
 .shift-content__actions { display: flex; justify-content: flex-end; gap: .5rem; }
-.shift-box__marks { font-weight: 650; opacity: .85; }
+.shift-box__marks { font-weight: 650; }
+/* En un turno corto no cabe todo: primero el nombre, después la hora. */
+.calendar-canvas .shift-box { min-height: 1.1rem; }

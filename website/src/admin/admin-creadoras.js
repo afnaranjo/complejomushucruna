@@ -276,7 +276,8 @@ export function creadoraColor(publicId) {
   let hash = 7;
   for (let index = 0; index < text.length; index += 1) hash = (hash * 31 + text.charCodeAt(index)) % 1000003;
   const hue = CREADORA_HUES[hash % CREADORA_HUES.length];
-  return { hue, soft: `hsl(${hue} 74% 93%)`, edge: `hsl(${hue} 55% 42%)`, ink: `hsl(${hue} 62% 24%)` };
+  // El color identifica sin tapar: un tinte apenas perceptible y un filete saturado al costado.
+  return { hue, soft: `hsl(${hue} 78% 97%)`, edge: `hsl(${hue} 58% 45%)`, ink: `hsl(${hue} 55% 27%)` };
 }
 
 /** Lo que se lee mientras se arrastra: a quién se mueve, a qué día y a qué hora quedaría. */
