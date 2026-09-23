@@ -108,7 +108,7 @@ test('el hero es conceptual y las imágenes oficiales son locales y adaptables',
   }
 });
 
-test('los estilos amplían los shows y adaptan la composición completa sin desbordes', async () => {
+test('los estilos amplían los shows y llevan la franja de auspiciantes de borde a borde', async () => {
   const css = await readFile(new URL('../src/finados/shows.css', import.meta.url), 'utf8');
   const theme = await readFile(new URL('../src/finados/finados.css', import.meta.url), 'utf8');
   const sponsors = await readFile(new URL('../src/finados/sponsors.css', import.meta.url), 'utf8');
@@ -116,8 +116,10 @@ test('los estilos amplían los shows y adaptan la composición completa sin desb
   assert.match(css, /padding-top: 108px/);
   assert.match(css, /minmax\(0, 1fr\)/);
   assert.match(sponsors, /aspect-ratio: 2321 \/ 650/);
-  assert.match(sponsors, /width: min\(100%, 88rem\)/);
+  assert.match(sponsors, /\.finados-sponsors-body\s*\{[^}]*padding:\s*3rem 0 0;/s);
+  assert.match(sponsors, /\.finados-sponsors\s*\{[^}]*width:\s*100%;[^}]*margin:\s*0 0 3rem;/s);
   assert.match(sponsors, /width: 100%; height: auto/);
+  assert.doesNotMatch(sponsors, /width:\s*min\(100%,\s*88rem\)/);
   assert.doesNotMatch(sponsors, /:root|@font-face|\.site-header|min-width/);
   assert.match(css, /shows-plaza-show h4[^}]*clamp\(2rem, 3\.8vw, 3\.4rem\)/);
   assert.match(css, /shows-plaza-list \{ grid-template-columns: 1fr;/);
@@ -155,9 +157,9 @@ test('el build entrega SHOWS con CSS, imágenes y aviso de cookies', async () =>
   assert.match(output, /data-cookie-consent/);
   assert.match(output, /Nuestro sitio web utiliza cookies para mejorar tu navegación\./);
   assert.match(output, /shows\.css\?v=20260917-shows-3/);
-  assert.match(output, /sponsors\.css\?v=20260922-sponsors-5/);
+  assert.match(output, /sponsors\.css\?v=20260923-sponsors-6/);
   const finados = await readFile(join(directory, 'finados/index.html'), 'utf8');
-  assert.match(finados, /sponsors\.css\?v=20260922-sponsors-5/);
+  assert.match(finados, /sponsors\.css\?v=20260923-sponsors-6/);
   assert.ok(finados.includes(renderFinadosSponsors()));
 });
 
@@ -172,7 +174,7 @@ test('Finados y SHOWS comparten al final la composición nueva sin cambiar otras
     assert.equal((output.match(/<h1\b/g) ?? []).length, 1);
     assert.ok(output.indexOf(composition) > output.indexOf('</main>'));
     assert.ok(output.indexOf(composition) < output.indexOf('Volver a complejomushucruna.com'));
-    assert.match(output, /auspiciantes-finados-2026\.webp\?v=20260922-sponsors-5/);
+    assert.match(output, /auspiciantes-finados-2026\.webp\?v=20260923-sponsors-6/);
     assert.ok(output.includes('Credi Fácil Ltda. Cooperativa de Ahorro y Crédito'));
     assert.ok(output.includes('Óptica Interandina'));
     assert.ok(output.includes('Mutualista Ambato'));
@@ -180,6 +182,7 @@ test('Finados y SHOWS comparten al final la composición nueva sin cambiar otras
     assert.ok(showsSponsors.indexOf('Mutualista Ambato') < showsSponsors.indexOf('Pollos al Gusto'));
   }
   assert.ok(shows.indexOf(composition) > shows.indexOf('<footer'));
+  assert.match(shows, /<footer class="bg-night py-12 text-lienzo">[\s\S]*finados-sponsors[\s\S]*<div class="px-4">/);
   assert.ok(finados.indexOf(composition) < finados.indexOf('<footer'));
   assert.equal(finados.match(/<footer[\s\S]*?<\/footer>/)?.[0], renderFinadosFooter());
   assert.ok(finados.indexOf('id="legado"') < finados.indexOf(composition));
