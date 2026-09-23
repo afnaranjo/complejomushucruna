@@ -157,3 +157,8 @@ tr[data-origin="cuenta"] > td { background: rgba(0, 210, 214, .05); }
   .workspace-actions { width: 100%; }
   .workspace-actions .button-primary, .workspace-actions .button-quiet { flex: 1 1 auto; }
 }
+.admin-media-add-video { margin-top: .75rem; padding: .75rem; border: 1px dashed #b3a4bd; border-radius: .75rem; display: grid; gap: .4rem; }
+.admin-media-add-video label { font-size: .8rem; }
+.admin-media-add-video .feedback { min-height: 0; margin: 0; font-size: .78rem; }
+.admin-media-videos li { align-items: center; }
+@media (max-width: 640px) { .admin-media-add-video { padding: .6rem; } }

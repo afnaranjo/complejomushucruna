@@ -48,7 +48,12 @@ test('el build publica el submenú Eventos de Medios, el alta desde coordinació
   assert.equal((admin.match(/name="media_types"/g) ?? []).length, 5, 'un checkbox por tipo en el diálogo de alta');
   assert.match(admin, /name="followers_validated"/);
   assert.match(admin, /name="representatives"/);
-  assert.match(admin, /admin-medios\.js\?v=20260923-admin-medios-16/);
+  // Coordinación completa todo lo que el medio llenaría: varias señales, oyentes y género.
+  assert.match(admin, /<textarea name="frequency"/);
+  assert.match(admin, /<textarea name="tv_channel"/);
+  assert.match(admin, /name="audience_count"/);
+  assert.match(admin, /<select name="radio_genre">/);
+  assert.match(admin, /admin-medios\.js\?v=20260923-admin-medios-17/);
   // Portal: invitation notice on access, suggestion and pending-claim notices on the profile.
   const access = await readFile(join(output, 'finados/medios/acceso/index.html'), 'utf8');
   assert.match(access, /data-media-invitation hidden/);
@@ -66,7 +71,7 @@ test('el build publica el submenú Eventos de Medios, el alta desde coordinació
 });
 
 test('el alta desde coordinación arma el cuerpo exacto: representantes por línea, canales con tipo inferido y seguidores validados', () => {
-  const values = { media_name: ' Radio Cumbre ', frequency: '102.5 FM', tv_channel: '', province: 'Chimborazo', city: 'Riobamba', program_name: 'Al día', representatives: 'Marcelo Padilla - Director\nAníbal Rojas — Periodista\nSolo Nombre', channels: 'https://www.facebook.com/radiocumbre\nfacebook.com/radiocumbre\ntiktok.com/@cumbre\nhttps://x.com/cumbre\nradiocumbre.ec', followers_validated: '22000', paid_media: 'yes', contact_name: '', phone: '', contact_email: '' };
+  const values = { media_name: ' Radio Cumbre ', frequency: '102.5 FM\n101.7 FM', tv_channel: '', province: 'Chimborazo', city: 'Riobamba', program_name: 'Al día', representatives: 'Marcelo Padilla - Director\nAníbal Rojas — Periodista\nSolo Nombre', channels: 'https://www.facebook.com/radiocumbre\nfacebook.com/radiocumbre\ntiktok.com/@cumbre\nhttps://x.com/cumbre\nradiocumbre.ec', followers_validated: '22000', audience_count: '25000', radio_genre: 'Popular y tropical', paid_media: 'yes', contact_name: '', phone: '', contact_email: '' };
   const checked = ['radio', 'digital'];
   const form = { elements: { namedItem: name => (name in values ? { value: values[name] } : null) }, querySelectorAll: selector => (selector.includes(':checked') ? checked.map(value => ({ value })) : []) };
   const body = adminRecordPayload(form);
@@ -76,7 +81,11 @@ test('el alta desde coordinación arma el cuerpo exacto: representantes por lín
   assert.deepEqual(body.channels.map(channel => [channel.type, channel.url]), [['facebook', 'https://www.facebook.com/radiocumbre'], ['facebook', 'https://facebook.com/radiocumbre'], ['tiktok', 'https://tiktok.com/@cumbre'], ['x', 'https://x.com/cumbre'], ['website', 'https://radiocumbre.ec']]);
   assert.equal(body.followers_validated, 22000);
   assert.equal(body.paid_media, 'yes');
-  assert.deepEqual(Object.keys(body).sort(), ['channels', 'city', 'contact_email', 'contact_name', 'followers_validated', 'frequency', 'media_name', 'media_types', 'paid_media', 'phone', 'program_name', 'province', 'representatives', 'tv_channel']);
+  assert.deepEqual(Object.keys(body).sort(), ['audience_count', 'channels', 'city', 'contact_email', 'contact_name', 'followers_validated', 'frequency', 'media_name', 'media_types', 'paid_media', 'phone', 'program_name', 'province', 'radio_genre', 'representatives', 'tv_channel']);
+  assert.equal(body.frequency, '102.5 FM\n101.7 FM', 'las frecuencias viajan una por línea');
+  assert.equal(body.audience_count, 25000);
+  assert.equal(body.radio_genre, 'Popular y tropical');
+  assert.throws(() => adminRecordPayload({ ...form, elements: { namedItem: name => ({ value: name === 'audience_count' ? '25 mil' : values[name] ?? '' }) } }), /oyentes/);
   assert.throws(() => adminRecordPayload({ ...form, querySelectorAll: () => [] }), /tipo de medio/);
   assert.throws(() => adminRecordPayload({ ...form, elements: { namedItem: name => ({ value: name === 'followers_validated' ? '22 mil' : values[name] ?? '' }) } }), /número entero/);
   assert.equal(channelTypeFor('https://fb.watch/v/abc/'), 'facebook');
@@ -85,8 +94,11 @@ test('el alta desde coordinación arma el cuerpo exacto: representantes por lín
   // The same dialog is refilled from a record for editing.
   const filled = {};
   const target = { elements: { namedItem: name => ({ set value(text) { filled[name] = text; } }) }, querySelectorAll: () => [] };
-  fillAdminRecordForm(target, { media_name: 'Radio Cumbre', radio_stations: [{ name: 'Radio Cumbre', frequency: '102.5 FM' }], representatives: [{ name: 'Marcelo Padilla', role: 'Director' }], channels: [{ type: 'facebook', url: 'https://www.facebook.com/radiocumbre' }], followers_validated: 22000, paid_media: 'yes' });
-  assert.equal(filled.frequency, '102.5 FM');
+  fillAdminRecordForm(target, { media_name: 'Radio Cumbre', radio_stations: [{ name: 'Radio Cumbre', frequency: '102.5 FM' }, { name: 'Radio Cumbre', frequency: '101.7 FM' }], tv_channels: ['Canal 6'], representatives: [{ name: 'Marcelo Padilla', role: 'Director' }], channels: [{ type: 'facebook', url: 'https://www.facebook.com/radiocumbre' }], followers_validated: 22000, audience_count: 25000, radio_genre: 'Popular y tropical', paid_media: 'yes' });
+  assert.equal(filled.frequency, '102.5 FM\n101.7 FM');
+  assert.equal(filled.tv_channel, 'Canal 6');
+  assert.equal(filled.audience_count, '25000');
+  assert.equal(filled.radio_genre, 'Popular y tropical');
   assert.equal(filled.representatives, 'Marcelo Padilla - Director');
   assert.equal(filled.channels, 'https://www.facebook.com/radiocumbre');
   assert.equal(filled.followers_validated, '22000');
@@ -122,6 +134,11 @@ test('los clientes del panel y del portal solo usan las rutas nuevas permitidas'
   assert.equal(calls.at(-1)[0], 'https://finados.complejomushucruna.com/api/medios');
   assert.equal(calls.at(-1)[1].method, 'POST');
   await client.updateDetails('a'.repeat(32), {}); assert.match(calls.at(-1)[0], /\/medios\/a{32}\/details$/);
+  // Coordinación también reporta y retira publicaciones de medios sin cuenta.
+  await client.addVideo('a'.repeat(32), 'https://www.facebook.com/share/v/abc/');
+  assert.match(calls.at(-1)[0], /\/medios\/a{32}\/videos$/); assert.equal(calls.at(-1)[1].method, 'POST');
+  await client.removeVideo('a'.repeat(32), 7);
+  assert.equal(calls.at(-1)[1].method, 'PATCH'); assert.deepEqual(JSON.parse(calls.at(-1)[1].body), { video_id: 7 });
   await client.invite('a'.repeat(32)); assert.match(calls.at(-1)[0], /\/medios\/a{32}\/invite$/);
   await client.resolveClaim('a'.repeat(32), true); assert.match(calls.at(-1)[0], /\/medios\/a{32}\/claim\/approve$/);
   await client.claims(); assert.match(calls.at(-1)[0], /\/media-claims$/);

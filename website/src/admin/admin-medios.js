@@ -9,7 +9,7 @@ export const ORIGIN_LABELS = Object.freeze({ cuenta: 'Con cuenta', coordinacion:
 export const COVERAGE_RESULT_LABELS = Object.freeze({ pendiente: 'Pendiente', link: 'Publicó con link', mencion: 'Mención al aire (sin link)', sin_publicacion: 'No publicó', no_asistio: 'No asistió' });
 export const ATTENDANCE_LABELS = Object.freeze({ '': 'Sin registrar', yes: 'Asistió', no: 'No asistió' });
 export const CONFIRMATION_LABELS = Object.freeze({ pendiente: 'Sin respuesta', yes: 'Confirmó', no: 'No asistirá' });
-export const ADMIN_RECORD_FIELDS = Object.freeze(['media_name', 'media_types', 'frequency', 'tv_channel', 'province', 'city', 'program_name', 'representatives', 'channels', 'followers_validated', 'paid_media', 'contact_name', 'phone', 'contact_email']);
+export const ADMIN_RECORD_FIELDS = Object.freeze(['media_name', 'media_types', 'frequency', 'tv_channel', 'province', 'city', 'program_name', 'representatives', 'channels', 'followers_validated', 'paid_media', 'contact_name', 'phone', 'contact_email', 'audience_count', 'radio_genre']);
 const API = PRIMARY_API_BASE;
 const LOCAL_API = 'http://127.0.0.1:4174/api';
 export const MEDIA_TYPE_LABELS = Object.freeze({ radio: 'Radio', tv: 'Televisión', prensa: 'Prensa escrita', digital: 'Medio digital', redes: 'Redes sociales' });
@@ -90,7 +90,7 @@ export function createMediaAdminClient(baseUrl = API, fetchImplementation = fetc
   let csrf = '';
   async function request(path, options = {}) {
     if (!/^\/(?:auth\/(?:session|logout)|panel|media-accounts|media-claims|media-events|medios(?:\/export)?)(?:\?[^#]*)?$/.test(path)
-      && !/^\/medios\/[a-f0-9]{32}(?:\/(?:delete|notes|password-reset|video-views|photo|details|invite|claim\/(?:approve|reject)))?$/.test(path)
+      && !/^\/medios\/[a-f0-9]{32}(?:\/(?:delete|notes|password-reset|video-views|videos|photo|details|invite|claim\/(?:approve|reject)))?$/.test(path)
       && !/^\/media-events\/[a-f0-9]{32}(?:\/coverage\/[a-f0-9]{32})?$/.test(path)
       && !/^\/media-accounts\/[a-f0-9]{32}\/delete$/.test(path)) throw new Error('Ruta de API no permitida.');
     const method = (options.method ?? 'GET').toUpperCase();
@@ -125,6 +125,8 @@ export function createMediaAdminClient(baseUrl = API, fetchImplementation = fetc
     changeStatus: (id, status, trafficLight, paidMedia) => request(`/medios/${id}`, { method: 'PATCH', body: { status, ...(trafficLight === undefined ? {} : { traffic_light: trafficLight }), ...(paidMedia === undefined ? {} : { paid_media: paidMedia }) } }),
     addNote: (id, body) => request(`/medios/${id}/notes`, { method: 'POST', body: { body } }),
     updateVideoViews: (id, views) => request(`/medios/${id}/video-views`, { method: 'PATCH', body: { video_views: views } }),
+    addVideo: (id, url) => request(`/medios/${id}/videos`, { method: 'POST', body: { url } }),
+    removeVideo: (id, videoId) => request(`/medios/${id}/videos`, { method: 'PATCH', body: { video_id: videoId } }),
     archive: id => request(`/medios/${id}/delete`, { method: 'POST', body: {} }),
     passwordReset: id => request(`/medios/${id}/password-reset`, { method: 'POST', body: {} }),
     pendingAccounts: () => request('/media-accounts'),
@@ -178,10 +180,13 @@ export function adminRecordPayload(form) {
   }
   const followers = value('followers_validated');
   if (followers && !/^\d{1,10}$/.test(followers)) throw new Error('Los seguidores validados deben ser un número entero.');
+  const audience = value('audience_count');
+  if (audience && !/^\d{1,9}$/.test(audience)) throw new Error('Los oyentes deben ser un número entero.');
   return {
     media_name: value('media_name'), media_types: types, frequency: value('frequency'), tv_channel: value('tv_channel'),
     province: value('province'), city: value('city'), program_name: value('program_name'), representatives, channels,
-    followers_validated: followers ? Number(followers) : null, paid_media: value('paid_media') === 'yes' ? 'yes' : 'no',
+    followers_validated: followers ? Number(followers) : null, audience_count: audience ? Number(audience) : null,
+    radio_genre: value('radio_genre'), paid_media: value('paid_media') === 'yes' ? 'yes' : 'no',
     contact_name: value('contact_name'), phone: value('phone'), contact_email: value('contact_email'),
   };
 }
@@ -191,8 +196,10 @@ export function fillAdminRecordForm(form, data = {}) {
   const set = (name, text) => { const field = form.elements.namedItem?.(name); if (field) field.value = text ?? ''; };
   set('media_name', data.media_name);
   for (const input of form.querySelectorAll?.('input[name="media_types"]') ?? []) input.checked = (data.media_types ?? []).includes(input.value);
-  set('frequency', (data.radio_stations ?? []).map(station => station.frequency).join(' · '));
-  set('tv_channel', (data.tv_channels ?? [])[0] ?? '');
+  set('frequency', (data.radio_stations ?? []).map(station => station.frequency).join('\n'));
+  set('tv_channel', (data.tv_channels ?? []).join('\n'));
+  set('audience_count', data.audience_count == null ? '' : String(data.audience_count));
+  set('radio_genre', data.radio_genre ?? '');
   set('province', data.province); set('city', data.city); set('program_name', data.program_name);
   set('representatives', (data.representatives ?? []).map(person => person.role ? `${person.name} - ${person.role}` : person.name).join('\n'));
   set('channels', (data.channels ?? []).map(channel => channel.url).join('\n'));
@@ -562,9 +569,46 @@ export async function initializeMediaAdmin() {
       input.value = String(video.views_count ?? 0); input.dataset.videoId = String(video.id);
       input.setAttribute('aria-label', 'Views validadas de ' + video.url);
       label.append(input); viewInputs.push(input);
-      item.append(info, label); videoList.append(item);
+      const remove = node('button', 'Quitar', 'button-quiet'); remove.type = 'button';
+      remove.setAttribute('aria-label', 'Quitar el link ' + video.url);
+      remove.addEventListener('click', async () => {
+        if (remove.dataset.confirm !== 'true') { remove.dataset.confirm = 'true'; remove.textContent = 'Confirmar'; return; }
+        const generationAtClick = detailGeneration;
+        remove.disabled = true;
+        try { await client.removeVideo(id, video.id); await list(); if (generationAtClick !== detailGeneration) return; await loadDetail(id, generationAtClick); feedback(detailFeedback, 'Link retirado.', 'success'); }
+        catch (error) { remove.disabled = false; fail(error, detailFeedback); }
+      });
+      item.append(info, label, remove); videoList.append(item);
     }
     videos.append(videoList);
+    // Coordination reports links for media without an account, so every record can be followed up on.
+    const addVideo = node('div', undefined, 'admin-media-add-video');
+    const addInput = node('input'); addInput.type = 'url'; addInput.placeholder = 'https://…'; addInput.maxLength = 500;
+    addInput.setAttribute('aria-label', 'Link de una publicación de este medio');
+    const addButton = node('button', 'Agregar link', 'button-quiet'); addButton.type = 'button';
+    const addFeedback = node('p', '', 'feedback'); addFeedback.setAttribute('role', 'status'); addFeedback.setAttribute('aria-live', 'polite');
+    const submitVideo = async () => {
+      const url = addInput.value.trim();
+      if (!url) { feedback(addFeedback, 'Pega el link de la publicación.', 'error'); return; }
+      const generationAtClick = detailGeneration;
+      addButton.disabled = true; feedback(addFeedback, 'Guardando…');
+      try {
+        await client.addVideo(id, url);
+        addInput.value = '';
+        await list();
+        if (generationAtClick !== detailGeneration) return;
+        await loadDetail(id, generationAtClick);
+        feedback(detailFeedback, 'Link agregado al medio.', 'success');
+      } catch (error) {
+        addButton.disabled = false;
+        if (error.status === 401) fail(error);
+        else feedback(addFeedback, error.status === 409 ? 'Ese link ya está registrado en este medio.' : error.message, 'error');
+      }
+    };
+    addButton.addEventListener('click', submitVideo);
+    addInput.addEventListener('keydown', event => { if (event.key === 'Enter') { event.preventDefault(); submitVideo(); } });
+    addVideo.append(node('label', 'Agregar una publicación de este medio'), addInput, addButton, addFeedback);
+    videos.append(addVideo);
     if (total > 0) {
       const save = node('button', 'Guardar views', 'button-primary'); save.type = 'button';
       const saved = node('p', '', 'feedback'); saved.setAttribute('role', 'status'); saved.setAttribute('aria-live', 'polite');

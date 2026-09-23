@@ -831,6 +831,18 @@ final class Router
             $headers['Content-Type'] = 'image/jpeg'; $headers['Cache-Control'] = 'private, no-store';
             return new Response(200, $headers, $jpeg);
         }
+        if (preg_match('~^/api/medios/([a-f0-9]{32})/videos$~D', $path, $parts)) {
+            if ($query !== []) throw new InvalidArgumentException();
+            if ($method === 'POST') {
+                $body = $this->body($server, $rawBody, ['url']);
+                $this->media()->addVideoByAdmin($parts[1], $body['url'] ?? null, $user['id'], $ip);
+                return $this->json(201, ['ok' => true], $headers);
+            }
+            if ($method !== 'PATCH') return $notAllowed();
+            $body = $this->body($server, $rawBody, ['video_id']);
+            $this->media()->removeVideoByAdmin($parts[1], $body['video_id'] ?? null, $user['id'], $ip);
+            return $this->json(200, ['ok' => true], $headers);
+        }
         if (preg_match('~^/api/medios/([a-f0-9]{32})/video-views$~D', $path, $parts)) {
             if ($method !== 'PATCH') return $notAllowed();
             if ($query !== []) throw new InvalidArgumentException();

@@ -108,7 +108,8 @@ final class ImportMediaCoverageCommand
                     $detail = $repository->createByAdmin([
                         'media_name' => $group['name'], 'media_types' => $group['types'], 'frequency' => $group['frequency'], 'tv_channel' => $group['tv_channel'],
                         'province' => $group['province'], 'city' => $group['city'], 'program_name' => $group['program'], 'representatives' => $group['representatives'],
-                        'channels' => [], 'followers_validated' => $group['followers'], 'paid_media' => $group['contracted'] === 'yes' ? 'yes' : 'no', 'contact_name' => '', 'phone' => '', 'contact_email' => '',
+                        'channels' => [], 'followers_validated' => $group['followers'], 'audience_count' => null, 'radio_genre' => '',
+                        'paid_media' => $group['contracted'] === 'yes' ? 'yes' : 'no', 'contact_name' => '', 'phone' => '', 'contact_email' => '',
                     ], $actorId, '127.0.0.1');
                     $publicId = $detail['public_id'];
                     $created++;

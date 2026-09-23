@@ -51,7 +51,7 @@ final class MediaRepository
     /** The medium answers the invitation from its portal; coordination records who actually came (019). */
     public const ATTENDANCE = ['yes', 'no'];
     /** Fields coordination may set when it creates or completes a record; contact data stays optional here. */
-    public const ADMIN_FIELDS = ['media_name', 'media_types', 'frequency', 'tv_channel', 'province', 'city', 'program_name', 'representatives', 'channels', 'followers_validated', 'paid_media', 'contact_name', 'phone', 'contact_email'];
+    public const ADMIN_FIELDS = ['media_name', 'media_types', 'frequency', 'tv_channel', 'province', 'city', 'program_name', 'representatives', 'channels', 'followers_validated', 'paid_media', 'contact_name', 'phone', 'contact_email', 'audience_count', 'radio_genre'];
     public const MAX_REPRESENTATIVES = 20;
     public const MAX_COVERAGE_LINKS = 20;
     private const INVITATION_TTL = 7 * 86400;
@@ -506,8 +506,19 @@ final class MediaRepository
         foreach ($types as $type) if (!is_string($type) || !isset(self::MEDIA_TYPES[$type])) throw new InvalidArgumentException();
         $types = array_values(array_intersect(array_keys(self::MEDIA_TYPES), $types));
         $name = $text($input['media_name'], 140, 2);
-        $frequency = $text($input['frequency'], 120);
-        $tvChannel = $text($input['tv_channel'], 120);
+        // Una frecuencia o canal por línea: hay medios con varias señales.
+        $lines = static function (mixed $value, int $max, int $limit) use ($text): array {
+            if (!is_string($value)) throw new InvalidArgumentException();
+            $items = [];
+            foreach (preg_split('/\R/u', $value) ?: [] as $line) {
+                $line = $text($line, $max);
+                if ($line !== '' && !in_array($line, $items, true)) $items[] = $line;
+            }
+            if (count($items) > $limit) throw new InvalidArgumentException();
+            return $items;
+        };
+        $frequencies = $lines($input['frequency'], 120, self::MAX_STATIONS);
+        $tvChannels = $lines($input['tv_channel'], 120, self::MAX_TV_CHANNELS);
         $province = $text($input['province'], 60);
         if ($province !== '' && !in_array($province, self::PROVINCES, true)) throw new InvalidArgumentException();
         $representatives = [];
@@ -531,17 +542,22 @@ final class MediaRepository
         }
         $validated = $input['followers_validated'];
         if ($validated !== null && (!is_int($validated) || $validated < 0 || $validated > 1000000000)) throw new InvalidArgumentException();
+        $audience = $input['audience_count'];
+        if ($audience !== null && (!is_int($audience) || $audience < 0 || $audience > 100000000)) throw new InvalidArgumentException();
+        $genre = $text($input['radio_genre'], 60);
+        if ($genre !== '' && !in_array($genre, self::RADIO_GENRES, true)) throw new InvalidArgumentException();
         if (!is_string($input['paid_media']) || !in_array($input['paid_media'], self::PAID_MEDIA, true)) throw new InvalidArgumentException();
         $phone = $text($input['phone'], 25);
         if ($phone !== '' && preg_match('/^\+?[0-9][0-9 ()-]{6,23}$/D', $phone) !== 1) throw new InvalidArgumentException();
         $email = strtolower($text($input['contact_email'], 180));
         if ($email !== '' && filter_var($email, FILTER_VALIDATE_EMAIL) === false) throw new InvalidArgumentException();
-        $stations = $frequency === '' || !in_array('radio', $types, true) ? [] : [['name' => $name, 'frequency' => $frequency]];
-        $tvChannels = $tvChannel === '' || !in_array('tv', $types, true) ? [] : [$tvChannel];
+        $stations = array_map(static fn (string $frequency): array => ['name' => $name, 'frequency' => $frequency], in_array('radio', $types, true) ? $frequencies : []);
+        $tvChannels = in_array('tv', $types, true) ? $tvChannels : [];
         $columns = [
             'media_name' => $name, 'media_types' => ',' . implode(',', $types) . ',', 'radio_stations' => json_encode($stations, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),
             'tv_channel' => $tvChannels[0] ?? '', 'tv_channels' => json_encode($tvChannels, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),
-            'frequency_channel' => substr(implode(' · ', array_filter([$frequency, $tvChannel])), 0, 120),
+            'audience_count' => $audience, 'radio_genre' => $genre,
+            'frequency_channel' => substr(implode(' · ', [...$stations ? array_column($stations, 'frequency') : [], ...$tvChannels]), 0, 120),
             'province' => $province, 'city' => $text($input['city'], 100), 'program_name' => $text($input['program_name'], 160),
             'representatives' => json_encode($representatives, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),
             'channels' => json_encode($channels, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
@@ -1011,6 +1027,37 @@ final class MediaRepository
             throw $error;
         }
         return $this->videos((int) $profile['id']);
+    }
+
+    /** Coordination reports a published video for any record, with or without an account. */
+    public function addVideoByAdmin(string $publicId, mixed $url, int $actorId, string $ip = ''): void
+    {
+        $url = self::link($url, 500);
+        $this->mutate($publicId, function (array $row) use ($url, $actorId, $ip, $publicId): void {
+            $count = $this->pdo->prepare('SELECT COUNT(*) FROM media_videos WHERE profile_id = ?');
+            $count->execute([$row['id']]);
+            if ((int) $count->fetchColumn() >= self::MAX_VIDEOS) throw new InvalidArgumentException();
+            $hash = hash('sha256', strtolower($url));
+            $duplicate = $this->pdo->prepare('SELECT 1 FROM media_videos WHERE profile_id = ? AND url_hash = ?');
+            $duplicate->execute([$row['id'], $hash]);
+            if ($duplicate->fetchColumn() !== false) throw new DuplicateRegistration();
+            $this->pdo->prepare('INSERT INTO media_videos (profile_id, url, url_hash, created_at) VALUES (?, ?, ?, ?)')
+                ->execute([$row['id'], $url, $hash, gmdate('Y-m-d H:i:s')]);
+            $this->audit->log('media.video_added_by_admin', $actorId, 'media_profile', $publicId, [], $ip);
+        });
+    }
+
+    /** Removes one reported link. Used to undo a mistake; the medium's own links are evidence and stay. */
+    public function removeVideoByAdmin(string $publicId, mixed $videoId, int $actorId, string $ip = ''): void
+    {
+        $videoId = filter_var($videoId, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+        if ($videoId === false) throw new InvalidArgumentException();
+        $this->mutate($publicId, function (array $row) use ($videoId, $actorId, $ip, $publicId): void {
+            $delete = $this->pdo->prepare('DELETE FROM media_videos WHERE id = ? AND profile_id = ?');
+            $delete->execute([$videoId, $row['id']]);
+            if ($delete->rowCount() === 0) throw new OutOfBoundsException();
+            $this->audit->log('media.video_removed_by_admin', $actorId, 'media_profile', $publicId, ['note_id' => $videoId], $ip);
+        });
     }
 
     /** Validated views are entered by administration beside each reported link. */

@@ -55,7 +55,7 @@ function layout(page, content, script = '/assets/admin/admin.js?v=20260921-admin
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' blob:; font-src 'self'; connect-src ${connectSources}; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="admin-api-base" content="${api}">
 <link rel="icon" href="/assets/finados/favicon-finados.png">
-<link rel="stylesheet" href="/assets/admin/admin.css?v=20260923-3">
+<link rel="stylesheet" href="/assets/admin/admin.css?v=20260923-4">
 <script type="module" src="${script}"></script>
 </head><body class="admin-page">
 <a class="skip-link" href="#contenido">Ir al contenido</a>
@@ -150,7 +150,8 @@ ${select('province', 'Provincia', ecuadorProvinces)}</div>
 </dialog>${mediaRecordDialog()}</main></div>`, ADMIN_MEDIOS_SCRIPT);
 }
 
-const ADMIN_MEDIOS_SCRIPT = '/assets/admin/admin-medios.js?v=20260923-admin-medios-16';
+const ADMIN_MEDIOS_SCRIPT = '/assets/admin/admin-medios.js?v=20260923-admin-medios-17';
+const RADIO_GENRE_OPTIONS = ['Noticias e información', 'Musical variada', 'Popular y tropical', 'Folclórica y andina', 'Juvenil y pop', 'Romántica', 'Religiosa', 'Deportiva', 'Comunitaria', 'Otro'];
 const PROVINCE_OPTIONS = ['Azuay', 'Bolívar', 'Cañar', 'Carchi', 'Chimborazo', 'Cotopaxi', 'El Oro', 'Esmeraldas', 'Galápagos', 'Guayas', 'Imbabura', 'Loja', 'Los Ríos', 'Manabí', 'Morona Santiago', 'Napo', 'Orellana', 'Pastaza', 'Pichincha', 'Santa Elena', 'Santo Domingo de los Tsáchilas', 'Sucumbíos', 'Tungurahua', 'Zamora Chinchipe'];
 
 /** Shared dialog: coordination creates or completes a medium without needing the medium's account. */
@@ -160,8 +161,10 @@ function mediaRecordDialog() {
 <form data-record-form novalidate><fieldset><div class="record-grid">
 <label class="record-grid__wide">Nombre del medio *<input name="media_name" maxlength="140" required></label>
 <fieldset class="record-grid__wide record-types"><legend>Tipo de medio *</legend>${Object.entries(MEDIA_TYPE_LABELS).map(([key, label]) => `<label><input type="checkbox" name="media_types" value="${esc(key)}"> ${esc(label)}</label>`).join('')}</fieldset>
-<label>Frecuencia (radio)<input name="frequency" maxlength="120" placeholder="Ej.: 102.5 FM"></label>
-<label>Canal (televisión)<input name="tv_channel" maxlength="120" placeholder="Ej.: Canal 38"></label>
+<label>Frecuencias de radio<textarea name="frequency" rows="2" placeholder="Una por línea. Ej.: 102.5 FM"></textarea></label>
+<label>Canales de televisión<textarea name="tv_channel" rows="2" placeholder="Uno por línea. Ej.: Canal 38"></textarea></label>
+<label>Oyentes (dato del medio)<input name="audience_count" inputmode="numeric" pattern="[0-9]*" maxlength="9" placeholder="Ej.: 25000"></label>
+<label>Género de la radio<select name="radio_genre"><option value="">Sin dato</option>${RADIO_GENRE_OPTIONS.map(value => `<option value="${esc(value)}">${esc(value)}</option>`).join('')}</select></label>
 <label>Provincia<select name="province"><option value="">Sin dato</option>${PROVINCE_OPTIONS.map(value => `<option value="${esc(value)}">${esc(value)}</option>`).join('')}</select></label>
 <label>Ciudad<input name="city" maxlength="100"></label>
 <label class="record-grid__wide">Programa<input name="program_name" maxlength="160" placeholder="Ej.: Noticiero Controversia"></label>

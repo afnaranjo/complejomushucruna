@@ -74,7 +74,7 @@ $eventId = $event['public_id'];
 $record = ['media_name' => 'Radio Cumbre', 'media_types' => ['radio'], 'frequency' => '102.5 FM', 'tv_channel' => '', 'province' => 'Chimborazo', 'city' => 'Riobamba', 'program_name' => 'Al día Noticias y deportes',
     'representatives' => [['name' => 'Marcelo Padilla', 'role' => 'Director'], ['name' => 'Aníbal Rojas', 'role' => 'Periodista']],
     'channels' => [['type' => 'facebook', 'url' => 'https://www.facebook.com/radiocumbre', 'followers' => null]], 'followers_validated' => 22000, 'paid_media' => 'yes',
-    'contact_name' => '', 'phone' => '', 'contact_email' => ''];
+    'contact_name' => '', 'phone' => '', 'contact_email' => '', 'audience_count' => null, 'radio_genre' => ''];
 same(422, $router->handle('POST', '/api/medios', $admin, coverage_json([...$record, 'media_types' => []]))->status);
 same(422, $router->handle('POST', '/api/medios', $admin, coverage_json([...$record, 'media_name' => 'R']))->status);
 same(422, $router->handle('POST', '/api/medios', $admin, coverage_json([...$record, 'province' => 'Marte']))->status);
@@ -291,7 +291,7 @@ $importer = static function (array $group) use ($pdo, $config): array {
     $repository = new MediaRepository($pdo, new Finados\Crypto($config));
     return $repository->createByAdmin([
         'media_name' => $group['name'], 'media_types' => ['radio'], 'frequency' => '', 'tv_channel' => '', 'province' => '', 'city' => '', 'program_name' => '',
-        'representatives' => [], 'channels' => [], 'followers_validated' => null,
+        'representatives' => [], 'channels' => [], 'followers_validated' => null, 'audience_count' => null, 'radio_genre' => '',
         'paid_media' => $group['contracted'] === 'yes' ? 'yes' : 'no', 'contact_name' => '', 'phone' => '', 'contact_email' => '',
     ], 1, '127.0.0.1');
 };
@@ -315,4 +315,45 @@ same(['ok' => true], coverage_body($router->handle('PATCH', '/api/media-events/'
 $detail = coverage_body($router->handle('GET', '/api/media-events/' . $rueda, $origin));
 foreach ($detail['items'] as $item) if ($item['public_id'] === $mundo) { same(null, $item['confirmation']); same(null, $item['confirmed_at']); }
 same(true, in_array($mundo, $detail['summary']['no_confirmaron']['ids'], true));
+coverage_close_session();
+
+// ---------------------------------------------------------------- coordination completes a record without an account
+coverage_close_session();
+$adminSession = coverage_body($router->handle('GET', '/api/auth/session', $origin));
+$adminLogin = coverage_body($router->handle('POST', '/api/auth/login', $json($adminSession['csrf']), coverage_json(['username' => 'admin', 'password' => $adminSecret])));
+$admin = $json($adminLogin['csrf']);
+// Several signals, listener figures and genre are recorded by coordination, so a medium without an
+// account still has a complete record to follow up on.
+$complete = [...$record, 'media_name' => 'Radio Varias Señales', 'media_types' => ['radio', 'tv'], 'frequency' => "95.3 FM\n101.7 FM\n95.3 FM", 'tv_channel' => "Canal 6\nCanal 12",
+    'audience_count' => 25000, 'radio_genre' => 'Popular y tropical'];
+same(422, $router->handle('POST', '/api/medios', $admin, coverage_json([...$complete, 'radio_genre' => 'Inventado']))->status);
+same(422, $router->handle('POST', '/api/medios', $admin, coverage_json([...$complete, 'audience_count' => '25000']))->status);
+$multi = coverage_body($router->handle('POST', '/api/medios', $admin, coverage_json($complete)));
+same(2, count($multi['radio_stations']));
+same('101.7 FM', $multi['radio_stations'][1]['frequency']);
+same(['Canal 6', 'Canal 12'], $multi['tv_channels']);
+same(25000, $multi['audience_count']);
+same('Popular y tropical', $multi['radio_genre']);
+same('95.3 FM · 101.7 FM · Canal 6 · Canal 12', $multi['frequency_channel']);
+$senales = $multi['public_id'];
+// Coordination reports published videos for that record, even though nobody signed in for it.
+same(0, count($multi['videos']));
+same(422, $router->handle('POST', '/api/medios/' . $senales . '/videos', $admin, coverage_json(['url' => 'javascript:alert(1)']))->status);
+same(201, $router->handle('POST', '/api/medios/' . $senales . '/videos', $admin, coverage_json(['url' => 'https://www.facebook.com/share/v/coordinacion1/']))->status);
+same(409, $router->handle('POST', '/api/medios/' . $senales . '/videos', $admin, coverage_json(['url' => 'https://www.facebook.com/share/v/coordinacion1/']))->status);
+same(201, $router->handle('POST', '/api/medios/' . $senales . '/videos', $admin, coverage_json(['url' => 'https://www.facebook.com/share/v/coordinacion2/']))->status);
+$detail = coverage_body($router->handle('GET', '/api/medios/' . $senales, $origin));
+same(2, count($detail['videos']));
+same(2, coverage_body($router->handle('GET', '/api/medios?search=Se%C3%B1ales', $origin))['items'][0]['videos_count']);
+// Views are recorded the same way as for media with an account.
+$views = [];
+foreach ($detail['videos'] as $video) $views[(string) $video['id']] = 1200;
+same(['ok' => true], coverage_body($router->handle('PATCH', '/api/medios/' . $senales . '/video-views', $admin, coverage_json(['video_views' => $views]))));
+same(2400, coverage_body($router->handle('GET', '/api/medios?search=Se%C3%B1ales', $origin))['items'][0]['views_total']);
+// A mistaken link can be withdrawn.
+same(['ok' => true], coverage_body($router->handle('PATCH', '/api/medios/' . $senales . '/videos', $admin, coverage_json(['video_id' => $detail['videos'][0]['id']]))));
+same(404, $router->handle('PATCH', '/api/medios/' . $senales . '/videos', $admin, coverage_json(['video_id' => $detail['videos'][0]['id']]))->status);
+same(1, count(coverage_body($router->handle('GET', '/api/medios/' . $senales, $origin))['videos']));
+same(1, (int) $pdo->query("SELECT COUNT(*) FROM audit_log WHERE event_type = 'media.video_removed_by_admin'")->fetchColumn());
+same(2, (int) $pdo->query("SELECT COUNT(*) FROM audit_log WHERE event_type = 'media.video_added_by_admin'")->fetchColumn());
 coverage_close_session();
