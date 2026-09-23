@@ -38,6 +38,9 @@ final class CreadoraRepository
     public const CONTENT_KINDS = ['video' => 'Video', 'live' => 'En vivo', 'historia' => 'Historia', 'foto' => 'Fotografía', 'otro' => 'Otro'];
     public const ATTENDANCE = ['yes' => 'Asistió', 'no' => 'No asistió'];
     public const MAX_CONTENT = 50;
+    /** Un turno puede llevar varios guiones; cada uno cabe holgado para una idea larga. */
+    public const MAX_SCRIPTS = 30;
+    private const MAX_SCRIPT_BODY = 20000;
     /** Un turno cabe en un día y dura al menos un cuarto de hora. */
     private const MIN_MINUTES = 15;
     private const MAX_MINUTES = 24 * 60;
@@ -199,7 +202,8 @@ final class CreadoraRepository
     {
         [$start, $end] = $this->range($from, $to);
         $statement = $this->pdo->prepare('SELECT s.*, c.public_id AS creadora_public_id, c.full_name,'
-            . ' (SELECT COUNT(*) FROM creadora_shift_content k WHERE k.shift_id = s.id) AS content_count FROM creadora_shifts s'
+            . ' (SELECT COUNT(*) FROM creadora_shift_content k WHERE k.shift_id = s.id) AS content_count,'
+            . ' (SELECT COUNT(*) FROM creadora_shift_script g WHERE g.shift_id = s.id) AS script_count FROM creadora_shifts s'
             . ' JOIN creadoras c ON c.id = s.creadora_id WHERE s.canceled_at IS NULL AND s.starts_at < ? AND s.ends_at > ? ORDER BY s.starts_at, c.full_name');
         $statement->execute([$end, $start]);
         return [
@@ -215,6 +219,7 @@ final class CreadoraRepository
                 'note' => $row['note'],
                 'attended' => $row['attended'] ?? null,
                 'content_count' => (int) ($row['content_count'] ?? 0),
+                'script_count' => (int) ($row['script_count'] ?? 0),
             ], $statement->fetchAll(PDO::FETCH_ASSOC)),
             'creadoras' => $this->list()['items'],
             'log' => $this->log_(min(max($logLimit, 1), 200)),
@@ -341,6 +346,75 @@ final class CreadoraRepository
         $this->log('content', $shift, $this->rowById((int) $shift['creadora_id']), $actorName, ['detail' => 'Quitó ' . mb_strtolower(self::CONTENT_KINDS[$row['kind']] ?? 'contenido') . ': ' . $row['title']]);
         $this->audit->log('creadora.content_removed', $adminId, 'creadora_shift', $shift['public_id'], [], $ip);
         return $this->shiftByPublicId($shiftPublicId);
+    }
+
+    /** El cuaderno: lo que se va a grabar y cómo. Se escribe antes; el contenido se registra después. */
+    public function addScript(string $shiftPublicId, array $input, ?int $adminId, string $actorName, mixed $ip): array
+    {
+        $shift = $this->shiftRow($shiftPublicId);
+        $values = $this->validateScript($input);
+        $count = $this->pdo->prepare('SELECT COUNT(*) FROM creadora_shift_script WHERE shift_id = ?');
+        $count->execute([$shift['id']]);
+        $total = (int) $count->fetchColumn();
+        if ($total >= self::MAX_SCRIPTS) throw new InvalidArgumentException('Este turno ya tiene demasiados guiones.');
+        $now = gmdate('Y-m-d H:i:s');
+        $publicId = bin2hex(random_bytes(16));
+        $this->pdo->prepare('INSERT INTO creadora_shift_script (public_id, shift_id, title, body, reference_url, position, created_by_admin_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)')
+            ->execute([$publicId, $shift['id'], $values['title'], $values['body'], $values['reference_url'], $total + 1, $adminId, $now, $now]);
+        $this->log('edited', $shift, $this->rowById((int) $shift['creadora_id']), $actorName, ['detail' => 'Agregó el guion: ' . $values['title']]);
+        $this->audit->log('creadora.script_added', $adminId, 'creadora_shift', $shift['public_id'], [], $ip);
+        return $this->shiftByPublicId($shiftPublicId);
+    }
+
+    public function updateScript(string $shiftPublicId, string $scriptPublicId, array $input, ?int $adminId, string $actorName, mixed $ip): array
+    {
+        $shift = $this->shiftRow($shiftPublicId);
+        $current = $this->scriptRow($scriptPublicId, (int) $shift['id']);
+        $values = $this->validateScript($input, $current);
+        $this->pdo->prepare('UPDATE creadora_shift_script SET title = ?, body = ?, reference_url = ?, updated_at = ? WHERE id = ?')
+            ->execute([$values['title'], $values['body'], $values['reference_url'], gmdate('Y-m-d H:i:s'), $current['id']]);
+        $this->log('edited', $shift, $this->rowById((int) $shift['creadora_id']), $actorName, ['detail' => 'Editó el guion: ' . $values['title']]);
+        $this->audit->log('creadora.script_updated', $adminId, 'creadora_shift', $shift['public_id'], [], $ip);
+        return $this->shiftByPublicId($shiftPublicId);
+    }
+
+    public function removeScript(string $shiftPublicId, string $scriptPublicId, ?int $adminId, string $actorName, mixed $ip): array
+    {
+        $shift = $this->shiftRow($shiftPublicId);
+        $current = $this->scriptRow($scriptPublicId, (int) $shift['id']);
+        $this->pdo->prepare('DELETE FROM creadora_shift_script WHERE id = ?')->execute([$current['id']]);
+        $this->log('edited', $shift, $this->rowById((int) $shift['creadora_id']), $actorName, ['detail' => 'Quitó el guion: ' . $current['title']]);
+        $this->audit->log('creadora.script_removed', $adminId, 'creadora_shift', $shift['public_id'], [], $ip);
+        return $this->shiftByPublicId($shiftPublicId);
+    }
+
+    private function validateScript(array $input, ?array $current = null): array
+    {
+        $title = $this->text($input['title'] ?? ($current['title'] ?? ''), 200);
+        if ($title === '') throw new InvalidArgumentException('Ponle un nombre a la idea.');
+        // El guion conserva sus saltos de línea: es un texto largo, no una etiqueta.
+        $body = is_string($input['body'] ?? null) ? trim($input['body']) : (string) ($current['body'] ?? '');
+        if (mb_strlen($body) > self::MAX_SCRIPT_BODY) throw new InvalidArgumentException('El guion es demasiado largo.');
+        $url = $this->text($input['reference_url'] ?? ($current['reference_url'] ?? ''), 500);
+        if ($url !== '' && !preg_match('~^https://[^\s]+$~D', $url)) throw new InvalidArgumentException('El enlace debe empezar con https://');
+        return ['title' => $title, 'body' => $body, 'reference_url' => $url];
+    }
+
+    private function scriptRow(string $publicId, int $shiftId): array
+    {
+        if (!preg_match('~^[a-f0-9]{32}$~D', $publicId)) throw new InvalidArgumentException('Guion no encontrado.');
+        $statement = $this->pdo->prepare('SELECT * FROM creadora_shift_script WHERE public_id = ? AND shift_id = ?');
+        $statement->execute([$publicId, $shiftId]);
+        $row = $statement->fetch(PDO::FETCH_ASSOC);
+        if ($row === false) throw new InvalidArgumentException('Guion no encontrado.');
+        return $row;
+    }
+
+    private function scriptsFor(int $shiftId): array
+    {
+        $statement = $this->pdo->prepare('SELECT public_id, title, body, reference_url, updated_at FROM creadora_shift_script WHERE shift_id = ? ORDER BY position, id');
+        $statement->execute([$shiftId]);
+        return $statement->fetchAll(PDO::FETCH_ASSOC);
     }
 
     private function contentFor(int $shiftId): array
@@ -659,6 +733,7 @@ final class CreadoraRepository
             'attended' => $row['attended'] ?? null,
             'attendance_at' => $row['attendance_at'] ?? null,
             'content' => $this->contentFor((int) $row['id']),
+            'scripts' => $this->scriptsFor((int) $row['id']),
         ], 'log' => $this->log_(50)];
     }
 }

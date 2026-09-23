@@ -741,6 +741,21 @@ final class Router
             $body = $this->body($server, $rawBody, ['creadora', 'starts_at', 'ends_at', 'place', 'note']);
             return $this->json(201, ['ok' => true, ...$repository->createShift($body, $user['id'], $actor, $ip)], $headers);
         }
+        if (preg_match('~^/api/creadoras/turnos/([a-f0-9]{32})/guiones$~D', $path, $parts)) {
+            if ($query !== []) throw new InvalidArgumentException();
+            if ($method !== 'POST') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+            $body = $this->body($server, $rawBody, ['title', 'body', 'reference_url']);
+            return $this->json(201, ['ok' => true, ...$repository->addScript($parts[1], $body, $user['id'], $actor, $ip)], $headers);
+        }
+        if (preg_match('~^/api/creadoras/turnos/([a-f0-9]{32})/guiones/([a-f0-9]{32})$~D', $path, $parts)) {
+            if ($query !== []) throw new InvalidArgumentException();
+            if ($method === 'PATCH') {
+                $body = $this->body($server, $rawBody, ['title', 'body', 'reference_url']);
+                return $this->json(200, ['ok' => true, ...$repository->updateScript($parts[1], $parts[2], $body, $user['id'], $actor, $ip)], $headers);
+            }
+            if ($method === 'POST') return $this->json(200, ['ok' => true, ...$repository->removeScript($parts[1], $parts[2], $user['id'], $actor, $ip)], $headers);
+            return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+        }
         if (preg_match('~^/api/creadoras/turnos/([a-f0-9]{32})/contenido$~D', $path, $parts)) {
             if ($query !== []) throw new InvalidArgumentException();
             if ($method === 'POST') {

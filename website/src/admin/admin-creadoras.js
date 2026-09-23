@@ -38,7 +38,7 @@ export function createCreadoraAdminClient(baseUrl = API, fetchImplementation = f
   async function request(path, options = {}) {
     if (!/^\/(?:auth\/(?:session|logout)|creadoras(?:\?[^#]*)?|creadoras\/(?:calendario|bitacora|turnos)(?:\?[^#]*)?)$/.test(path)
       && !/^\/creadoras\/[a-f0-9]{32}(?:\/retirar)?$/.test(path)
-      && !/^\/creadoras\/turnos\/[a-f0-9]{32}(?:\/contenido)?$/.test(path)) throw new Error('Ruta de API no permitida.');
+      && !/^\/creadoras\/turnos\/[a-f0-9]{32}(?:\/(?:contenido|guiones(?:\/[a-f0-9]{32})?))?$/.test(path)) throw new Error('Ruta de API no permitida.');
     const method = (options.method ?? 'GET').toUpperCase();
     if (!['GET', 'POST', 'PATCH'].includes(method)) throw new Error('Método no permitido.');
     const headers = { Accept: 'application/json' };
@@ -76,6 +76,9 @@ export function createCreadoraAdminClient(baseUrl = API, fetchImplementation = f
     markAttendance: (id, attended) => request(`/creadoras/turnos/${id}`, { method: 'PATCH', body: { attended } }),
     addContent: (id, body) => request(`/creadoras/turnos/${id}/contenido`, { method: 'POST', body }),
     removeContent: (id, content) => request(`/creadoras/turnos/${id}/contenido`, { method: 'PATCH', body: { content } }),
+    addScript: (id, body) => request(`/creadoras/turnos/${id}/guiones`, { method: 'POST', body }),
+    updateScript: (id, script, body) => request(`/creadoras/turnos/${id}/guiones/${script}`, { method: 'PATCH', body }),
+    removeScript: (id, script) => request(`/creadoras/turnos/${id}/guiones/${script}`, { method: 'POST', body: {} }),
   };
 }
 
@@ -370,6 +373,23 @@ export function contentLabel(entry = {}) {
   return [kind, entry.title].filter(Boolean).join(' · ');
 }
 
+/** Lo que se manda al guardar un guion: el nombre manda, el texto y la referencia son libres. */
+export function scriptPayload({ title, body, referenceUrl }) {
+  const name = String(title ?? '').trim();
+  if (name === '') throw new TypeError('Ponle un nombre a la idea.');
+  const link = String(referenceUrl ?? '').trim();
+  if (link !== '' && !/^https:\/\/\S+$/.test(link)) throw new TypeError('La referencia debe empezar con https://');
+  // El guion conserva sus saltos de línea: solo se recortan los extremos.
+  return { title: name, body: String(body ?? '').trim(), reference_url: link };
+}
+
+/** Un resumen corto del guion, para leerlo sin desplegarlo. */
+export function scriptSummary(script = {}, limit = 90) {
+  const body = String(script.body ?? '').replace(/\s+/g, ' ').trim();
+  if (body === '') return script.reference_url ? 'Solo referencia' : 'Sin guion escrito';
+  return body.length <= limit ? body : `${body.slice(0, limit - 1).trimEnd()}…`;
+}
+
 /** Lo que se manda al registrar contenido, con el nombre como único dato obligatorio. */
 export function contentPayload({ kind, title, url }) {
   const clean = value => String(value ?? '').trim();
@@ -535,6 +555,7 @@ export async function initializeAdminCreadoras() {
     if (shift.attended === 'yes') marks.push('✓ asistió');
     else if (shift.attended === 'no') marks.push('✗ no asistió');
     if (shift.content_count) marks.push(`${shift.content_count} ${shift.content_count === 1 ? 'pieza' : 'piezas'}`);
+    if (shift.script_count) marks.push(`${shift.script_count} ${shift.script_count === 1 ? 'guion' : 'guiones'}`);
     if (marks.length) box.append(node('small', marks.join(' · '), 'shift-box__marks'));
     if (absolute) {
       const geometry = placement ?? shiftGeometry(shift, key);
@@ -752,6 +773,10 @@ export async function initializeAdminCreadoras() {
   const duplicateButton = shiftDialog?.querySelector('[data-shift-duplicate]');
   const copyButton = shiftDialog?.querySelector('[data-shift-copy]');
   const durationLine = shiftDialog?.querySelector('[data-shift-duration]');
+  const notebook = shiftDialog?.querySelector('[data-shift-notebook]');
+  const scriptList = shiftDialog?.querySelector('[data-script-list]');
+  const scriptForm = shiftDialog?.querySelector('[data-script-form]');
+  let editingScript = '';
   const record = shiftDialog?.querySelector('[data-shift-record]');
   const contentList = shiftDialog?.querySelector('[data-content-list]');
   const contentForm = shiftDialog?.querySelector('[data-content-form]');
@@ -803,12 +828,66 @@ export async function initializeAdminCreadoras() {
     }
   }
 
+  /** El cuaderno: cada idea es un bloque plegable, porque el guion puede ser largo. */
+  function renderNotebook(shift) {
+    if (!notebook) return;
+    notebook.hidden = !shift;
+    if (scriptForm) scriptForm.hidden = true;
+    editingScript = '';
+    if (!shift) return;
+    scriptList.replaceChildren();
+    const scripts = shift.scripts ?? [];
+    if (!scripts.length) {
+      scriptList.append(node('p', 'Todavía no hay guiones. Agrega el primero con el «+».', 'admin-panel-empty'));
+      return;
+    }
+    for (const script of scripts) {
+      const block = node('details', undefined, 'shift-script');
+      const summary = node('summary');
+      summary.append(node('strong', script.title), node('small', scriptSummary(script)));
+      block.append(summary);
+      const body = node('div', undefined, 'shift-script__body');
+      if (script.body) body.append(node('p', script.body));
+      if (script.reference_url) {
+        const link = node('a', 'Ver la referencia');
+        link.href = script.reference_url;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        body.append(link);
+      }
+      const actions = node('div', undefined, 'shift-script__actions');
+      const edit = node('button', 'Editar', 'button-quiet');
+      edit.type = 'button';
+      edit.addEventListener('click', () => openScript(script));
+      const remove = node('button', 'Quitar', 'button-quiet');
+      remove.type = 'button';
+      remove.addEventListener('click', async () => {
+        if (!confirm(`¿Quitar el guion «${script.title}»?`)) return;
+        await withShift(() => client.removeScript(editingShift, script.public_id));
+      });
+      actions.append(edit, remove);
+      body.append(actions);
+      block.append(body);
+      scriptList.append(block);
+    }
+  }
+
+  function openScript(script) {
+    if (!scriptForm) return;
+    editingScript = script?.public_id ?? '';
+    scriptForm.hidden = false;
+    scriptForm.querySelector('[data-script-title]').value = script?.title ?? '';
+    scriptForm.querySelector('[data-script-body]').value = script?.body ?? '';
+    scriptForm.querySelector('[data-script-url]').value = script?.reference_url ?? '';
+    scriptForm.querySelector('[data-script-title]').focus();
+  }
+
   /** Cada cambio del registro refresca el turno abierto y el calendario detrás. */
   async function withShift(action) {
     try {
       const data = await action();
       if (Array.isArray(data.log)) state.log = data.log;
-      if (data.shift) renderRecord(data.shift);
+      if (data.shift) { renderRecord(data.shift); renderNotebook(data.shift); }
       await load(false);
       if (shiftFeedback) { shiftFeedback.textContent = ''; shiftFeedback.dataset.error = 'false'; }
     } catch (error) {
@@ -843,6 +922,7 @@ export async function initializeAdminCreadoras() {
     if (duplicateButton) duplicateButton.hidden = !shift;
     if (copyButton) copyButton.hidden = !shift;
     renderRecord(shift);
+    renderNotebook(shift);
     showDuration();
     shiftDialog.showModal();
   }
@@ -883,6 +963,22 @@ export async function initializeAdminCreadoras() {
   }
 
   // El «+» abre el formulario del contenido; se pueden registrar varios en el mismo turno.
+  shiftDialog?.querySelector('[data-script-add]')?.addEventListener('click', () => openScript(null));
+  shiftDialog?.querySelector('[data-script-cancel]')?.addEventListener('click', () => { if (scriptForm) scriptForm.hidden = true; editingScript = ''; });
+  shiftDialog?.querySelector('[data-script-save]')?.addEventListener('click', async () => {
+    if (!editingShift || !scriptForm) return;
+    let payload;
+    try {
+      payload = scriptPayload({
+        title: scriptForm.querySelector('[data-script-title]').value,
+        body: scriptForm.querySelector('[data-script-body]').value,
+        referenceUrl: scriptForm.querySelector('[data-script-url]').value,
+      });
+    } catch (error) { if (shiftFeedback) { shiftFeedback.textContent = error.message; shiftFeedback.dataset.error = 'true'; } return; }
+    const script = editingScript;
+    await withShift(() => (script ? client.updateScript(editingShift, script, payload) : client.addScript(editingShift, payload)));
+  });
+
   shiftDialog?.querySelector('[data-content-add]')?.addEventListener('click', () => {
     if (!contentForm) return;
     contentForm.hidden = false;

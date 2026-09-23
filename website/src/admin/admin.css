@@ -343,3 +343,28 @@ tr[data-origin="cuenta"] > td { background: rgba(0, 210, 214, .05); }
 @media (max-width: 700px) {
   .campaign-map__item, .campaign-notices li { flex-direction: column; align-items: flex-start; gap: .4rem; }
 }
+
+/* El diálogo del turno: a la izquierda la cita, a la derecha el cuaderno de apuntes. */
+.record-dialog--shift { width: min(64rem, calc(100vw - 2rem)); }
+.shift-columns { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 20rem); gap: 1.25rem; align-items: start; }
+.shift-notebook { border-left: 1px solid #e3dae6; padding-left: 1.25rem; }
+.shift-notebook .records-heading { padding: 0 0 .5rem; align-items: flex-start; }
+.shift-notebook h3 { font-size: .95rem; }
+.shift-notebook__list { display: grid; gap: .4rem; max-height: 22rem; overflow: auto; }
+.shift-script { border: 1px solid #ddd2de; border-radius: .6rem; background: #fff; }
+.shift-script > summary { display: grid; gap: .1rem; padding: .5rem .7rem; }
+.shift-script > summary strong { font-size: .84rem; }
+.shift-script > summary small { color: #665771; font-size: .72rem; }
+.shift-script[open] > summary { border-bottom: 1px solid #efe8f0; }
+.shift-script__body { padding: .6rem .7rem; display: grid; gap: .5rem; }
+.shift-script__body p { font-size: .82rem; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
+.shift-script__body a { font-size: .76rem; }
+.shift-script__actions { display: flex; gap: .4rem; }
+.shift-script__actions .button-quiet { min-height: 32px; padding: 4px 10px; font-size: .72rem; }
+.shift-notebook__form { display: grid; gap: .5rem; margin-top: .6rem; padding: .75rem; border: 1px dashed #b3a4bd; border-radius: .6rem; background: #fff; }
+.shift-notebook__form textarea { min-height: 9rem; line-height: 1.5; }
+@media (max-width: 900px) {
+  .shift-columns { grid-template-columns: minmax(0, 1fr); }
+  .shift-notebook { border-left: 0; border-top: 1px solid #e3dae6; padding-left: 0; padding-top: 1rem; }
+  .shift-notebook__list { max-height: none; }
+}

@@ -65,7 +65,7 @@ function layout(page, content, script = '/assets/admin/admin.js?v=20260923-admin
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' blob:; font-src 'self'; connect-src ${connectSources}; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="admin-api-base" content="${api}">
 <link rel="icon" href="/assets/finados/favicon-finados.png">
-<link rel="stylesheet" href="/assets/admin/admin.css?v=20260923-13">
+<link rel="stylesheet" href="/assets/admin/admin.css?v=20260923-14">
 <script type="module" src="${script}"></script>
 </head><body class="admin-page">
 <a class="skip-link" href="#contenido">Ir al contenido</a>
@@ -160,7 +160,7 @@ ${select('province', 'Provincia', ecuadorProvinces)}</div>
 </dialog>${mediaRecordDialog()}</main></div>`, ADMIN_MEDIOS_SCRIPT);
 }
 
-const ADMIN_CREADORAS_SCRIPT = '/assets/admin/admin-creadoras.js?v=20260923-creadoras-6';
+const ADMIN_CREADORAS_SCRIPT = '/assets/admin/admin-creadoras.js?v=20260923-creadoras-7';
 const ADMIN_MEDIOS_SCRIPT = '/assets/admin/admin-medios.js?v=20260923-admin-medios-20';
 const RADIO_GENRE_OPTIONS = ['Noticias e información', 'Musical variada', 'Popular y tropical', 'Folclórica y andina', 'Juvenil y pop', 'Romántica', 'Religiosa', 'Deportiva', 'Comunitaria', 'Otro'];
 const PROVINCE_OPTIONS = ['Azuay', 'Bolívar', 'Cañar', 'Carchi', 'Chimborazo', 'Cotopaxi', 'El Oro', 'Esmeraldas', 'Galápagos', 'Guayas', 'Imbabura', 'Loja', 'Los Ríos', 'Manabí', 'Morona Santiago', 'Napo', 'Orellana', 'Pastaza', 'Pichincha', 'Santa Elena', 'Santo Domingo de los Tsáchilas', 'Sucumbíos', 'Tungurahua', 'Zamora Chinchipe'];
@@ -331,9 +331,11 @@ export function renderAdminCreadorasPage(page) {
 <div class="records-heading"><div><h2 id="bitacora-title">Cambios del calendario</h2><p>Quién cambió qué y cómo quedó. Lo más reciente primero.</p></div></div>
 <ol class="calendar-log" data-calendar-log></ol>
 </section>
-<dialog class="record-dialog record-dialog--compact" data-shift-dialog aria-label="Turno del calendario">
+<dialog class="record-dialog record-dialog--shift" data-shift-dialog aria-label="Turno del calendario">
 <form method="dialog" class="record-form">
 <div class="records-heading"><div><h2 data-shift-title>Agregar turno</h2><p>Varias creadoras pueden tener el mismo día y la misma hora.</p></div></div>
+<div class="shift-columns">
+<div class="shift-columns__main">
 <div class="record-grid">
 <label class="record-grid__wide">Creadora<select name="creadora" data-shift-creadora required></select></label>
 <label>Día<input name="day" type="date" required></label>
@@ -361,6 +363,18 @@ export function renderAdminCreadorasPage(page) {
 </div>
 </div>
 </section>
+</div>
+<aside class="shift-notebook" data-shift-notebook hidden aria-labelledby="cuaderno-title">
+<div class="records-heading"><div><h3 id="cuaderno-title">Cuaderno de apuntes</h3><p>La referencia y el guion de lo que se va a grabar.</p></div><button type="button" class="button-quiet shift-content__add" data-script-add aria-label="Agregar guion">+</button></div>
+<div class="shift-notebook__list" data-script-list></div>
+<div class="shift-notebook__form" data-script-form hidden>
+<label>Nombre de la idea<input data-script-title maxlength="200" placeholder="Ej.: Recorrido de apertura"></label>
+<label>Guion<textarea data-script-body rows="8" placeholder="Plano 1: …"></textarea></label>
+<label>Referencia<input data-script-url type="url" maxlength="500" placeholder="https:// (opcional)"></label>
+<div class="shift-content__actions"><button type="button" class="button-quiet" data-script-cancel>Cancelar</button><button type="button" class="button-primary" data-script-save>Guardar guion</button></div>
+</div>
+</aside>
+</div>
 <p class="feedback" data-shift-feedback role="status" aria-live="polite"></p>
 <div class="record-form__actions record-form__actions--split">
 <span class="record-form__side"><button type="button" class="button-quiet" data-shift-duplicate hidden>Duplicar</button><button type="button" class="button-quiet" data-shift-copy hidden>Copiar</button><button type="button" class="button-quiet" data-shift-remove hidden>Quitar</button></span>

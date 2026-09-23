@@ -47,7 +47,7 @@ $config = creadora_config();
 $pdo = Database::connect($config);
 foreach (['001_initial', '002_sheets_outbox', '003_vocero_accounts', '008_media_accounts', '009_media_videos', '010_media_video_views', '011_media_contact_channels',
     '012_media_consents', '013_media_types_radio', '014_media_channels_photo', '015_media_traffic_light', '016_media_paid', '017_emprendedor_accounts',
-    '018_media_coverage', '019_media_event_attendance', '020_media_event_checkin', '021_creadora_accounts', '022_creadora_identity', '023_creadora_shift_content'] as $migration) {
+    '018_media_coverage', '019_media_event_attendance', '020_media_event_checkin', '021_creadora_accounts', '022_creadora_identity', '023_creadora_shift_content', '025_creadora_shift_script'] as $migration) {
     $pdo->exec(file_get_contents(__DIR__ . '/../migrations/' . $migration . '_sqlite.sql'));
 }
 same('021_creadora_accounts', $pdo->query("SELECT version FROM schema_migrations WHERE version = '021_creadora_accounts'")->fetchColumn());
@@ -208,6 +208,36 @@ $sinLive = creadora_body($router->handle('PATCH', '/api/creadoras/turnos/' . $vi
 same(1, count($sinLive['shift']['content']));
 same(true, str_contains($sinLive['log'][0]['detail'], 'Quitó'));
 same(422, $router->handle('PATCH', '/api/creadoras/turnos/' . $vivo['public_id'] . '/contenido', $json($csrf), creadora_json(['content' => str_repeat('f', 32)]))->status);
+
+// El cuaderno del turno: la referencia y el guion de lo que se va a grabar, y puede haber varios.
+same(0, count($vivo['scripts']));
+same(422, $router->handle('POST', '/api/creadoras/turnos/' . $vivo['public_id'] . '/guiones', $json($csrf), creadora_json(['title' => '', 'body' => 'x']))->status);
+same(422, $router->handle('POST', '/api/creadoras/turnos/' . $vivo['public_id'] . '/guiones', $json($csrf), creadora_json(['title' => 'Idea', 'reference_url' => 'http://ref.test']))->status);
+$guion = "Plano 1: entrada del complejo.\nPlano 2: la colada morada.\nCierre: invitación a venir.";
+$conGuion = creadora_body($router->handle('POST', '/api/creadoras/turnos/' . $vivo['public_id'] . '/guiones', $json($csrf), creadora_json([
+    'title' => 'Recorrido de apertura', 'body' => $guion, 'reference_url' => 'https://www.tiktok.com/@ref/video/9'])));
+same(1, count($conGuion['shift']['scripts']));
+same('Recorrido de apertura', $conGuion['shift']['scripts'][0]['title']);
+same($guion, $conGuion['shift']['scripts'][0]['body'], 'el guion conserva sus saltos de línea');
+same('https://www.tiktok.com/@ref/video/9', $conGuion['shift']['scripts'][0]['reference_url']);
+same(true, str_contains($conGuion['log'][0]['detail'], 'Agregó el guion'));
+// Más de un guion en el mismo turno, en el orden en que se escribieron.
+$dos = creadora_body($router->handle('POST', '/api/creadoras/turnos/' . $vivo['public_id'] . '/guiones', $json($csrf), creadora_json([
+    'title' => 'Entrevista a expositora', 'body' => 'Preguntas cortas.'])));
+same(2, count($dos['shift']['scripts']));
+same('Entrevista a expositora', $dos['shift']['scripts'][1]['title']);
+// Editar un guion conserva lo que no se manda.
+$id = $dos['shift']['scripts'][0]['public_id'];
+$editado = creadora_body($router->handle('PATCH', '/api/creadoras/turnos/' . $vivo['public_id'] . '/guiones/' . $id, $json($csrf), creadora_json(['title' => 'Recorrido de apertura v2'])));
+same('Recorrido de apertura v2', $editado['shift']['scripts'][0]['title']);
+same($guion, $editado['shift']['scripts'][0]['body']);
+// Un guion de otro turno no se toca desde aquí.
+same(422, $router->handle('PATCH', '/api/creadoras/turnos/' . $turno['public_id'] . '/guiones/' . $id, $json($csrf), creadora_json(['title' => 'Ajeno']))->status);
+same(1, count(creadora_body($router->handle('POST', '/api/creadoras/turnos/' . $vivo['public_id'] . '/guiones/' . $id, $json($csrf), ''))['shift']['scripts']));
+// El calendario cuenta los guiones para saber qué turno ya tiene plan.
+$conteoGuion = null;
+foreach (creadora_body($router->handle('GET', '/api/creadoras/calendario?from=2026-11-02&to=2026-11-03', $origin))['shifts'] as $item) if ($item['public_id'] === $vivo['public_id']) $conteoGuion = $item;
+same(1, $conteoGuion['script_count']);
 
 // Quitar un turno lo saca del calendario sin borrar su rastro.
 $removed = creadora_body($router->handle('POST', '/api/creadoras/turnos/' . $otro['public_id'], $json($csrf), ''));

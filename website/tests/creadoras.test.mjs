@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import { buildSite } from '../scripts/build.mjs';
 import {
   createCreadoraAdminClient, creadoraPayload, CREADORA_FIELDS, dayKey, defaultShift, describeLogEntry, fillCreadoraForm, minutesFromOffset,
-  contentLabel, contentPayload, CONTENT_KINDS, creadoraColor, CREADORA_HUES, dragPreview, duplicatedShift, durationLabel, layoutDay, minutesFromTime, movedShift, pastedShift, rangeLabel, resizedShift,
+  contentLabel, contentPayload, CONTENT_KINDS, scriptPayload, scriptSummary, creadoraColor, CREADORA_HUES, dragPreview, duplicatedShift, durationLabel, layoutDay, minutesFromTime, movedShift, pastedShift, rangeLabel, resizedShift,
   shiftFormValues, shiftGeometry, shiftLabel, shiftPayload, shiftView, viewRange, weekStart,
   DAY_START_HOUR, DAY_END_HOUR, MAX_END_MINUTES, STEP_MINUTES,
 } from '../src/admin/admin-creadoras.js';
@@ -200,6 +200,11 @@ test('la sección de creadoras se publica con su calendario, su bitácora y su e
     assert.match(page, new RegExp(marker), marker);
   assert.match(page, /name="attended" value="yes"/);
   assert.match(page, /name="attended" value="no"/);
+  // El cuaderno de apuntes, a la derecha y plegable.
+  for (const marker of ['data-shift-notebook', 'data-script-add', 'data-script-list', 'data-script-title', 'data-script-body', 'data-script-url'])
+    assert.match(page, new RegExp(marker), marker);
+  assert.match(page, /Cuaderno de apuntes/);
+  assert.match(page, /<textarea data-script-body/, 'el guion se escribe en un campo largo');
   // El arrastre es propio, no el del navegador: la caja ya no usa draggable.
   const bundleSource = await readFile(join(output, 'assets/admin/admin-creadoras.js'), 'utf8');
   assert.match(bundleSource, /shift-ghost/, 'la etiqueta de arrastre viaja en el bundle');
@@ -347,4 +352,23 @@ test('el turno registra lo que pasó: asistencia y varias piezas de contenido', 
   assert.throws(() => contentPayload({ kind: 'video', title: 'x', url: 'http://inseguro.test' }), /https:\/\//);
   // Los tipos que ofrece la pantalla son los que acepta el servidor.
   assert.deepEqual(Object.keys(CONTENT_KINDS), ['video', 'live', 'historia', 'foto', 'otro']);
+});
+
+test('el cuaderno guarda la referencia y el guion, y admite varios por turno', () => {
+  // El guion es texto largo: conserva sus saltos de línea y solo se recortan los extremos.
+  const guion = 'Plano 1: entrada.\nPlano 2: la colada morada.';
+  assert.deepEqual(scriptPayload({ title: '  Recorrido de apertura  ', body: `  ${guion}  `, referenceUrl: ' https://tiktok.com/v/9 ' }),
+    { title: 'Recorrido de apertura', body: guion, reference_url: 'https://tiktok.com/v/9' });
+  // La idea puede ir sin guion escrito, solo con su referencia.
+  assert.deepEqual(scriptPayload({ title: 'Idea suelta', referenceUrl: '' }), { title: 'Idea suelta', body: '', reference_url: '' });
+  assert.throws(() => scriptPayload({ title: '   ', body: 'x' }), /nombre a la idea/);
+  assert.throws(() => scriptPayload({ title: 'x', referenceUrl: 'http://inseguro.test' }), /https:\/\//);
+
+  // El resumen deja leer la idea sin desplegarla.
+  assert.equal(scriptSummary({ body: 'Plano corto.' }), 'Plano corto.');
+  assert.equal(scriptSummary({ body: 'a'.repeat(200) }).length, 90);
+  assert.match(scriptSummary({ body: 'a'.repeat(200) }), /…$/);
+  assert.equal(scriptSummary({ body: 'Uno\n\ndos   tres' }), 'Uno dos tres', 'los saltos no ensucian el resumen');
+  assert.equal(scriptSummary({ body: '', reference_url: 'https://x' }), 'Solo referencia');
+  assert.equal(scriptSummary({}), 'Sin guion escrito');
 });
