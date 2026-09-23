@@ -259,7 +259,7 @@ export async function initializeAdmin() {
     feedback(status, 'Comprobando acceso…');
     try {
       const data = await client.session();
-      if (login && data.authenticated) { redirect('/admin/voceros/'); return; }
+      if (login && data.authenticated) { redirect('/admin/panel/'); return; }
       if (panel && !data.authenticated) { redirect('/admin/'); return; }
       feedback(status, '');
       if (login) login.querySelector('fieldset').disabled = false;
@@ -284,7 +284,7 @@ export async function initializeAdmin() {
       try {
         await client.login(username, secret);
         password.value = '';
-        redirect('/admin/voceros/');
+        redirect('/admin/panel/');
       } catch (error) {
         password.value = '';
         fail(error.status === 401 ? new Error('Usuario o contraseña incorrectos.') : error);

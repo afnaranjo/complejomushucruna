@@ -19,7 +19,7 @@ test('el build publica el submenú Eventos de Medios, el alta desde coordinació
   // Sidebar: Eventos hangs from Medios, before Emprendedores, and is marked as the current page on its own route.
   for (const html of [admin, events]) {
     const order = [...html.matchAll(/class="admin-nav-link(?: admin-nav-link--child)?" href="([^"]+)"/g)].map(match => match[1]);
-    assert.deepEqual(order, ['/admin/voceros/', '/admin/medios/', '/admin/medios/eventos/', '/admin/emprendedores/']);
+    assert.deepEqual(order, ['/admin/panel/', '/admin/voceros/', '/admin/medios/', '/admin/medios/eventos/', '/admin/emprendedores/']);
   }
   assert.match(events, /href="\/admin\/medios\/eventos\/" aria-current="page"/);
   assert.match(events, /data-admin-medios-eventos/);

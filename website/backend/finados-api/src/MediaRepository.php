@@ -203,6 +203,51 @@ final class MediaRepository
         return ['total' => array_sum($statuses), 'byStatus' => $statuses, 'videos' => (int) $videos->fetchColumn(), 'views' => (int) $views->fetchColumn()];
     }
 
+    /**
+     * Everything the opening panel shows about Medios: each figure carries the list behind it so a
+     * click can reveal the rows without another request.
+     */
+    public function panel(): array
+    {
+        $rows = $this->pdo->prepare("SELECT p.public_id, p.media_name, p.status, p.city, p.paid_media, p.origin, p.account_id, (SELECT COUNT(*) FROM media_videos v WHERE v.profile_id = p.id) AS videos_count, (SELECT COALESCE(SUM(v.views_count), 0) FROM media_videos v WHERE v.profile_id = p.id) AS views_total FROM media_profiles p WHERE p.status <> ? ORDER BY p.media_name");
+        $rows->execute([self::ARCHIVED]);
+        $media = $rows->fetchAll(PDO::FETCH_ASSOC);
+        $entry = static fn (array $row): array => ['public_id' => $row['public_id'], 'name' => $row['media_name'], 'detail' => trim(implode(' · ', array_filter([$row['city'], $row['status'], (int) $row['videos_count'] > 0 ? ((int) $row['videos_count'] === 1 ? '1 video' : (int) $row['videos_count'] . ' videos') : ''])))];
+        $group = static function (callable $test) use ($media, $entry): array {
+            $items = [];
+            foreach ($media as $row) if ($test($row)) $items[] = $entry($row);
+            return $items;
+        };
+        $videos = $this->pdo->prepare("SELECT p.public_id, p.media_name, p.city, v.url, v.views_count, v.created_at FROM media_videos v JOIN media_profiles p ON p.id = v.profile_id WHERE p.status <> ? ORDER BY v.created_at DESC, v.id DESC LIMIT 300");
+        $videos->execute([self::ARCHIVED]);
+        $videoItems = array_map(static fn (array $row): array => ['public_id' => $row['public_id'], 'name' => $row['media_name'], 'detail' => trim(implode(' · ', array_filter([(string) $row['city'], (int) $row['views_count'] > 0 ? (int) $row['views_count'] . ' views' : '']))), 'url' => (string) $row['url']], $videos->fetchAll(PDO::FETCH_ASSOC));
+        return [
+            'cards' => [
+                ['key' => 'medios_aprobados', 'label' => 'Medios aprobados', 'items' => $group(static fn (array $row): bool => $row['status'] === 'Aprobado')],
+                ['key' => 'medios_total', 'label' => 'Medios registrados', 'items' => $group(static fn (): bool => true)],
+                ['key' => 'medios_pautados', 'label' => 'Medios pautados', 'items' => $group(static fn (array $row): bool => $row['paid_media'] === 'yes')],
+                ['key' => 'medios_videos', 'label' => 'Videos recibidos', 'items' => $videoItems],
+                ['key' => 'medios_sin_cuenta', 'label' => 'Sin cuenta vinculada', 'items' => $group(static fn (array $row): bool => $row['account_id'] === null)],
+            ],
+            'events' => array_map(fn (array $event): array => $this->eventPanel($event), $this->listEvents()),
+        ];
+    }
+
+    /** One event with its buckets already resolved into names, ready for the panel cards. */
+    private function eventPanel(array $event): array
+    {
+        $coverage = $this->coverageForEvent($event['public_id']);
+        $names = [];
+        foreach ($coverage['items'] as $item) $names[$item['public_id']] = ['public_id' => $item['public_id'], 'name' => $item['media_name'], 'detail' => trim(implode(' · ', array_filter([$item['city'], $item['contracted'] === 'yes' ? 'Pautado' : ($item['contracted'] === 'no' ? 'Sin contrato' : ''), self::COVERAGE_RESULTS[$item['result']] ?? ''])))];
+        $cards = [];
+        foreach (['pautados_publicaron', 'pautados_sin_publicacion', 'sin_contrato_publicaron', 'sin_contrato_sin_publicacion', 'no_asistieron', 'confirmaron', 'asistieron'] as $key) {
+            $bucket = $coverage['summary'][$key] ?? null;
+            if ($bucket === null) continue;
+            $cards[] = ['key' => $key, 'label' => $bucket['label'], 'items' => array_values(array_filter(array_map(static fn (string $id): ?array => $names[$id] ?? null, $bucket['ids'])))];
+        }
+        return ['public_id' => $event['public_id'], 'name' => $event['name'], 'event_date' => $event['event_date'], 'place' => $event['place'], 'coverage_count' => $event['coverage_count'], 'cards' => $cards];
+    }
+
     /** Media ranked by the followers they declared across all their channels. */
     public function topByFollowers(int $limit = 20): array
     {

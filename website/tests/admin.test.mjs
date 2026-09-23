@@ -259,7 +259,7 @@ test('admin orienta cada formulario desde una navegación lateral accesible', as
   assert.match(html, /<details class="admin-sidebar__navigation" data-admin-navigation open>/);
   assert.match(html, /<summary[^>]*>\s*<span>Menú administrativo<\/span>/);
   assert.match(html, /<nav[^>]+aria-labelledby="admin-forms-title"/);
-  assert.match(html, /id="admin-forms-title"[^>]*>Formularios<\/p>/);
+  assert.match(html, /id="admin-forms-title"[^>]*>Panel y formularios<\/p>/);
   assert.match(html, /<a[^>]+href="\/admin\/voceros\/"[^>]+aria-current="page"[^>]*>[\s\S]*?<strong>Voceros<\/strong>[\s\S]*?<small>Registros y seguimiento<\/small>/);
   assert.match(html, /Los próximos formularios aparecerán aquí cuando estén habilitados\./);
   assert.match(html, /class="admin-sidebar__account"[\s\S]*?data-admin-logout/);

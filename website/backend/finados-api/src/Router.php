@@ -236,6 +236,10 @@ final class Router
                 $this->auth->logout();
                 return $this->json(200, ['ok' => true], $headers);
             }
+            if ($path === '/api/panel' && $method === 'GET') {
+                if ($query !== []) throw new InvalidArgumentException();
+                return $this->json(200, $this->panelSummary(), $headers);
+            }
             if ($path === '/api/emprendedores' || str_starts_with($path, '/api/emprendedores/') || $path === '/api/emprendedor-accounts' || str_starts_with($path, '/api/emprendedor-accounts/') || in_array($path, ['/api/emprendedor-dashboard', '/api/emprendedor-video-schedule'], true)) {
                 return $this->emprendedorAdmin($method, $path, $query, $server, $rawBody, $origin, $refererOrigin, $ip, $user, $headers);
             }
@@ -895,6 +899,37 @@ final class Router
             return $notAllowed();
         }
         return $this->error(404, 'not_found', 'Recurso no encontrado.', $headers);
+    }
+
+    /** Opening panel: Medios, its events and Voceros, each figure carrying the list behind it. */
+    private function panelSummary(): array
+    {
+        $media = $this->media()->panel();
+        $voceros = $this->pdo->prepare("SELECT public_id, full_name, city, status, main_network FROM voceros WHERE status <> 'Eliminado' ORDER BY full_name");
+        $voceros->execute();
+        $rows = $voceros->fetchAll(PDO::FETCH_ASSOC);
+        $entry = static fn (array $row): array => ['public_id' => $row['public_id'], 'name' => $row['full_name'], 'detail' => trim(implode(' · ', array_filter([$row['city'], $row['main_network'], $row['status']])))];
+        $group = static function (callable $test) use ($rows, $entry): array {
+            $items = [];
+            foreach ($rows as $row) if ($test($row)) $items[] = $entry($row);
+            return $items;
+        };
+        $videos = $this->pdo->prepare("SELECT v.public_id, v.full_name, v.city, vv.slot, vv.status, vv.views_count FROM vocero_videos vv JOIN voceros v ON v.id = vv.vocero_id WHERE v.status <> 'Eliminado' AND vv.status = 'submitted' AND TRIM(COALESCE(vv.url, '')) <> '' ORDER BY vv.updated_at DESC, vv.id DESC LIMIT 300");
+        $videos->execute();
+        $videoRows = $videos->fetchAll(PDO::FETCH_ASSOC);
+        $videoEntry = static fn (array $row): array => ['public_id' => $row['public_id'], 'name' => $row['full_name'], 'detail' => trim(implode(' · ', array_filter([$row['city'], 'Video ' . (int) $row['slot'], (int) $row['views_count'] > 0 ? (int) $row['views_count'] . ' views' : ''])))];
+        return [
+            'media' => $media,
+            'voceros' => ['cards' => [
+                ['key' => 'voceros_registrados', 'label' => 'Voceros registrados', 'items' => $group(static fn (): bool => true)],
+                ['key' => 'voceros_aprobados', 'label' => 'Voceros aprobados', 'items' => $group(static fn (array $row): bool => $row['status'] === 'Aprobado')],
+                ['key' => 'voceros_videos', 'label' => 'Videos subidos', 'items' => array_map($videoEntry, $videoRows)],
+                ['key' => 'voceros_con_video', 'label' => 'Voceros con al menos un video', 'items' => array_values(array_map($entry, array_values(array_column(array_filter($rows, static function (array $row) use ($videoRows): bool {
+                    foreach ($videoRows as $video) if ($video['public_id'] === $row['public_id']) return true;
+                    return false;
+                }), null, 'public_id'))))],
+            ]],
+        ];
     }
 
     private function mediaFilters(array $input, bool $pagination = false): array

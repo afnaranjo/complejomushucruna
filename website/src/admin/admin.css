@@ -122,3 +122,14 @@ tr[data-origin="cuenta"] > td { background: rgba(0, 210, 214, .05); }
 .admin-cell-check { text-align: center; }
 .admin-attendance-check { width: 22px; height: 22px; min-height: 22px; margin: 0 auto; accent-color: #1c6854; cursor: pointer; }
 .admin-attendance-check:disabled { accent-color: #94165e; cursor: default; opacity: 1; }
+.admin-panel-section { margin: 1.5rem 0 2rem; border-top: 2px solid #241146; padding-top: .5rem; }
+.admin-panel-drawer { margin-top: .5rem; padding: 1rem; border: 1px solid #c3b6c7; border-radius: .9rem; background: #fffaf2; }
+.admin-panel-list { list-style: none; margin: .5rem 0 0; padding: 0; display: grid; gap: .4rem; max-height: 26rem; overflow: auto; }
+.admin-panel-list li { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: .5rem .25rem; border-bottom: 1px solid #e3dae6; }
+.admin-panel-list strong { display: block; font-size: .9rem; }
+.admin-panel-list small { display: block; color: #665771; font-size: .74rem; }
+.admin-panel-empty { color: #665771; font-size: .85rem; }
+.admin-panel-event { border: 1px solid #d9ced6; border-radius: .9rem; padding: .6rem 1rem; margin-bottom: .6rem; background: #fff; }
+.admin-panel-event > summary { display: flex; gap: .75rem; align-items: baseline; flex-wrap: wrap; }
+.admin-panel-event > summary small { color: #665771; }
+.admin-panel-event__body { padding-top: .75rem; }

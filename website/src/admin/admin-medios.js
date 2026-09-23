@@ -89,7 +89,7 @@ export function createMediaAdminClient(baseUrl = API, fetchImplementation = fetc
   if (![API, MIRROR_API_BASE, LOCAL_API].filter(Boolean).includes(baseUrl)) throw new Error('Origen de API no permitido.');
   let csrf = '';
   async function request(path, options = {}) {
-    if (!/^\/(?:auth\/(?:session|logout)|media-accounts|media-claims|media-events|medios(?:\/export)?)(?:\?[^#]*)?$/.test(path)
+    if (!/^\/(?:auth\/(?:session|logout)|panel|media-accounts|media-claims|media-events|medios(?:\/export)?)(?:\?[^#]*)?$/.test(path)
       && !/^\/medios\/[a-f0-9]{32}(?:\/(?:delete|notes|password-reset|video-views|photo|details|invite|claim\/(?:approve|reject)))?$/.test(path)
       && !/^\/media-events\/[a-f0-9]{32}(?:\/coverage\/[a-f0-9]{32})?$/.test(path)
       && !/^\/media-accounts\/[a-f0-9]{32}\/delete$/.test(path)) throw new Error('Ruta de API no permitida.');
@@ -138,6 +138,7 @@ export function createMediaAdminClient(baseUrl = API, fetchImplementation = fetc
     invite: id => request(`/medios/${id}/invite`, { method: 'POST', body: {} }),
     claims: () => request('/media-claims'),
     resolveClaim: (id, approve) => request(`/medios/${id}/claim/${approve ? 'approve' : 'reject'}`, { method: 'POST', body: {} }),
+    panel: () => request('/panel'),
     events: () => request('/media-events'),
     createEvent: body => request('/media-events', { method: 'POST', body }),
     eventCoverage: id => request(`/media-events/${id}`),

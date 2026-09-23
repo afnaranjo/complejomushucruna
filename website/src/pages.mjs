@@ -29,7 +29,7 @@ import { renderVocerosPage } from './finados/voceros-page.mjs';
 import { renderVoceroPortalPage } from './finados/vocero-portal-page.mjs';
 import { renderVoceroVerificationPage } from './finados/vocero-verification-page.mjs';
 import { renderMediaAccreditationBody } from './media-accreditation/page.mjs';
-import { renderAdminEmprendedoresPage, renderAdminLoginPage, renderAdminMediosEventosPage, renderAdminMediosPage, renderAdminVocerosPage } from './admin/page.mjs';
+import { renderAdminEmprendedoresPage, renderAdminLoginPage, renderAdminMediosEventosPage, renderAdminMediosPage, renderAdminPanelPage, renderAdminVocerosPage } from './admin/page.mjs';
 import { renderMediaLandingBody } from './medios/landing-page.mjs';
 import { renderMediaPortalPage } from './medios/portal-page.mjs';
 import { mediaLegalDocuments, mediaLegalRoutes, renderMediaLegalPage } from './medios/legal-page.mjs';
@@ -338,6 +338,7 @@ const standsAccessPage = {
 
 export const pages = Object.freeze([
   { route: '/admin/', title: 'Iniciar sesión', indexable: false, render: renderAdminLoginPage },
+  { route: '/admin/panel/', title: 'Panel · Administración', indexable: false, render: renderAdminPanelPage },
   { route: '/admin/voceros/', title: 'Voceros · Administración', indexable: false, render: renderAdminVocerosPage },
   { route: '/admin/medios/', title: 'Medios · Administración', indexable: false, render: renderAdminMediosPage },
   { route: '/admin/medios/eventos/', title: 'Medios · Eventos · Administración', indexable: false, render: renderAdminMediosEventosPage },
