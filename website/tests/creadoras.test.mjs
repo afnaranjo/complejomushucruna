@@ -7,7 +7,7 @@ import { buildSite } from '../scripts/build.mjs';
 import {
   createCreadoraAdminClient, creadoraPayload, CREADORA_FIELDS, dayKey, defaultShift, describeLogEntry, fillCreadoraForm, minutesFromOffset,
   contentLabel, contentPayload, CONTENT_KINDS, scriptPayload, scriptSummary, creadoraColor, CREADORA_HUES, dragPreview, duplicatedShift, durationLabel, layoutDay, minutesFromTime, movedShift, pastedShift, rangeLabel, resizedShift,
-  shiftFormValues, shiftGeometry, shiftLabel, shiftPayload, shiftView, viewRange, weekStart,
+  shiftFormValues, shiftMembers, attendanceMark, scriptsMark, shiftGeometry, shiftLabel, shiftPayload, shiftView, viewRange, weekStart,
   DAY_START_HOUR, DAY_END_HOUR, MAX_END_MINUTES, STEP_MINUTES,
 } from '../src/admin/admin-creadoras.js';
 
@@ -190,7 +190,14 @@ test('la sección de creadoras se publica con su calendario, su bitácora y su e
   // Se puede agendar sin arrastrar: hay un botón y un formulario propio del turno.
   assert.match(page, /data-shift-new/);
   assert.match(page, /data-shift-dialog/);
-  for (const name of ['creadora', 'day', 'start', 'end']) assert.match(page, new RegExp(`name="${name}"`), name);
+  for (const name of ['day', 'start', 'end']) assert.match(page, new RegExp(`name="${name}"`), name);
+  // Las creadoras del turno se eligen con casillas: pueden ser varias en la misma caja.
+  assert.match(page, /data-shift-people-list/);
+  assert.doesNotMatch(page, /<select name="creadora"/);
+  // Arriba del calendario van los indicadores de cada una.
+  for (const marker of ['data-creadora-indicators', 'data-creadora-totals', 'Indicadores por creadora']) assert.match(page, new RegExp(marker), marker);
+  // El contenido dice de quién es y el guion, para quién.
+  for (const marker of ['data-content-creadora', 'data-script-creadora']) assert.match(page, new RegExp(marker), marker);
   // Duplicar, copiar y pegar, además de crear.
   for (const marker of ['data-shift-duplicate', 'data-shift-copy', 'data-shift-duration', 'data-clipboard', 'data-clipboard-cancel'])
     assert.match(page, new RegExp(marker), marker);
@@ -198,8 +205,8 @@ test('la sección de creadoras se publica con su calendario, su bitácora y su e
   // El turno guarda lo que pasó: asistencia y contenido con su botón «+».
   for (const marker of ['data-shift-record', 'data-content-add', 'data-content-list', 'data-content-kind', 'data-content-title', 'data-content-url'])
     assert.match(page, new RegExp(marker), marker);
-  assert.match(page, /name="attended" value="yes"/);
-  assert.match(page, /name="attended" value="no"/);
+  // La asistencia se marca por creadora; las filas se dibujan con las integrantes del turno.
+  assert.match(page, /data-shift-attendance/);
   // El cuaderno de apuntes, a la derecha y plegable.
   for (const marker of ['data-shift-notebook', 'data-script-add', 'data-script-list', 'data-script-title', 'data-script-body', 'data-script-url'])
     assert.match(page, new RegExp(marker), marker);
@@ -209,6 +216,8 @@ test('la sección de creadoras se publica con su calendario, su bitácora y su e
   const bundleSource = await readFile(join(output, 'assets/admin/admin-creadoras.js'), 'utf8');
   assert.match(bundleSource, /shift-ghost/, 'la etiqueta de arrastre viaja en el bundle');
   assert.match(bundleSource, /setPointerCapture/);
+  assert.match(bundleSource, /attendance_for/, 'la asistencia viaja con su dueña');
+  assert.match(bundleSource, /Ya está grabado/);
   // La ficha pide los datos de la persona, no solo el nombre.
   for (const name of ['cedula', 'birth_date', 'contact_email', 'followers_count', 'tiktok', 'instagram', 'facebook'])
     assert.match(page, new RegExp(`name="${name}"`), name);
@@ -260,7 +269,7 @@ test('el turno se puede agendar desde su propio formulario, sin arrastrar nada',
   const form = new Map([['creadora', 'a'.repeat(32)], ['day', '2026-10-30'], ['start', '09:00'], ['end', '12:00'],
     ['place', ' Plaza de la Luna '], ['note', '']]);
   assert.deepEqual(shiftPayload(form), {
-    creadora: 'a'.repeat(32), starts_at: '2026-10-30 09:00', ends_at: '2026-10-30 12:00',
+    creadoras: ['a'.repeat(32)], starts_at: '2026-10-30 09:00', ends_at: '2026-10-30 12:00',
     place: 'Plaza de la Luna', note: '',
   });
   // Los navegadores mandan la hora con segundos; el servidor recibe siempre hora y minuto.
@@ -274,8 +283,48 @@ test('el turno se puede agendar desde su propio formulario, sin arrastrar nada',
 
   // Un turno guardado vuelve al formulario tal como está.
   assert.deepEqual(shiftFormValues({ creadora: 'b'.repeat(32), starts_at: '2026-10-30 09:00:00', ends_at: '2026-10-30 12:00:00', place: 'Tarima', note: 'Llega 15 antes' }),
-    { creadora: 'b'.repeat(32), day: '2026-10-30', start: '09:00', end: '12:00', place: 'Tarima', note: 'Llega 15 antes' });
-  assert.deepEqual(shiftFormValues({}), { creadora: '', day: '', start: '', end: '', place: '', note: '' });
+    { creadoras: ['b'.repeat(32)], day: '2026-10-30', start: '09:00', end: '12:00', place: 'Tarima', note: 'Llega 15 antes' });
+  assert.deepEqual(shiftFormValues({}), { creadoras: [], day: '', start: '', end: '', place: '', note: '' });
+});
+
+test('un mismo turno puede reunir a varias creadoras en una sola caja', () => {
+  // Las casillas marcadas del formulario viajan como lista, sin repetir.
+  const form = new FormData();
+  for (const id of ['a'.repeat(32), 'b'.repeat(32), 'a'.repeat(32)]) form.append('creadoras', id);
+  for (const [name, value] of [['day', '2026-10-30'], ['start', '10:00'], ['end', '13:00'], ['place', 'Escenario'], ['note', '']]) form.append(name, value);
+  assert.deepEqual(shiftPayload(form).creadoras, ['a'.repeat(32), 'b'.repeat(32)]);
+  // Sin nadie marcado, el turno no sale.
+  const empty = new FormData();
+  for (const [name, value] of [['day', '2026-10-30'], ['start', '10:00'], ['end', '13:00']]) empty.append(name, value);
+  assert.throws(() => shiftPayload(empty), /al menos una creadora/);
+
+  const shift = { public_id: 'c'.repeat(32), name: 'Ana, Sofía, Lucía', starts_at: '2026-10-30 10:00:00', ends_at: '2026-10-30 13:00:00',
+    creadoras: [{ public_id: 'a'.repeat(32), name: 'Ana', attended: 'yes' }, { public_id: 'b'.repeat(32), name: 'Sofía', attended: null }, { public_id: 'd'.repeat(32), name: 'Lucía', attended: 'yes' }],
+    script_count: 3, recorded_count: 1 };
+  assert.deepEqual(shiftFormValues(shift).creadoras, ['a'.repeat(32), 'b'.repeat(32), 'd'.repeat(32)]);
+  assert.equal(shiftMembers(shift).length, 3);
+  // Un turno de antes, con una sola creadora, se lee igual.
+  assert.deepEqual(shiftMembers({ creadora: 'z', name: 'Zoe', attended: 'no' }), [{ public_id: 'z', name: 'Zoe', attended: 'no' }]);
+
+  // La caja resume la asistencia de todas y los guiones grabados.
+  assert.equal(attendanceMark(shift), '2/3 asistieron');
+  assert.equal(attendanceMark({ creadoras: shift.creadoras.map(member => ({ ...member, attended: 'yes' })) }), '✓ asistieron todas');
+  assert.equal(attendanceMark({ creadoras: shift.creadoras.map(member => ({ ...member, attended: 'no' })) }), '✗ no asistió ninguna');
+  assert.equal(attendanceMark({ creadoras: shift.creadoras.map(member => ({ ...member, attended: null })) }), '');
+  assert.equal(attendanceMark({ creadora: 'z', attended: 'yes' }), '✓ asistió');
+  assert.equal(scriptsMark(shift), '3 guiones · 1 grabado');
+  assert.equal(scriptsMark({ script_count: 1, recorded_count: 0 }), '1 guion');
+  assert.equal(scriptsMark({ script_count: 2, recorded_count: 2 }), '2 guiones · 2 grabados');
+  assert.equal(scriptsMark({}), '');
+
+  // Pegar lleva a todas las integrantes; duplicar deja el hueco listo para elegir a otras.
+  assert.deepEqual(pastedShift(shift, '2026-11-01', 15 * 60).creadoras, ['a'.repeat(32), 'b'.repeat(32), 'd'.repeat(32)]);
+  assert.deepEqual(duplicatedShift(shift).creadoras, []);
+
+  // El contenido de un turno compartido lleva a su dueña; un guion puede ir para todas.
+  assert.equal(contentPayload({ kind: 'video', title: 'Baile', creadora: 'b'.repeat(32) }).creadora, 'b'.repeat(32));
+  assert.equal(scriptPayload({ title: 'Coreografía', creadora: '' }).creadora, '');
+  assert.equal('creadora' in scriptPayload({ title: 'Sin elegir' }), false);
 });
 
 test('copiar, pegar y duplicar conservan la creadora, la duración y el detalle', () => {
@@ -284,18 +333,18 @@ test('copiar, pegar y duplicar conservan la creadora, la duración y el detalle'
 
   // Pegar lo lleva a otro día y otra hora sin perder las tres horas ni el detalle.
   assert.deepEqual(pastedShift(shift, '2026-11-01', 15 * 60), {
-    creadora: 'b'.repeat(32), starts_at: '2026-11-01 15:00', ends_at: '2026-11-01 18:00',
+    creadoras: ['b'.repeat(32)], starts_at: '2026-11-01 15:00', ends_at: '2026-11-01 18:00',
     place: 'Plaza de la Luna', note: 'Llega antes',
   });
 
-  // Duplicar repite el mismo hueco, para reasignarlo después a otra creadora.
+  // Duplicar repite el mismo hueco, para asignarlo después a otras creadoras.
   assert.deepEqual(duplicatedShift(shift), {
-    creadora: 'b'.repeat(32), starts_at: '2026-10-30 09:00', ends_at: '2026-10-30 12:00',
+    creadoras: [], starts_at: '2026-10-30 09:00', ends_at: '2026-10-30 12:00',
     place: 'Plaza de la Luna', note: 'Llega antes',
   });
   // Un turno sin lugar ni nota se copia igual, sin arrastrar «undefined».
   assert.deepEqual(duplicatedShift({ creadora: 'c', starts_at: '2026-10-30 09:00:00', ends_at: '2026-10-30 10:00:00' }),
-    { creadora: 'c', starts_at: '2026-10-30 09:00', ends_at: '2026-10-30 10:00', place: '', note: '' });
+    { creadoras: [], starts_at: '2026-10-30 09:00', ends_at: '2026-10-30 10:00', place: '', note: '' });
 });
 
 test('la duración se dice en palabras y el fin anterior al inicio se explica', () => {

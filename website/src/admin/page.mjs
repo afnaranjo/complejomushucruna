@@ -65,7 +65,7 @@ function layout(page, content, script = '/assets/admin/admin.js?v=20260923-admin
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' blob:; font-src 'self'; connect-src ${connectSources}; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="admin-api-base" content="${api}">
 <link rel="icon" href="/assets/finados/favicon-finados.png">
-<link rel="stylesheet" href="/assets/admin/admin.css?v=20260923-14">
+<link rel="stylesheet" href="/assets/admin/admin.css?v=20260923-15">
 <script type="module" src="${script}"></script>
 </head><body class="admin-page">
 <a class="skip-link" href="#contenido">Ir al contenido</a>
@@ -160,7 +160,7 @@ ${select('province', 'Provincia', ecuadorProvinces)}</div>
 </dialog>${mediaRecordDialog()}</main></div>`, ADMIN_MEDIOS_SCRIPT);
 }
 
-const ADMIN_CREADORAS_SCRIPT = '/assets/admin/admin-creadoras.js?v=20260923-creadoras-7';
+const ADMIN_CREADORAS_SCRIPT = '/assets/admin/admin-creadoras.js?v=20260923-creadoras-8';
 const ADMIN_MEDIOS_SCRIPT = '/assets/admin/admin-medios.js?v=20260923-admin-medios-20';
 const RADIO_GENRE_OPTIONS = ['Noticias e información', 'Musical variada', 'Popular y tropical', 'Folclórica y andina', 'Juvenil y pop', 'Romántica', 'Religiosa', 'Deportiva', 'Comunitaria', 'Otro'];
 const PROVINCE_OPTIONS = ['Azuay', 'Bolívar', 'Cañar', 'Carchi', 'Chimborazo', 'Cotopaxi', 'El Oro', 'Esmeraldas', 'Galápagos', 'Guayas', 'Imbabura', 'Loja', 'Los Ríos', 'Manabí', 'Morona Santiago', 'Napo', 'Orellana', 'Pastaza', 'Pichincha', 'Santa Elena', 'Santo Domingo de los Tsáchilas', 'Sucumbíos', 'Tungurahua', 'Zamora Chinchipe'];
@@ -314,16 +314,21 @@ export function renderAdminCreadorasPage(page) {
 <button type="button" class="button-quiet" data-calendar-today>Hoy</button>
 </div>
 </div>
+<section class="creadora-indicators" aria-labelledby="indicadores-title">
+<div class="records-heading"><div><h2 id="indicadores-title">Indicadores por creadora</h2><p>Turnos, asistencias, guiones, cuántos ya se grabaron y el contenido registrado en toda la campaña.</p></div></div>
+<div class="creadora-totals" data-creadora-totals></div>
+<ul class="creadora-indicators__list" data-creadora-indicators></ul>
+</section>
 <div class="calendar-layout">
 <aside class="calendar-people" aria-labelledby="creadoras-title">
 <h2 id="creadoras-title">Creadoras</h2>
-<p>Toca un nombre para agendarle un turno, o arrástralo al calendario. «Ver ficha» abre sus datos.</p>
+<p>Toca un nombre para agendarle un turno, o arrástralo al calendario. Suéltalo sobre una caja para sumarlo a ese turno. «Ver ficha» abre sus datos.</p>
 <ul data-creadora-list></ul>
 </aside>
 <section class="calendar-board" aria-label="Calendario de turnos">
 <div class="calendar-grid" data-calendar-grid></div>
 <div class="calendar-month" data-calendar-month hidden></div>
-<p class="calendar-help">Arrastra una caja para moverla de día u hora y su borde de abajo para cambiar la hora de fin. Tócala para abrirla, duplicarla o copiarla. Varias creadoras pueden coincidir a la misma hora: se muestran lado a lado.</p>
+<p class="calendar-help">Arrastra una caja para moverla de día u hora y su borde de abajo para cambiar la hora de fin. Tócala para abrirla, duplicarla o copiarla. Un mismo turno puede reunir a varias creadoras en una sola caja.</p>
 <p class="calendar-clipboard" data-clipboard hidden>Copiaste <strong data-clipboard-label></strong>. Toca una hora del calendario para pegarlo. <button type="button" class="button-quiet" data-clipboard-cancel>Cancelar</button></p>
 </section>
 </div>
@@ -333,11 +338,11 @@ export function renderAdminCreadorasPage(page) {
 </section>
 <dialog class="record-dialog record-dialog--shift" data-shift-dialog aria-label="Turno del calendario">
 <form method="dialog" class="record-form">
-<div class="records-heading"><div><h2 data-shift-title>Agregar turno</h2><p>Varias creadoras pueden tener el mismo día y la misma hora.</p></div></div>
+<div class="records-heading"><div><h2 data-shift-title>Agregar turno</h2><p>Marca a todas las creadoras que vienen en este horario: quedan en la misma caja.</p></div></div>
 <div class="shift-columns">
 <div class="shift-columns__main">
 <div class="record-grid">
-<label class="record-grid__wide">Creadora<select name="creadora" data-shift-creadora required></select></label>
+<fieldset class="record-grid__wide shift-people" data-shift-people><legend>Creadoras del turno</legend><div class="shift-people__list" data-shift-people-list></div></fieldset>
 <label>Día<input name="day" type="date" required></label>
 <label>Lugar<input name="place" maxlength="160" placeholder="Opcional"></label>
 <label>Hora de inicio<input name="start" type="time" step="900" required></label>
@@ -347,15 +352,12 @@ export function renderAdminCreadorasPage(page) {
 <p class="calendar-duration" data-shift-duration></p>
 <section class="shift-record" data-shift-record hidden aria-labelledby="registro-title">
 <div class="records-heading"><div><h3 id="registro-title">Lo que pasó en el turno</h3><p>Marca la asistencia y registra el contenido que se hizo.</p></div></div>
-<fieldset class="shift-attendance"><legend>Asistencia</legend>
-<label><input type="radio" name="attended" value="yes"><span>Asistió</span></label>
-<label><input type="radio" name="attended" value="no"><span>No asistió</span></label>
-<label><input type="radio" name="attended" value=""><span>Sin marcar</span></label>
-</fieldset>
+<div class="shift-attendance-list" data-shift-attendance aria-label="Asistencia de cada creadora"></div>
 <div class="shift-content">
 <div class="shift-content__heading"><strong>Contenido realizado</strong><button type="button" class="button-quiet shift-content__add" data-content-add aria-label="Agregar contenido">+</button></div>
 <ol class="shift-content__list" data-content-list></ol>
 <div class="shift-content__form" data-content-form hidden>
+<label data-content-creadora-field hidden>Creadora<select data-content-creadora></select></label>
 <label>Tipo<select data-content-kind><option value="video">Video</option><option value="live">En vivo</option><option value="historia">Historia</option><option value="foto">Fotografía</option><option value="otro">Otro</option></select></label>
 <label>Nombre del contenido<input data-content-title maxlength="200" placeholder="Ej.: Recorrido por la feria"></label>
 <label>Enlace<input data-content-url type="url" maxlength="500" placeholder="https:// (opcional)"></label>
@@ -369,6 +371,7 @@ export function renderAdminCreadorasPage(page) {
 <div class="shift-notebook__list" data-script-list></div>
 <div class="shift-notebook__form" data-script-form hidden>
 <label>Nombre de la idea<input data-script-title maxlength="200" placeholder="Ej.: Recorrido de apertura"></label>
+<label>Para<select data-script-creadora></select></label>
 <label>Guion<textarea data-script-body rows="8" placeholder="Plano 1: …"></textarea></label>
 <label>Referencia<input data-script-url type="url" maxlength="500" placeholder="https:// (opcional)"></label>
 <div class="shift-content__actions"><button type="button" class="button-quiet" data-script-cancel>Cancelar</button><button type="button" class="button-primary" data-script-save>Guardar guion</button></div>

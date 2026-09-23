@@ -47,7 +47,7 @@ $config = creadora_config();
 $pdo = Database::connect($config);
 foreach (['001_initial', '002_sheets_outbox', '003_vocero_accounts', '008_media_accounts', '009_media_videos', '010_media_video_views', '011_media_contact_channels',
     '012_media_consents', '013_media_types_radio', '014_media_channels_photo', '015_media_traffic_light', '016_media_paid', '017_emprendedor_accounts',
-    '018_media_coverage', '019_media_event_attendance', '020_media_event_checkin', '021_creadora_accounts', '022_creadora_identity', '023_creadora_shift_content', '025_creadora_shift_script'] as $migration) {
+    '018_media_coverage', '019_media_event_attendance', '020_media_event_checkin', '021_creadora_accounts', '022_creadora_identity', '023_creadora_shift_content', '025_creadora_shift_script', '026_creadora_shift_members'] as $migration) {
     $pdo->exec(file_get_contents(__DIR__ . '/../migrations/' . $migration . '_sqlite.sql'));
 }
 same('021_creadora_accounts', $pdo->query("SELECT version FROM schema_migrations WHERE version = '021_creadora_accounts'")->fetchColumn());
@@ -318,6 +318,74 @@ same(422, $router->handle('POST', '/api/creadoras/turnos', $json($admin['csrf'])
 // Y desaparece de la lista de trabajo sin perderse del historial.
 same(3, count(creadora_body($router->handle('GET', '/api/creadoras', $origin))['items']));
 same(4, (int) $pdo->query('SELECT COUNT(*) FROM creadoras')->fetchColumn());
+
+// Varias creadoras en la misma caja: un turno compartido, con asistencia y contenido de cada una.
+$c = $admin['csrf'];
+same(422, $router->handle('POST', '/api/creadoras/turnos', $json($c), creadora_json(['creadoras' => [], 'starts_at' => '2026-11-03 10:00', 'ends_at' => '2026-11-03 13:00']))->status);
+same(422, $router->handle('POST', '/api/creadoras/turnos', $json($c), creadora_json(['creadoras' => 'no-es-lista', 'starts_at' => '2026-11-03 10:00', 'ends_at' => '2026-11-03 13:00']))->status);
+$grupo = creadora_body($router->handle('POST', '/api/creadoras/turnos', $json($c), creadora_json([
+    'creadoras' => [$ana['public_id'], $sofia['public_id'], $completa['public_id'], $ana['public_id']],
+    'starts_at' => '2026-11-03 10:00', 'ends_at' => '2026-11-03 13:00', 'place' => 'Escenario'])))['shift'];
+same(3, count($grupo['creadoras']));
+same('Ana Creadora, Sofía Contenido, Lucía Full', $grupo['name']);
+// Ninguna de las tres puede estar en otro turno a la misma hora.
+same(409, $router->handle('POST', '/api/creadoras/turnos', $json($c), creadora_json(['creadora' => $sofia['public_id'], 'starts_at' => '2026-11-03 12:00', 'ends_at' => '2026-11-03 14:00']))->status);
+// En un turno compartido hay que decir de quién es la asistencia.
+same(422, $router->handle('PATCH', '/api/creadoras/turnos/' . $grupo['public_id'], $json($c), creadora_json(['attended' => 'yes']))->status);
+$marcado = creadora_body($router->handle('PATCH', '/api/creadoras/turnos/' . $grupo['public_id'], $json($c), creadora_json(['attended' => 'yes', 'attendance_for' => $ana['public_id']])))['shift'];
+same('yes', $marcado['creadoras'][0]['attended']);
+same(null, $marcado['creadoras'][1]['attended']);
+same('partial', $marcado['attended']);
+same(1, $marcado['attended_count']);
+// El contenido de un turno compartido dice de quién es.
+same(422, $router->handle('POST', '/api/creadoras/turnos/' . $grupo['public_id'] . '/contenido', $json($c), creadora_json(['kind' => 'video', 'title' => 'Sin dueña']))->status);
+$router->handle('POST', '/api/creadoras/turnos/' . $grupo['public_id'] . '/contenido', $json($c), creadora_json(['kind' => 'video', 'title' => 'Baile de apertura', 'creadora' => $sofia['public_id']]));
+$conVideo = creadora_body($router->handle('POST', '/api/creadoras/turnos/' . $grupo['public_id'] . '/contenido', $json($c), creadora_json(['kind' => 'live', 'title' => 'Live del escenario', 'creadora' => $sofia['public_id']])))['shift'];
+same('Sofía Contenido', $conVideo['content'][0]['creadora_name']);
+// Un guion puede ser de una creadora o de todas, y se marca cuando ya está grabado.
+same(422, $router->handle('POST', '/api/creadoras/turnos/' . $grupo['public_id'] . '/guiones', $json($c), creadora_json(['title' => 'Ajena', 'creadora' => str_repeat('f', 32)]))->status);
+$router->handle('POST', '/api/creadoras/turnos/' . $grupo['public_id'] . '/guiones', $json($c), creadora_json(['title' => 'Coreografía grupal', 'body' => 'Las tres juntas.']));
+$guiones = creadora_body($router->handle('POST', '/api/creadoras/turnos/' . $grupo['public_id'] . '/guiones', $json($c), creadora_json(['title' => 'Entrevista a Lucía', 'creadora' => $completa['public_id']])))['shift']['scripts'];
+same('', $guiones[0]['creadora']);
+same('Lucía Full', $guiones[1]['creadora_name']);
+same(false, $guiones[1]['recorded']);
+$grabado = creadora_body($router->handle('PATCH', '/api/creadoras/turnos/' . $grupo['public_id'] . '/guiones/' . $guiones[1]['public_id'], $json($c), creadora_json(['recorded' => true])))['shift']['scripts'][1];
+same(true, $grabado['recorded']);
+same('Entrevista a Lucía', $grabado['title']);
+same(422, $router->handle('PATCH', '/api/creadoras/turnos/' . $grupo['public_id'] . '/guiones/' . $guiones[1]['public_id'], $json($c), creadora_json(['recorded' => 'quizás']))->status);
+// Los indicadores cuentan por creadora; el guion «para todas» cuenta para cada una, pero una sola vez en el total.
+$tablero = creadora_body($router->handle('GET', '/api/creadoras/calendario?from=2026-11-02&to=2026-11-09', $origin));
+$porNombre = array_column($tablero['indicators']['items'], null, 'name');
+same(2, $porNombre['Lucía Full']['scripts']);
+same(1, $porNombre['Lucía Full']['recorded']);
+same(1, $porNombre['Sofía Contenido']['videos']);
+same(2, $porNombre['Sofía Contenido']['content']);
+same(1, $porNombre['Sofía Contenido']['scripts']);
+same(0, $porNombre['Sofía Contenido']['recorded']);
+same(1, $porNombre['Ana Creadora']['attended'] >= 1 ? 1 : 0);
+same(2, (int) $pdo->query("SELECT COUNT(*) FROM creadora_shift_script g JOIN creadora_shifts s ON s.id = g.shift_id WHERE s.public_id = '" . $grupo['public_id'] . "'")->fetchColumn());
+same(true, $tablero['indicators']['totals']['recorded'] >= 1);
+$enCalendario = array_values(array_filter($tablero['shifts'], static fn (array $shift): bool => $shift['public_id'] === $grupo['public_id']))[0];
+same(3, count($enCalendario['creadoras']));
+same(1, $enCalendario['recorded_count']);
+// Sacar a una integrante no borra el turno de las demás y la bitácora lo cuenta.
+$sinLucia = creadora_body($router->handle('PATCH', '/api/creadoras/turnos/' . $grupo['public_id'], $json($c), creadora_json(['creadoras' => [$ana['public_id'], $sofia['public_id']]])));
+same(2, count($sinLucia['shift']['creadoras']));
+same('reassigned', $sinLucia['log'][0]['action']);
+same(true, str_contains($sinLucia['log'][0]['detail'], 'Lucía Full'));
+// Ana conserva su asistencia porque siguió en el turno.
+same('yes', $sinLucia['shift']['creadoras'][0]['attended']);
+// La creadora con cuenta ve también los turnos que comparte.
+same(1, (int) $pdo->query("SELECT COUNT(*) FROM creadora_shift_members m JOIN creadoras c ON c.id = m.creadora_id WHERE c.full_name = 'Sofía Contenido' AND m.shift_id = (SELECT id FROM creadora_shifts WHERE public_id = '" . $grupo['public_id'] . "')")->fetchColumn());
+
+// Retirar a una integrante de un turno compartido deja el turno en pie para las demás.
+$compartido = creadora_body($router->handle('POST', '/api/creadoras/turnos', $json($c), creadora_json([
+    'creadoras' => [$completa['public_id'], $ana['public_id']], 'starts_at' => '2026-11-04 10:00', 'ends_at' => '2026-11-04 12:00'])))['shift'];
+$router->handle('POST', '/api/creadoras/' . $completa['public_id'] . '/retirar', $json($c), '');
+$tras = array_values(array_filter(creadora_body($router->handle('GET', '/api/creadoras/calendario?from=2026-11-02&to=2026-11-09', $origin))['shifts'],
+    static fn (array $shift): bool => $shift['public_id'] === $compartido['public_id']))[0];
+same('Ana Creadora', $tras['name']);
+same($ana['public_id'], $tras['creadora']);
 
 // El resto de secciones sigue intacto.
 same(0, (int) $pdo->query('SELECT COUNT(*) FROM voceros')->fetchColumn());

@@ -73,7 +73,7 @@ export function createCreadoraAdminClient(baseUrl = API, fetchImplementation = f
     createShift: body => request('/creadoras/turnos', { method: 'POST', body }),
     updateShift: (id, body) => request(`/creadoras/turnos/${id}`, { method: 'PATCH', body }),
     removeShift: id => request(`/creadoras/turnos/${id}`, { method: 'POST', body: {} }),
-    markAttendance: (id, attended) => request(`/creadoras/turnos/${id}`, { method: 'PATCH', body: { attended } }),
+    markAttendance: (id, attended, member = '') => request(`/creadoras/turnos/${id}`, { method: 'PATCH', body: member ? { attended, attendance_for: member } : { attended } }),
     addContent: (id, body) => request(`/creadoras/turnos/${id}/contenido`, { method: 'POST', body }),
     removeContent: (id, content) => request(`/creadoras/turnos/${id}/contenido`, { method: 'PATCH', body: { content } }),
     addScript: (id, body) => request(`/creadoras/turnos/${id}/guiones`, { method: 'POST', body }),
@@ -325,8 +325,10 @@ export function shiftPayload(form) {
   const to = minutesFromTime(end);
   if (to <= from) throw new TypeError('La hora de fin debe ser posterior a la de inicio. Revisa si elegiste a. m. en lugar de p. m.');
   if (to - from < STEP_MINUTES) throw new TypeError('El turno debe durar al menos 15 minutos.');
+  const creadoras = shiftPeople(form);
+  if (!creadoras.length) throw new TypeError('Elige al menos una creadora.');
   return {
-    creadora: value('creadora'),
+    creadoras,
     starts_at: `${day} ${start.slice(0, 5)}`,
     ends_at: `${day} ${end.slice(0, 5)}`,
     place: value('place'),
@@ -334,16 +336,35 @@ export function shiftPayload(form) {
   };
 }
 
-/** Una copia del turno en otro día y otra hora, con la misma creadora y la misma duración. */
-export function pastedShift(shift, key, startMinutes) {
-  const moved = movedShift(shift, key, startMinutes);
-  return { creadora: shift.creadora, ...moved, place: shift.place ?? '', note: shift.note ?? '' };
+/**
+ * Quiénes van al turno según el formulario: las casillas marcadas, sin repetir. Acepta también
+ * una sola `creadora`, por si el formulario viene de antes.
+ */
+export function shiftPeople(form) {
+  const raw = typeof form.getAll === 'function' ? form.getAll('creadoras') : [form.get('creadoras') ?? []].flat();
+  const picked = raw.length ? raw : [form.get('creadora') ?? ''];
+  return [...new Set(picked.map(value => String(value ?? '').trim()).filter(Boolean))];
 }
 
-/** Una copia del turno en el mismo hueco: sirve para repetirlo con otra creadora. */
+/** Las integrantes de un turno guardado, en orden; los turnos viejos traen una sola creadora. */
+export function shiftMembers(shift = {}) {
+  if (Array.isArray(shift.creadoras) && shift.creadoras.length) return shift.creadoras;
+  return shift.creadora ? [{ public_id: shift.creadora, name: shift.name ?? '', attended: shift.attended ?? null }] : [];
+}
+
+/** Una copia del turno en otro día y otra hora, con las mismas creadoras y la misma duración. */
+export function pastedShift(shift, key, startMinutes) {
+  const moved = movedShift(shift, key, startMinutes);
+  return { creadoras: shiftMembers(shift).map(member => member.public_id), ...moved, place: shift.place ?? '', note: shift.note ?? '' };
+}
+
+/**
+ * Duplicar deja listo el mismo hueco, con el mismo lugar y la misma nota, para elegir a otras
+ * creadoras: las de este turno ya están ocupadas a esa hora.
+ */
 export function duplicatedShift(shift) {
   return {
-    creadora: shift.creadora,
+    creadoras: [],
     starts_at: String(shift.starts_at ?? '').slice(0, 16),
     ends_at: String(shift.ends_at ?? '').slice(0, 16),
     place: shift.place ?? '',
@@ -374,13 +395,13 @@ export function contentLabel(entry = {}) {
 }
 
 /** Lo que se manda al guardar un guion: el nombre manda, el texto y la referencia son libres. */
-export function scriptPayload({ title, body, referenceUrl }) {
+export function scriptPayload({ title, body, referenceUrl, creadora }) {
   const name = String(title ?? '').trim();
   if (name === '') throw new TypeError('Ponle un nombre a la idea.');
   const link = String(referenceUrl ?? '').trim();
   if (link !== '' && !/^https:\/\/\S+$/.test(link)) throw new TypeError('La referencia debe empezar con https://');
   // El guion conserva sus saltos de línea: solo se recortan los extremos.
-  return { title: name, body: String(body ?? '').trim(), reference_url: link };
+  return { title: name, body: String(body ?? '').trim(), reference_url: link, ...(creadora === undefined ? {} : { creadora: String(creadora ?? '').trim() }) };
 }
 
 /** Un resumen corto del guion, para leerlo sin desplegarlo. */
@@ -391,19 +412,41 @@ export function scriptSummary(script = {}, limit = 90) {
 }
 
 /** Lo que se manda al registrar contenido, con el nombre como único dato obligatorio. */
-export function contentPayload({ kind, title, url }) {
+export function contentPayload({ kind, title, url, creadora = '' }) {
   const clean = value => String(value ?? '').trim();
   if (!Object.hasOwn(CONTENT_KINDS, clean(kind))) throw new TypeError('Elige el tipo de contenido.');
   if (clean(title) === '') throw new TypeError('Escribe el nombre del contenido.');
   const link = clean(url);
   if (link !== '' && !/^https:\/\/\S+$/.test(link)) throw new TypeError('El enlace debe empezar con https://');
-  return { kind: clean(kind), title: clean(title), url: link };
+  return { kind: clean(kind), title: clean(title), url: link, ...(clean(creadora) ? { creadora: clean(creadora) } : {}) };
+}
+
+/** Cómo se lee la asistencia del turno en la caja: «✓ asistieron», «2/3 asistieron», «✗ no asistió». */
+export function attendanceMark(shift = {}) {
+  const members = shiftMembers(shift);
+  const total = members.length;
+  const came = members.filter(member => member.attended === 'yes').length;
+  const marked = members.filter(member => member.attended === 'yes' || member.attended === 'no').length;
+  if (!marked) return '';
+  if (total <= 1) return came ? '✓ asistió' : '✗ no asistió';
+  if (came === total) return '✓ asistieron todas';
+  if (!came && marked === total) return '✗ no asistió ninguna';
+  return `${came}/${total} asistieron`;
+}
+
+/** Los guiones del turno y cuántos ya se grabaron: «3 guiones · 1 grabado». */
+export function scriptsMark(shift = {}) {
+  const total = Number(shift.script_count ?? 0);
+  if (!total) return '';
+  const recorded = Number(shift.recorded_count ?? 0);
+  const head = `${total} ${total === 1 ? 'guion' : 'guiones'}`;
+  return recorded ? `${head} · ${recorded} ${recorded === 1 ? 'grabado' : 'grabados'}` : head;
 }
 
 /** Los valores del formulario para un turno ya guardado. */
 export function shiftFormValues(shift = {}) {
   return {
-    creadora: shift.creadora ?? '',
+    creadoras: shiftMembers(shift).map(member => member.public_id),
     day: String(shift.starts_at ?? '').slice(0, 10),
     start: String(shift.starts_at ?? '').slice(11, 16),
     end: String(shift.ends_at ?? '').slice(11, 16),
@@ -462,12 +505,57 @@ export async function initializeAdminCreadoras() {
   const feedback = (message, kind = '') => { status.textContent = message; status.dataset.error = String(kind === 'error'); status.dataset.success = String(kind === 'success'); };
   const fail = error => { if (error.status === 401) { location.replace('/admin/'); return; } feedback(error.message, 'error'); };
 
-  const state = { view: 'week', anchor: dayKey(new Date()), shifts: [], creadoras: [], log: [], selected: '', clipboard: null };
+  const state = { view: 'week', anchor: dayKey(new Date()), shifts: [], creadoras: [], log: [], indicators: { items: [], totals: {} }, selected: '', clipboard: null };
   const grid = query('[data-calendar-grid]');
   const monthGrid = query('[data-calendar-month]');
   const list = query('[data-creadora-list]');
   const logList = query('[data-calendar-log]');
   const label = query('[data-calendar-label]');
+  const indicatorsBox = query('[data-creadora-indicators]');
+  const totalsBox = query('[data-creadora-totals]');
+
+  /**
+   * Arriba del calendario: cuánto lleva cada creadora en toda la campaña. Los guiones grabados
+   * se leen contra los guiones que tiene, para ver de un vistazo lo que falta.
+   */
+  function renderIndicators() {
+    if (!indicatorsBox) return;
+    const totals = state.indicators.totals ?? {};
+    if (totalsBox) {
+      totalsBox.replaceChildren();
+      for (const [key, text] of [['shifts', 'Turnos'], ['attended', 'Asistencias'], ['scripts', 'Guiones'], ['recorded', 'Grabados'], ['videos', 'Videos'], ['content', 'Contenido total']]) {
+        const card = node('div', undefined, 'creadora-total');
+        card.dataset.kind = key;
+        card.append(node('strong', String(totals[key] ?? 0)), node('span', text));
+        totalsBox.append(card);
+      }
+    }
+    indicatorsBox.replaceChildren();
+    const items = state.indicators.items ?? [];
+    if (!items.length) { indicatorsBox.append(node('li', 'Todavía no hay creadoras en la lista.', 'admin-panel-empty')); return; }
+    for (const entry of items) {
+      const color = creadoraColor(entry.creadora);
+      const item = node('li', undefined, 'creadora-indicator');
+      item.style.setProperty('--shift-edge', color.edge);
+      item.style.setProperty('--shift-soft', color.soft);
+      item.append(node('strong', entry.name));
+      const stats = node('dl');
+      const pending = Math.max(0, entry.scripts - entry.recorded);
+      for (const [value, text, flag] of [[entry.shifts, 'Turnos'], [entry.attended, 'Asistió'], [entry.scripts, 'Guiones'],
+        [entry.recorded, 'Grabados', pending ? `${pending} por grabar` : ''], [entry.videos, 'Videos'], [entry.content, 'Contenido']]) {
+        const cell = node('div');
+        cell.append(node('dt', text), node('dd', String(value ?? 0)));
+        if (flag) { cell.dataset.pending = 'true'; cell.title = flag; }
+        stats.append(cell);
+      }
+      const bar = node('span', undefined, 'creadora-indicator__bar');
+      const share = entry.scripts ? Math.round((entry.recorded / entry.scripts) * 100) : 0;
+      bar.style.setProperty('--progress', `${share}%`);
+      bar.title = entry.scripts ? `${share}% de sus guiones ya está grabado` : 'Sin guiones todavía';
+      item.append(stats, bar);
+      indicatorsBox.append(item);
+    }
+  }
 
   function renderCreadoras() {
     list.replaceChildren();
@@ -542,21 +630,52 @@ export async function initializeAdminCreadoras() {
   }
 
   function shiftBox(shift, key, { absolute, placement = null }) {
-    const color = creadoraColor(shift.creadora);
+    const members = shiftMembers(shift);
+    const color = creadoraColor(members[0]?.public_id ?? shift.creadora);
     const box = node('article', undefined, 'shift-box');
     box.dataset.shift = shift.public_id;
     box.tabIndex = 0;
     box.style.setProperty('--shift-soft', color.soft);
     box.style.setProperty('--shift-edge', color.edge);
     box.style.setProperty('--shift-ink', color.ink);
+    if (members.length > 1) {
+      // Un turno compartido: un punto del color de cada creadora y la cantidad a la vista.
+      box.dataset.group = 'true';
+      const dots = node('span', undefined, 'shift-box__people');
+      for (const member of members) {
+        const dot = node('i');
+        dot.style.background = creadoraColor(member.public_id).edge;
+        dot.title = member.name;
+        dots.append(dot);
+      }
+      dots.append(node('b', `${members.length} creadoras`));
+      box.append(dots);
+    }
     box.append(node('strong', shift.name), node('span', shiftLabel(shift)));
     if (shift.place) box.append(node('small', shift.place));
-    const marks = [];
-    if (shift.attended === 'yes') marks.push('✓ asistió');
-    else if (shift.attended === 'no') marks.push('✗ no asistió');
+    const marks = [attendanceMark(shift)];
     if (shift.content_count) marks.push(`${shift.content_count} ${shift.content_count === 1 ? 'pieza' : 'piezas'}`);
-    if (shift.script_count) marks.push(`${shift.script_count} ${shift.script_count === 1 ? 'guion' : 'guiones'}`);
-    if (marks.length) box.append(node('small', marks.join(' · '), 'shift-box__marks'));
+    marks.push(scriptsMark(shift));
+    const visible = marks.filter(Boolean);
+    if (visible.length) box.append(node('small', visible.join(' · '), 'shift-box__marks'));
+    // Soltar un nombre de la lista sobre la caja la suma a ese mismo turno.
+    box.addEventListener('dragover', event => {
+      if (!Array.from(event.dataTransfer?.types ?? []).includes('text/plain')) return;
+      event.preventDefault();
+      event.stopPropagation();
+      box.dataset.dropping = 'true';
+    });
+    box.addEventListener('dragleave', () => { delete box.dataset.dropping; });
+    box.addEventListener('drop', async event => {
+      const payload = String(event.dataTransfer?.getData('text/plain') ?? '');
+      delete box.dataset.dropping;
+      if (!payload.startsWith('creadora:')) return;
+      event.preventDefault();
+      event.stopPropagation();
+      const joining = payload.slice(9);
+      if (members.some(member => member.public_id === joining)) { feedback('Esa creadora ya está en este turno.', 'error'); return; }
+      await save(() => client.updateShift(shift.public_id, { creadoras: [...members.map(member => member.public_id), joining] }));
+    });
     if (absolute) {
       const geometry = placement ?? shiftGeometry(shift, key);
       if (geometry === null) return null;
@@ -651,7 +770,7 @@ export async function initializeAdminCreadoras() {
       box.addEventListener('click', event => { event.stopPropagation(); editShift(shift); });
     }
     box.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); editShift(shift); } });
-    box.title = `${shift.name} · ${shiftLabel(shift)}${shift.place ? ` · ${shift.place}` : ''}\nArrastra para mover, o el borde de abajo para cambiar la hora de fin.`;
+    box.title = `${shift.name} · ${shiftLabel(shift)}${shift.place ? ` · ${shift.place}` : ''}\nArrastra para mover, o el borde de abajo para cambiar la hora de fin. Suelta aquí un nombre de la lista para sumarlo al turno.`;
     return box;
   }
 
@@ -746,6 +865,8 @@ export async function initializeAdminCreadoras() {
       state.shifts = data.shifts ?? [];
       state.creadoras = data.creadoras ?? [];
       state.log = data.log ?? [];
+      state.indicators = data.indicators ?? { items: [], totals: {} };
+      renderIndicators();
       renderCreadoras();
       renderGrid();
       renderLog();
@@ -782,7 +903,45 @@ export async function initializeAdminCreadoras() {
   const contentForm = shiftDialog?.querySelector('[data-content-form]');
   const clipboardBar = query('[data-clipboard]');
   const clipboardLabel = query('[data-clipboard-label]');
+  const peopleList = shiftDialog?.querySelector('[data-shift-people-list]');
+  const attendanceList = shiftDialog?.querySelector('[data-shift-attendance]');
   let editingShift = '';
+  let openMembers = [];
+
+  /** Las casillas de quiénes van al turno: se pueden marcar varias. */
+  function renderPeople(selected = []) {
+    if (!peopleList) return;
+    peopleList.replaceChildren();
+    const chosen = new Set(selected);
+    // Las del turno que hoy están retiradas siguen visibles para no perderlas al guardar.
+    const known = new Set(state.creadoras.map(person => person.public_id));
+    const people = [...state.creadoras, ...openMembers.filter(member => !known.has(member.public_id)).map(member => ({ public_id: member.public_id, full_name: member.name }))];
+    for (const person of people) {
+      const option = node('label', undefined, 'shift-person');
+      option.style.setProperty('--shift-edge', creadoraColor(person.public_id).edge);
+      const box = document.createElement('input');
+      box.type = 'checkbox';
+      box.name = 'creadoras';
+      box.value = person.public_id;
+      box.checked = chosen.has(person.public_id);
+      option.append(box, node('span', person.full_name));
+      peopleList.append(option);
+    }
+  }
+
+  /** Un selector con las integrantes del turno; «para todas» solo en los guiones. */
+  function fillMemberSelect(select, members, { everyone = false, value = '' } = {}) {
+    if (!select) return;
+    select.replaceChildren();
+    if (everyone) { const all = node('option', members.length > 1 ? 'Para todas las del turno' : 'Para la creadora del turno'); all.value = ''; select.append(all); }
+    for (const member of members) {
+      const option = node('option', member.name);
+      option.value = member.public_id;
+      select.append(option);
+    }
+    select.value = value;
+    if (select.value !== value) select.selectedIndex = 0;
+  }
 
   function showDuration() {
     if (!durationLine || !shiftForm) return;
@@ -799,7 +958,11 @@ export async function initializeAdminCreadoras() {
     record.hidden = !shift;
     if (contentForm) contentForm.hidden = true;
     if (!shift) return;
-    for (const radio of shiftForm.querySelectorAll('[name="attended"]')) radio.checked = radio.value === (shift.attended ?? '');
+    renderAttendance(shift);
+    const members = shiftMembers(shift);
+    const ownerField = contentForm?.querySelector('[data-content-creadora-field]');
+    if (ownerField) ownerField.hidden = members.length < 2;
+    fillMemberSelect(contentForm?.querySelector('[data-content-creadora]'), members, { value: members[0]?.public_id ?? '' });
     contentList.replaceChildren();
     const items = shift.content ?? [];
     if (!items.length) {
@@ -810,6 +973,7 @@ export async function initializeAdminCreadoras() {
       const item = node('li');
       const body = node('span');
       body.append(node('strong', contentLabel(entry)));
+      if (entry.creadora_name && members.length > 1) body.append(node('small', entry.creadora_name, 'shift-owner'));
       if (entry.url) {
         const link = node('a', 'Ver publicación');
         link.href = entry.url;
@@ -828,6 +992,32 @@ export async function initializeAdminCreadoras() {
     }
   }
 
+  /** Una fila por creadora: cada una marca su asistencia, y se guarda al tocarla. */
+  function renderAttendance(shift) {
+    if (!attendanceList) return;
+    attendanceList.replaceChildren();
+    for (const member of shiftMembers(shift)) {
+      const row = node('fieldset', undefined, 'shift-attendance');
+      row.style.setProperty('--shift-edge', creadoraColor(member.public_id).edge);
+      row.append(node('legend', member.name));
+      for (const [value, text] of [['yes', 'Asistió'], ['no', 'No asistió'], ['', 'Sin marcar']]) {
+        const option = node('label');
+        const radio = document.createElement('input');
+        radio.type = 'radio';
+        radio.name = `attended-${member.public_id}`;
+        radio.value = value;
+        radio.checked = value === (member.attended ?? '');
+        radio.addEventListener('change', async () => {
+          if (!editingShift) return;
+          await withShift(() => client.markAttendance(editingShift, value, member.public_id));
+        });
+        option.append(radio, node('span', text));
+        row.append(option);
+      }
+      attendanceList.append(row);
+    }
+  }
+
   /** El cuaderno: cada idea es un bloque plegable, porque el guion puede ser largo. */
   function renderNotebook(shift) {
     if (!notebook) return;
@@ -835,6 +1025,7 @@ export async function initializeAdminCreadoras() {
     if (scriptForm) scriptForm.hidden = true;
     editingScript = '';
     if (!shift) return;
+    const members = shiftMembers(shift);
     scriptList.replaceChildren();
     const scripts = shift.scripts ?? [];
     if (!scripts.length) {
@@ -843,8 +1034,14 @@ export async function initializeAdminCreadoras() {
     }
     for (const script of scripts) {
       const block = node('details', undefined, 'shift-script');
+      if (script.recorded) block.dataset.recorded = 'true';
       const summary = node('summary');
-      summary.append(node('strong', script.title), node('small', scriptSummary(script)));
+      const head = node('span', undefined, 'shift-script__head');
+      head.append(node('strong', script.title));
+      if (script.recorded) head.append(node('em', '✓ Grabado', 'shift-script__badge'));
+      summary.append(head);
+      const owner = script.creadora_name || (members.length > 1 ? 'Para todas' : '');
+      summary.append(node('small', owner ? `${owner} · ${scriptSummary(script)}` : scriptSummary(script)));
       block.append(summary);
       const body = node('div', undefined, 'shift-script__body');
       if (script.body) body.append(node('p', script.body));
@@ -856,6 +1053,14 @@ export async function initializeAdminCreadoras() {
         body.append(link);
       }
       const actions = node('div', undefined, 'shift-script__actions');
+      // Marcar «grabado» se guarda al instante, como la asistencia.
+      const recorded = node('label', undefined, 'shift-script__recorded');
+      const check = document.createElement('input');
+      check.type = 'checkbox';
+      check.checked = Boolean(script.recorded);
+      check.addEventListener('change', async () => { await withShift(() => client.updateScript(editingShift, script.public_id, { recorded: check.checked })); });
+      recorded.append(check, node('span', 'Ya está grabado'));
+      actions.append(recorded);
       const edit = node('button', 'Editar', 'button-quiet');
       edit.type = 'button';
       edit.addEventListener('click', () => openScript(script));
@@ -879,6 +1084,7 @@ export async function initializeAdminCreadoras() {
     scriptForm.querySelector('[data-script-title]').value = script?.title ?? '';
     scriptForm.querySelector('[data-script-body]').value = script?.body ?? '';
     scriptForm.querySelector('[data-script-url]').value = script?.reference_url ?? '';
+    fillMemberSelect(scriptForm.querySelector('[data-script-creadora]'), openMembers, { everyone: true, value: script?.creadora ?? '' });
     scriptForm.querySelector('[data-script-title]').focus();
   }
 
@@ -887,7 +1093,7 @@ export async function initializeAdminCreadoras() {
     try {
       const data = await action();
       if (Array.isArray(data.log)) state.log = data.log;
-      if (data.shift) { renderRecord(data.shift); renderNotebook(data.shift); }
+      if (data.shift) { openMembers = shiftMembers(data.shift); renderRecord(data.shift); renderNotebook(data.shift); }
       await load(false);
       if (shiftFeedback) { shiftFeedback.textContent = ''; shiftFeedback.dataset.error = 'false'; }
     } catch (error) {
@@ -904,21 +1110,17 @@ export async function initializeAdminCreadoras() {
 
   query('[data-clipboard-cancel]')?.addEventListener('click', () => { state.clipboard = null; showClipboard(); feedback(''); });
 
-  function openShiftDialog(shift, { creadora = '', day = state.anchor, start = '09:00', end = '12:00' } = {}) {
+  function openShiftDialog(shift, { creadora = '', creadoras = null, day = state.anchor, start = '09:00', end = '12:00', place = '', note = '' } = {}) {
     if (!shiftForm) return;
     editingShift = shift?.public_id ?? '';
-    if (shiftTitle) shiftTitle.textContent = shift ? `Turno de ${shift.name}` : 'Agregar turno';
+    openMembers = shift ? shiftMembers(shift) : [];
+    if (shiftTitle) shiftTitle.textContent = shift ? (openMembers.length > 1 ? `Turno compartido · ${openMembers.length} creadoras` : `Turno de ${shift.name}`) : 'Agregar turno';
     if (shiftFeedback) { shiftFeedback.textContent = ''; shiftFeedback.dataset.error = 'false'; }
     if (removeButton) removeButton.hidden = !shift;
-    const options = shiftForm.elements.creadora;
-    options.replaceChildren();
-    for (const person of state.creadoras) {
-      const option = node('option', person.full_name);
-      option.value = person.public_id;
-      options.append(option);
-    }
-    const values = shift ? shiftFormValues(shift) : { creadora: creadora || state.selected || state.creadoras[0]?.public_id || '', day, start, end, place: '', note: '' };
-    for (const [name, value] of Object.entries(values)) if (shiftForm.elements[name]) shiftForm.elements[name].value = value;
+    const picked = creadoras ?? [creadora || state.selected].filter(Boolean);
+    const values = shift ? shiftFormValues(shift) : { creadoras: picked, day, start, end, place, note };
+    renderPeople(values.creadoras);
+    for (const [name, value] of Object.entries(values)) if (name !== 'creadoras' && shiftForm.elements[name]) shiftForm.elements[name].value = value;
     if (duplicateButton) duplicateButton.hidden = !shift;
     if (copyButton) copyButton.hidden = !shift;
     renderRecord(shift);
@@ -947,20 +1149,13 @@ export async function initializeAdminCreadoras() {
       await load(false);
       feedback(editingShift ? 'Turno actualizado.' : 'Turno agregado al calendario.', 'success');
     } catch (error) {
-      if (shiftFeedback) { shiftFeedback.textContent = error.status === 409 ? 'Esa creadora ya tiene un turno a esa hora.' : error.message; shiftFeedback.dataset.error = 'true'; }
+      if (shiftFeedback) { shiftFeedback.textContent = error.status === 409 ? 'Alguna de las creadoras elegidas ya tiene otro turno a esa hora.' : error.message; shiftFeedback.dataset.error = 'true'; }
       if (error.status === 401) fail(error);
     }
   });
 
   for (const name of ['start', 'end']) shiftForm?.elements[name]?.addEventListener('input', showDuration);
 
-  // Marcar la asistencia guarda al instante, sin tocar «Guardar turno».
-  for (const radio of shiftForm?.querySelectorAll('[name="attended"]') ?? []) {
-    radio.addEventListener('change', async () => {
-      if (!editingShift) return;
-      await withShift(() => client.markAttendance(editingShift, radio.value));
-    });
-  }
 
   // El «+» abre el formulario del contenido; se pueden registrar varios en el mismo turno.
   shiftDialog?.querySelector('[data-script-add]')?.addEventListener('click', () => openScript(null));
@@ -973,6 +1168,7 @@ export async function initializeAdminCreadoras() {
         title: scriptForm.querySelector('[data-script-title]').value,
         body: scriptForm.querySelector('[data-script-body]').value,
         referenceUrl: scriptForm.querySelector('[data-script-url]').value,
+        creadora: scriptForm.querySelector('[data-script-creadora]')?.value ?? '',
       });
     } catch (error) { if (shiftFeedback) { shiftFeedback.textContent = error.message; shiftFeedback.dataset.error = 'true'; } return; }
     const script = editingScript;
@@ -995,6 +1191,7 @@ export async function initializeAdminCreadoras() {
         kind: contentForm.querySelector('[data-content-kind]').value,
         title: contentForm.querySelector('[data-content-title]').value,
         url: contentForm.querySelector('[data-content-url]').value,
+        creadora: openMembers.length > 1 ? contentForm.querySelector('[data-content-creadora]')?.value ?? '' : '',
       });
     } catch (error) { if (shiftFeedback) { shiftFeedback.textContent = error.message; shiftFeedback.dataset.error = 'true'; } return; }
     await withShift(() => client.addContent(editingShift, payload));
@@ -1002,19 +1199,13 @@ export async function initializeAdminCreadoras() {
   });
 
   // Duplicar deja el mismo hueco listo para otra creadora: se guarda como un turno nuevo.
-  duplicateButton?.addEventListener('click', async () => {
+  duplicateButton?.addEventListener('click', () => {
     const shift = state.shifts.find(item => item.public_id === editingShift);
     if (!shift) return;
-    try {
-      const data = await client.createShift(duplicatedShift(shift));
-      if (Array.isArray(data.log)) state.log = data.log;
-      editingShift = data.shift?.public_id ?? '';
-      shiftDialog.close();
-      await load(false);
-      feedback('Turno duplicado. Ábrelo para cambiarle la creadora o la hora.', 'success');
-    } catch (error) {
-      if (shiftFeedback) { shiftFeedback.textContent = error.status === 409 ? 'Esa creadora ya tiene un turno a esa hora: cambia la creadora o la hora antes de duplicar.' : error.message; shiftFeedback.dataset.error = 'true'; }
-    }
+    const copy = duplicatedShift(shift);
+    shiftDialog.close();
+    openShiftDialog(null, { creadoras: copy.creadoras, day: copy.starts_at.slice(0, 10), start: copy.starts_at.slice(11, 16), end: copy.ends_at.slice(11, 16), place: copy.place, note: copy.note });
+    if (shiftFeedback) { shiftFeedback.textContent = 'Mismo día, hora y lugar: elige a las creadoras y guarda.'; shiftFeedback.dataset.error = 'false'; }
   });
 
   // Copiar guarda el turno para pegarlo donde se toque después.

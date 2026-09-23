@@ -38,6 +38,8 @@ final class CreadoraRepository
     public const CONTENT_KINDS = ['video' => 'Video', 'live' => 'En vivo', 'historia' => 'Historia', 'foto' => 'Fotografía', 'otro' => 'Otro'];
     public const ATTENDANCE = ['yes' => 'Asistió', 'no' => 'No asistió'];
     public const MAX_CONTENT = 50;
+    /** Varias creadoras pueden compartir la misma caja del calendario. */
+    public const MAX_MEMBERS = 12;
     /** Un turno puede llevar varios guiones; cada uno cabe holgado para una idea larga. */
     public const MAX_SCRIPTS = 30;
     private const MAX_SCRIPT_BODY = 20000;
@@ -76,7 +78,7 @@ final class CreadoraRepository
         if (($filters['search'] ?? '') !== '') { $where[] = 'LOWER(c.full_name) LIKE ?'; $values[] = '%' . mb_strtolower(trim((string) $filters['search'])) . '%'; }
         if (($filters['origin'] ?? '') !== '') { $where[] = 'c.origin = ?'; $values[] = $filters['origin']; }
         if (empty($filters['include_retired'])) $where[] = "c.status <> 'Retirada'";
-        $sql = 'SELECT c.*, (SELECT COUNT(*) FROM creadora_shifts s WHERE s.creadora_id = c.id AND s.canceled_at IS NULL) AS shift_count'
+        $sql = 'SELECT c.*, (SELECT COUNT(*) FROM creadora_shift_members m JOIN creadora_shifts s ON s.id = m.shift_id WHERE m.creadora_id = c.id AND s.canceled_at IS NULL) AS shift_count'
             . ' FROM creadoras c' . ($where ? ' WHERE ' . implode(' AND ', $where) : '') . ' ORDER BY c.full_name';
         $statement = $this->pdo->prepare($sql);
         $statement->execute($values);
@@ -126,11 +128,20 @@ final class CreadoraRepository
         $row = $this->rowByPublicId($publicId);
         $now = gmdate('Y-m-d H:i:s');
         $this->pdo->prepare("UPDATE creadoras SET status = 'Retirada', updated_at = ? WHERE id = ?")->execute([$now, $row['id']]);
-        $pending = $this->pdo->prepare('SELECT * FROM creadora_shifts WHERE creadora_id = ? AND canceled_at IS NULL AND starts_at >= ?');
+        $pending = $this->pdo->prepare('SELECT s.* FROM creadora_shifts s JOIN creadora_shift_members m ON m.shift_id = s.id'
+            . ' WHERE m.creadora_id = ? AND s.canceled_at IS NULL AND s.starts_at >= ?');
         $pending->execute([$row['id'], $this->localNow()]);
         foreach ($pending->fetchAll(PDO::FETCH_ASSOC) as $shift) {
-            $this->pdo->prepare('UPDATE creadora_shifts SET canceled_at = ?, updated_at = ? WHERE id = ?')->execute([$now, $now, $shift['id']]);
-            $this->log('canceled', $shift, $row, $actorName, ['detail' => 'La creadora fue retirada.']);
+            $others = array_values(array_filter($this->members((int) $shift['id']), static fn (array $member): bool => (int) $member['creadora_id'] !== (int) $row['id']));
+            if ($others === []) {
+                $this->pdo->prepare('UPDATE creadora_shifts SET canceled_at = ?, updated_at = ? WHERE id = ?')->execute([$now, $now, $shift['id']]);
+                $this->log('canceled', $shift, $row, $actorName, ['detail' => 'La creadora fue retirada.']);
+                continue;
+            }
+            // Si el turno era compartido, sigue en pie para las demás.
+            $this->pdo->prepare('DELETE FROM creadora_shift_members WHERE shift_id = ? AND creadora_id = ?')->execute([$shift['id'], $row['id']]);
+            $this->pdo->prepare('UPDATE creadora_shifts SET creadora_id = ?, updated_at = ? WHERE id = ?')->execute([$others[0]['creadora_id'], $now, $shift['id']]);
+            $this->log('reassigned', $shift, $row, $actorName, ['detail' => 'La creadora fue retirada. Siguen: ' . implode(', ', array_column($others, 'full_name')) . '.']);
         }
         if ($row['account_id'] !== null) {
             $this->pdo->prepare('UPDATE creadora_accounts SET active = 0, updated_at = ? WHERE id = ?')->execute([$now, $row['account_id']]);
@@ -195,91 +206,136 @@ final class CreadoraRepository
     // --- Calendario --------------------------------------------------------------------------
 
     /**
-     * Los turnos del rango pedido, más la lista de creadoras disponibles y la bitácora reciente:
-     * la pantalla del calendario se dibuja entera con una sola respuesta.
+     * Los turnos del rango pedido, más la lista de creadoras, los indicadores de cada una y la
+     * bitácora reciente: la pantalla del calendario se dibuja entera con una sola respuesta.
      */
     public function calendar(string $from, string $to, int $logLimit = 50): array
     {
         [$start, $end] = $this->range($from, $to);
-        $statement = $this->pdo->prepare('SELECT s.*, c.public_id AS creadora_public_id, c.full_name,'
+        $statement = $this->pdo->prepare('SELECT s.*,'
             . ' (SELECT COUNT(*) FROM creadora_shift_content k WHERE k.shift_id = s.id) AS content_count,'
-            . ' (SELECT COUNT(*) FROM creadora_shift_script g WHERE g.shift_id = s.id) AS script_count FROM creadora_shifts s'
-            . ' JOIN creadoras c ON c.id = s.creadora_id WHERE s.canceled_at IS NULL AND s.starts_at < ? AND s.ends_at > ? ORDER BY s.starts_at, c.full_name');
+            . ' (SELECT COUNT(*) FROM creadora_shift_script g WHERE g.shift_id = s.id) AS script_count,'
+            . ' (SELECT COUNT(*) FROM creadora_shift_script g WHERE g.shift_id = s.id AND g.recorded_at IS NOT NULL) AS recorded_count'
+            . ' FROM creadora_shifts s WHERE s.canceled_at IS NULL AND s.starts_at < ? AND s.ends_at > ? ORDER BY s.starts_at, s.id');
         $statement->execute([$end, $start]);
+        $rows = $statement->fetchAll(PDO::FETCH_ASSOC);
+        $members = $this->membersFor(array_map(static fn (array $row): int => (int) $row['id'], $rows));
         return [
             'from' => $start,
             'to' => $end,
-            'shifts' => array_map(static fn (array $row): array => [
-                'public_id' => $row['public_id'],
-                'creadora' => $row['creadora_public_id'],
-                'name' => $row['full_name'],
-                'starts_at' => $row['starts_at'],
-                'ends_at' => $row['ends_at'],
-                'place' => $row['place'],
-                'note' => $row['note'],
-                'attended' => $row['attended'] ?? null,
+            'shifts' => array_map(fn (array $row): array => $this->projectShift($row, $members[(int) $row['id']] ?? []) + [
                 'content_count' => (int) ($row['content_count'] ?? 0),
                 'script_count' => (int) ($row['script_count'] ?? 0),
-            ], $statement->fetchAll(PDO::FETCH_ASSOC)),
+                'recorded_count' => (int) ($row['recorded_count'] ?? 0),
+            ], $rows),
             'creadoras' => $this->list()['items'],
+            'indicators' => $this->indicators(),
             'log' => $this->log_(min(max($logLimit, 1), 200)),
         ];
     }
 
+    /**
+     * Lo que lleva cada creadora en toda la campaña: turnos, asistencias, guiones, guiones ya
+     * grabados y contenido registrado. Un guion «para todas» cuenta para cada integrante del turno.
+     */
+    public function indicators(): array
+    {
+        $rows = $this->pdo->query("SELECT c.public_id, c.full_name,"
+            . " (SELECT COUNT(*) FROM creadora_shift_members m JOIN creadora_shifts s ON s.id = m.shift_id WHERE m.creadora_id = c.id AND s.canceled_at IS NULL) AS shifts,"
+            . " (SELECT COUNT(*) FROM creadora_shift_members m JOIN creadora_shifts s ON s.id = m.shift_id WHERE m.creadora_id = c.id AND s.canceled_at IS NULL AND m.attended = 'yes') AS attended,"
+            . " (SELECT COUNT(*) FROM creadora_shift_script g JOIN creadora_shifts s ON s.id = g.shift_id WHERE s.canceled_at IS NULL AND (g.creadora_id = c.id"
+            . "   OR (g.creadora_id IS NULL AND EXISTS (SELECT 1 FROM creadora_shift_members m WHERE m.shift_id = g.shift_id AND m.creadora_id = c.id)))) AS scripts,"
+            . " (SELECT COUNT(*) FROM creadora_shift_script g JOIN creadora_shifts s ON s.id = g.shift_id WHERE s.canceled_at IS NULL AND g.recorded_at IS NOT NULL AND (g.creadora_id = c.id"
+            . "   OR (g.creadora_id IS NULL AND EXISTS (SELECT 1 FROM creadora_shift_members m WHERE m.shift_id = g.shift_id AND m.creadora_id = c.id)))) AS recorded,"
+            . " (SELECT COUNT(*) FROM creadora_shift_content k JOIN creadora_shifts s ON s.id = k.shift_id WHERE s.canceled_at IS NULL AND k.creadora_id = c.id AND k.kind = 'video') AS videos,"
+            . " (SELECT COUNT(*) FROM creadora_shift_content k JOIN creadora_shifts s ON s.id = k.shift_id WHERE s.canceled_at IS NULL AND k.creadora_id = c.id) AS content"
+            . " FROM creadoras c WHERE c.status <> 'Retirada' ORDER BY c.full_name")->fetchAll(PDO::FETCH_ASSOC);
+        $items = array_map(static fn (array $row): array => [
+            'creadora' => $row['public_id'],
+            'name' => $row['full_name'],
+            'shifts' => (int) $row['shifts'],
+            'attended' => (int) $row['attended'],
+            'scripts' => (int) $row['scripts'],
+            'recorded' => (int) $row['recorded'],
+            'videos' => (int) $row['videos'],
+            'content' => (int) $row['content'],
+        ], $rows);
+        // Los totales no suman los guiones «para todas» varias veces: se cuentan una sola.
+        $totals = $this->pdo->query("SELECT"
+            . " (SELECT COUNT(*) FROM creadora_shifts s WHERE s.canceled_at IS NULL) AS shifts,"
+            . " (SELECT COUNT(*) FROM creadora_shift_members m JOIN creadora_shifts s ON s.id = m.shift_id WHERE s.canceled_at IS NULL AND m.attended = 'yes') AS attended,"
+            . " (SELECT COUNT(*) FROM creadora_shift_script g JOIN creadora_shifts s ON s.id = g.shift_id WHERE s.canceled_at IS NULL) AS scripts,"
+            . " (SELECT COUNT(*) FROM creadora_shift_script g JOIN creadora_shifts s ON s.id = g.shift_id WHERE s.canceled_at IS NULL AND g.recorded_at IS NOT NULL) AS recorded,"
+            . " (SELECT COUNT(*) FROM creadora_shift_content k JOIN creadora_shifts s ON s.id = k.shift_id WHERE s.canceled_at IS NULL AND k.kind = 'video') AS videos,"
+            . " (SELECT COUNT(*) FROM creadora_shift_content k JOIN creadora_shifts s ON s.id = k.shift_id WHERE s.canceled_at IS NULL) AS content")->fetch(PDO::FETCH_ASSOC) ?: [];
+        return ['items' => $items, 'totals' => array_map('intval', $totals)];
+    }
+
     public function createShift(array $input, ?int $adminId, string $actorName, mixed $ip): array
     {
-        $creadora = $this->rowByPublicId((string) ($input['creadora'] ?? ''));
-        if ($creadora['status'] === 'Retirada') throw new InvalidArgumentException('Esa creadora está retirada.');
+        $people = $this->resolveMembers($input);
+        if ($people === []) throw new InvalidArgumentException('Elige al menos una creadora.');
         [$startsAt, $endsAt] = $this->slot($input['starts_at'] ?? null, $input['ends_at'] ?? null);
-        $this->assertFree((int) $creadora['id'], $startsAt, $endsAt, null);
+        foreach ($people as $person) $this->assertFree($person, $startsAt, $endsAt, null);
         $now = gmdate('Y-m-d H:i:s');
         $publicId = bin2hex(random_bytes(16));
         $insert = $this->pdo->prepare('INSERT INTO creadora_shifts (public_id, creadora_id, starts_at, ends_at, place, note, created_by_admin_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
-        $insert->execute([$publicId, $creadora['id'], $startsAt, $endsAt, $this->text($input['place'] ?? '', 160), $this->text($input['note'] ?? '', 400), $adminId, $now, $now]);
-        $shift = ['id' => (int) $this->pdo->lastInsertId(), 'public_id' => $publicId, 'creadora_id' => (int) $creadora['id'], 'starts_at' => $startsAt, 'ends_at' => $endsAt];
-        $this->log('created', $shift, $creadora, $actorName, ['after' => [$startsAt, $endsAt]]);
+        $insert->execute([$publicId, $people[0]['id'], $startsAt, $endsAt, $this->text($input['place'] ?? '', 160), $this->text($input['note'] ?? '', 400), $adminId, $now, $now]);
+        $shiftId = (int) $this->pdo->lastInsertId();
+        foreach ($people as $person) $this->addMember($shiftId, (int) $person['id'], $now);
+        $shift = ['id' => $shiftId, 'public_id' => $publicId, 'creadora_id' => (int) $people[0]['id'], 'starts_at' => $startsAt, 'ends_at' => $endsAt];
+        $this->log('created', $shift, $this->group($people), $actorName, ['after' => [$startsAt, $endsAt]]);
         $this->audit->log('creadora.shift_created', $adminId, 'creadora_shift', $publicId, [], $ip);
         return $this->shiftByPublicId($publicId);
     }
 
-    /** Mover, estirar, reasignar o editar: cada diferencia real entra a la bitácora con su nombre. */
+    /** Mover, estirar, cambiar integrantes o editar: cada diferencia real entra a la bitácora con su nombre. */
     public function updateShift(string $publicId, array $input, ?int $adminId, string $actorName, mixed $ip): array
     {
         $shift = $this->shiftRow($publicId);
-        $creadora = $this->rowById((int) $shift['creadora_id']);
-        $target = $creadora;
-        if (array_key_exists('creadora', $input) && (string) $input['creadora'] !== '' && (string) $input['creadora'] !== $creadora['public_id']) {
-            $target = $this->rowByPublicId((string) $input['creadora']);
-            if ($target['status'] === 'Retirada') throw new InvalidArgumentException('Esa creadora está retirada.');
-        }
+        $current = $this->members((int) $shift['id']);
+        $before = array_map(fn (array $member): array => $this->rowById((int) $member['creadora_id']), $current);
+        $people = array_key_exists('creadoras', $input) || (array_key_exists('creadora', $input) && (string) $input['creadora'] !== '')
+            ? $this->resolveMembers($input, array_map(static fn (array $row): int => (int) $row['id'], $before))
+            : $before;
+        if ($people === []) throw new InvalidArgumentException('El turno necesita al menos una creadora.');
         [$startsAt, $endsAt] = $this->slot($input['starts_at'] ?? $shift['starts_at'], $input['ends_at'] ?? $shift['ends_at']);
-        $this->assertFree((int) $target['id'], $startsAt, $endsAt, (int) $shift['id']);
+        foreach ($people as $person) $this->assertFree($person, $startsAt, $endsAt, (int) $shift['id']);
         $place = array_key_exists('place', $input) ? $this->text($input['place'], 160) : $shift['place'];
         $note = array_key_exists('note', $input) ? $this->text($input['note'], 400) : $shift['note'];
         $now = gmdate('Y-m-d H:i:s');
+        // La asistencia se valida antes de tocar nada, para no dejar el turno a medio guardar.
         if (array_key_exists('attended', $input)) {
-            $this->markAttendance($shift, $target, $input['attended'], $actorName, $adminId, $ip);
-            $shift = $this->shiftRow($publicId);
+            $mark = $input['attended'];
+            if ($mark !== null && $mark !== '' && !array_key_exists((string) $mark, self::ATTENDANCE)) throw new InvalidArgumentException('Asistencia no válida.');
         }
-        $this->pdo->prepare('UPDATE creadora_shifts SET creadora_id = ?, starts_at = ?, ends_at = ?, place = ?, note = ?, updated_at = ? WHERE id = ?')
-            ->execute([$target['id'], $startsAt, $endsAt, $place, $note, $now, $shift['id']]);
 
+        $beforeIds = array_map(static fn (array $row): int => (int) $row['id'], $before);
+        $afterIds = array_map(static fn (array $row): int => (int) $row['id'], $people);
+        foreach (array_diff($beforeIds, $afterIds) as $gone) {
+            $this->pdo->prepare('DELETE FROM creadora_shift_members WHERE shift_id = ? AND creadora_id = ?')->execute([$shift['id'], $gone]);
+        }
+        foreach (array_diff($afterIds, $beforeIds) as $joined) $this->addMember((int) $shift['id'], $joined, $now);
+        $this->pdo->prepare('UPDATE creadora_shifts SET creadora_id = ?, starts_at = ?, ends_at = ?, place = ?, note = ?, updated_at = ? WHERE id = ?')
+            ->execute([$afterIds[0], $startsAt, $endsAt, $place, $note, $now, $shift['id']]);
+
+        if (array_key_exists('attended', $input)) {
+            $this->markAttendance($this->shiftRow($publicId), $input['attended'], $input['attendance_for'] ?? null, $actorName, $adminId, $ip);
+        }
+
+        $group = $this->group($people);
         $moved = $startsAt !== $shift['starts_at'];
-        $lengthBefore = $this->minutes($shift['starts_at'], $shift['ends_at']);
-        $resized = $this->minutes($startsAt, $endsAt) !== $lengthBefore;
+        $resized = $this->minutes($startsAt, $endsAt) !== $this->minutes($shift['starts_at'], $shift['ends_at']);
         $context = ['before' => [$shift['starts_at'], $shift['ends_at']], 'after' => [$startsAt, $endsAt]];
-        if ((int) $target['id'] !== (int) $creadora['id']) {
-            $this->log('reassigned', $shift, $target, $actorName, $context + ['detail' => 'Antes: ' . $creadora['full_name'] . '.']);
-        } elseif ($moved && $resized) {
-            $this->log('moved', $shift, $target, $actorName, $context);
-            $this->log('resized', $shift, $target, $actorName, $context);
-        } elseif ($moved) {
-            $this->log('moved', $shift, $target, $actorName, $context);
-        } elseif ($resized) {
-            $this->log('resized', $shift, $target, $actorName, $context);
+        $sameGroup = $beforeIds == $afterIds || (count($beforeIds) === count($afterIds) && array_diff($beforeIds, $afterIds) === []);
+        if (!$sameGroup) {
+            $this->log('reassigned', $shift, $group, $actorName, $context + ['detail' => 'Antes: ' . $this->group($before)['full_name'] . '.']);
+        } else {
+            if ($moved) $this->log('moved', $shift, $group, $actorName, $context);
+            if ($resized) $this->log('resized', $shift, $group, $actorName, $context);
         }
         if ($place !== $shift['place'] || $note !== $shift['note']) {
-            $this->log('edited', $shift, $target, $actorName, $context + ['detail' => 'Se actualizó el lugar o la nota.']);
+            $this->log('edited', $shift, $group, $actorName, $context + ['detail' => 'Se actualizó el lugar o la nota.']);
         }
         $this->audit->log('creadora.shift_updated', $adminId, 'creadora_shift', $publicId, [], $ip);
         return $this->shiftByPublicId($publicId);
@@ -292,31 +348,41 @@ final class CreadoraRepository
         if ($shift['canceled_at'] !== null) throw new InvalidArgumentException('Ese turno ya fue quitado del calendario.');
         $now = gmdate('Y-m-d H:i:s');
         $this->pdo->prepare('UPDATE creadora_shifts SET canceled_at = ?, updated_at = ? WHERE id = ?')->execute([$now, $now, $shift['id']]);
-        $this->log('canceled', $shift, $this->rowById((int) $shift['creadora_id']), $actorName, ['before' => [$shift['starts_at'], $shift['ends_at']]]);
+        $this->log('canceled', $shift, $this->shiftGroup($shift), $actorName, ['before' => [$shift['starts_at'], $shift['ends_at']]]);
         $this->audit->log('creadora.shift_canceled', $adminId, 'creadora_shift', $publicId, [], $ip);
         return ['removed' => $publicId, 'log' => $this->log_(50)];
     }
 
-    /** Quién vino y quién no: coordinación lo marca en el mismo turno. */
-    public function markAttendance(array $shift, array $creadora, mixed $value, string $actorName, ?int $adminId, mixed $ip): void
+    /**
+     * Quién vino y quién no: cada integrante tiene su propia marca. En un turno de una sola
+     * creadora no hace falta decir de quién es.
+     */
+    public function markAttendance(array $shift, mixed $value, mixed $for, string $actorName, ?int $adminId, mixed $ip): void
     {
         $attended = $value === null || $value === '' ? null : (string) $value;
         if ($attended !== null && !array_key_exists($attended, self::ATTENDANCE)) throw new InvalidArgumentException('Asistencia no válida.');
-        if (($shift['attended'] ?? null) === $attended) return;
+        $member = $this->memberFor($shift, $for, 'Elige de quién es la asistencia.');
+        if (($member['attended'] ?? null) === $attended) return;
         $now = gmdate('Y-m-d H:i:s');
-        $this->pdo->prepare('UPDATE creadora_shifts SET attended = ?, attendance_at = ?, updated_at = ? WHERE id = ?')
-            ->execute([$attended, $attended === null ? null : $now, $now, $shift['id']]);
-        $this->log('attendance', $shift, $creadora, $actorName, [
+        $this->pdo->prepare('UPDATE creadora_shift_members SET attended = ?, attendance_at = ? WHERE id = ?')
+            ->execute([$attended, $attended === null ? null : $now, $member['id']]);
+        // La columna del turno refleja a la primera integrante, para lecturas antiguas.
+        if ((int) $member['creadora_id'] === (int) $shift['creadora_id']) {
+            $this->pdo->prepare('UPDATE creadora_shifts SET attended = ?, attendance_at = ?, updated_at = ? WHERE id = ?')
+                ->execute([$attended, $attended === null ? null : $now, $now, $shift['id']]);
+        }
+        $this->log('attendance', $shift, $this->rowById((int) $member['creadora_id']), $actorName, [
             'detail' => $attended === null ? 'Quitó la marca de asistencia.' : self::ATTENDANCE[$attended] . '.',
         ]);
         $this->audit->log('creadora.attendance_marked', $adminId, 'creadora_shift', $shift['public_id'], [], $ip);
     }
 
-    /** Un turno puede dejar varios contenidos: videos, lives, historias o lo que se haya hecho. */
+    /** Un turno puede dejar varios contenidos: videos, lives, historias o lo que se haya hecho, cada uno de una creadora. */
     public function addContent(string $shiftPublicId, array $input, ?int $adminId, string $actorName, mixed $ip): array
     {
         $shift = $this->shiftRow($shiftPublicId);
-        $creadora = $this->rowById((int) $shift['creadora_id']);
+        $member = $this->memberFor($shift, $input['creadora'] ?? null, 'Elige qué creadora hizo el contenido.');
+        $creadora = $this->rowById((int) $member['creadora_id']);
         $kind = $this->text($input['kind'] ?? '', 16);
         if (!array_key_exists($kind, self::CONTENT_KINDS)) throw new InvalidArgumentException('Elige el tipo de contenido.');
         $title = $this->text($input['title'] ?? '', 200);
@@ -327,8 +393,8 @@ final class CreadoraRepository
         $count->execute([$shift['id']]);
         if ((int) $count->fetchColumn() >= self::MAX_CONTENT) throw new InvalidArgumentException('Este turno ya tiene demasiado contenido registrado.');
         $publicId = bin2hex(random_bytes(16));
-        $this->pdo->prepare('INSERT INTO creadora_shift_content (public_id, shift_id, kind, title, url, note, created_by_admin_id, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
-            ->execute([$publicId, $shift['id'], $kind, $title, $url, $this->text($input['note'] ?? '', 400), $adminId, gmdate('Y-m-d H:i:s')]);
+        $this->pdo->prepare('INSERT INTO creadora_shift_content (public_id, shift_id, creadora_id, kind, title, url, note, created_by_admin_id, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)')
+            ->execute([$publicId, $shift['id'], $creadora['id'], $kind, $title, $url, $this->text($input['note'] ?? '', 400), $adminId, gmdate('Y-m-d H:i:s')]);
         $this->log('content', $shift, $creadora, $actorName, ['detail' => self::CONTENT_KINDS[$kind] . ': ' . $title]);
         $this->audit->log('creadora.content_added', $adminId, 'creadora_shift', $shift['public_id'], [], $ip);
         return $this->shiftByPublicId($shiftPublicId);
@@ -343,25 +409,26 @@ final class CreadoraRepository
         $row = $statement->fetch(PDO::FETCH_ASSOC);
         if ($row === false) throw new InvalidArgumentException('Contenido no encontrado.');
         $this->pdo->prepare('DELETE FROM creadora_shift_content WHERE id = ?')->execute([$row['id']]);
-        $this->log('content', $shift, $this->rowById((int) $shift['creadora_id']), $actorName, ['detail' => 'Quitó ' . mb_strtolower(self::CONTENT_KINDS[$row['kind']] ?? 'contenido') . ': ' . $row['title']]);
+        $owner = $row['creadora_id'] === null ? $this->shiftGroup($shift) : $this->rowById((int) $row['creadora_id']);
+        $this->log('content', $shift, $owner, $actorName, ['detail' => 'Quitó ' . mb_strtolower(self::CONTENT_KINDS[$row['kind']] ?? 'contenido') . ': ' . $row['title']]);
         $this->audit->log('creadora.content_removed', $adminId, 'creadora_shift', $shift['public_id'], [], $ip);
         return $this->shiftByPublicId($shiftPublicId);
     }
 
-    /** El cuaderno: lo que se va a grabar y cómo. Se escribe antes; el contenido se registra después. */
+    /** El cuaderno: lo que se va a grabar y cómo. Un guion es de una creadora o de todas las del turno. */
     public function addScript(string $shiftPublicId, array $input, ?int $adminId, string $actorName, mixed $ip): array
     {
         $shift = $this->shiftRow($shiftPublicId);
-        $values = $this->validateScript($input);
+        $values = $this->validateScript($input, $shift);
         $count = $this->pdo->prepare('SELECT COUNT(*) FROM creadora_shift_script WHERE shift_id = ?');
         $count->execute([$shift['id']]);
         $total = (int) $count->fetchColumn();
         if ($total >= self::MAX_SCRIPTS) throw new InvalidArgumentException('Este turno ya tiene demasiados guiones.');
         $now = gmdate('Y-m-d H:i:s');
         $publicId = bin2hex(random_bytes(16));
-        $this->pdo->prepare('INSERT INTO creadora_shift_script (public_id, shift_id, title, body, reference_url, position, created_by_admin_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)')
-            ->execute([$publicId, $shift['id'], $values['title'], $values['body'], $values['reference_url'], $total + 1, $adminId, $now, $now]);
-        $this->log('edited', $shift, $this->rowById((int) $shift['creadora_id']), $actorName, ['detail' => 'Agregó el guion: ' . $values['title']]);
+        $this->pdo->prepare('INSERT INTO creadora_shift_script (public_id, shift_id, creadora_id, title, body, reference_url, position, recorded_at, created_by_admin_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
+            ->execute([$publicId, $shift['id'], $values['creadora_id'], $values['title'], $values['body'], $values['reference_url'], $total + 1, $values['recorded'] ? $now : null, $adminId, $now, $now]);
+        $this->log('edited', $shift, $this->scriptOwner($shift, $values['creadora_id']), $actorName, ['detail' => 'Agregó el guion: ' . $values['title']]);
         $this->audit->log('creadora.script_added', $adminId, 'creadora_shift', $shift['public_id'], [], $ip);
         return $this->shiftByPublicId($shiftPublicId);
     }
@@ -370,10 +437,18 @@ final class CreadoraRepository
     {
         $shift = $this->shiftRow($shiftPublicId);
         $current = $this->scriptRow($scriptPublicId, (int) $shift['id']);
-        $values = $this->validateScript($input, $current);
-        $this->pdo->prepare('UPDATE creadora_shift_script SET title = ?, body = ?, reference_url = ?, updated_at = ? WHERE id = ?')
-            ->execute([$values['title'], $values['body'], $values['reference_url'], gmdate('Y-m-d H:i:s'), $current['id']]);
-        $this->log('edited', $shift, $this->rowById((int) $shift['creadora_id']), $actorName, ['detail' => 'Editó el guion: ' . $values['title']]);
+        $values = $this->validateScript($input, $shift, $current);
+        $recordedAt = $values['recorded'] ? ($current['recorded_at'] ?? gmdate('Y-m-d H:i:s')) : null;
+        $this->pdo->prepare('UPDATE creadora_shift_script SET creadora_id = ?, title = ?, body = ?, reference_url = ?, recorded_at = ?, updated_at = ? WHERE id = ?')
+            ->execute([$values['creadora_id'], $values['title'], $values['body'], $values['reference_url'], $recordedAt, gmdate('Y-m-d H:i:s'), $current['id']]);
+        $owner = $this->scriptOwner($shift, $values['creadora_id']);
+        $wasRecorded = ($current['recorded_at'] ?? null) !== null;
+        if ($wasRecorded !== $values['recorded']) {
+            $this->log('edited', $shift, $owner, $actorName, ['detail' => ($values['recorded'] ? 'Marcó como grabado: ' : 'Quitó la marca de grabado: ') . $values['title']]);
+        }
+        $changed = $values['title'] !== $current['title'] || $values['body'] !== $current['body'] || $values['reference_url'] !== $current['reference_url']
+            || (string) ($values['creadora_id'] ?? '') !== (string) ($current['creadora_id'] ?? '');
+        if ($changed) $this->log('edited', $shift, $owner, $actorName, ['detail' => 'Editó el guion: ' . $values['title']]);
         $this->audit->log('creadora.script_updated', $adminId, 'creadora_shift', $shift['public_id'], [], $ip);
         return $this->shiftByPublicId($shiftPublicId);
     }
@@ -383,12 +458,13 @@ final class CreadoraRepository
         $shift = $this->shiftRow($shiftPublicId);
         $current = $this->scriptRow($scriptPublicId, (int) $shift['id']);
         $this->pdo->prepare('DELETE FROM creadora_shift_script WHERE id = ?')->execute([$current['id']]);
-        $this->log('edited', $shift, $this->rowById((int) $shift['creadora_id']), $actorName, ['detail' => 'Quitó el guion: ' . $current['title']]);
+        $owner = $this->scriptOwner($shift, $current['creadora_id'] === null ? null : (int) $current['creadora_id']);
+        $this->log('edited', $shift, $owner, $actorName, ['detail' => 'Quitó el guion: ' . $current['title']]);
         $this->audit->log('creadora.script_removed', $adminId, 'creadora_shift', $shift['public_id'], [], $ip);
         return $this->shiftByPublicId($shiftPublicId);
     }
 
-    private function validateScript(array $input, ?array $current = null): array
+    private function validateScript(array $input, array $shift, ?array $current = null): array
     {
         $title = $this->text($input['title'] ?? ($current['title'] ?? ''), 200);
         if ($title === '') throw new InvalidArgumentException('Ponle un nombre a la idea.');
@@ -397,7 +473,23 @@ final class CreadoraRepository
         if (mb_strlen($body) > self::MAX_SCRIPT_BODY) throw new InvalidArgumentException('El guion es demasiado largo.');
         $url = $this->text($input['reference_url'] ?? ($current['reference_url'] ?? ''), 500);
         if ($url !== '' && !preg_match('~^https://[^\s]+$~D', $url)) throw new InvalidArgumentException('El enlace debe empezar con https://');
-        return ['title' => $title, 'body' => $body, 'reference_url' => $url];
+        // Sin creadora elegida, el guion es para todas las del turno.
+        if (array_key_exists('creadora', $input)) {
+            $owner = (string) ($input['creadora'] ?? '') === '' ? null : (int) $this->memberFor($shift, $input['creadora'], 'Esa creadora no está en el turno.')['creadora_id'];
+        } else {
+            $owner = $current === null || $current['creadora_id'] === null ? null : (int) $current['creadora_id'];
+        }
+        $recorded = array_key_exists('recorded', $input) ? $this->flag($input['recorded']) : ($current !== null && ($current['recorded_at'] ?? null) !== null);
+        return ['title' => $title, 'body' => $body, 'reference_url' => $url, 'creadora_id' => $owner, 'recorded' => $recorded];
+    }
+
+    private function flag(mixed $value): bool
+    {
+        if (is_bool($value)) return $value;
+        if ($value === 1 || $value === 0) return (bool) $value;
+        if (in_array($value, ['1', 'true', 'yes'], true)) return true;
+        if (in_array($value, ['0', 'false', 'no', ''], true)) return false;
+        throw new InvalidArgumentException('Valor no válido.');
     }
 
     private function scriptRow(string $publicId, int $shiftId): array
@@ -412,14 +504,26 @@ final class CreadoraRepository
 
     private function scriptsFor(int $shiftId): array
     {
-        $statement = $this->pdo->prepare('SELECT public_id, title, body, reference_url, updated_at FROM creadora_shift_script WHERE shift_id = ? ORDER BY position, id');
+        $statement = $this->pdo->prepare('SELECT g.public_id, g.title, g.body, g.reference_url, g.recorded_at, g.updated_at, c.public_id AS creadora, c.full_name AS creadora_name'
+            . ' FROM creadora_shift_script g LEFT JOIN creadoras c ON c.id = g.creadora_id WHERE g.shift_id = ? ORDER BY g.position, g.id');
         $statement->execute([$shiftId]);
-        return $statement->fetchAll(PDO::FETCH_ASSOC);
+        return array_map(static fn (array $row): array => [
+            'public_id' => $row['public_id'],
+            'title' => $row['title'],
+            'body' => $row['body'],
+            'reference_url' => $row['reference_url'],
+            'creadora' => $row['creadora'] ?? '',
+            'creadora_name' => $row['creadora_name'] ?? '',
+            'recorded' => $row['recorded_at'] !== null,
+            'recorded_at' => $row['recorded_at'],
+            'updated_at' => $row['updated_at'],
+        ], $statement->fetchAll(PDO::FETCH_ASSOC));
     }
 
     private function contentFor(int $shiftId): array
     {
-        $statement = $this->pdo->prepare('SELECT public_id, kind, title, url, note, created_at FROM creadora_shift_content WHERE shift_id = ? ORDER BY created_at, id');
+        $statement = $this->pdo->prepare('SELECT k.public_id, k.kind, k.title, k.url, k.note, k.created_at, c.public_id AS creadora, c.full_name AS creadora_name'
+            . ' FROM creadora_shift_content k LEFT JOIN creadoras c ON c.id = k.creadora_id WHERE k.shift_id = ? ORDER BY k.created_at, k.id');
         $statement->execute([$shiftId]);
         return array_map(static fn (array $row): array => [
             'public_id' => $row['public_id'],
@@ -428,19 +532,132 @@ final class CreadoraRepository
             'title' => $row['title'],
             'url' => $row['url'],
             'note' => $row['note'],
+            'creadora' => $row['creadora'] ?? '',
+            'creadora_name' => $row['creadora_name'] ?? '',
             'created_at' => $row['created_at'],
         ], $statement->fetchAll(PDO::FETCH_ASSOC));
     }
 
-    /** Los turnos de la creadora autenticada, de hoy en adelante. */
+    /** Los turnos de la creadora autenticada, de hoy en adelante, incluidos los que comparte. */
     public function shiftsForAccount(int $accountId): array
     {
         $own = $this->forAccount($accountId);
         if ($own === null) return ['shifts' => []];
-        $statement = $this->pdo->prepare('SELECT s.public_id, s.starts_at, s.ends_at, s.place, s.note, s.attended FROM creadora_shifts s'
-            . ' JOIN creadoras c ON c.id = s.creadora_id WHERE c.account_id = ? AND s.canceled_at IS NULL AND s.ends_at >= ? ORDER BY s.starts_at');
+        $statement = $this->pdo->prepare('SELECT s.public_id, s.starts_at, s.ends_at, s.place, s.note, m.attended FROM creadora_shifts s'
+            . ' JOIN creadora_shift_members m ON m.shift_id = s.id JOIN creadoras c ON c.id = m.creadora_id'
+            . ' WHERE c.account_id = ? AND s.canceled_at IS NULL AND s.ends_at >= ? ORDER BY s.starts_at');
         $statement->execute([$accountId, substr($this->localNow(), 0, 10) . ' 00:00:00']);
         return ['shifts' => $statement->fetchAll(PDO::FETCH_ASSOC)];
+    }
+
+    // --- Integrantes del turno -----------------------------------------------------------------
+
+    /**
+     * Quiénes van al turno. Acepta la lista `creadoras` o, por compatibilidad, una sola `creadora`.
+     * Las que ya estaban pueden seguir aunque hoy estén retiradas; las nuevas no.
+     */
+    private function resolveMembers(array $input, array $keep = []): array
+    {
+        $ids = array_key_exists('creadoras', $input) ? $input['creadoras'] : [$input['creadora'] ?? ''];
+        if (!is_array($ids)) throw new InvalidArgumentException('La lista de creadoras no es válida.');
+        $people = [];
+        foreach ($ids as $id) {
+            if (!is_string($id)) throw new InvalidArgumentException('La lista de creadoras no es válida.');
+            if (trim($id) === '') continue;
+            $row = $this->rowByPublicId(trim($id));
+            if (isset($people[(int) $row['id']])) continue;
+            if ($row['status'] === 'Retirada' && !in_array((int) $row['id'], $keep, true)) throw new InvalidArgumentException('Esa creadora está retirada.');
+            $people[(int) $row['id']] = $row;
+        }
+        if (count($people) > self::MAX_MEMBERS) throw new InvalidArgumentException('Un turno admite hasta ' . self::MAX_MEMBERS . ' creadoras.');
+        return array_values($people);
+    }
+
+    private function addMember(int $shiftId, int $creadoraId, string $now): void
+    {
+        $this->pdo->prepare('INSERT INTO creadora_shift_members (shift_id, creadora_id, created_at) VALUES (?, ?, ?)')->execute([$shiftId, $creadoraId, $now]);
+    }
+
+    private function members(int $shiftId): array
+    {
+        return $this->membersFor([$shiftId])[$shiftId] ?? [];
+    }
+
+    /** Las integrantes de varios turnos a la vez, en el orden en que se sumaron. */
+    private function membersFor(array $shiftIds): array
+    {
+        if ($shiftIds === []) return [];
+        $marks = implode(', ', array_fill(0, count($shiftIds), '?'));
+        $statement = $this->pdo->prepare('SELECT m.id, m.shift_id, m.creadora_id, m.attended, m.attendance_at, c.public_id, c.full_name'
+            . " FROM creadora_shift_members m JOIN creadoras c ON c.id = m.creadora_id WHERE m.shift_id IN ($marks) ORDER BY m.shift_id, m.id");
+        $statement->execute(array_values($shiftIds));
+        $grouped = [];
+        foreach ($statement->fetchAll(PDO::FETCH_ASSOC) as $row) $grouped[(int) $row['shift_id']][] = $row;
+        return $grouped;
+    }
+
+    /** La integrante a la que se refiere un pedido; si el turno es de una sola, se sobreentiende. */
+    private function memberFor(array $shift, mixed $publicId, string $message): array
+    {
+        $members = $this->members((int) $shift['id']);
+        $wanted = is_string($publicId) ? trim($publicId) : '';
+        if ($wanted === '') {
+            if (count($members) === 1) return $members[0];
+            throw new InvalidArgumentException($message);
+        }
+        foreach ($members as $member) if ($member['public_id'] === $wanted) return $member;
+        throw new InvalidArgumentException('Esa creadora no está en el turno.');
+    }
+
+    /** Para la bitácora: el nombre de todas las integrantes juntas. */
+    private function group(array $people): array
+    {
+        return ['id' => $people[0]['id'] ?? null, 'full_name' => implode(', ', array_column($people, 'full_name'))];
+    }
+
+    private function shiftGroup(array $shift): array
+    {
+        $members = $this->members((int) $shift['id']);
+        return $members === [] ? $this->rowById((int) $shift['creadora_id']) : $this->group(array_map(static fn (array $member): array => ['id' => $member['creadora_id'], 'full_name' => $member['full_name']], $members));
+    }
+
+    private function scriptOwner(array $shift, ?int $creadoraId): array
+    {
+        return $creadoraId === null ? $this->shiftGroup($shift) : $this->rowById($creadoraId);
+    }
+
+    private function projectShift(array $row, array $members): array
+    {
+        $people = array_map(static fn (array $member): array => [
+            'public_id' => $member['public_id'],
+            'name' => $member['full_name'],
+            'attended' => $member['attended'],
+            'attendance_at' => $member['attendance_at'],
+        ], $members);
+        $marks = array_column($people, 'attended');
+        return [
+            'public_id' => $row['public_id'],
+            'creadora' => $people[0]['public_id'] ?? '',
+            'creadoras' => $people,
+            'name' => implode(', ', array_column($people, 'name')),
+            'starts_at' => $row['starts_at'],
+            'ends_at' => $row['ends_at'],
+            'place' => $row['place'],
+            'note' => $row['note'],
+            // Resumen del turno: «yes» si vinieron todas, «no» si no vino ninguna, «partial» si faltó alguna.
+            'attended' => $this->attendanceSummary($marks),
+            'attended_count' => count(array_filter($marks, static fn ($mark): bool => $mark === 'yes')),
+            'attendance_at' => ($stamps = array_filter(array_column($people, 'attendance_at'))) === [] ? null : max($stamps),
+        ];
+    }
+
+    private function attendanceSummary(array $marks): ?string
+    {
+        $marked = array_values(array_filter($marks, static fn ($mark): bool => $mark !== null));
+        if ($marked === []) return null;
+        if (count($marked) === count($marks) && !in_array('no', $marked, true)) return 'yes';
+        if (!in_array('yes', $marked, true) && count($marked) === count($marks)) return 'no';
+        return 'partial';
     }
 
     public function logEntries(int $limit = 50): array
@@ -654,14 +871,15 @@ final class CreadoraRepository
     }
 
     /** Nadie puede estar en dos lugares a la vez: dos turnos de la misma creadora no se solapan. */
-    private function assertFree(int $creadoraId, string $startsAt, string $endsAt, ?int $exceptId): void
+    private function assertFree(array $creadora, string $startsAt, string $endsAt, ?int $exceptId): void
     {
-        $sql = 'SELECT public_id FROM creadora_shifts WHERE creadora_id = ? AND canceled_at IS NULL AND starts_at < ? AND ends_at > ?';
-        $values = [$creadoraId, $endsAt, $startsAt];
-        if ($exceptId !== null) { $sql .= ' AND id <> ?'; $values[] = $exceptId; }
+        $sql = 'SELECT s.public_id FROM creadora_shifts s JOIN creadora_shift_members m ON m.shift_id = s.id'
+            . ' WHERE m.creadora_id = ? AND s.canceled_at IS NULL AND s.starts_at < ? AND s.ends_at > ?';
+        $values = [$creadora['id'], $endsAt, $startsAt];
+        if ($exceptId !== null) { $sql .= ' AND s.id <> ?'; $values[] = $exceptId; }
         $statement = $this->pdo->prepare($sql . ' LIMIT 1');
         $statement->execute($values);
-        if ($statement->fetch(PDO::FETCH_ASSOC) !== false) throw new DuplicateRegistration('Esa creadora ya tiene un turno a esa hora.');
+        if ($statement->fetch(PDO::FETCH_ASSOC) !== false) throw new DuplicateRegistration($creadora['full_name'] . ' ya tiene un turno a esa hora.');
     }
 
     private function range(mixed $from, mixed $to): array
@@ -718,20 +936,8 @@ final class CreadoraRepository
 
     private function shiftByPublicId(string $publicId): array
     {
-        $statement = $this->pdo->prepare('SELECT s.*, c.public_id AS creadora_public_id, c.full_name FROM creadora_shifts s JOIN creadoras c ON c.id = s.creadora_id WHERE s.public_id = ?');
-        $statement->execute([$publicId]);
-        $row = $statement->fetch(PDO::FETCH_ASSOC);
-        if ($row === false) throw new InvalidArgumentException('Turno no encontrado.');
-        return ['shift' => [
-            'public_id' => $row['public_id'],
-            'creadora' => $row['creadora_public_id'],
-            'name' => $row['full_name'],
-            'starts_at' => $row['starts_at'],
-            'ends_at' => $row['ends_at'],
-            'place' => $row['place'],
-            'note' => $row['note'],
-            'attended' => $row['attended'] ?? null,
-            'attendance_at' => $row['attendance_at'] ?? null,
+        $row = $this->shiftRow($publicId);
+        return ['shift' => $this->projectShift($row, $this->members((int) $row['id'])) + [
             'content' => $this->contentFor((int) $row['id']),
             'scripts' => $this->scriptsFor((int) $row['id']),
         ], 'log' => $this->log_(50)];

@@ -368,3 +368,48 @@ tr[data-origin="cuenta"] > td { background: rgba(0, 210, 214, .05); }
   .shift-notebook { border-left: 0; border-top: 1px solid #e3dae6; padding-left: 0; padding-top: 1rem; }
   .shift-notebook__list { max-height: none; }
 }
+
+/* Indicadores por creadora y turnos compartidos. */
+.creadora-indicators { margin: 1rem 0; border: 1px solid #c3b6c7; border-radius: .9rem; padding: .9rem; background: #fffaf2; }
+.creadora-indicators .records-heading { padding: 0 0 .6rem; }
+.creadora-indicators h2 { font-size: 1rem; }
+.creadora-totals { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: .5rem; margin-bottom: .75rem; }
+.creadora-total { border: 1px solid #ddd2de; border-radius: .6rem; background: #fff; padding: .5rem .6rem; }
+.creadora-total strong { display: block; font-size: 1.35rem; line-height: 1.1; font-variant-numeric: tabular-nums; color: #241146; }
+.creadora-total span { font-size: .7rem; color: #665771; text-transform: uppercase; letter-spacing: .04em; }
+.creadora-total[data-kind="recorded"] strong { color: #1c6854; }
+.creadora-indicators__list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr)); gap: .5rem; }
+.creadora-indicator { position: relative; display: grid; gap: .35rem; padding: .55rem .65rem .75rem; border: 1px solid #ddd2de; border-left: 5px solid var(--shift-edge, #94165e); border-radius: .6rem; background: #fff; overflow: hidden; }
+.creadora-indicator > strong { font-size: .84rem; color: #241146; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.creadora-indicator dl { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: .2rem; margin: 0; }
+.creadora-indicator dl div { text-align: center; }
+.creadora-indicator dt { font-size: .58rem; color: #665771; text-transform: uppercase; letter-spacing: .03em; }
+.creadora-indicator dd { margin: 0; font-size: .95rem; font-weight: 700; font-variant-numeric: tabular-nums; color: #241146; }
+.creadora-indicator div[data-pending="true"] dd { color: #a24b00; }
+.creadora-indicator__bar { position: absolute; left: 0; right: 0; bottom: 0; height: 4px; background: #efe8f0; }
+.creadora-indicator__bar::after { content: ""; display: block; height: 100%; width: var(--progress, 0%); background: #1c6854; }
+.shift-people__list { display: flex; flex-wrap: wrap; gap: .35rem; max-height: 9rem; overflow: auto; padding: .2rem 0; }
+.shift-people legend { font-size: .78rem; font-weight: 650; }
+.shift-person { display: inline-flex; align-items: center; gap: .35rem; padding: .3rem .6rem; border: 1px solid #ddd2de; border-left: 4px solid var(--shift-edge, #94165e); border-radius: 999px; background: #fff; font-size: .8rem; font-weight: 500; cursor: pointer; }
+.shift-person input { width: 16px; min-height: 16px; margin: 0; accent-color: var(--shift-edge, #94165e); }
+.shift-person:has(input:checked) { background: #f6eff8; border-color: var(--shift-edge, #94165e); }
+.shift-attendance-list { display: grid; gap: .4rem; }
+.shift-attendance-list .shift-attendance { border-left: 4px solid var(--shift-edge, #ddd2de); }
+.shift-attendance-list .shift-attendance legend { text-transform: none; letter-spacing: 0; font-size: .78rem; font-weight: 650; color: #241146; }
+.shift-owner { display: block; color: #665771; font-size: .7rem; }
+.shift-box__people { display: flex; align-items: center; gap: 2px; }
+.shift-box__people i { display: inline-block; width: 7px; height: 7px; border-radius: 50%; }
+.shift-box__people b { margin-left: .25rem; font-size: .58rem; font-weight: 700; color: #5b5170; white-space: nowrap; }
+.shift-box[data-dropping="true"] { outline: 2px dashed var(--shift-edge, #94165e); outline-offset: 1px; }
+.shift-script__head { display: flex; align-items: center; gap: .4rem; }
+.shift-script__badge { font-style: normal; font-size: .64rem; font-weight: 700; color: #1c6854; background: rgba(28, 104, 84, .1); border-radius: 999px; padding: .05rem .45rem; white-space: nowrap; }
+.shift-script[data-recorded="true"] { border-left: 4px solid #1c6854; }
+.shift-script__recorded { display: inline-flex; align-items: center; gap: .35rem; margin-right: auto; font-size: .78rem; font-weight: 600; color: #1c6854; }
+.shift-script__recorded input { width: 16px; min-height: 16px; margin: 0; accent-color: #1c6854; }
+@media (max-width: 1120px) {
+  .creadora-totals { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 560px) {
+  .creadora-totals { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .creadora-indicators__list { grid-template-columns: minmax(0, 1fr); }
+}
