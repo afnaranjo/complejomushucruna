@@ -29,7 +29,11 @@ import { renderVocerosPage } from './finados/voceros-page.mjs';
 import { renderVoceroPortalPage } from './finados/vocero-portal-page.mjs';
 import { renderVoceroVerificationPage } from './finados/vocero-verification-page.mjs';
 import { renderMediaAccreditationBody } from './media-accreditation/page.mjs';
-import { renderAdminEmprendedoresPage, renderAdminLoginPage, renderAdminMediosEventosPage, renderAdminMediosPage, renderAdminPanelPage, renderAdminVocerosPage } from './admin/page.mjs';
+import { renderCreadorasLandingPage } from './creadoras/landing-page.mjs';
+import { renderCreadoraPortalPage } from './creadoras/portal-page.mjs';
+import { renderCreadoraLegalPage } from './creadoras/legal-page.mjs';
+import { renderAdminCreadorasPage,
+  renderAdminEmprendedoresPage, renderAdminLoginPage, renderAdminMediosEventosPage, renderAdminMediosPage, renderAdminPanelPage, renderAdminVocerosPage } from './admin/page.mjs';
 import { renderMediaLandingBody } from './medios/landing-page.mjs';
 import { renderMediaPortalPage } from './medios/portal-page.mjs';
 import { renderMediaAccreditationPage } from './medios/accreditation-page.mjs';
@@ -344,6 +348,13 @@ export const pages = Object.freeze([
   { route: '/admin/medios/', title: 'Medios · Administración', indexable: false, render: renderAdminMediosPage },
   { route: '/admin/medios/eventos/', title: 'Medios · Eventos · Administración', indexable: false, render: renderAdminMediosEventosPage },
   { route: '/admin/emprendedores/', title: 'Emprendedores · Administración', indexable: false, render: renderAdminEmprendedoresPage },
+  { route: '/admin/creadoras/', title: 'Creadoras · Administración', indexable: false, render: renderAdminCreadorasPage },
+  { route: '/finados/creadoras/', title: 'Creadoras de contenido · Finados 2026', indexable: false, render: renderCreadorasLandingPage },
+  { route: '/finados/creadoras/acceso/', title: 'Tu cuenta de creadora', indexable: false, render: renderCreadoraPortalPage },
+  { route: '/finados/creadoras/mi-registro/', title: 'Mi registro · Creadoras', indexable: false, render: renderCreadoraPortalPage },
+  { route: '/finados/creadoras/restablecer/', title: 'Restablecer contraseña · Creadoras', indexable: false, render: renderCreadoraPortalPage },
+  { route: '/finados/creadoras/condiciones/', title: 'Condiciones de participación · Creadoras', indexable: false, render: renderCreadoraLegalPage },
+  { route: '/finados/creadoras/politica-de-privacidad/', title: 'Política de Privacidad · Creadoras', indexable: false, render: renderCreadoraLegalPage },
   ...mainPages,
   ...archivePages,
   finadosPreview,

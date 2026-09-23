@@ -25,7 +25,7 @@ test('el panel es la primera pestaña, la primera pantalla tras iniciar sesión 
   assert.match(panel, /href="\/admin\/panel\/" aria-current="page"/);
   // El panel abre el menú: primero él, después los formularios.
   const order = [...panel.matchAll(/class="admin-nav-link(?: admin-nav-link--child)?" href="([^"]+)"/g)].map(match => match[1]);
-  assert.deepEqual(order, ['/admin/panel/', '/admin/voceros/', '/admin/medios/', '/admin/medios/eventos/', '/admin/emprendedores/']);
+  assert.deepEqual(order, ['/admin/panel/', '/admin/voceros/', '/admin/medios/', '/admin/medios/eventos/', '/admin/emprendedores/', '/admin/creadoras/']);
   // Al iniciar sesión se llega al panel, no a Voceros.
   const login = await readFile(join(output, 'assets/admin/admin.js'), 'utf8');
   assert.match(login, /redirect\('\/admin\/panel\/'\)/);

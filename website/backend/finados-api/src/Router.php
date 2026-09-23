@@ -9,7 +9,7 @@ use OutOfBoundsException;
 use PDO;
 use Throwable;
 
-foreach (['Config', 'Database', 'Crypto', 'Audit', 'VocerosRepository', 'Auth', 'VoceroAuth', 'VoceroProfile', 'VoceroPasswordReset', 'MediaAuth', 'MediaRepository', 'MediaPasswordReset', 'EmprendedorAuth', 'EmprendedorRepository', 'EmprendedorPasswordReset'] as $dependency) {
+foreach (['Config', 'Database', 'Crypto', 'Audit', 'VocerosRepository', 'Auth', 'VoceroAuth', 'VoceroProfile', 'VoceroPasswordReset', 'MediaAuth', 'MediaRepository', 'MediaPasswordReset', 'EmprendedorAuth', 'EmprendedorRepository', 'EmprendedorPasswordReset', 'CreadoraAuth', 'CreadoraRepository', 'CreadoraPasswordReset'] as $dependency) {
     require_once __DIR__ . '/' . $dependency . '.php';
 }
 
@@ -39,11 +39,14 @@ final class Router
     private ?MediaRepository $mediaInstance = null;
     private ?EmprendedorAuth $emprendedorAuthInstance = null;
     private ?EmprendedorRepository $emprendedorInstance = null;
+    private ?CreadoraAuth $creadoraAuthInstance = null;
+    private ?CreadoraRepository $creadoraInstance = null;
     private readonly Audit $audit;
     private readonly Crypto $crypto;
     private const FILTERS = ['search', 'status', 'city', 'main_network', 'previous_participation', 'date_from', 'date_to'];
     private const MEDIA_FILTERS = ['search', 'status', 'province', 'media_type', 'paid_media', 'origin'];
     private const EMPRENDEDOR_FILTERS = ['search', 'status', 'city', 'main_network'];
+    private const CREADORA_FILTERS = ['search', 'status', 'origin'];
     private const METHODS = ['GET', 'POST', 'PATCH', 'OPTIONS'];
 
     public function __construct(private readonly Config $config, private readonly PDO $pdo)
@@ -216,6 +219,11 @@ final class Router
                 $saved = $profile->saveVideo($user['id'], (int) $parts[1], $body['url'], $ip);
                 return $this->json(200, ['ok' => true, ...$saved], $headers);
             }
+            // Content creator accounts use their own session scope, like every other public account.
+            if (str_starts_with($path, '/api/creadora/')) {
+                $response = $this->creadoraAccount($method, $path, $query, $server, $rawBody, $origin, $ip, $token, $headers);
+                if ($response !== null) return $response;
+            }
             // Entrepreneur accounts use their own session scope, isolated from Voceros, Medios and administration.
             if (str_starts_with($path, '/api/emprendedor/')) {
                 $response = $this->emprendedorAccount($method, $path, $query, $server, $rawBody, $post, $files, $origin, $ip, $token, $headers);
@@ -239,6 +247,9 @@ final class Router
             if ($path === '/api/panel' && $method === 'GET') {
                 if ($query !== []) throw new InvalidArgumentException();
                 return $this->json(200, $this->panelSummary(), $headers);
+            }
+            if ($path === '/api/creadoras' || str_starts_with($path, '/api/creadoras/')) {
+                return $this->creadoraAdmin($method, $path, $query, $server, $rawBody, $ip, $user, $headers);
             }
             if ($path === '/api/emprendedores' || str_starts_with($path, '/api/emprendedores/') || $path === '/api/emprendedor-accounts' || str_starts_with($path, '/api/emprendedor-accounts/') || in_array($path, ['/api/emprendedor-dashboard', '/api/emprendedor-video-schedule'], true)) {
                 return $this->emprendedorAdmin($method, $path, $query, $server, $rawBody, $origin, $refererOrigin, $ip, $user, $headers);
@@ -583,6 +594,136 @@ final class Router
                 return $this->json(201, ['resetUrl' => $resetOrigin . '/finados/emprendedores/restablecer/?token=' . $raw], $headers);
             }
             return $notAllowed();
+        }
+        return $this->error(404, 'not_found', 'Recurso no encontrado.', $headers);
+    }
+
+    private function creadoraAuth(): CreadoraAuth
+    {
+        return $this->creadoraAuthInstance ??= new CreadoraAuth($this->pdo, $this->config);
+    }
+
+    private function creadoras(): CreadoraRepository
+    {
+        return $this->creadoraInstance ??= new CreadoraRepository($this->pdo, $this->crypto, $this->audit);
+    }
+
+    private function creadoraAccount(string $method, string $path, array $query, array $server, string $rawBody, ?string $origin, mixed $ip, string $token, array $headers): ?Response
+    {
+        $validIp = is_string($ip) && inet_pton($ip) !== false;
+        $auth = $this->creadoraAuth();
+        if ($path === '/api/creadora/auth/session') {
+            if ($method !== 'GET') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+            try { $user = $auth->requireUser(); } catch (Unauthorized) { $user = null; }
+            return $this->json(200, ['authenticated' => $user !== null, 'user' => $user, 'csrf' => $auth->csrfToken()], $headers);
+        }
+        if (in_array($path, ['/api/creadora/auth/register', '/api/creadora/auth/login', '/api/creadora/auth/logout', '/api/creadora/auth/reset'], true)) {
+            if ($method !== 'POST') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+            if (!$this->config->isAllowedOrigin($origin) || !$validIp) throw new Forbidden();
+            $auth->verifyCsrf($token);
+            if ($query !== []) throw new InvalidArgumentException();
+            if ($path === '/api/creadora/auth/reset') {
+                $body = $this->body($server, $rawBody, ['token', 'password']);
+                if (!is_string($body['token'] ?? null) || !is_string($body['password'] ?? null)) throw new InvalidArgumentException();
+                (new CreadoraPasswordReset($this->pdo, $this->config))->consume($body['token'], $body['password'], $ip);
+                $auth->logout();
+                return $this->json(200, ['ok' => true, 'csrf' => $auth->csrfToken()], $headers);
+            }
+            if ($path === '/api/creadora/auth/register') {
+                $body = $this->body($server, $rawBody, ['email', 'password', 'privacyAcknowledged']);
+                if (!is_string($body['email'] ?? null) || !is_string($body['password'] ?? null) || !is_bool($body['privacyAcknowledged'] ?? null)) throw new InvalidArgumentException();
+                $auth->register($body['email'], $body['password'], $body['privacyAcknowledged'], $ip);
+                return $this->json(202, ['ok' => true, 'message' => 'Cuenta creada; inicia sesión.'], $headers);
+            }
+            if ($path === '/api/creadora/auth/login') {
+                $body = $this->body($server, $rawBody, ['email', 'password']);
+                if (!is_string($body['email'] ?? null) || !is_string($body['password'] ?? null)) throw new InvalidArgumentException();
+                $result = $auth->login($body['email'], $body['password'], $ip);
+                try { $this->audit->log('creadora_account.login', null, 'creadora_account', $result['user']['public_id'], [], $ip); }
+                catch (Throwable $error) { $auth->logout(); throw $error; }
+                return $this->json(200, ['authenticated' => true, ...$result], $headers);
+            }
+            $user = $auth->requireUser();
+            $this->audit->log('creadora_account.logout', null, 'creadora_account', $user['public_id'], [], $ip);
+            $auth->logout();
+            return $this->json(200, ['ok' => true], $headers);
+        }
+        if ($path === '/api/creadora/profile') {
+            $user = $auth->requireUser();
+            if (!in_array($method, ['GET', 'POST'], true)) return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+            if ($query !== []) throw new InvalidArgumentException();
+            if ($method === 'POST') {
+                if (!$this->config->isAllowedOrigin($origin) || !$validIp) throw new Forbidden();
+                $auth->verifyCsrf($token);
+                $body = $this->body($server, $rawBody, ['full_name', 'whatsapp', 'city', 'main_network', 'social_link', 'policies_accepted', 'privacy_accepted']);
+                $saved = $this->creadoras()->saveForAccount($user['id'], $body, $ip);
+                return $this->json(200, ['ok' => true, 'profile' => $saved, ...$this->creadoras()->shiftsForAccount($user['id'])], $headers);
+            }
+            $own = $this->creadoras()->forAccount($user['id']);
+            return $this->json(200, ['profile' => $own, 'consents' => $this->creadoras()->consentCatalogue(), ...$this->creadoras()->shiftsForAccount($user['id'])], $headers);
+        }
+        if ($path === '/api/creadora/turnos') {
+            $user = $auth->requireUser();
+            if ($method !== 'GET') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+            if ($query !== []) throw new InvalidArgumentException();
+            return $this->json(200, $this->creadoras()->shiftsForAccount($user['id']), $headers);
+        }
+        return $this->error(404, 'not_found', 'Recurso no encontrado.', $headers);
+    }
+
+    /** El calendario y la lista de creadoras: solo administración escribe aquí. */
+    private function creadoraAdmin(string $method, string $path, array $query, array $server, string $rawBody, mixed $ip, array $user, array $headers): Response
+    {
+        $repository = $this->creadoras();
+        $actor = (string) ($user['username'] ?? 'coordinación');
+        if ($path === '/api/creadoras') {
+            if ($method === 'GET') {
+                foreach (array_keys($query) as $key) if (!in_array($key, self::CREADORA_FILTERS, true)) throw new InvalidArgumentException();
+                return $this->json(200, $repository->list($query) + ['statuses' => CreadoraRepository::STATUSES, 'networks' => CreadoraRepository::NETWORKS], $headers);
+            }
+            if ($method !== 'POST') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+            if ($query !== []) throw new InvalidArgumentException();
+            $body = $this->body($server, $rawBody, ['full_name', 'status', 'whatsapp', 'city', 'main_network', 'social_link', 'note']);
+            return $this->json(201, ['ok' => true, 'creadora' => $repository->createByAdmin($body, $user['id'], $ip)], $headers);
+        }
+        if ($path === '/api/creadoras/calendario') {
+            if ($method !== 'GET') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+            foreach (array_keys($query) as $key) if (!in_array($key, ['from', 'to'], true)) throw new InvalidArgumentException();
+            return $this->json(200, $repository->calendar($query['from'] ?? '', $query['to'] ?? ''), $headers);
+        }
+        if ($path === '/api/creadoras/bitacora') {
+            if ($method !== 'GET') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+            if ($query !== []) throw new InvalidArgumentException();
+            return $this->json(200, $repository->logEntries(), $headers);
+        }
+        if ($path === '/api/creadoras/turnos') {
+            if ($method !== 'POST') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+            if ($query !== []) throw new InvalidArgumentException();
+            $body = $this->body($server, $rawBody, ['creadora', 'starts_at', 'ends_at', 'place', 'note']);
+            return $this->json(201, ['ok' => true, ...$repository->createShift($body, $user['id'], $actor, $ip)], $headers);
+        }
+        if (preg_match('~^/api/creadoras/turnos/([a-f0-9]{32})$~D', $path, $parts)) {
+            if ($query !== []) throw new InvalidArgumentException();
+            if ($method === 'PATCH') {
+                $body = $this->body($server, $rawBody, ['creadora', 'starts_at', 'ends_at', 'place', 'note']);
+                return $this->json(200, ['ok' => true, ...$repository->updateShift($parts[1], $body, $user['id'], $actor, $ip)], $headers);
+            }
+            if ($method === 'POST') return $this->json(200, ['ok' => true, ...$repository->cancelShift($parts[1], $user['id'], $actor, $ip)], $headers);
+            return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+        }
+        if (preg_match('~^/api/creadoras/([a-f0-9]{32})$~D', $path, $parts)) {
+            if ($query !== []) throw new InvalidArgumentException();
+            if ($method === 'GET') return $this->json(200, ['creadora' => $repository->byPublicId($parts[1])], $headers);
+            if ($method === 'PATCH') {
+                $body = $this->body($server, $rawBody, ['full_name', 'status', 'whatsapp', 'city', 'main_network', 'social_link', 'note']);
+                return $this->json(200, ['ok' => true, 'creadora' => $repository->updateByAdmin($parts[1], $body, $user['id'], $ip)], $headers);
+            }
+            return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+        }
+        if (preg_match('~^/api/creadoras/([a-f0-9]{32})/retirar$~D', $path, $parts)) {
+            if ($method !== 'POST') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+            if ($query !== []) throw new InvalidArgumentException();
+            return $this->json(200, ['ok' => true, 'creadora' => $repository->retire($parts[1], $user['id'], $actor, $ip)], $headers);
         }
         return $this->error(404, 'not_found', 'Recurso no encontrado.', $headers);
     }

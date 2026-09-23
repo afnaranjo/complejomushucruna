@@ -14,9 +14,10 @@ import { EMPRENDEDOR_LEVELS as PORTAL_LEVELS } from '../src/emprendedores/portal
 
 const json = (status, body) => ({ ok: status >= 200 && status < 300, status, json: async () => body });
 
-test('EMPRENDEDOR es la última opción del submenú de Finados, después de MEDIOS', () => {
+test('EMPRENDEDOR va después de MEDIOS y CREADORAS cierra el submenú de Finados', () => {
   const children = primaryNavigation.find(item => item.href === '/finados/').children;
-  assert.deepEqual(children.at(-1), { label: 'EMPRENDEDOR', href: '/finados/emprendedores/' });
+  assert.deepEqual(children.at(-2), { label: 'EMPRENDEDOR', href: '/finados/emprendedores/' });
+  assert.deepEqual(children.at(-1), { label: 'CREADORAS', href: '/finados/creadoras/' });
   assert.equal(children.map(item => item.label).indexOf('EMPRENDEDOR'), children.map(item => item.label).indexOf('MEDIOS') + 1);
 });
 
@@ -106,7 +107,7 @@ test('el build publica la landing, el portal, la validación, los cinco document
   const voceros = await readFile(join(output, 'admin/voceros/index.html'), 'utf8');
   for (const html of [admin, voceros]) {
     const order = [...html.matchAll(/class="admin-nav-link" href="([^"]+)"/g)].map(match => match[1]);
-    assert.deepEqual(order, ['/admin/panel/', '/admin/voceros/', '/admin/medios/', '/admin/emprendedores/']);
+    assert.deepEqual(order, ['/admin/panel/', '/admin/voceros/', '/admin/medios/', '/admin/emprendedores/', '/admin/creadoras/']);
   }
   assert.match(voceros, /name="kit_status"/, 'el panel de Voceros conserva su kit');
 });
@@ -214,7 +215,7 @@ test('el panel de emprendedores normaliza filtros, resume y usa solo rutas propi
 
 test('el artefacto del backend exige las clases, el catálogo y la migración de Emprendedores', async () => {
   const deploy = await readFile(new URL('../scripts/deploy-finados-backend.mjs', import.meta.url), 'utf8');
-  assert.match(deploy, /resources\\\/\(\?:vocero\|media\|emprendedor\)-consents\\\.json/);
+  assert.match(deploy, /resources\\\/\(\?:vocero\|media\|emprendedor\|creadora\)-consents\\\.json/);
   for (const name of ['src/EmprendedorAuth.php', 'src/EmprendedorRepository.php', 'src/EmprendedorPasswordReset.php', 'src/EmprendedorPhotoStorage.php', 'resources/emprendedor-consents.json', 'migrations/017_emprendedor_accounts_mysql.sql']) assert.ok(deploy.includes(`'${name}'`), name);
   const router = await readFile(new URL('../backend/finados-api/src/Router.php', import.meta.url), 'utf8');
   const start = router.indexOf('public function __construct(private readonly Config $config');

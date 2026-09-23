@@ -1,0 +1,7 @@
+/* Lo propio de Creadoras sobre el sistema de Voceros: la lista de turnos y los pasos de la landing. */
+.creadora-shifts { list-style: none; margin: 0; padding: 0; display: grid; gap: .5rem; }
+.creadora-shifts li { padding: .7rem .85rem; border: 1px solid rgba(36, 17, 70, .18); border-radius: .7rem; background: rgba(255, 255, 255, .72); }
+.creadora-shifts strong { display: block; font-size: .95rem; text-transform: capitalize; }
+.creadora-shifts span { display: block; font-size: .8rem; opacity: .8; margin-top: .15rem; }
+.creadora-shifts small { display: block; font-size: .75rem; opacity: .7; margin-top: .2rem; }
+.creadora-shifts .admin-panel-empty { border: 0; background: none; padding: 0; opacity: .75; font-size: .85rem; }

@@ -17,7 +17,8 @@ test('MEDIOS aparece en el submenú de Finados inmediatamente después de VOCERO
   const children = primaryNavigation.find(item => item.href === '/finados/').children.map(item => item.label);
   assert.equal(children.indexOf('MEDIOS'), children.indexOf('VOCEROS') + 1);
   assert.equal(children.indexOf('EMPRENDEDOR'), children.indexOf('MEDIOS') + 1);
-  assert.equal(children.at(-1), 'EMPRENDEDOR');
+  assert.equal(children.indexOf('CREADORAS'), children.indexOf('EMPRENDEDOR') + 1);
+  assert.equal(children.at(-1), 'CREADORAS');
 });
 
 test('el build publica la landing, las cuentas de medios y su panel sin tocar la acreditación vigente', async () => {
@@ -99,7 +100,7 @@ test('el build publica la landing, las cuentas de medios y su panel sin tocar la
   const voceros = await readFile(join(output, 'admin/voceros/index.html'), 'utf8');
   for (const html of [admin, voceros]) {
     const order = [...html.matchAll(/class="admin-nav-link" href="([^"]+)"/g)].map(match => match[1]);
-    assert.deepEqual(order, ['/admin/panel/', '/admin/voceros/', '/admin/medios/', '/admin/emprendedores/']);
+    assert.deepEqual(order, ['/admin/panel/', '/admin/voceros/', '/admin/medios/', '/admin/emprendedores/', '/admin/creadoras/']);
   }
   assert.match(admin, /href="\/admin\/medios\/" aria-current="page"/);
   assert.match(voceros, /href="\/admin\/voceros\/" aria-current="page"/);

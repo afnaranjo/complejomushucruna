@@ -81,7 +81,7 @@ export async function buildSite(outputDirectory = join(websiteRoot, 'dist'), { a
     const relativePath = page.route === '/' ? 'index.html' : `${page.route.slice(1)}index.html`;
     const target = join(output, relativePath);
     await mkdir(dirname(target), { recursive: true });
-    const accountPage = page.route.startsWith('/admin/') || /^\/finados\/(?:voceros|medios|emprendedores)\/(acceso|mi-registro|restablecer|acreditacion)\/$/.test(page.route);
+    const accountPage = page.route.startsWith('/admin/') || /^\/finados\/(?:voceros|medios|emprendedores|creadoras)\/(acceso|mi-registro|restablecer|acreditacion)\/$/.test(page.route);
     const html = page.render ? page.render(accountPage ? { ...page, adminEnvironment, adminApiBase: developmentApi } : page) : renderLayout(page);
     await writeFile(target, `${html}\n`, 'utf8');
   }
@@ -131,6 +131,11 @@ export async function buildSite(outputDirectory = join(websiteRoot, 'dist'), { a
   await cp(join(websiteRoot, 'src', 'finados', 'qrcode-generator.mjs'), join(finadosAssets, 'qrcode-generator.mjs'));
   await cp(join(websiteRoot, 'src', 'finados', 'runtime-origins.mjs'), join(finadosAssets, 'runtime-origins.mjs'));
   await cp(join(websiteRoot, 'src', 'finados', 'vocero-verification.js'), join(finadosAssets, 'vocero-verification.js'));
+  await cp(join(websiteRoot, 'src', 'finados', 'creadoras.css'), join(finadosAssets, 'creadoras.css'));
+  const creadoraPortalScript = await readFile(join(websiteRoot, 'src', 'finados', 'creadora-portal.js'), 'utf8');
+  await writeFile(join(finadosAssets, 'creadora-portal.js'), creadoraPortalScript.replace(
+    "const LOCAL_API = 'http://127.0.0.1:4174/api';",
+    adminEnvironment === 'production' ? 'const LOCAL_API = null;' : `const LOCAL_API = '${developmentApi}';`), 'utf8');
   const portalScript = await readFile(join(websiteRoot, 'src', 'finados', 'vocero-portal.js'), 'utf8');
   await writeFile(join(finadosAssets, 'vocero-portal.js'), portalScript.replace(
     "const LOCAL_API = 'http://127.0.0.1:4174/api';",
@@ -172,6 +177,11 @@ export async function buildSite(outputDirectory = join(websiteRoot, 'dist'), { a
     "const LOCAL_API = 'http://127.0.0.1:4174/api';",
     adminEnvironment === 'production' ? 'const LOCAL_API = null;' : `const LOCAL_API = '${developmentApi}';`), 'utf8');
 
+  const adminCreadorasScript = await readFile(join(websiteRoot, 'src', 'admin', 'admin-creadoras.js'), 'utf8');
+  await writeFile(join(adminAssets, 'admin-creadoras.js'), adminCreadorasScript.replace(
+    "const LOCAL_API = 'http://127.0.0.1:4174/api';",
+    adminEnvironment === 'production' ? 'const LOCAL_API = null;' : `const LOCAL_API = '${developmentApi}';`), 'utf8');
+
   const adminMediaScript = await readFile(join(websiteRoot, 'src', 'admin', 'admin-medios.js'), 'utf8');
   await writeFile(join(adminAssets, 'admin-medios.js'), adminMediaScript.replace(
     "const LOCAL_API = 'http://127.0.0.1:4174/api';",
@@ -179,7 +189,7 @@ export async function buildSite(outputDirectory = join(websiteRoot, 'dist'), { a
 
   const htmlFiles = (await listFiles(output)).filter((file) => file.endsWith('.html'));
   for (const htmlFile of htmlFiles) {
-    const accountPage = htmlFile.startsWith('admin/') || /^finados\/(?:voceros|medios|emprendedores)\/(acceso|mi-registro|restablecer|acreditacion)\//.test(htmlFile);
+    const accountPage = htmlFile.startsWith('admin/') || /^finados\/(?:voceros|medios|emprendedores|creadoras)\/(acceso|mi-registro|restablecer|acreditacion)\//.test(htmlFile);
     if (accountPage) continue;
     const path = join(output, htmlFile);
     const html = await readFile(path, 'utf8');

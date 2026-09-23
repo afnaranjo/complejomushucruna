@@ -12,9 +12,10 @@ const ADMIN_FORMS = Object.freeze([
   { route: '/admin/voceros/', label: 'Voceros', description: 'Registros y seguimiento', marker: 'V' },
   { route: '/admin/medios/', label: 'Medios', description: 'Acreditación de medios', marker: 'M', children: [{ route: '/admin/medios/eventos/', label: 'Eventos', description: 'Cobertura por evento' }] },
   { route: '/admin/emprendedores/', label: 'Emprendedores', description: 'De emprendedor a influencer', marker: 'E' },
+  { route: '/admin/creadoras/', label: 'Creadoras', description: 'Contenido y calendario', marker: 'C' },
 ]);
 // Public landing that each panel returns to from its header.
-const PANEL_LANDINGS = Object.freeze({ '/admin/panel/': ['/finados/', 'Volver a Finados'], '/admin/voceros/': ['/finados/voceros/', 'Volver a Voceros'], '/admin/medios/': ['/finados/medios/', 'Volver a Medios'], '/admin/medios/eventos/': ['/finados/medios/', 'Volver a Medios'], '/admin/emprendedores/': ['/finados/emprendedores/', 'Volver a Emprendedores'] });
+const PANEL_LANDINGS = Object.freeze({ '/admin/panel/': ['/finados/', 'Volver a Finados'], '/admin/voceros/': ['/finados/voceros/', 'Volver a Voceros'], '/admin/medios/': ['/finados/medios/', 'Volver a Medios'], '/admin/medios/eventos/': ['/finados/medios/', 'Volver a Medios'], '/admin/emprendedores/': ['/finados/emprendedores/', 'Volver a Emprendedores'], '/admin/creadoras/': ['/finados/creadoras/', 'Volver a Creadoras'] });
 const PROGRESS_LEVELS = ['En preparación', 'Primer paso', 'Gorra', 'Kit completo', 'Trae a los tuyos', 'Noche de concierto', 'Tope'];
 const VIDEO_SLOTS = Object.freeze([1, 2, 3, 4, 5]);
 const videoSlotControls = (prefix = 'video') => VIDEO_SLOTS.map(slot => `<label class="admin-video-control"><span class="admin-video-check"><input type="checkbox" name="${prefix}_${slot}_enabled" value="1"><strong>Video ${slot}</strong></span><span class="admin-video-date"><span>Habilitado desde</span><input type="date" name="${prefix}_${slot}_enabled_at" aria-label="Fecha de habilitación del video ${slot}"></span></label>`).join('');
@@ -155,6 +156,7 @@ ${select('province', 'Provincia', ecuadorProvinces)}</div>
 </dialog>${mediaRecordDialog()}</main></div>`, ADMIN_MEDIOS_SCRIPT);
 }
 
+const ADMIN_CREADORAS_SCRIPT = '/assets/admin/admin-creadoras.js?v=20260923-creadoras-1';
 const ADMIN_MEDIOS_SCRIPT = '/assets/admin/admin-medios.js?v=20260923-admin-medios-20';
 const RADIO_GENRE_OPTIONS = ['Noticias e información', 'Musical variada', 'Popular y tropical', 'Folclórica y andina', 'Juvenil y pop', 'Romántica', 'Religiosa', 'Deportiva', 'Comunitaria', 'Otro'];
 const PROVINCE_OPTIONS = ['Azuay', 'Bolívar', 'Cañar', 'Carchi', 'Chimborazo', 'Cotopaxi', 'El Oro', 'Esmeraldas', 'Galápagos', 'Guayas', 'Imbabura', 'Loja', 'Los Ríos', 'Manabí', 'Morona Santiago', 'Napo', 'Orellana', 'Pastaza', 'Pichincha', 'Santa Elena', 'Santo Domingo de los Tsáchilas', 'Sucumbíos', 'Tungurahua', 'Zamora Chinchipe'];
@@ -240,6 +242,59 @@ ${select('main_network', 'Red principal', ['TikTok', 'Instagram', 'Facebook'])}<
 <section class="admin-progress" aria-labelledby="admin-progress-title"><div class="admin-progress-heading"><div><h3 id="admin-progress-title">Progreso del emprendedor</h3><p>Registra los seguidores validados, el nivel, el semáforo y las views validadas de cada video. Las fechas se configuran una sola vez en la sección global.</p></div><span data-admin-progress-summary>Sin actualizar</span></div><form data-progress-form><fieldset disabled><div class="admin-progress-grid"><label>Seguidores validados<input type="number" name="followers_count" min="0" max="1000000000" step="1" required></label><label>Nivel<select name="level" required>${EMPRENDEDOR_LEVELS.map((label, index) => `<option value="${index}">${index} · ${esc(label)}</option>`).join('')}</select></label><label>Semáforo<select name="traffic_light" required><option value="red">Rojo · En preparación</option><option value="yellow">Amarillo · En avance</option><option value="green">Verde · Listo</option></select></label></div><div class="admin-videos" data-admin-videos></div><button class="button-primary" type="submit">Guardar progreso</button></fieldset></form><p class="feedback" data-progress-feedback role="status" aria-live="polite"></p></section>
 <section class="notes-section"><h3>Notas internas</h3><ol data-notes></ol><form data-note-form><fieldset disabled><label>Añadir nota<textarea name="body" rows="3" maxlength="2000" required></textarea></label><button class="button-primary" type="submit">Guardar nota</button></fieldset></form></section>
 </dialog></main></div>`, '/assets/admin/admin-emprendedores.js?v=20260923-admin-sidebar-1');
+}
+
+export function renderAdminCreadorasPage(page) {
+  const statuses = ['Activa', 'Nuevo', 'En pausa'].map(value => `<option value="${esc(value)}">${esc(value)}</option>`).join('');
+  const networks = Object.entries({ tiktok: 'TikTok', instagram: 'Instagram', facebook: 'Facebook', youtube: 'YouTube', otro: 'Otra red' })
+    .map(([value, label]) => `<option value="${esc(value)}">${esc(label)}</option>`).join('');
+  return layout(page, `<div class="admin-shell">${adminSidebar(page)}<main id="contenido" class="admin-workspace" data-admin-creadoras>
+<div class="workspace-heading"><div><p class="eyebrow">Finados 2026</p><h1>Creadoras de contenido</h1><p data-admin-user>Comprobando acceso…</p></div>
+<div class="workspace-actions"><button type="button" class="button-primary" data-creadora-new>Agregar creadora</button></div></div>
+<p class="feedback" data-admin-feedback role="status" aria-live="polite" aria-atomic="true">Cargando calendario…</p>
+<div class="calendar-bar">
+<div class="calendar-views" role="group" aria-label="Vista del calendario">
+<button type="button" class="button-quiet" data-view="day" aria-pressed="false">Día</button>
+<button type="button" class="button-quiet" data-view="week" aria-pressed="true">Semana</button>
+<button type="button" class="button-quiet" data-view="month" aria-pressed="false">Mes</button>
+</div>
+<div class="calendar-move">
+<button type="button" class="button-quiet" data-calendar-previous aria-label="Periodo anterior">◀</button>
+<strong data-calendar-label>…</strong>
+<button type="button" class="button-quiet" data-calendar-next aria-label="Periodo siguiente">▶</button>
+<button type="button" class="button-quiet" data-calendar-today>Hoy</button>
+</div>
+</div>
+<div class="calendar-layout">
+<aside class="calendar-people" aria-labelledby="creadoras-title">
+<h2 id="creadoras-title">Creadoras</h2>
+<p>Arrastra un nombre al calendario, o tócalo y luego toca la hora.</p>
+<ul data-creadora-list></ul>
+</aside>
+<section class="calendar-board" aria-label="Calendario de turnos">
+<div class="calendar-grid" data-calendar-grid></div>
+<div class="calendar-month" data-calendar-month hidden></div>
+<p class="calendar-help">Arrastra una caja para moverla de día u hora. Doble clic para quitarla del calendario.</p>
+</section>
+</div>
+<section class="admin-panel-section" aria-labelledby="bitacora-title">
+<div class="records-heading"><div><h2 id="bitacora-title">Cambios del calendario</h2><p>Quién cambió qué y cómo quedó. Lo más reciente primero.</p></div></div>
+<ol class="calendar-log" data-calendar-log></ol>
+</section>
+<dialog class="record-dialog" data-creadora-dialog aria-label="Agregar creadora">
+<form method="dialog" class="record-form">
+<h2>Agregar creadora</h2>
+<label>Nombre y apellido<input name="full_name" maxlength="160" required></label>
+<label>Estado<select name="status">${statuses}</select></label>
+<label>WhatsApp<input name="whatsapp" maxlength="32" inputmode="tel" placeholder="0990000000"></label>
+<label>Ciudad<input name="city" maxlength="120"></label>
+<label>Red principal<select name="main_network"><option value="">Sin definir</option>${networks}</select></label>
+<label>Enlace de su cuenta<input name="social_link" type="url" maxlength="400" placeholder="https://"></label>
+<label>Nota de coordinación<textarea name="note" rows="3" maxlength="2000"></textarea></label>
+<div class="record-form__actions"><button type="submit" value="cancel" class="button-quiet">Cancelar</button><button type="submit" value="save" class="button-primary">Guardar</button></div>
+</form>
+</dialog>
+</main></div>`, ADMIN_CREADORAS_SCRIPT);
 }
 
 export function renderAdminPanelPage(page) {
