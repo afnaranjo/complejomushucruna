@@ -1748,3 +1748,13 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - QA: prueba específica 10/10 y `npm run check` completo con 205 pruebas Node, 25 suites PHP, 10 de integración, build de 184 archivos/62 HTML y 1.934 referencias. Revisión local en escritorio y móvil, sin desbordamiento horizontal.
 - Commit técnico `5f5d174` publicado en `origin/main`. Prevuelo y despliegue frontend completados con respaldo; no se desplegó backend ni se ejecutaron migraciones.
 - Verificación independiente en `complejomushucruna.com` y `finados.expoferiamushucruna.com`: FINADOS y SHOWS cargan la versión nueva, el CSS declara ancho completo y el arte coincide con el build por SHA-256. Sin cambios de base de datos, DNS, Google Sheets o formularios.
+
+### 2026-09-23 — Varias creadoras en un mismo turno e indicadores por creadora
+
+- Alex pidió que un mismo horario pueda reunir a varias creadoras en una sola caja y ver arriba, por cada una, cuántos videos, guiones y grabaciones lleva.
+- Un turno ahora tiene integrantes (`creadora_shift_members`): el formulario usa casillas y soltar un nombre de la lista sobre una caja lo suma a ese turno. Ninguna integrante puede estar en dos turnos a la vez (409). La asistencia se marca por creadora; la caja la resume («2/3 asistieron») y muestra un punto del color de cada integrante.
+- El contenido registrado lleva a su dueña; el guion es de una creadora o «para todas» y tiene la casilla «Ya está grabado», que se guarda al instante. La caja muestra «3 guiones · 1 grabado».
+- Arriba del calendario: totales (turnos, asistencias, guiones, grabados, videos, contenido) y una tarjeta por creadora con esos seis números y una barra de avance de lo grabado. Un guion «para todas» cuenta para cada integrante y una sola vez en el total.
+- Migración aditiva `026_creadora_shift_members`: tabla de integrantes cargada con los turnos existentes, `creadora_id` y `recorded_at` en guiones y `creadora_id` en contenido, rellenados desde la creadora del turno. No borra ni modifica registros. Retirar a una creadora de un turno compartido deja el turno en pie para las demás; el portal de la creadora ve también los turnos que comparte.
+- QA: `npm run check` completo en verde con 206 pruebas Node, 25 suites PHP y 10 de integración; build de 184 archivos, 62 HTML y 1934 referencias, repetido tras integrar dos commits ajenos de auspiciantes. La interacción visual no se revisó en navegador desde esta sesión.
+- Commit: `Reunir varias creadoras en un turno y mostrar sus indicadores`. Publicación externa: solo GitHub. **No está desplegado**: requiere autorización de Alex para backend → frontend con la migración 026.
