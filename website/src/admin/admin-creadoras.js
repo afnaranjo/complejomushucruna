@@ -259,6 +259,27 @@ export function layoutDay(shifts, key) {
   return placed;
 }
 
+/** Matices bien separados entre sí, para que dos creadoras seguidas no se confundan. */
+export const CREADORA_HUES = Object.freeze([320, 266, 20, 158, 205, 42, 288, 4, 186, 96, 240, 340]);
+
+/**
+ * El color de cada creadora sale de su identificador, así que es siempre el mismo aunque cambie
+ * el orden de la lista o se recargue la página.
+ */
+export function creadoraColor(publicId) {
+  const text = String(publicId ?? '');
+  let hash = 7;
+  for (let index = 0; index < text.length; index += 1) hash = (hash * 31 + text.charCodeAt(index)) % 1000003;
+  const hue = CREADORA_HUES[hash % CREADORA_HUES.length];
+  return { hue, soft: `hsl(${hue} 74% 93%)`, edge: `hsl(${hue} 55% 42%)`, ink: `hsl(${hue} 62% 24%)` };
+}
+
+/** Lo que se lee mientras se arrastra: a quién se mueve, a qué día y a qué hora quedaría. */
+export function dragPreview(shift, key, startMinutes) {
+  const moved = movedShift(shift, key, startMinutes);
+  return `${shift.name ?? ''} · ${dayLabel(key, true)} · ${shiftLabel(moved)}`.trim();
+}
+
 export function shiftLabel(shift) {
   const start = parseMoment(shift.starts_at);
   const end = parseMoment(shift.ends_at);
@@ -411,6 +432,9 @@ export async function initializeAdminCreadoras() {
     for (const creadora of state.creadoras) {
       const item = node('li', undefined, 'creadora-chip');
       item.dataset.creadora = creadora.public_id;
+      const color = creadoraColor(creadora.public_id);
+      item.style.setProperty('--shift-soft', color.soft);
+      item.style.setProperty('--shift-edge', color.edge);
       item.draggable = true;
       item.tabIndex = 0;
       item.setAttribute('role', 'button');
@@ -453,11 +477,35 @@ export async function initializeAdminCreadoras() {
     } catch (error) { fail(error); await load(false); }
   }
 
+  /** Una sola etiqueta flotante dice, mientras se arrastra, dónde caería el turno. */
+  const ghost = node('div', '', 'shift-ghost');
+  ghost.hidden = true;
+  document.body.append(ghost);
+  const showGhost = (text, x, y) => {
+    ghost.textContent = text;
+    ghost.style.transform = `translate(${x + 14}px, ${y - 12}px)`;
+    ghost.hidden = false;
+  };
+  const hideGhost = () => { ghost.hidden = true; };
+
+  function canvasAt(x, y) {
+    const element = document.elementFromPoint(x, y);
+    return element?.closest?.('[data-day]') ?? null;
+  }
+
+  function minutesIn(canvas, y) {
+    const rect = canvas.getBoundingClientRect();
+    return minutesFromOffset((y - rect.top) / rect.height);
+  }
+
   function shiftBox(shift, key, { absolute, placement = null }) {
+    const color = creadoraColor(shift.creadora);
     const box = node('article', undefined, 'shift-box');
     box.dataset.shift = shift.public_id;
-    box.draggable = true;
     box.tabIndex = 0;
+    box.style.setProperty('--shift-soft', color.soft);
+    box.style.setProperty('--shift-edge', color.edge);
+    box.style.setProperty('--shift-ink', color.ink);
     box.append(node('strong', shift.name), node('span', shiftLabel(shift)));
     if (shift.place) box.append(node('small', shift.place));
     if (absolute) {
@@ -471,38 +519,78 @@ export async function initializeAdminCreadoras() {
       box.style.left = `calc(${(column / columns) * 100}% + .2rem)`;
       box.style.width = `calc(${(1 / columns) * 100}% - .4rem)`;
       if (columns > 1) box.dataset.shared = 'true';
+
+      // Mover: la caja sigue al puntero y la etiqueta canta la hora hasta que se suelta.
+      box.addEventListener('pointerdown', event => {
+        if (event.button !== 0 || event.target.classList.contains('shift-box__handle')) return;
+        const origin = { x: event.clientX, y: event.clientY };
+        let dragging = false;
+        let target = null;
+        box.setPointerCapture(event.pointerId);
+        const move = moved => {
+          if (!dragging && Math.hypot(moved.clientX - origin.x, moved.clientY - origin.y) < 5) return;
+          dragging = true;
+          box.dataset.dragging = 'true';
+          const canvas = canvasAt(moved.clientX, moved.clientY);
+          if (!canvas) { showGhost('Suelta dentro del calendario', moved.clientX, moved.clientY); target = null; return; }
+          const minutes = minutesIn(canvas, moved.clientY);
+          target = { key: canvas.dataset.day, minutes };
+          showGhost(dragPreview(shift, target.key, minutes), moved.clientX, moved.clientY);
+        };
+        const end = async () => {
+          box.removeEventListener('pointermove', move);
+          box.removeEventListener('pointerup', end);
+          box.removeEventListener('pointercancel', stop);
+          delete box.dataset.dragging;
+          hideGhost();
+          if (!dragging) { editShift(shift); return; }
+          if (!target) { renderGrid(); return; }
+          await save(() => client.updateShift(shift.public_id, movedShift(shift, target.key, target.minutes)));
+        };
+        const stop = () => {
+          box.removeEventListener('pointermove', move);
+          box.removeEventListener('pointerup', end);
+          box.removeEventListener('pointercancel', stop);
+          delete box.dataset.dragging;
+          hideGhost();
+          renderGrid();
+        };
+        box.addEventListener('pointermove', move);
+        box.addEventListener('pointerup', end);
+        box.addEventListener('pointercancel', stop);
+      });
+
       const handle = node('span', '', 'shift-box__handle');
       handle.title = 'Arrastra para cambiar la hora de fin.';
       handle.setAttribute('aria-hidden', 'true');
-      // Arrastrar el borde inferior alarga o acorta el turno; al soltar se guarda.
+      // Estirar: solo se mueve el final, y la etiqueta muestra el horario resultante.
       handle.addEventListener('pointerdown', event => {
         event.preventDefault();
         event.stopPropagation();
         const canvas = box.parentElement;
         if (!canvas) return;
-        box.draggable = false;
         handle.setPointerCapture(event.pointerId);
         let minutes = minutesOf(shift.ends_at);
-        const preview = event_ => {
-          const rect = canvas.getBoundingClientRect();
-          minutes = minutesFromOffset((event_.clientY - rect.top) / rect.height);
+        const preview = moved => {
+          minutes = minutesIn(canvas, moved.clientY);
           const next = resizedShift(shift, minutes);
-          const geometry = shiftGeometry({ ...shift, ends_at: `${next.ends_at}:00` }, key);
+          const geometry = shiftGeometry({ ...shift, ends_at: next.ends_at }, key);
           if (geometry) box.style.height = `${geometry.height}%`;
-          box.querySelector('span').textContent = shiftLabel({ starts_at: shift.starts_at, ends_at: `${next.ends_at}:00` });
+          box.querySelector('span').textContent = shiftLabel(next);
+          showGhost(`${shift.name} · ${shiftLabel(next)}`, moved.clientX, moved.clientY);
         };
         const finish = async () => {
           handle.removeEventListener('pointermove', preview);
           handle.removeEventListener('pointerup', finish);
           handle.removeEventListener('pointercancel', cancel);
-          box.draggable = true;
+          hideGhost();
           await save(() => client.updateShift(shift.public_id, resizedShift(shift, minutes)));
         };
         const cancel = () => {
           handle.removeEventListener('pointermove', preview);
           handle.removeEventListener('pointerup', finish);
           handle.removeEventListener('pointercancel', cancel);
-          box.draggable = true;
+          hideGhost();
           renderGrid();
         };
         handle.addEventListener('pointermove', preview);
@@ -510,11 +598,11 @@ export async function initializeAdminCreadoras() {
         handle.addEventListener('pointercancel', cancel);
       });
       box.append(handle);
+    } else {
+      box.addEventListener('click', event => { event.stopPropagation(); editShift(shift); });
     }
-    box.addEventListener('dragstart', event => { event.dataTransfer.setData('text/plain', `shift:${shift.public_id}`); event.dataTransfer.effectAllowed = 'move'; });
-    box.addEventListener('click', event => { event.stopPropagation(); editShift(shift); });
     box.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); editShift(shift); } });
-    box.title = `${shift.name} · ${shiftLabel(shift)}${shift.place ? ` · ${shift.place}` : ''}\nArrastra para mover, o toca para abrir el turno.`;
+    box.title = `${shift.name} · ${shiftLabel(shift)}${shift.place ? ` · ${shift.place}` : ''}\nArrastra para mover, o el borde de abajo para cambiar la hora de fin.`;
     return box;
   }
 

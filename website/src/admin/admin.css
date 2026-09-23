@@ -281,3 +281,13 @@ tr[data-origin="cuenta"] > td { background: rgba(0, 210, 214, .05); }
 .calendar-clipboard { margin-top: .5rem; padding: .5rem .75rem; border: 1px dashed #94165e; border-radius: .6rem; background: rgba(148, 22, 94, .07); font-size: .8rem; }
 .calendar-clipboard .button-quiet { min-height: 32px; padding: 4px 10px; margin-left: .5rem; font-size: .74rem; }
 .shift-box__handle { cursor: ns-resize; touch-action: none; height: 14px; }
+
+/* Cada creadora tiene su color: el mismo en la lista y en sus cajas del calendario. */
+.creadora-chip { border-left: 5px solid var(--shift-edge, #d9ced6); }
+.shift-box { background: var(--shift-soft, #fbe6f0); border-color: var(--shift-edge, #94165e); color: var(--shift-ink, #241146); transition: box-shadow .12s, opacity .12s; touch-action: none; }
+.shift-box span { color: var(--shift-ink, #6c2448); }
+.shift-box:hover { box-shadow: 0 2px 10px rgba(36, 17, 70, .22); }
+.shift-box[data-dragging="true"] { opacity: .45; box-shadow: none; }
+.shift-box__handle::after { background: var(--shift-edge, #94165e); }
+/* La etiqueta que acompaña al puntero mientras se arrastra. */
+.shift-ghost { position: fixed; top: 0; left: 0; z-index: 60; pointer-events: none; padding: .35rem .6rem; border-radius: .5rem; background: #241146; color: #f4eada; font-size: .78rem; font-weight: 650; white-space: nowrap; box-shadow: 0 6px 18px rgba(36, 17, 70, .35); }

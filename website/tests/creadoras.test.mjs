@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import { buildSite } from '../scripts/build.mjs';
 import {
   createCreadoraAdminClient, creadoraPayload, CREADORA_FIELDS, dayKey, defaultShift, describeLogEntry, fillCreadoraForm, minutesFromOffset,
-  duplicatedShift, durationLabel, layoutDay, minutesFromTime, movedShift, pastedShift, rangeLabel, resizedShift,
+  creadoraColor, CREADORA_HUES, dragPreview, duplicatedShift, durationLabel, layoutDay, minutesFromTime, movedShift, pastedShift, rangeLabel, resizedShift,
   shiftFormValues, shiftGeometry, shiftLabel, shiftPayload, shiftView, viewRange, weekStart,
   DAY_START_HOUR, DAY_END_HOUR, MAX_END_MINUTES, STEP_MINUTES,
 } from '../src/admin/admin-creadoras.js';
@@ -195,6 +195,10 @@ test('la sección de creadoras se publica con su calendario, su bitácora y su e
   for (const marker of ['data-shift-duplicate', 'data-shift-copy', 'data-shift-duration', 'data-clipboard', 'data-clipboard-cancel'])
     assert.match(page, new RegExp(marker), marker);
   assert.match(page, /su borde de abajo para cambiar la hora de fin/);
+  // El arrastre es propio, no el del navegador: la caja ya no usa draggable.
+  const bundleSource = await readFile(join(output, 'assets/admin/admin-creadoras.js'), 'utf8');
+  assert.match(bundleSource, /shift-ghost/, 'la etiqueta de arrastre viaja en el bundle');
+  assert.match(bundleSource, /setPointerCapture/);
   // La ficha pide los datos de la persona, no solo el nombre.
   for (const name of ['cedula', 'birth_date', 'contact_email', 'followers_count', 'tiktok', 'instagram', 'facebook'])
     assert.match(page, new RegExp(`name="${name}"`), name);
@@ -297,4 +301,25 @@ test('la duración se dice en palabras y el fin anterior al inicio se explica', 
   // El caso real: elegir 12:00 a. m. en vez de p. m. deja el fin en medianoche.
   assert.throws(() => shiftPayload(new Map([['creadora', 'a'], ['day', '2026-10-30'], ['start', '09:00'], ['end', '00:00']])),
     /posterior a la de inicio.*a\. m\./s);
+});
+
+test('cada creadora conserva su color, y arrastrando se lee a dónde va el turno', () => {
+  const id = 'a'.repeat(32);
+  const color = creadoraColor(id);
+  // El color sale del identificador: no cambia al recargar ni al reordenar la lista.
+  assert.deepEqual(color, creadoraColor(id));
+  assert.ok(CREADORA_HUES.includes(color.hue));
+  assert.match(color.soft, /^hsl\(\d+ 74% 93%\)$/);
+  assert.match(color.edge, /^hsl\(\d+ 55% 42%\)$/);
+  // Creadoras distintas no comparten color mientras quepan en la paleta.
+  const hues = new Set(Array.from({ length: CREADORA_HUES.length }, (_, index) => creadoraColor(`${index}`.padStart(32, '0')).hue));
+  assert.ok(hues.size > 1, 'la paleta reparte matices distintos');
+  // Un identificador vacío no rompe el color.
+  assert.ok(CREADORA_HUES.includes(creadoraColor(undefined).hue));
+
+  // Mientras se arrastra se ve quién, qué día y qué horas quedarían.
+  const shift = { name: 'Jhos', starts_at: '2026-09-21 09:15:00', ends_at: '2026-09-21 12:15:00' };
+  assert.equal(dragPreview(shift, '2026-09-22', 10 * 60 + 15), 'Jhos · mar 22 · 10:15–13:15');
+  // La duración se conserva al cambiar de día.
+  assert.equal(dragPreview(shift, '2026-09-24', 6 * 60), 'Jhos · jue 24 · 06:00–09:00');
 });
