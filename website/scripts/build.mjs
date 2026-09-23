@@ -1,4 +1,4 @@
-import { cp, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import { copyFile, cp, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { dirname, join, relative, resolve } from 'node:path';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
@@ -155,6 +155,8 @@ export async function buildSite(outputDirectory = join(websiteRoot, 'dist'), { a
     '-i', join(websiteRoot, 'src', 'admin', 'admin.css'),
     '-o', join(adminAssets, 'admin.css'), '--minify',
   ], { cwd: websiteRoot });
+  // El plegado del menú lateral lo comparten las cuatro pantallas administrativas.
+  await copyFile(join(websiteRoot, 'src', 'admin', 'sidebar.js'), join(adminAssets, 'sidebar.js'));
   const adminScript = await readFile(join(websiteRoot, 'src', 'admin', 'admin.js'), 'utf8');
   await writeFile(join(adminAssets, 'admin.js'), adminEnvironment === 'production'
     ? adminScript.replace("const LOCAL_API = 'http://127.0.0.1:4174/api';", 'const LOCAL_API = null;')

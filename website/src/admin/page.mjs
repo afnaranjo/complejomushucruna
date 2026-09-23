@@ -23,9 +23,14 @@ function adminSidebar(page) {
   const currentForm = ADMIN_FORMS.find(item => item.route === page.route || (item.children ?? []).some(child => child.route === page.route));
   const links = ADMIN_FORMS.map((item) => {
     const current = item.route === page.route ? ' aria-current="page"' : '';
-    // A submenu (e.g. Medios → Eventos) renders as indented links right below its parent.
-    const children = (item.children ?? []).map(child => `<a class="admin-nav-link admin-nav-link--child" href="${esc(child.route)}"${child.route === page.route ? ' aria-current="page"' : ''}><span class="admin-nav-marker" aria-hidden="true">›</span><span><strong>${esc(child.label)}</strong><small>${esc(child.description)}</small></span></a>`).join('');
-    return `<a class="admin-nav-link" href="${esc(item.route)}"${current}><span class="admin-nav-marker" aria-hidden="true">${esc(item.marker)}</span><span><strong>${esc(item.label)}</strong><small>${esc(item.description)}</small></span></a>${children}`;
+    // A submenu (e.g. Medios → Eventos) stays inside its section and opens on the first click.
+    const children = item.children ?? [];
+    const panel = `admin-nav-${esc(item.route.replace(/\/+$/, '').split('/').pop())}`;
+    const body = `<span class="admin-nav-marker" aria-hidden="true">${esc(item.marker)}</span><span><strong>${esc(item.label)}</strong><small>${esc(item.description)}</small></span>${children.length ? '<span class="admin-nav-chevron" aria-hidden="true">⌄</span>' : ''}`;
+    const link = `<a class="admin-nav-link" href="${esc(item.route)}"${current}${children.length ? ` data-nav-parent aria-expanded="true" aria-controls="${panel}"` : ''}>${body}</a>`;
+    if (!children.length) return link;
+    const options = children.map(child => `<a class="admin-nav-link admin-nav-link--child" href="${esc(child.route)}"${child.route === page.route ? ' aria-current="page"' : ''}><span class="admin-nav-marker" aria-hidden="true">›</span><span><strong>${esc(child.label)}</strong><small>${esc(child.description)}</small></span></a>`).join('');
+    return `<div class="admin-nav-group" data-nav-group>${link}<div class="admin-nav-children" id="${panel}" data-nav-children>${options}</div></div>`;
   }).join('');
 
   return `<aside class="admin-sidebar" aria-label="Navegación administrativa">
@@ -41,7 +46,7 @@ function adminSidebar(page) {
 </aside>`;
 }
 
-function layout(page, content, script = '/assets/admin/admin.js?v=20260921-admin-top20-1') {
+function layout(page, content, script = '/assets/admin/admin.js?v=20260923-admin-sidebar-1') {
   const api = page.adminEnvironment === 'development' ? (page.adminApiBase ?? LOCAL_API_BASE) : PRIMARY_API_BASE;
   const connectSources = apiBasesForCsp(api);
   return `<!doctype html>
@@ -55,7 +60,7 @@ function layout(page, content, script = '/assets/admin/admin.js?v=20260921-admin
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' blob:; font-src 'self'; connect-src ${connectSources}; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="admin-api-base" content="${api}">
 <link rel="icon" href="/assets/finados/favicon-finados.png">
-<link rel="stylesheet" href="/assets/admin/admin.css?v=20260923-7">
+<link rel="stylesheet" href="/assets/admin/admin.css?v=20260923-8">
 <script type="module" src="${script}"></script>
 </head><body class="admin-page">
 <a class="skip-link" href="#contenido">Ir al contenido</a>
@@ -150,7 +155,7 @@ ${select('province', 'Provincia', ecuadorProvinces)}</div>
 </dialog>${mediaRecordDialog()}</main></div>`, ADMIN_MEDIOS_SCRIPT);
 }
 
-const ADMIN_MEDIOS_SCRIPT = '/assets/admin/admin-medios.js?v=20260923-admin-medios-19';
+const ADMIN_MEDIOS_SCRIPT = '/assets/admin/admin-medios.js?v=20260923-admin-medios-20';
 const RADIO_GENRE_OPTIONS = ['Noticias e información', 'Musical variada', 'Popular y tropical', 'Folclórica y andina', 'Juvenil y pop', 'Romántica', 'Religiosa', 'Deportiva', 'Comunitaria', 'Otro'];
 const PROVINCE_OPTIONS = ['Azuay', 'Bolívar', 'Cañar', 'Carchi', 'Chimborazo', 'Cotopaxi', 'El Oro', 'Esmeraldas', 'Galápagos', 'Guayas', 'Imbabura', 'Loja', 'Los Ríos', 'Manabí', 'Morona Santiago', 'Napo', 'Orellana', 'Pastaza', 'Pichincha', 'Santa Elena', 'Santo Domingo de los Tsáchilas', 'Sucumbíos', 'Tungurahua', 'Zamora Chinchipe'];
 
@@ -234,7 +239,7 @@ ${select('main_network', 'Red principal', ['TikTok', 'Instagram', 'Facebook'])}<
 <form data-status-form><fieldset disabled><label>Estado del registro<select name="status" required>${options(EMPRENDEDOR_STATUSES)}</select></label><button class="button-primary" type="submit">Guardar estado</button></fieldset></form>
 <section class="admin-progress" aria-labelledby="admin-progress-title"><div class="admin-progress-heading"><div><h3 id="admin-progress-title">Progreso del emprendedor</h3><p>Registra los seguidores validados, el nivel, el semáforo y las views validadas de cada video. Las fechas se configuran una sola vez en la sección global.</p></div><span data-admin-progress-summary>Sin actualizar</span></div><form data-progress-form><fieldset disabled><div class="admin-progress-grid"><label>Seguidores validados<input type="number" name="followers_count" min="0" max="1000000000" step="1" required></label><label>Nivel<select name="level" required>${EMPRENDEDOR_LEVELS.map((label, index) => `<option value="${index}">${index} · ${esc(label)}</option>`).join('')}</select></label><label>Semáforo<select name="traffic_light" required><option value="red">Rojo · En preparación</option><option value="yellow">Amarillo · En avance</option><option value="green">Verde · Listo</option></select></label></div><div class="admin-videos" data-admin-videos></div><button class="button-primary" type="submit">Guardar progreso</button></fieldset></form><p class="feedback" data-progress-feedback role="status" aria-live="polite"></p></section>
 <section class="notes-section"><h3>Notas internas</h3><ol data-notes></ol><form data-note-form><fieldset disabled><label>Añadir nota<textarea name="body" rows="3" maxlength="2000" required></textarea></label><button class="button-primary" type="submit">Guardar nota</button></fieldset></form></section>
-</dialog></main></div>`, '/assets/admin/admin-emprendedores.js?v=20260922-emprendedores-1');
+</dialog></main></div>`, '/assets/admin/admin-emprendedores.js?v=20260923-admin-sidebar-1');
 }
 
 export function renderAdminPanelPage(page) {
@@ -245,5 +250,5 @@ export function renderAdminPanelPage(page) {
 <section class="admin-panel-section" aria-labelledby="panel-medios-title"><div class="records-heading"><div><h2 id="panel-medios-title">Medios</h2><p>Toca un número para ver la lista.</p></div></div><div data-panel-media></div>
 <section class="admin-panel-subsection" aria-labelledby="panel-eventos-title"><div class="records-heading"><div><h3 id="panel-eventos-title">Medios por evento</h3><p>Abre un evento para ver su cobertura.</p></div></div><div data-panel-events></div></section></section>
 <section class="admin-panel-section" aria-labelledby="panel-voceros-title"><div class="records-heading"><div><h2 id="panel-voceros-title">Voceros</h2><p>Toca un número para ver la lista.</p></div></div><div data-panel-voceros></div></section>
-</main></div>`, '/assets/admin/panel.js?v=20260923-admin-panel-2');
+</main></div>`, '/assets/admin/panel.js?v=20260923-admin-panel-3');
 }

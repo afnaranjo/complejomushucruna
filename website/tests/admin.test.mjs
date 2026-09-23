@@ -264,6 +264,61 @@ test('admin orienta cada formulario desde una navegación lateral accesible', as
   assert.match(html, /Los próximos formularios aparecerán aquí cuando estén habilitados\./);
   assert.match(html, /class="admin-sidebar__account"[\s\S]*?data-admin-logout/);
   assert.equal([...html.matchAll(/aria-current="page"/g)].length, 1);
+
+  // Eventos vive dentro de Medios: el enlace de la sección manda sobre su panel de opciones.
+  const group = html.slice(html.indexOf('<div class="admin-nav-group"'), html.indexOf('</div>', html.indexOf('data-nav-children')) + 6);
+  assert.match(group, /href="\/admin\/medios\/" data-nav-parent aria-expanded="true" aria-controls="admin-nav-medios"/);
+  assert.match(group, /<div class="admin-nav-children" id="admin-nav-medios" data-nav-children>/);
+  assert.match(group, /href="\/admin\/medios\/eventos\/"/);
+  assert.ok(!html.includes('href="/admin/medios/eventos/"', html.indexOf('data-nav-children') + group.length),
+    'Eventos aparece una sola vez y siempre dentro de Medios');
+
+  // El módulo compartido se publica y lo carga cada pantalla administrativa.
+  const sidebar = await readFile(join(out, 'assets/admin/sidebar.js'), 'utf8');
+  assert.equal(sidebar, await readFile(new URL('../src/admin/sidebar.js', import.meta.url), 'utf8'));
+  for (const bundle of ['admin.js', 'panel.js', 'admin-medios.js', 'admin-emprendedores.js']) {
+    assert.match(await readFile(join(out, 'assets/admin', bundle), 'utf8'), /import '\.\/sidebar\.js\?v=/, bundle);
+  }
+});
+
+test('el submenú de Medios se pliega salvo en su propia sección', async () => {
+  const { initializeAdminSidebar, groupIsCurrent } = await import('../src/admin/sidebar.js');
+  const build = (currentChild = false) => {
+    const children = { hidden: false, querySelector: () => ({ focus() {} }) };
+    const parent = {
+      attributes: { 'aria-expanded': 'true' },
+      handler: null,
+      setAttribute(name, value) { this.attributes[name] = value; },
+      getAttribute(name) { return this.attributes[name]; },
+      addEventListener(_, handler) { this.handler = handler; },
+    };
+    const group = { querySelector: selector => (selector === '[data-nav-parent]' ? parent : children), current: currentChild };
+    group.querySelector = selector => {
+      if (selector === '[aria-current="page"]') return currentChild ? {} : null;
+      return selector === '[data-nav-parent]' ? parent : children;
+    };
+    initializeAdminSidebar({ querySelectorAll: () => [group] });
+    return { parent, children };
+  };
+
+  // Fuera de Medios arranca plegado; el primer clic no navega, abre.
+  const away = build(false);
+  assert.equal(away.children.hidden, true);
+  assert.equal(away.parent.getAttribute('aria-expanded'), 'false');
+  let prevented = false;
+  away.parent.handler({ preventDefault: () => { prevented = true; } });
+  assert.equal(prevented, true);
+  assert.equal(away.children.hidden, false);
+  // Ya abierto, el siguiente clic deja navegar.
+  prevented = false;
+  away.parent.handler({ preventDefault: () => { prevented = true; } });
+  assert.equal(prevented, false);
+
+  // Dentro de Medios o de Eventos se ve desplegado desde el inicio.
+  const inside = build(true);
+  assert.equal(inside.children.hidden, false);
+  assert.equal(inside.parent.getAttribute('aria-expanded'), 'true');
+  assert.equal(groupIsCurrent({ querySelector: () => null }), false);
 });
 
 test('admin limita el build de desarrollo a configuración local explícita', async () => {
