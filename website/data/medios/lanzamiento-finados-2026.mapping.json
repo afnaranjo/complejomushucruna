@@ -1,0 +1,40 @@
+{
+  "_comentario": "Mapeo de la hoja «Cobertura del lanzamiento de Finados 2026» hacia los registros de Medios. Solo nombres de medios; no contiene datos de personas. link: fila de la hoja → nombre exacto de la ficha existente. merge: fila de la hoja → fila canónica de la misma hoja (mismo medio repetido). representative_of: la fila describe a una persona; sus representantes se agregan a la ficha indicada. rename: fila de la hoja → nombre con el que se crea la ficha (cuando la hoja trae un rótulo y no el nombre del medio).",
+  "link": {
+    "MachDeportes": "MachDeportes",
+    "Ambato informado by William Sánchez": "Ambato informado by William Sánchez",
+    "NUEVOS HORIZONTES": "NUEVOS HORIZONTES",
+    "RADIO LA NUEVA 90.9 FM": "RADIO LA NUEVA 90.9",
+    "Sánchez Comunicaciones": "Sánchez Comunicaciones",
+    "Puruwa Canal 38": "Puruwa Canal 38",
+    "Fb radio Quito": "FB Radio 105.7 FM",
+    "Ambateñito.ec": "Diario Ambateñitoec",
+    "RADIO OLIMPICA": "Olimpica",
+    "Radio Runacunapac Yachana": "Radio Runacunapac",
+    "Producciones Radiofónicas Ec": "PRODUCCIONES RADIOFONICAS EC - GYE",
+    "DIARIO LA VECI": "Diario La Veci",
+    "RADIO AMBATO Y RADIO AMOR": "RADIO AMBATO y RADIO AMOR",
+    "RADIO ALTURA": "RADIO ALTURA 93.5 FM",
+    "RADIO PASION": "Radio Pasión 92.5",
+    "La Oficial": "La Oficial",
+    "RADIO ANDINA": "RADIO ANDINA 106.1 FM",
+    "VTV Radio 93.7 FM": "VTV RADIO"
+  },
+  "merge": {
+    "RADIO LA NUEVA": "RADIO LA NUEVA 90.9 FM",
+    "Puruwa": "Puruwa Canal 38",
+    "Radio Pasión": "RADIO PASION",
+    "Radio Mundo": "RADIO MUNDO FM",
+    "Radio centro": "Radio centro - Estereo San Miguel"
+  },
+  "representative_of": {
+    "María Dolores López": "AmbatV"
+  },
+  "_revisar": {
+    "RADIO BRISA": "Se crea aparte. Coordinación debe confirmar si es la misma radio que «Brisa Stereo» (Píllaro) ya registrada.",
+    "RADIO ESTÉREO SAN MIGUEL": "Se crea aparte (Salcedo, 95.7). Es distinta de «Radio centro - Estereo San Miguel» (91.7)."
+  },
+  "rename": {
+    "PERIODISTA": "Primera Plana"
+  }
+}

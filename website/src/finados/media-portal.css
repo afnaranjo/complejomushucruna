@@ -314,3 +314,9 @@
   padding:0;
   margin:0
 }
+
+/* Avisos de vinculación con registros cargados por coordinación */
+.vocero-notice { margin: .75rem 0; padding: .85rem 1rem; border-radius: .9rem; border: 1px solid rgba(255, 196, 46, .6); background: rgba(255, 196, 46, .14); color: #241146; font-size: .92rem; }
+.vocero-notice p { margin: 0 0 .5rem; }
+.media-lookup-list { list-style: none; margin: 0; padding: 0; display: grid; gap: .4rem; }
+.media-lookup-list button { width: 100%; text-align: left; }

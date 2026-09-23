@@ -43,6 +43,16 @@ final class MediaRepository
     public const TRAFFIC_LIGHTS = ['red', 'yellow', 'green'];
     /** Whether the organisation buys advertising in this medium (016). Internal, set only by administration and never shown to the medium. */
     public const PAID_MEDIA = ['no', 'yes'];
+    /** Who created the record: the medium itself (`cuenta`) or coordination on its behalf (`coordinacion`, 018). */
+    public const ORIGINS = ['cuenta', 'coordinacion'];
+    /** Outcome of a medium's coverage of one event, set by coordination. A link is not the only proof: radio mentions count too. */
+    public const COVERAGE_RESULTS = ['pendiente' => 'Pendiente', 'link' => 'Publicó con link', 'mencion' => 'Mención al aire', 'sin_publicacion' => 'No publicó', 'no_asistio' => 'No asistió'];
+    public const COVERAGE_PUBLISHED = ['link', 'mencion'];
+    /** Fields coordination may set when it creates or completes a record; contact data stays optional here. */
+    public const ADMIN_FIELDS = ['media_name', 'media_types', 'frequency', 'tv_channel', 'province', 'city', 'program_name', 'representatives', 'channels', 'followers_validated', 'paid_media', 'contact_name', 'phone', 'contact_email'];
+    public const MAX_REPRESENTATIVES = 20;
+    public const MAX_COVERAGE_LINKS = 20;
+    private const INVITATION_TTL = 7 * 86400;
     private const ARCHIVED = 'Eliminado';
     private const EDITABLE = ['Nuevo', 'En revisión'];
     // social_link keeps the first declared channel so lists and searches have one primary link.
@@ -155,6 +165,11 @@ final class MediaRepository
             if (!in_array($paid, self::PAID_MEDIA, true)) throw new InvalidArgumentException();
             $where[] = 'paid_media = ?'; $parameters[] = $paid;
         }
+        $origin = trim((string) ($filters['origin'] ?? ''));
+        if ($origin !== '') {
+            if (!in_array($origin, self::ORIGINS, true)) throw new InvalidArgumentException();
+            $where[] = 'origin = ?'; $parameters[] = $origin;
+        }
         $search = trim((string) ($filters['search'] ?? ''));
         if (self::length($search) > 100) throw new InvalidArgumentException();
         if ($search !== '') {
@@ -167,9 +182,9 @@ final class MediaRepository
         $count = $this->pdo->prepare('SELECT COUNT(*) FROM media_profiles WHERE ' . $condition);
         $count->execute($parameters);
         $total = (int) $count->fetchColumn();
-        $rows = $this->pdo->prepare('SELECT public_id, status, traffic_light, paid_media, media_name, media_types, frequency_channel, audience_count, radio_genre, province, city, social_link, channels, facebook, instagram, tiktok, youtube, website, other_link, submitted_at, (SELECT COUNT(*) FROM media_videos v WHERE v.profile_id = media_profiles.id) AS videos_count, (SELECT COALESCE(SUM(v.views_count), 0) FROM media_videos v WHERE v.profile_id = media_profiles.id) AS views_total FROM media_profiles WHERE ' . $condition . ' ORDER BY submitted_at DESC, id DESC LIMIT ' . $perPage . ' OFFSET ' . (($page - 1) * $perPage));
+        $rows = $this->pdo->prepare('SELECT public_id, status, traffic_light, paid_media, origin, account_id, claim_requested_at, program_name, followers_validated, media_name, media_types, frequency_channel, audience_count, radio_genre, province, city, social_link, channels, facebook, instagram, tiktok, youtube, website, other_link, submitted_at, (SELECT COUNT(*) FROM media_videos v WHERE v.profile_id = media_profiles.id) AS videos_count, (SELECT COALESCE(SUM(v.views_count), 0) FROM media_videos v WHERE v.profile_id = media_profiles.id) AS views_total FROM media_profiles WHERE ' . $condition . ' ORDER BY submitted_at DESC, id DESC LIMIT ' . $perPage . ' OFFSET ' . (($page - 1) * $perPage));
         $rows->execute($parameters);
-        $items = array_map(static function (array $row): array { $decoded = []; $legacy = array_flip(['facebook', 'instagram', 'tiktok', 'youtube', 'website', 'other_link']); return [...array_diff_key($row, $legacy), 'traffic_light' => self::light($row), 'paid_media' => self::paid($row), 'channels' => $decoded = self::channelsOf($row), 'followers_total' => self::followersTotal($decoded), 'media_types' => self::typeKeys((string) $row['media_types']), 'audience_count' => $row['audience_count'] === null ? null : (int) $row['audience_count'], 'videos_count' => (int) $row['videos_count'], 'views_total' => (int) $row['views_total']]; }, $rows->fetchAll(PDO::FETCH_ASSOC));
+        $items = array_map(static function (array $row): array { $decoded = []; $legacy = array_flip(['facebook', 'instagram', 'tiktok', 'youtube', 'website', 'other_link']); return [...array_diff_key($row, [...$legacy, 'account_id' => 1, 'claim_requested_at' => 1]), 'traffic_light' => self::light($row), 'paid_media' => self::paid($row), 'origin' => self::origin($row), 'linked' => $row['account_id'] !== null, 'claim_pending' => $row['claim_requested_at'] !== null, 'followers_validated' => $row['followers_validated'] === null ? null : (int) $row['followers_validated'], 'channels' => $decoded = self::channelsOf($row), 'followers_total' => self::followersTotal($decoded), 'media_types' => self::typeKeys((string) $row['media_types']), 'audience_count' => $row['audience_count'] === null ? null : (int) $row['audience_count'], 'videos_count' => (int) $row['videos_count'], 'views_total' => (int) $row['views_total']]; }, $rows->fetchAll(PDO::FETCH_ASSOC));
         return ['items' => $items, 'page' => $page, 'per_page' => $perPage, 'total' => $total];
     }
 
@@ -238,6 +253,17 @@ final class MediaRepository
         return in_array($row['paid_media'] ?? null, self::PAID_MEDIA, true) ? $row['paid_media'] : 'no';
     }
 
+    private static function origin(array $row): string
+    {
+        return in_array($row['origin'] ?? null, self::ORIGINS, true) ? $row['origin'] : 'cuenta';
+    }
+
+    private static function representativesOf(array $row): array
+    {
+        $list = json_decode((string) ($row['representatives'] ?? '') ?: '[]', true, 8);
+        return is_array($list) ? array_values(array_filter($list, static fn (mixed $entry): bool => is_array($entry) && is_string($entry['name'] ?? null))) : [];
+    }
+
     private static function followersTotal(array $channels): int
     {
         return (int) array_sum(array_map(static fn (mixed $channel): int => is_array($channel) && is_int($channel['followers'] ?? null) ? $channel['followers'] : 0, $channels));
@@ -262,8 +288,15 @@ final class MediaRepository
         $notes = $this->pdo->prepare('SELECT n.id, n.body, n.created_at, u.username AS author FROM media_notes n JOIN admin_users u ON u.id = n.author_id WHERE n.profile_id = ? ORDER BY n.created_at, n.id');
         $notes->execute([$row['id']]);
         $account = $this->pdo->prepare('SELECT email_enc, active, last_login_at FROM media_accounts WHERE id = ?');
-        $account->execute([$row['account_id']]);
+        $account->execute([$row['account_id'] ?? 0]);
         $owner = $account->fetch();
+        $claim = null;
+        if ($row['claim_account_id'] !== null) {
+            $claimant = $this->pdo->prepare('SELECT email_enc FROM media_accounts WHERE id = ?');
+            $claimant->execute([$row['claim_account_id']]);
+            $claimRow = $claimant->fetch();
+            $claim = ['email' => $claimRow ? $this->crypto->decrypt($claimRow['email_enc']) : '', 'requested_at' => $row['claim_requested_at']];
+        }
         return [
             ...$this->present($row),
             // Internal commercial flag: only the administrative projection carries it.
@@ -271,6 +304,9 @@ final class MediaRepository
             'account_email' => $owner ? $this->crypto->decrypt($owner['email_enc']) : '',
             'account_active' => $owner ? (int) $owner['active'] === 1 : false,
             'last_login_at' => $owner['last_login_at'] ?? null,
+            'claim' => $claim,
+            'invitation_allowed' => $row['account_id'] === null && $claim === null,
+            'coverage' => $this->coverageForProfile((int) $row['id']),
             'videos' => $this->videos((int) $row['id'], true),
             'consents' => $this->consents((int) $row['id']),
             'photo' => $this->photoMeta((int) $row['id']),
@@ -327,7 +363,7 @@ final class MediaRepository
         $this->mutate($publicId, function (array $row) use ($actorId, $ip, $publicId): void {
             $now = gmdate('Y-m-d H:i:s');
             $this->pdo->prepare('UPDATE media_profiles SET status = ?, updated_at = ? WHERE id = ?')->execute([self::ARCHIVED, $now, $row['id']]);
-            $this->pdo->prepare('UPDATE media_accounts SET active = 0, updated_at = ? WHERE id = ?')->execute([$now, $row['account_id']]);
+            if ($row['account_id'] !== null) $this->pdo->prepare('UPDATE media_accounts SET active = 0, updated_at = ? WHERE id = ?')->execute([$now, $row['account_id']]);
             $this->audit->log('media.archived', $actorId, 'media_profile', $publicId, [], $ip);
         });
     }
@@ -359,6 +395,344 @@ final class MediaRepository
             $this->rollBack();
             throw $error;
         }
+    }
+
+    // ---------------------------------------------------------------- coordination-created records
+
+    /** Coordination creates a record for a medium that has no account (yet); it may be linked to an account later. */
+    public function createByAdmin(array $input, int $actorId, string $ip = ''): array
+    {
+        $record = $this->validateAdmin($input);
+        $now = gmdate('Y-m-d H:i:s');
+        $this->begin();
+        try {
+            $this->assertNameAvailable($record['media_name'], null);
+            $publicId = bin2hex(random_bytes(16));
+            $legacy = self::LEGACY_PLAIN;
+            foreach (self::LEGACY_ENCRYPTED as $column) $legacy[$column] = $this->crypto->encrypt('');
+            $values = ['public_id' => $publicId, 'account_id' => null, 'status' => 'Nuevo', 'origin' => 'coordinacion', ...$legacy, ...$record['columns'],
+                'conditions_version' => 'coordinacion', 'conditions_hash' => hash('sha256', ''), 'conditions_accepted_at' => $now, 'submitted_at' => $now, 'updated_at' => $now];
+            $columns = array_keys($values);
+            $this->pdo->prepare('INSERT INTO media_profiles (' . implode(', ', $columns) . ') VALUES (' . implode(', ', array_fill(0, count($columns), '?')) . ')')->execute(array_values($values));
+            $this->audit->log('media.profile_created_by_admin', $actorId, 'media_profile', $publicId, [], $ip);
+            $this->commit();
+        } catch (Throwable $error) {
+            $this->rollBack();
+            throw $error;
+        }
+        return $this->find($publicId) ?? throw new RuntimeException();
+    }
+
+    /** Coordination completes or corrects a record, whatever its origin. */
+    public function updateByAdmin(string $publicId, array $input, int $actorId, string $ip = ''): void
+    {
+        $record = $this->validateAdmin($input);
+        $this->mutate($publicId, function (array $row) use ($record, $actorId, $ip, $publicId): void {
+            $this->assertNameAvailable($record['media_name'], (int) $row['id']);
+            $values = [...$record['columns'], 'updated_at' => gmdate('Y-m-d H:i:s')];
+            $assignments = implode(', ', array_map(static fn (string $column): string => $column . ' = ?', array_keys($values)));
+            $this->pdo->prepare('UPDATE media_profiles SET ' . $assignments . ' WHERE id = ?')->execute([...array_values($values), $row['id']]);
+            $this->audit->log('media.profile_updated_by_admin', $actorId, 'media_profile', $publicId, [], $ip);
+        });
+    }
+
+    /** Two active records may not share a name: this is how duplicates are avoided when coordination loads lists. */
+    private function assertNameAvailable(string $name, ?int $exceptId): void
+    {
+        $query = $this->pdo->prepare('SELECT id FROM media_profiles WHERE LOWER(media_name) = LOWER(?) AND status <> ?' . ($exceptId === null ? '' : ' AND id <> ?'));
+        $query->execute($exceptId === null ? [$name, self::ARCHIVED] : [$name, self::ARCHIVED, $exceptId]);
+        if ($query->fetchColumn() !== false) throw new DuplicateRegistration();
+    }
+
+    /** Lenient validation for coordination: only the name and at least one media type are mandatory. */
+    private function validateAdmin(array $input): array
+    {
+        if (array_diff(array_keys($input), self::ADMIN_FIELDS) !== [] || array_diff(self::ADMIN_FIELDS, array_keys($input)) !== []) throw new InvalidArgumentException();
+        $text = static function (mixed $value, int $max, int $min = 0): string {
+            if (!is_string($value)) throw new InvalidArgumentException();
+            $value = trim(preg_replace('/\s+/u', ' ', preg_replace('/\p{C}+/u', ' ', $value) ?? '') ?? '');
+            if (self::length($value) < $min || self::length($value) > $max) throw new InvalidArgumentException();
+            return $value;
+        };
+        $types = $input['media_types'];
+        if (!is_array($types) || $types === [] || !array_is_list($types) || count($types) !== count(array_unique($types, SORT_REGULAR))) throw new InvalidArgumentException();
+        foreach ($types as $type) if (!is_string($type) || !isset(self::MEDIA_TYPES[$type])) throw new InvalidArgumentException();
+        $types = array_values(array_intersect(array_keys(self::MEDIA_TYPES), $types));
+        $name = $text($input['media_name'], 140, 2);
+        $frequency = $text($input['frequency'], 120);
+        $tvChannel = $text($input['tv_channel'], 120);
+        $province = $text($input['province'], 60);
+        if ($province !== '' && !in_array($province, self::PROVINCES, true)) throw new InvalidArgumentException();
+        $representatives = [];
+        if (!is_array($input['representatives']) || !array_is_list($input['representatives']) || count($input['representatives']) > self::MAX_REPRESENTATIVES) throw new InvalidArgumentException();
+        foreach ($input['representatives'] as $entry) {
+            if ($entry instanceof \stdClass) $entry = (array) $entry;
+            if (!is_array($entry) || array_diff(array_keys($entry), ['name', 'role']) !== []) throw new InvalidArgumentException();
+            $representatives[] = ['name' => $text($entry['name'] ?? '', 160, 2), 'role' => $text($entry['role'] ?? '', 120)];
+        }
+        $channels = []; $seen = [];
+        if (!is_array($input['channels']) || !array_is_list($input['channels']) || count($input['channels']) > self::MAX_CHANNELS) throw new InvalidArgumentException();
+        foreach ($input['channels'] as $channel) {
+            if ($channel instanceof \stdClass) $channel = (array) $channel;
+            if (!is_array($channel) || array_diff(array_keys($channel), ['type', 'url', 'followers']) !== [] || !is_string($channel['type'] ?? null) || !isset(self::CHANNEL_TYPES[$channel['type']])) throw new InvalidArgumentException();
+            $followers = $channel['followers'] ?? null;
+            if ($followers !== null && (!is_int($followers) || $followers < 0 || $followers > 1000000000 || $channel['type'] === 'website')) throw new InvalidArgumentException();
+            $url = self::link($channel['url'] ?? null, 300);
+            if (isset($seen[strtolower($url)])) throw new InvalidArgumentException();
+            $seen[strtolower($url)] = true;
+            $channels[] = ['type' => $channel['type'], 'url' => $url, 'followers' => $followers];
+        }
+        $validated = $input['followers_validated'];
+        if ($validated !== null && (!is_int($validated) || $validated < 0 || $validated > 1000000000)) throw new InvalidArgumentException();
+        if (!is_string($input['paid_media']) || !in_array($input['paid_media'], self::PAID_MEDIA, true)) throw new InvalidArgumentException();
+        $phone = $text($input['phone'], 25);
+        if ($phone !== '' && preg_match('/^\+?[0-9][0-9 ()-]{6,23}$/D', $phone) !== 1) throw new InvalidArgumentException();
+        $email = strtolower($text($input['contact_email'], 180));
+        if ($email !== '' && filter_var($email, FILTER_VALIDATE_EMAIL) === false) throw new InvalidArgumentException();
+        $stations = $frequency === '' || !in_array('radio', $types, true) ? [] : [['name' => $name, 'frequency' => $frequency]];
+        $tvChannels = $tvChannel === '' || !in_array('tv', $types, true) ? [] : [$tvChannel];
+        $columns = [
+            'media_name' => $name, 'media_types' => ',' . implode(',', $types) . ',', 'radio_stations' => json_encode($stations, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),
+            'tv_channel' => $tvChannels[0] ?? '', 'tv_channels' => json_encode($tvChannels, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),
+            'frequency_channel' => substr(implode(' · ', array_filter([$frequency, $tvChannel])), 0, 120),
+            'province' => $province, 'city' => $text($input['city'], 100), 'program_name' => $text($input['program_name'], 160),
+            'representatives' => json_encode($representatives, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),
+            'channels' => json_encode($channels, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+            'social_link' => $channels[0]['url'] ?? '', 'followers_validated' => $validated, 'paid_media' => $input['paid_media'],
+            'contact_name_enc' => $this->crypto->encrypt($text($input['contact_name'], 160)), 'phone_enc' => $this->crypto->encrypt($phone), 'contact_email_enc' => $this->crypto->encrypt($email),
+        ];
+        foreach (array_unique(self::CHANNEL_COLUMNS) as $column) $columns[$column] = '';
+        foreach ($channels as $channel) { $column = self::CHANNEL_COLUMNS[$channel['type']]; if ($columns[$column] === '') $columns[$column] = $channel['url']; }
+        return ['media_name' => $name, 'columns' => $columns];
+    }
+
+    // ---------------------------------------------------------------- linking an account to a coordination record
+
+    /** Unlinked coordination records whose name resembles what a medium is typing; a minimal projection for the portal. */
+    public function lookupUnlinked(mixed $name): array
+    {
+        if (!is_string($name)) throw new InvalidArgumentException();
+        $name = trim(preg_replace('/\s+/u', ' ', $name) ?? '');
+        if (self::length($name) < 3 || self::length($name) > 140) return [];
+        $like = '%' . addcslashes($name, '\\%_') . '%';
+        $query = $this->pdo->prepare("SELECT public_id, media_name, city, media_types FROM media_profiles WHERE origin = 'coordinacion' AND account_id IS NULL AND claim_account_id IS NULL AND status <> ? AND media_name LIKE ? ESCAPE '\\' ORDER BY media_name LIMIT 8");
+        $query->execute([self::ARCHIVED, $like]);
+        return array_map(static fn (array $row): array => ['public_id' => $row['public_id'], 'media_name' => $row['media_name'], 'city' => $row['city'], 'media_types' => self::typeKeys((string) $row['media_types'])], $query->fetchAll(PDO::FETCH_ASSOC));
+    }
+
+    /** A medium asks to take over a record coordination loaded for it; coordination confirms before any data is exposed. */
+    public function requestClaim(int $accountId, string $publicId, string $ip): array
+    {
+        if (preg_match('/^[a-f0-9]{32}$/D', $publicId) !== 1) throw new InvalidArgumentException();
+        $this->begin();
+        try {
+            $own = $this->pdo->prepare('SELECT 1 FROM media_profiles WHERE account_id = ? OR claim_account_id = ?');
+            $own->execute([$accountId, $accountId]);
+            if ($own->fetchColumn() !== false) throw new Forbidden();
+            $statement = $this->pdo->prepare("SELECT id FROM media_profiles WHERE public_id = ? AND origin = 'coordinacion' AND account_id IS NULL AND claim_account_id IS NULL AND status <> ?" . $this->rowLock());
+            $statement->execute([$publicId, self::ARCHIVED]);
+            $id = $statement->fetchColumn();
+            if ($id === false) throw new OutOfBoundsException();
+            $now = gmdate('Y-m-d H:i:s');
+            $this->pdo->prepare('UPDATE media_profiles SET claim_account_id = ?, claim_requested_at = ?, updated_at = ? WHERE id = ?')->execute([$accountId, $now, $now, $id]);
+            $this->audit->log('media.claim_requested', null, 'media_profile', $publicId, [], $ip);
+            $this->commit();
+        } catch (Throwable $error) {
+            $this->rollBack();
+            throw $error;
+        }
+        return $this->claimForAccount($accountId) ?? throw new RuntimeException();
+    }
+
+    public function claimForAccount(int $accountId): ?array
+    {
+        $query = $this->pdo->prepare('SELECT public_id, media_name, city, claim_requested_at FROM media_profiles WHERE claim_account_id = ? AND account_id IS NULL AND status <> ?');
+        $query->execute([$accountId, self::ARCHIVED]);
+        $row = $query->fetch();
+        return $row === false ? null : ['public_id' => $row['public_id'], 'media_name' => $row['media_name'], 'city' => $row['city'], 'requested_at' => $row['claim_requested_at']];
+    }
+
+    public function pendingClaims(): array
+    {
+        $rows = $this->pdo->prepare('SELECT p.public_id, p.media_name, p.city, p.claim_requested_at, a.email_enc FROM media_profiles p JOIN media_accounts a ON a.id = p.claim_account_id WHERE p.account_id IS NULL AND p.status <> ? ORDER BY p.claim_requested_at DESC, p.id DESC LIMIT 200');
+        $rows->execute([self::ARCHIVED]);
+        return array_map(fn (array $row): array => ['public_id' => $row['public_id'], 'media_name' => $row['media_name'], 'city' => $row['city'], 'requested_at' => $row['claim_requested_at'], 'email' => $this->crypto->decrypt($row['email_enc'])], $rows->fetchAll(PDO::FETCH_ASSOC));
+    }
+
+    public function resolveClaim(string $publicId, bool $approve, int $actorId, string $ip = ''): void
+    {
+        $this->mutate($publicId, function (array $row) use ($approve, $actorId, $ip, $publicId): void {
+            if ($row['claim_account_id'] === null || $row['account_id'] !== null) throw new OutOfBoundsException();
+            $now = gmdate('Y-m-d H:i:s');
+            if ($approve) {
+                $taken = $this->pdo->prepare('SELECT 1 FROM media_profiles WHERE account_id = ?');
+                $taken->execute([$row['claim_account_id']]);
+                if ($taken->fetchColumn() !== false) throw new DuplicateRegistration();
+                $this->pdo->prepare('UPDATE media_profiles SET account_id = ?, claim_account_id = NULL, claim_requested_at = NULL, updated_at = ? WHERE id = ?')->execute([$row['claim_account_id'], $now, $row['id']]);
+            } else {
+                $this->pdo->prepare('UPDATE media_profiles SET claim_account_id = NULL, claim_requested_at = NULL, updated_at = ? WHERE id = ?')->execute([$now, $row['id']]);
+            }
+            $this->audit->log($approve ? 'media.claim_approved' : 'media.claim_rejected', $actorId, 'media_profile', $publicId, [], $ip);
+        });
+    }
+
+    /** Coordination hands the medium a link that creates its account already linked to the record; one use, seven days. */
+    public function createInvitation(string $publicId, int $actorId, string $ip = ''): string
+    {
+        $raw = bin2hex(random_bytes(32));
+        $this->mutate($publicId, function (array $row) use ($raw, $actorId, $ip, $publicId): void {
+            if ($row['account_id'] !== null || $row['claim_account_id'] !== null) throw new Forbidden();
+            $now = time();
+            $this->pdo->prepare('UPDATE media_invitations SET consumed_at = ? WHERE profile_id = ? AND consumed_at IS NULL')->execute([gmdate('Y-m-d H:i:s', $now), $row['id']]);
+            $this->pdo->prepare('INSERT INTO media_invitations (profile_id, token_hash, expires_at, created_by_admin_id, created_at) VALUES (?, ?, ?, ?, ?)')
+                ->execute([$row['id'], hash('sha256', $raw), gmdate('Y-m-d H:i:s', $now + self::INVITATION_TTL), $actorId, gmdate('Y-m-d H:i:s', $now)]);
+            $this->audit->log('media.invitation_created', $actorId, 'media_profile', $publicId, [], $ip);
+        });
+        return $raw;
+    }
+
+    /** Public preview for the access page: which record the invitation opens, or null when invalid. */
+    public function invitationPreview(mixed $token): ?array
+    {
+        if (!is_string($token) || preg_match('/^[a-f0-9]{64}$/D', $token) !== 1) return null;
+        $query = $this->pdo->prepare('SELECT p.public_id, p.media_name FROM media_invitations i JOIN media_profiles p ON p.id = i.profile_id WHERE i.token_hash = ? AND i.consumed_at IS NULL AND i.expires_at > ? AND p.account_id IS NULL AND p.status <> ?');
+        $query->execute([hash('sha256', $token), gmdate('Y-m-d H:i:s'), self::ARCHIVED]);
+        $row = $query->fetch();
+        return $row === false ? null : ['public_id' => $row['public_id'], 'media_name' => $row['media_name']];
+    }
+
+    /** Called right after registration: links the freshly created account to the invited record. */
+    public function consumeInvitation(string $token, string $email, string $ip): void
+    {
+        if (preg_match('/^[a-f0-9]{64}$/D', $token) !== 1) throw new InvalidArgumentException();
+        $this->begin();
+        try {
+            $query = $this->pdo->prepare('SELECT i.id AS invitation_id, p.id, p.public_id FROM media_invitations i JOIN media_profiles p ON p.id = i.profile_id WHERE i.token_hash = ? AND i.consumed_at IS NULL AND i.expires_at > ? AND p.account_id IS NULL AND p.status <> ?' . $this->rowLock());
+            $query->execute([hash('sha256', $token), gmdate('Y-m-d H:i:s'), self::ARCHIVED]);
+            $invitation = $query->fetch();
+            if ($invitation === false) throw new OutOfBoundsException();
+            $account = $this->pdo->prepare('SELECT id FROM media_accounts WHERE email_idx = ? AND active = 1');
+            $account->execute([$this->crypto->lookup(strtolower(trim($email)))]);
+            $accountId = $account->fetchColumn();
+            if ($accountId === false) throw new OutOfBoundsException();
+            $taken = $this->pdo->prepare('SELECT 1 FROM media_profiles WHERE account_id = ?');
+            $taken->execute([$accountId]);
+            if ($taken->fetchColumn() !== false) throw new DuplicateRegistration();
+            $now = gmdate('Y-m-d H:i:s');
+            $this->pdo->prepare('UPDATE media_profiles SET account_id = ?, claim_account_id = NULL, claim_requested_at = NULL, updated_at = ? WHERE id = ?')->execute([$accountId, $now, $invitation['id']]);
+            $this->pdo->prepare('UPDATE media_invitations SET consumed_at = ? WHERE id = ?')->execute([$now, $invitation['invitation_id']]);
+            $this->audit->log('media.invitation_consumed', null, 'media_profile', $invitation['public_id'], [], $ip);
+            $this->commit();
+        } catch (Throwable $error) {
+            $this->rollBack();
+            throw $error;
+        }
+    }
+
+    // ---------------------------------------------------------------- coverage events
+
+    public function listEvents(): array
+    {
+        $rows = $this->pdo->query('SELECT e.public_id, e.name, e.event_date, e.created_at, (SELECT COUNT(*) FROM media_event_coverage c JOIN media_profiles p ON p.id = c.profile_id WHERE c.event_id = e.id AND p.status <> \'Eliminado\') AS coverage_count FROM media_events e ORDER BY e.event_date DESC, e.id DESC');
+        return array_map(static fn (array $row): array => ['public_id' => $row['public_id'], 'name' => $row['name'], 'event_date' => $row['event_date'], 'created_at' => $row['created_at'], 'coverage_count' => (int) $row['coverage_count']], $rows->fetchAll(PDO::FETCH_ASSOC));
+    }
+
+    public function createEvent(mixed $input, ?int $actorId, string $ip = ''): array
+    {
+        if ($input instanceof \stdClass) $input = (array) $input;
+        if (!is_array($input) || array_diff(array_keys($input), ['name', 'event_date']) !== [] || !is_string($input['name'] ?? null)) throw new InvalidArgumentException();
+        $name = trim(preg_replace('/\s+/u', ' ', $input['name']) ?? '');
+        if (self::length($name) < 3 || self::length($name) > 160) throw new InvalidArgumentException();
+        $date = $input['event_date'] ?? null;
+        if ($date === '') $date = null;
+        if ($date !== null && (!is_string($date) || preg_match('/^(\d{4})-(\d{2})-(\d{2})$/D', $date, $parts) !== 1 || !checkdate((int) $parts[2], (int) $parts[3], (int) $parts[1]))) throw new InvalidArgumentException();
+        $existing = $this->pdo->prepare('SELECT public_id FROM media_events WHERE LOWER(name) = LOWER(?)');
+        $existing->execute([$name]);
+        if ($existing->fetchColumn() !== false) throw new DuplicateRegistration();
+        $publicId = bin2hex(random_bytes(16));
+        $now = gmdate('Y-m-d H:i:s');
+        $this->pdo->prepare('INSERT INTO media_events (public_id, name, event_date, created_by_admin_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)')->execute([$publicId, $name, $date, $actorId, $now, $now]);
+        $this->audit->log('media_event.created', $actorId, 'media_event', $publicId, [], $ip);
+        return ['public_id' => $publicId, 'name' => $name, 'event_date' => $date, 'created_at' => $now, 'coverage_count' => 0];
+    }
+
+    private function eventRow(string $publicId): array
+    {
+        if (preg_match('/^[a-f0-9]{32}$/D', $publicId) !== 1) throw new InvalidArgumentException();
+        $query = $this->pdo->prepare('SELECT id, public_id, name, event_date FROM media_events WHERE public_id = ?');
+        $query->execute([$publicId]);
+        $row = $query->fetch();
+        if ($row === false) throw new OutOfBoundsException();
+        return $row;
+    }
+
+    /** Every medium covering one event, with the counts the big numbers show. */
+    public function coverageForEvent(string $eventPublicId): array
+    {
+        $event = $this->eventRow($eventPublicId);
+        $rows = $this->pdo->prepare('SELECT p.public_id, p.media_name, p.media_types, p.frequency_channel, p.city, p.origin, p.account_id, p.paid_media, p.followers_validated, c.contracted, c.result, c.people_count, c.links, c.note, c.updated_at FROM media_event_coverage c JOIN media_profiles p ON p.id = c.profile_id WHERE c.event_id = ? AND p.status <> ? ORDER BY p.media_name');
+        $rows->execute([$event['id'], self::ARCHIVED]);
+        $items = array_map(static fn (array $row): array => [
+            'public_id' => $row['public_id'], 'media_name' => $row['media_name'], 'media_types' => self::typeKeys((string) $row['media_types']), 'frequency_channel' => $row['frequency_channel'], 'city' => $row['city'],
+            'origin' => self::origin($row), 'linked' => $row['account_id'] !== null, 'paid_media' => self::paid($row), 'followers_validated' => $row['followers_validated'] === null ? null : (int) $row['followers_validated'],
+            'contracted' => in_array($row['contracted'], self::PAID_MEDIA, true) ? $row['contracted'] : null, 'result' => isset(self::COVERAGE_RESULTS[$row['result']]) ? $row['result'] : 'pendiente',
+            'people_count' => (int) $row['people_count'], 'links' => json_decode((string) ($row['links'] ?? '') ?: '[]', true, 4) ?: [], 'note' => (string) ($row['note'] ?? ''), 'updated_at' => $row['updated_at'],
+        ], $rows->fetchAll(PDO::FETCH_ASSOC));
+        return ['event' => ['public_id' => $event['public_id'], 'name' => $event['name'], 'event_date' => $event['event_date']], 'summary' => self::coverageSummary($items), 'items' => $items];
+    }
+
+    /** Big-number buckets: contract × outcome. Each bucket lists the public ids it contains so the panel can filter on click. */
+    public static function coverageSummary(array $items): array
+    {
+        $bucket = static fn (callable $test): array => array_values(array_map(static fn (array $item): string => $item['public_id'], array_filter($items, $test)));
+        $published = static fn (array $item): bool => in_array($item['result'], self::COVERAGE_PUBLISHED, true);
+        $paid = static fn (array $item): bool => $item['contracted'] === 'yes';
+        return [
+            'todos' => ['label' => 'Todos', 'ids' => $bucket(static fn (): bool => true)],
+            'pautados' => ['label' => 'Pautados', 'ids' => $bucket($paid)],
+            'pautados_publicaron' => ['label' => 'Pautados que publicaron', 'ids' => $bucket(static fn (array $item): bool => $paid($item) && $published($item))],
+            'pautados_sin_publicacion' => ['label' => 'Pautados sin publicación', 'ids' => $bucket(static fn (array $item): bool => $paid($item) && !$published($item))],
+            'sin_contrato_publicaron' => ['label' => 'Sin contrato que publicaron', 'ids' => $bucket(static fn (array $item): bool => !$paid($item) && $published($item))],
+            'sin_contrato_sin_publicacion' => ['label' => 'Sin contrato sin publicación', 'ids' => $bucket(static fn (array $item): bool => !$paid($item) && !$published($item))],
+            'no_asistieron' => ['label' => 'No asistieron', 'ids' => $bucket(static fn (array $item): bool => $item['result'] === 'no_asistio')],
+        ];
+    }
+
+    /** Coordination records or updates how one medium covered one event. */
+    public function upsertCoverage(string $eventPublicId, string $profilePublicId, mixed $input, int $actorId, string $ip = ''): void
+    {
+        if ($input instanceof \stdClass) $input = (array) $input;
+        if (!is_array($input) || array_diff(array_keys($input), ['contracted', 'result', 'people_count', 'links', 'note']) !== [] || array_diff(['contracted', 'result', 'people_count', 'links', 'note'], array_keys($input)) !== []) throw new InvalidArgumentException();
+        $contracted = $input['contracted'];
+        if ($contracted !== null && (!is_string($contracted) || !in_array($contracted, self::PAID_MEDIA, true))) throw new InvalidArgumentException();
+        if (!is_string($input['result']) || !isset(self::COVERAGE_RESULTS[$input['result']])) throw new InvalidArgumentException();
+        $people = filter_var($input['people_count'], FILTER_VALIDATE_INT, ['options' => ['min_range' => 0, 'max_range' => 200]]);
+        if ($people === false) throw new InvalidArgumentException();
+        if (!is_array($input['links']) || !array_is_list($input['links']) || count($input['links']) > self::MAX_COVERAGE_LINKS) throw new InvalidArgumentException();
+        $links = [];
+        foreach ($input['links'] as $link) { $url = self::link($link, 500); if (!in_array($url, $links, true)) $links[] = $url; }
+        if (!is_string($input['note'])) throw new InvalidArgumentException();
+        $note = trim(preg_replace('/\p{C}+/u', ' ', $input['note']) ?? '');
+        if (self::length($note) > 2000) throw new InvalidArgumentException();
+        $event = $this->eventRow($eventPublicId);
+        $this->mutate($profilePublicId, function (array $row) use ($event, $contracted, $input, $people, $links, $note, $actorId, $ip, $profilePublicId): void {
+            $now = gmdate('Y-m-d H:i:s');
+            $json = json_encode($links, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
+            $sql = $this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql'
+                ? 'INSERT INTO media_event_coverage (event_id, profile_id, contracted, result, people_count, links, note, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE contracted = VALUES(contracted), result = VALUES(result), people_count = VALUES(people_count), links = VALUES(links), note = VALUES(note), updated_at = VALUES(updated_at)'
+                : 'INSERT INTO media_event_coverage (event_id, profile_id, contracted, result, people_count, links, note, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(event_id, profile_id) DO UPDATE SET contracted = excluded.contracted, result = excluded.result, people_count = excluded.people_count, links = excluded.links, note = excluded.note, updated_at = excluded.updated_at';
+            $this->pdo->prepare($sql)->execute([$event['id'], $row['id'], $contracted, $input['result'], $people, $json, $note, $now]);
+            $this->audit->log('media.coverage_updated', $actorId, 'media_profile', $profilePublicId, [], $ip);
+        });
+    }
+
+    private function coverageForProfile(int $profileId): array
+    {
+        $rows = $this->pdo->prepare('SELECT e.public_id, e.name, e.event_date, c.contracted, c.result, c.people_count, c.links, c.note, c.updated_at FROM media_event_coverage c JOIN media_events e ON e.id = c.event_id WHERE c.profile_id = ? ORDER BY e.event_date DESC, e.id DESC');
+        $rows->execute([$profileId]);
+        return array_map(static fn (array $row): array => ['event_public_id' => $row['public_id'], 'event_name' => $row['name'], 'event_date' => $row['event_date'],
+            'contracted' => in_array($row['contracted'], self::PAID_MEDIA, true) ? $row['contracted'] : null, 'result' => isset(self::COVERAGE_RESULTS[$row['result']]) ? $row['result'] : 'pendiente', 'result_label' => self::COVERAGE_RESULTS[$row['result']] ?? 'Pendiente',
+            'people_count' => (int) $row['people_count'], 'links' => json_decode((string) ($row['links'] ?? '') ?: '[]', true, 4) ?: [], 'note' => (string) ($row['note'] ?? ''), 'updated_at' => $row['updated_at']], $rows->fetchAll(PDO::FETCH_ASSOC));
     }
 
     /** Decrypted rows for the administrative CSV export. */
@@ -635,6 +1009,11 @@ final class MediaRepository
         $result['channels'] = self::channelsOf($row);
         $result['followers_total'] = self::followersTotal($result['channels']);
         $result['audience_count'] = ($row['audience_count'] ?? null) === null ? null : (int) $row['audience_count'];
+        $result['origin'] = self::origin($row);
+        $result['linked'] = ($row['account_id'] ?? null) !== null;
+        $result['program_name'] = (string) ($row['program_name'] ?? '');
+        $result['representatives'] = self::representativesOf($row);
+        $result['followers_validated'] = ($row['followers_validated'] ?? null) === null ? null : (int) $row['followers_validated'];
         foreach (self::ENCRYPTED as $field) $result[$field] = ($row[$field . '_enc'] ?? null) === null || $row[$field . '_enc'] === '' ? '' : $this->crypto->decrypt($row[$field . '_enc']);
         return $result;
     }

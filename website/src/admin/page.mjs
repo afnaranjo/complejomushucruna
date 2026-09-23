@@ -1,6 +1,6 @@
 import { escapeHtml as esc } from '../render/html.mjs';
 import { STATUSES, PREVIOUS_PARTICIPATION } from './admin.js';
-import { MEDIA_STATUSES, MEDIA_TYPE_LABELS } from './admin-medios.js';
+import { MEDIA_STATUSES, MEDIA_TYPE_LABELS, ORIGIN_LABELS } from './admin-medios.js';
 import { EMPRENDEDOR_LEVELS, EMPRENDEDOR_STATUSES } from './admin-emprendedores.js';
 import { ecuadorProvinces } from '../media-accreditation/page.mjs';
 import { apiBasesForCsp, LOCAL_API_BASE, PRIMARY_API_BASE } from '../finados/runtime-origins.mjs';
@@ -9,20 +9,22 @@ const options = values => values.map(value => `<option value="${esc(value)}">${e
 const select = (name, label, values) => `<label>${label}<select name="${name}"><option value="">Todos</option>${options(values)}</select></label>`;
 const ADMIN_FORMS = Object.freeze([
   { route: '/admin/voceros/', label: 'Voceros', description: 'Registros y seguimiento', marker: 'V' },
-  { route: '/admin/medios/', label: 'Medios', description: 'Acreditación de medios', marker: 'M' },
+  { route: '/admin/medios/', label: 'Medios', description: 'Acreditación de medios', marker: 'M', children: [{ route: '/admin/medios/eventos/', label: 'Eventos', description: 'Cobertura por evento' }] },
   { route: '/admin/emprendedores/', label: 'Emprendedores', description: 'De emprendedor a influencer', marker: 'E' },
 ]);
 // Public landing that each panel returns to from its header.
-const PANEL_LANDINGS = Object.freeze({ '/admin/voceros/': ['/finados/voceros/', 'Volver a Voceros'], '/admin/medios/': ['/finados/medios/', 'Volver a Medios'], '/admin/emprendedores/': ['/finados/emprendedores/', 'Volver a Emprendedores'] });
+const PANEL_LANDINGS = Object.freeze({ '/admin/voceros/': ['/finados/voceros/', 'Volver a Voceros'], '/admin/medios/': ['/finados/medios/', 'Volver a Medios'], '/admin/medios/eventos/': ['/finados/medios/', 'Volver a Medios'], '/admin/emprendedores/': ['/finados/emprendedores/', 'Volver a Emprendedores'] });
 const PROGRESS_LEVELS = ['En preparación', 'Primer paso', 'Gorra', 'Kit completo', 'Trae a los tuyos', 'Noche de concierto', 'Tope'];
 const VIDEO_SLOTS = Object.freeze([1, 2, 3, 4, 5]);
 const videoSlotControls = (prefix = 'video') => VIDEO_SLOTS.map(slot => `<label class="admin-video-control"><span class="admin-video-check"><input type="checkbox" name="${prefix}_${slot}_enabled" value="1"><strong>Video ${slot}</strong></span><span class="admin-video-date"><span>Habilitado desde</span><input type="date" name="${prefix}_${slot}_enabled_at" aria-label="Fecha de habilitación del video ${slot}"></span></label>`).join('');
 
 function adminSidebar(page) {
-  const currentForm = ADMIN_FORMS.find(item => item.route === page.route);
+  const currentForm = ADMIN_FORMS.find(item => item.route === page.route || (item.children ?? []).some(child => child.route === page.route));
   const links = ADMIN_FORMS.map((item) => {
     const current = item.route === page.route ? ' aria-current="page"' : '';
-    return `<a class="admin-nav-link" href="${esc(item.route)}"${current}><span class="admin-nav-marker" aria-hidden="true">${esc(item.marker)}</span><span><strong>${esc(item.label)}</strong><small>${esc(item.description)}</small></span></a>`;
+    // A submenu (e.g. Medios → Eventos) renders as indented links right below its parent.
+    const children = (item.children ?? []).map(child => `<a class="admin-nav-link admin-nav-link--child" href="${esc(child.route)}"${child.route === page.route ? ' aria-current="page"' : ''}><span class="admin-nav-marker" aria-hidden="true">›</span><span><strong>${esc(child.label)}</strong><small>${esc(child.description)}</small></span></a>`).join('');
+    return `<a class="admin-nav-link" href="${esc(item.route)}"${current}><span class="admin-nav-marker" aria-hidden="true">${esc(item.marker)}</span><span><strong>${esc(item.label)}</strong><small>${esc(item.description)}</small></span></a>${children}`;
   }).join('');
 
   return `<aside class="admin-sidebar" aria-label="Navegación administrativa">
@@ -52,7 +54,7 @@ function layout(page, content, script = '/assets/admin/admin.js?v=20260921-admin
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' blob:; font-src 'self'; connect-src ${connectSources}; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="admin-api-base" content="${api}">
 <link rel="icon" href="/assets/finados/favicon-finados.png">
-<link rel="stylesheet" href="/assets/admin/admin.css?v=20260922-1">
+<link rel="stylesheet" href="/assets/admin/admin.css?v=20260922-2">
 <script type="module" src="${script}"></script>
 </head><body class="admin-page">
 <a class="skip-link" href="#contenido">Ir al contenido</a>
@@ -116,12 +118,13 @@ ${select('previous_participation', 'Participación anterior', PREVIOUS_PARTICIPA
 
 export function renderAdminMediosPage(page) {
   return layout(page, `<div class="admin-shell">${adminSidebar(page)}<main id="contenido" class="admin-workspace" data-admin-medios>
-<div class="workspace-heading"><div><p class="eyebrow">Finados 2026</p><h1>Registros de Medios</h1><p data-admin-user>Comprobando acceso…</p></div><button type="button" class="button-primary" data-admin-export disabled>Exportar CSV</button></div>
+<div class="workspace-heading"><div><p class="eyebrow">Finados 2026</p><h1>Registros de Medios</h1><p data-admin-user>Comprobando acceso…</p></div><div class="workspace-actions"><button type="button" class="button-primary" data-admin-add disabled>Agregar medio</button><button type="button" class="button-quiet" data-admin-export disabled>Exportar CSV</button></div></div>
 <p class="feedback" data-admin-feedback role="status" aria-live="polite" aria-atomic="true"></p>
 <button type="button" class="button-quiet" data-session-retry hidden>Reintentar conexión</button>
 <section aria-label="Resumen de todos los registros de medios" class="summary" data-admin-dashboard aria-busy="true"></section>
 <section class="followers-leaderboard video-views-leaderboard" aria-labelledby="media-views-leaderboard-title"><div class="records-heading"><div><h2 id="media-views-leaderboard-title">Top 20 por visualizaciones</h2><p>Medios con más views validadas, sumando todos los videos que reportaron. Las views se registran en el detalle de cada medio, al lado de cada video.</p></div><p data-media-views-leaderboard-count>—</p></div><ol data-media-views-leaderboard aria-live="polite"></ol></section>
 <section class="followers-leaderboard" aria-labelledby="media-followers-leaderboard-title"><div class="records-heading"><div><h2 id="media-followers-leaderboard-title">Top 20 por seguidores</h2><p>Suma de los seguidores que cada medio declaró en todos sus canales. Es un dato del propio medio, no validado.</p></div><p data-media-followers-leaderboard-count>—</p></div><ol data-media-followers-leaderboard aria-live="polite"></ol></section>
+<details class="pending-accounts" data-claims-panel><summary><span><strong id="claims-title">Solicitudes de vinculación</strong><small>Medios que crearon su cuenta y piden quedarse con una ficha cargada por coordinación. Revisa y aprueba desde el detalle.</small></span><span data-claims-count>—</span></summary><div class="pending-accounts-body" aria-labelledby="claims-title"><p class="feedback" data-claims-message role="status" aria-live="polite">Cargando solicitudes…</p><div class="pending-accounts-table"><table><caption class="sr-only">Solicitudes de vinculación pendientes</caption><thead><tr><th scope="col">Medio</th><th scope="col">Ciudad</th><th scope="col">Cuenta</th><th scope="col">Solicitado</th><th scope="col"><span class="sr-only">Acciones</span></th></tr></thead><tbody data-claims-rows></tbody></table></div></div></details>
 <details class="pending-accounts" data-pending-panel><summary><span><strong id="pending-accounts-title">Cuentas pendientes de registro</strong><small>Medios que ya crearon su cuenta pero aún no guardan su registro. Aparecerán en la tabla cuando lo guarden.</small></span><span data-pending-count>—</span></summary><div class="pending-accounts-body" aria-labelledby="pending-accounts-title"><p class="feedback" data-pending-message role="status" aria-live="polite">Cargando cuentas…</p><div class="pending-accounts-table"><table><caption class="sr-only">Cuentas de medios que todavía no completan su registro</caption><thead><tr><th scope="col">Correo</th><th scope="col">Creada</th><th scope="col">Último acceso</th><th scope="col"><span class="sr-only">Acciones</span></th></tr></thead><tbody data-pending-accounts></tbody></table></div></div></details>
 <form class="filters" data-admin-filters><fieldset disabled data-panel-fields>
 <legend>Filtrar registros</legend>
@@ -129,12 +132,13 @@ export function renderAdminMediosPage(page) {
 ${select('status', 'Estado', MEDIA_STATUSES)}
 <label>Tipo de medio<select name="media_type"><option value="">Todos</option>${Object.entries(MEDIA_TYPE_LABELS).map(([key, label]) => `<option value="${esc(key)}">${esc(label)}</option>`).join('')}</select></label>
 <label>Medio pautado<select name="paid_media"><option value="">Todos</option><option value="yes">Sí · Pautado</option><option value="no">No · Sin pauta</option></select></label>
+<label>Origen<select name="origin"><option value="">Todos</option>${Object.entries(ORIGIN_LABELS).map(([key, label]) => `<option value="${esc(key)}">${esc(label)}</option>`).join('')}</select></label>
 ${select('province', 'Provincia', ecuadorProvinces)}</div>
 <div class="filter-actions"><button type="submit" class="button-primary">Aplicar filtros</button><button type="reset" class="button-quiet">Limpiar</button><label>Por página<select name="pageSize"><option>25</option><option>50</option><option>100</option></select></label></div>
 </fieldset></form>
 <section class="records" aria-labelledby="records-title" aria-busy="true" data-records-region><div class="records-heading"><h2 id="records-title" tabindex="-1">Registros</h2><p data-record-count>—</p></div>
 <p data-list-message role="status">Cargando registros…</p>
-<table><caption class="sr-only">Medios registrados. Abre un registro para revisar sus datos, videos y notas.</caption><thead><tr><th scope="col">Medio</th><th scope="col">Frecuencia</th><th scope="col">Ubicación</th><th scope="col">Canales</th><th scope="col">Videos</th><th scope="col">Registro</th><th scope="col">Estado y semáforo</th><th scope="col">Pauta</th><th scope="col"><span class="sr-only">Acciones</span></th></tr></thead><tbody data-records></tbody></table>
+<table><caption class="sr-only">Medios registrados. Abre un registro para revisar sus datos, videos y notas.</caption><thead><tr><th scope="col">Medio</th><th scope="col">Frecuencia</th><th scope="col">Ubicación</th><th scope="col">Canales</th><th scope="col">Videos</th><th scope="col">Registro</th><th scope="col">Estado y semáforo</th><th scope="col">Pauta</th><th scope="col">Origen</th><th scope="col"><span class="sr-only">Acciones</span></th></tr></thead><tbody data-records></tbody></table>
 <nav class="pagination" aria-label="Paginación de registros"><button class="button-quiet" data-previous disabled>← Anterior</button><span data-page-label>Página —</span><button class="button-quiet" data-next disabled>Siguiente →</button></nav></section>
 <dialog class="detail-dialog" aria-labelledby="detail-title" data-detail><div class="detail-heading"><h2 id="detail-title" tabindex="-1">Detalle del medio</h2><button type="button" class="button-quiet" data-detail-close aria-label="Cerrar detalle">Cerrar ×</button></div>
 <p class="feedback" data-detail-feedback role="status" aria-live="polite" aria-atomic="true"></p><div data-detail-content></div>
@@ -142,7 +146,52 @@ ${select('province', 'Provincia', ecuadorProvinces)}</div>
 <section class="admin-reset"><h3>Recuperar acceso</h3><button type="button" class="button-quiet" data-admin-reset disabled>Generar enlace temporal</button><div data-reset-output hidden><label>Enlace temporal<input type="text" readonly data-reset-url autocomplete="off" spellcheck="false"></label><button type="button" class="button-quiet" data-reset-copy>Copiar enlace</button></div><p class="feedback" data-reset-feedback role="status" aria-live="polite"></p></section>
 <section class="notes-section"><h3>Notas internas</h3><ol data-notes></ol><form data-note-form><fieldset disabled><label>Añadir nota<textarea name="body" rows="3" maxlength="2000" required></textarea></label><button class="button-primary" type="submit">Guardar nota</button></fieldset></form></section>
 <div class="detail-danger-zone"><p>¿Este registro ya no debe tener acceso?</p><button type="button" class="button-danger" data-admin-delete disabled>Retirar registro</button></div>
-</dialog></main></div>`, '/assets/admin/admin-medios.js?v=20260922-admin-medios-12');
+</dialog>${mediaRecordDialog()}</main></div>`, ADMIN_MEDIOS_SCRIPT);
+}
+
+const ADMIN_MEDIOS_SCRIPT = '/assets/admin/admin-medios.js?v=20260922-admin-medios-13';
+const PROVINCE_OPTIONS = ['Azuay', 'Bolívar', 'Cañar', 'Carchi', 'Chimborazo', 'Cotopaxi', 'El Oro', 'Esmeraldas', 'Galápagos', 'Guayas', 'Imbabura', 'Loja', 'Los Ríos', 'Manabí', 'Morona Santiago', 'Napo', 'Orellana', 'Pastaza', 'Pichincha', 'Santa Elena', 'Santo Domingo de los Tsáchilas', 'Sucumbíos', 'Tungurahua', 'Zamora Chinchipe'];
+
+/** Shared dialog: coordination creates or completes a medium without needing the medium's account. */
+function mediaRecordDialog() {
+  return `<dialog class="detail-dialog record-dialog" aria-labelledby="record-title" data-record-dialog><div class="detail-heading"><h2 id="record-title" tabindex="-1" data-record-title>Agregar medio</h2><button type="button" class="button-quiet" data-record-close aria-label="Cerrar">Cerrar ×</button></div>
+<p class="feedback" data-record-feedback role="status" aria-live="polite"></p>
+<form data-record-form novalidate><fieldset><div class="record-grid">
+<label class="record-grid__wide">Nombre del medio *<input name="media_name" maxlength="140" required></label>
+<fieldset class="record-grid__wide record-types"><legend>Tipo de medio *</legend>${Object.entries(MEDIA_TYPE_LABELS).map(([key, label]) => `<label><input type="checkbox" name="media_types" value="${esc(key)}"> ${esc(label)}</label>`).join('')}</fieldset>
+<label>Frecuencia (radio)<input name="frequency" maxlength="120" placeholder="Ej.: 102.5 FM"></label>
+<label>Canal (televisión)<input name="tv_channel" maxlength="120" placeholder="Ej.: Canal 38"></label>
+<label>Provincia<select name="province"><option value="">Sin dato</option>${PROVINCE_OPTIONS.map(value => `<option value="${esc(value)}">${esc(value)}</option>`).join('')}</select></label>
+<label>Ciudad<input name="city" maxlength="100"></label>
+<label class="record-grid__wide">Programa<input name="program_name" maxlength="160" placeholder="Ej.: Noticiero Controversia"></label>
+<label class="record-grid__wide">Representantes<textarea name="representatives" rows="3" placeholder="Una persona por línea: Nombre - Cargo"></textarea></label>
+<label class="record-grid__wide">Redes y páginas<textarea name="channels" rows="3" placeholder="Un enlace por línea (Facebook, TikTok, Instagram, YouTube, X o web)"></textarea></label>
+<label>Seguidores validados por coordinación<input name="followers_validated" inputmode="numeric" pattern="[0-9]*" maxlength="10" placeholder="Ej.: 284000"></label>
+<label>Medio pautado<select name="paid_media"><option value="no">No · Sin pauta</option><option value="yes">Sí · Pautado</option></select></label>
+<label>Persona de contacto<input name="contact_name" maxlength="160"></label>
+<label>Teléfono<input name="phone" maxlength="25" inputmode="tel"></label>
+<label class="record-grid__wide">Correo de contacto<input name="contact_email" type="email" maxlength="180"></label>
+</div><button class="button-primary" type="submit">Guardar medio</button></fieldset></form></dialog>`;
+}
+
+export function renderAdminMediosEventosPage(page) {
+  return layout(page, `<div class="admin-shell">${adminSidebar(page)}<main id="contenido" class="admin-workspace" data-admin-medios-eventos>
+<div class="workspace-heading"><div><p class="eyebrow">Finados 2026 · Medios</p><h1>Cobertura por evento</h1><p data-admin-user>Comprobando acceso…</p></div></div>
+<p class="feedback" data-admin-feedback role="status" aria-live="polite" aria-atomic="true"></p>
+<button type="button" class="button-quiet" data-session-retry hidden>Reintentar conexión</button>
+<section class="admin-events-bar" aria-label="Evento"><label>Evento<select data-event-select disabled><option>Cargando…</option></select></label>
+<form data-event-form class="admin-event-form"><fieldset disabled><label>Nuevo evento<input name="name" maxlength="160" placeholder="Ej.: Lanzamiento Finados 2026" required></label><label>Fecha<input name="event_date" type="date"></label><button class="button-quiet" type="submit">Crear evento</button></fieldset></form><p class="feedback" data-event-feedback role="status" aria-live="polite"></p></section>
+<section class="admin-big-numbers" aria-label="Resumen de cobertura" data-coverage-summary></section>
+<section class="records" aria-labelledby="coverage-title" data-records-region><div class="records-heading"><h2 id="coverage-title" tabindex="-1">Medios del evento</h2><p data-coverage-filter>—</p></div>
+<p data-coverage-message role="status">Cargando…</p>
+<p class="admin-coverage-help">Contrato y resultado alimentan los números de arriba. Toca un número para ver solo ese grupo; los cambios se guardan solos.</p>
+<table class="admin-coverage-table"><caption class="sr-only">Cobertura de cada medio en el evento</caption><thead><tr><th scope="col">Medio</th><th scope="col">Contrato</th><th scope="col">Resultado</th><th scope="col">Personas</th><th scope="col">Links</th><th scope="col">Nota</th><th scope="col">Estado</th></tr></thead><tbody data-coverage-rows></tbody></table></section>
+<section class="pending-accounts pending-accounts--open" aria-labelledby="coverage-add-title"><h2 id="coverage-add-title">Agregar medio al evento</h2><p>Busca un medio ya registrado (con cuenta o cargado por coordinación). Si no existe, créalo aquí y quedará marcado como cargado por coordinación.</p>
+<form data-coverage-add class="admin-coverage-add"><fieldset disabled><label class="search-field">Buscar medio<input type="search" name="search" maxlength="100" placeholder="Nombre del medio"></label><button class="button-quiet" type="submit">Buscar</button></fieldset></form>
+<ul class="admin-coverage-results" data-coverage-results aria-live="polite"></ul>
+<button type="button" class="button-primary" data-coverage-create disabled>Crear medio nuevo</button>
+<p class="feedback" data-coverage-add-feedback role="status" aria-live="polite"></p></section>
+${mediaRecordDialog()}</main></div>`, ADMIN_MEDIOS_SCRIPT);
 }
 
 export function renderAdminEmprendedoresPage(page) {

@@ -42,7 +42,7 @@ final class Router
     private readonly Audit $audit;
     private readonly Crypto $crypto;
     private const FILTERS = ['search', 'status', 'city', 'main_network', 'previous_participation', 'date_from', 'date_to'];
-    private const MEDIA_FILTERS = ['search', 'status', 'province', 'media_type', 'paid_media'];
+    private const MEDIA_FILTERS = ['search', 'status', 'province', 'media_type', 'paid_media', 'origin'];
     private const EMPRENDEDOR_FILTERS = ['search', 'status', 'city', 'main_network'];
     private const METHODS = ['GET', 'POST', 'PATCH', 'OPTIONS'];
 
@@ -239,7 +239,7 @@ final class Router
             if ($path === '/api/emprendedores' || str_starts_with($path, '/api/emprendedores/') || $path === '/api/emprendedor-accounts' || str_starts_with($path, '/api/emprendedor-accounts/') || in_array($path, ['/api/emprendedor-dashboard', '/api/emprendedor-video-schedule'], true)) {
                 return $this->emprendedorAdmin($method, $path, $query, $server, $rawBody, $origin, $refererOrigin, $ip, $user, $headers);
             }
-            if ($path === '/api/medios' || str_starts_with($path, '/api/medios/') || $path === '/api/media-accounts' || str_starts_with($path, '/api/media-accounts/')) {
+            if ($path === '/api/medios' || str_starts_with($path, '/api/medios/') || $path === '/api/media-accounts' || str_starts_with($path, '/api/media-accounts/') || $path === '/api/media-claims' || $path === '/api/media-events' || str_starts_with($path, '/api/media-events/')) {
                 return $this->mediaAdmin($method, $path, $query, $server, $rawBody, $origin, $refererOrigin, $ip, $user, $headers);
             }
             if ($path === '/api/voceros' && $method === 'GET') {
@@ -656,9 +656,13 @@ final class Router
                 return $this->json(200, ['ok' => true, 'csrf' => $this->mediaAuth()->csrfToken()], $headers);
             }
             if ($path === '/api/media/auth/register') {
-                $body = $this->body($server, $rawBody, ['email', 'password', 'privacyAcknowledged']);
+                $body = $this->body($server, $rawBody, ['email', 'password', 'privacyAcknowledged', 'invitation']);
                 if (!is_string($body['email'] ?? null) || !is_string($body['password'] ?? null) || !is_bool($body['privacyAcknowledged'] ?? null)) throw new InvalidArgumentException();
+                $invitation = $body['invitation'] ?? null;
+                if ($invitation !== null && (!is_string($invitation) || $this->media()->invitationPreview($invitation) === null)) throw new OutOfBoundsException();
                 $this->mediaAuth()->register($body['email'], $body['password'], $body['privacyAcknowledged'], $ip);
+                // An invited account is linked to the record coordination prepared for it before the first login.
+                if ($invitation !== null) $this->media()->consumeInvitation($invitation, $body['email'], $ip);
                 return $this->json(202, ['ok' => true, 'message' => 'Cuenta creada; inicia sesión.'], $headers);
             }
             if ($path === '/api/media/auth/login') {
@@ -678,6 +682,29 @@ final class Router
             $this->mediaAuth()->logout();
             return $this->json(200, ['ok' => true], $headers);
         }
+        if ($path === '/api/media/invitation') {
+            // Public preview: tells the access page which record an invitation link opens, nothing more.
+            if ($method !== 'GET') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+            if (array_keys($query) !== ['token']) throw new InvalidArgumentException();
+            $preview = $this->media()->invitationPreview($query['token']);
+            if ($preview === null) throw new OutOfBoundsException();
+            return $this->json(200, ['ok' => true, 'invitation' => $preview], $headers);
+        }
+        if ($path === '/api/media/lookup') {
+            $this->mediaAuth()->requireUser();
+            if ($method !== 'GET') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+            if (array_keys($query) !== ['name']) throw new InvalidArgumentException();
+            return $this->json(200, ['items' => $this->media()->lookupUnlinked($query['name'])], $headers);
+        }
+        if ($path === '/api/media/claim') {
+            $user = $this->mediaAuth()->requireUser();
+            if ($method !== 'POST') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+            if (!$this->config->isAllowedOrigin($origin) || !$validIp || $query !== []) throw new Forbidden();
+            $this->mediaAuth()->verifyCsrf($token);
+            $body = $this->body($server, $rawBody, ['public_id']);
+            if (!is_string($body['public_id'] ?? null)) throw new InvalidArgumentException();
+            return $this->json(202, ['ok' => true, 'claim' => $this->media()->requestClaim($user['id'], $body['public_id'], $ip)], $headers);
+        }
         if ($path === '/api/media/profile') {
             $user = $this->mediaAuth()->requireUser();
             if (!in_array($method, ['GET', 'POST'], true)) return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
@@ -689,7 +716,11 @@ final class Router
                 return $this->json(200, ['registered' => true, ...$saved], $headers);
             }
             $own = $this->media()->forAccount($user['id']);
-            return $this->json(200, $own === null ? ['registered' => false, 'email' => $user['email'], 'status' => null, 'editable' => true] : ['registered' => true, 'email' => $user['email'], ...$own], $headers);
+            if ($own === null) {
+                $claim = $this->media()->claimForAccount($user['id']);
+                return $this->json(200, ['registered' => false, 'email' => $user['email'], 'status' => null, 'editable' => $claim === null, 'claim' => $claim], $headers);
+            }
+            return $this->json(200, ['registered' => true, 'email' => $user['email'], ...$own], $headers);
         }
         if ($path === '/api/media/photo') {
             $user = $this->mediaAuth()->requireUser();
@@ -729,6 +760,11 @@ final class Router
         $notAllowed = fn (): Response => $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
         if (!is_string($ip) || inet_pton($ip) === false) throw new Forbidden();
         if ($path === '/api/medios') {
+            if ($method === 'POST') {
+                if ($query !== []) throw new InvalidArgumentException();
+                $detail = $this->media()->createByAdmin($this->body($server, $rawBody, MediaRepository::ADMIN_FIELDS), $user['id'], $ip);
+                return $this->json(201, $detail, $headers);
+            }
             if ($method !== 'GET') return $notAllowed();
             $result = $this->media()->list($this->mediaFilters($query, true));
             return $this->json(200, ['items' => $result['items'], 'summary' => $this->media()->summary(), 'topViews' => $this->media()->topByViews(20), 'topFollowers' => $this->media()->topByFollowers(20), 'pagination' => [
@@ -740,6 +776,28 @@ final class Router
             if ($method !== 'GET') return $notAllowed();
             if ($query !== []) throw new InvalidArgumentException();
             return $this->json(200, ['items' => $this->media()->pendingAccounts()], $headers);
+        }
+        if ($path === '/api/media-claims') {
+            if ($method !== 'GET') return $notAllowed();
+            if ($query !== []) throw new InvalidArgumentException();
+            return $this->json(200, ['items' => $this->media()->pendingClaims()], $headers);
+        }
+        if ($path === '/api/media-events') {
+            if ($query !== []) throw new InvalidArgumentException();
+            if ($method === 'GET') return $this->json(200, ['items' => $this->media()->listEvents()], $headers);
+            if ($method !== 'POST') return $notAllowed();
+            return $this->json(201, ['ok' => true, 'event' => $this->media()->createEvent($this->body($server, $rawBody, ['name', 'event_date']), $user['id'], $ip)], $headers);
+        }
+        if (preg_match('~^/api/media-events/([a-f0-9]{32})$~D', $path, $parts)) {
+            if ($method !== 'GET') return $notAllowed();
+            if ($query !== []) throw new InvalidArgumentException();
+            return $this->json(200, $this->media()->coverageForEvent($parts[1]), $headers);
+        }
+        if (preg_match('~^/api/media-events/([a-f0-9]{32})/coverage/([a-f0-9]{32})$~D', $path, $parts)) {
+            if ($method !== 'PATCH') return $notAllowed();
+            if ($query !== []) throw new InvalidArgumentException();
+            $this->media()->upsertCoverage($parts[1], $parts[2], $this->body($server, $rawBody, ['contracted', 'result', 'people_count', 'links', 'note']), $user['id'], $ip);
+            return $this->json(200, ['ok' => true], $headers);
         }
         if ($path === '/api/medios/export') {
             if ($method !== 'POST') return $notAllowed();
@@ -766,6 +824,27 @@ final class Router
             $body = $this->body($server, $rawBody, ['video_views']);
             $this->media()->updateVideoViews($parts[1], $body['video_views'] ?? null, $user['id'], $ip);
             return $this->json(200, ['ok' => true], $headers);
+        }
+        if (preg_match('~^/api/medios/([a-f0-9]{32})/details$~D', $path, $parts)) {
+            if ($method !== 'PATCH') return $notAllowed();
+            if ($query !== []) throw new InvalidArgumentException();
+            $this->media()->updateByAdmin($parts[1], $this->body($server, $rawBody, MediaRepository::ADMIN_FIELDS), $user['id'], $ip);
+            return $this->json(200, ['ok' => true], $headers);
+        }
+        if (preg_match('~^/api/medios/([a-f0-9]{32})/claim/(approve|reject)$~D', $path, $parts)) {
+            if ($method !== 'POST') return $notAllowed();
+            if ($query !== []) throw new InvalidArgumentException();
+            $this->body($server, $rawBody, []);
+            $this->media()->resolveClaim($parts[1], $parts[2] === 'approve', $user['id'], $ip);
+            return $this->json(200, ['ok' => true], $headers);
+        }
+        if (preg_match('~^/api/medios/([a-f0-9]{32})/invite$~D', $path, $parts)) {
+            if ($method !== 'POST') return $notAllowed();
+            if ($query !== [] || !$this->config->isAllowedOrigin($origin)) throw new Forbidden();
+            $this->body($server, $rawBody, []);
+            $raw = $this->media()->createInvitation($parts[1], $user['id'], $ip);
+            $inviteOrigin = $origin ?? $refererOrigin ?? $this->config->allowedOrigin();
+            return $this->json(201, ['invitationUrl' => $inviteOrigin . '/finados/medios/acceso/?invitacion=' . $raw], $headers);
         }
         if (preg_match('~^/api/medios/([a-f0-9]{32})(?:/(delete|notes|password-reset))?$~D', $path, $parts)) {
             $id = $parts[1]; $action = $parts[2] ?? '';
@@ -820,7 +899,7 @@ final class Router
 
     private function mediaExport(array $filters, int $actorId, string $ip, array $headers): Response
     {
-        $columns = ['public_id', 'status', 'traffic_light', 'paid_media', 'submitted_at', 'media_name', 'media_types_label', 'radio_stations_label', 'audience_count', 'radio_genre', 'tv_channels_label', 'contact_name', 'phone', 'contact_email', 'account_email', 'province', 'city', 'channels_label', 'followers_total', 'has_photo', 'image_authorized', 'videos_count', 'views_total', 'video_links'];
+        $columns = ['public_id', 'status', 'traffic_light', 'paid_media', 'origin', 'linked', 'submitted_at', 'media_name', 'program_name', 'representatives_label', 'followers_validated', 'media_types_label', 'radio_stations_label', 'audience_count', 'radio_genre', 'tv_channels_label', 'contact_name', 'phone', 'contact_email', 'account_email', 'province', 'city', 'channels_label', 'followers_total', 'has_photo', 'image_authorized', 'videos_count', 'views_total', 'video_links'];
         $stream = fopen('php://temp/maxmemory:2097152', 'w+');
         if ($stream === false) throw new \RuntimeException();
         try {
@@ -834,6 +913,8 @@ final class Router
                 $detail['channels_label'] = implode(' | ', array_map(static fn (array $channel): string => (MediaRepository::CHANNEL_TYPES[$channel['type']] ?? $channel['type']) . ': ' . $channel['url'] . (is_int($channel['followers'] ?? null) ? ' (' . $channel['followers'] . ' seguidores)' : ''), $detail['channels'] ?? []));
                 $detail['has_photo'] = ($detail['photo']['available'] ?? false) ? 'Sí' : 'No';
                 $detail['paid_media'] = ($detail['paid_media'] ?? 'no') === 'yes' ? 'Sí' : 'No';
+                $detail['linked'] = ($detail['linked'] ?? false) ? 'Sí' : 'No';
+                $detail['representatives_label'] = implode(' | ', array_map(static fn (array $person): string => $person['name'] . ($person['role'] !== '' ? ' (' . $person['role'] . ')' : ''), $detail['representatives'] ?? []));
                 $detail['radio_stations_label'] = implode(' | ', array_map(static fn (array $station): string => $station['name'] . ' (' . $station['frequency'] . ')', $detail['radio_stations'] ?? []));
                 $detail = [...$detail, 'image_authorized' => ($detail['consents']['image']['accepted'] ?? false) ? 'Sí' : 'No', 'videos_count' => count($links), 'views_total' => array_sum(array_column($detail['videos'] ?? [], 'views_count')),
                     'video_links' => implode(' | ', array_map(static fn (array $video): string => $video['url'] . ' (' . $video['views_count'] . ' views)', $detail['videos'] ?? []))];

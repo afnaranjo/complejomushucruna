@@ -6,7 +6,7 @@ import { apiBasesForCsp, LOCAL_API_BASE, PRIMARY_API_BASE } from '../finados/run
 
 // Server-owned text is incorporated at build time and escaped as HTML, never fetched by the browser.
 const consents = JSON.parse(readFileSync(new URL('../../backend/finados-api/resources/media-consents.json', import.meta.url), 'utf8'));
-export const mediaPortalScriptVersion = '20260921-medios-11';
+export const mediaPortalScriptVersion = '20260922-medios-12';
 
 const email = id => `<label class="vocero-field" for="${id}"><span>Correo electrónico</span><input id="${id}" name="email" type="email" autocomplete="username" maxlength="254" autocapitalize="none" spellcheck="false" required></label>`;
 const password = (id, label, autocomplete) => `<label class="vocero-field" for="${id}"><span>${label}</span><input id="${id}" name="${id.includes('confirmation') ? 'confirmation' : 'password'}" type="password" autocomplete="${autocomplete}" minlength="${autocomplete === 'current-password' ? '1' : '10'}" maxlength="128" required></label>`;
@@ -30,7 +30,7 @@ function renderMediaForm() {
 <form data-media-video-form novalidate><fieldset disabled><label class="vocero-field" for="video_url"><span>Link del video${required}</span><input id="video_url" name="url" type="text" inputmode="url" maxlength="500" autocapitalize="none" spellcheck="false" placeholder="Ej.: https://www.tiktok.com/@tumedio/video/…" required></label><button class="vocero-primary" type="submit">Agregar video</button></fieldset></form>
 <p class="media-videos__count" data-media-video-count>Aún no has agregado videos.</p>
 <ol class="media-videos__list" data-media-video-list></ol>
-</section><div id="media-profile-panel" data-media-profile-panel>
+</section><div class="vocero-notice" data-media-claim hidden><p>Pediste vincular tu cuenta al medio <strong data-media-claim-name></strong>. Coordinación confirmará la vinculación; cuando lo haga, verás aquí tu registro completo.</p></div><div id="media-profile-panel" data-media-profile-panel>
 <section class="media-photo" aria-labelledby="media-photo-title" data-media-photo>
 <p class="vocero-eyebrow">Obligatoria</p><h2 id="media-photo-title">Foto de la persona responsable${required}</h2>
 <p id="media-photo-help">Sube una foto reciente de la <strong>persona responsable del medio</strong>: de frente y con el rostro visible. No uses el logotipo del medio ni una foto grupal. Es obligatoria para verificar su identidad y aprobar el registro; se guarda cifrada y subirla no autoriza por sí sola su publicación. JPG, PNG o WebP; máximo 5 MB.</p>
@@ -43,6 +43,7 @@ function renderMediaForm() {
 <section aria-labelledby="media-data-title"><p class="vocero-eyebrow">01 · Tu medio</p><h2 id="media-data-title">Datos del medio</h2><p>Los campos con * son obligatorios.</p>
 <div class="vocero-fields">
 <label class="vocero-field media-field-wide" for="media_name"><span>Nombre del medio${required}</span><input id="media_name" name="media_name" type="text" maxlength="140" autocomplete="organization" required></label>
+<div class="vocero-notice media-field-wide" data-media-lookup hidden><p>¿Es tu medio? Coordinación ya cargó estos datos. Elige el tuyo y no crees un registro duplicado.</p><ul class="media-lookup-list" data-media-lookup-list></ul></div>
 <fieldset class="media-types media-field-wide" data-media-types><legend>Tipo de medio${required} <small>Marca todos los que correspondan; al menos uno.</small></legend>
 <div class="media-types__options">${Object.entries(MEDIA_TYPES).map(([key, label]) => `<label><input type="checkbox" name="media_types" value="${key}"><span>${esc(label)}</span></label>`).join('')}</div></fieldset>
 <label class="vocero-field" for="province"><span>Provincia${required}</span><select id="province" name="province" autocomplete="address-level1" required><option value="">Selecciona una opción</option>${ecuadorProvinces.map(value => `<option value="${esc(value)}">${esc(value)}</option>`).join('')}</select></label>
@@ -95,6 +96,7 @@ export function renderMediaPortalPage(page) {
     : mode === 'reset' ? `<div class="vocero-access-intro"><p class="vocero-eyebrow">Recupera tu acceso</p><h1>${title}</h1><p>Elige una contraseña de 10 a 128 caracteres.</p></div><form data-media-reset novalidate><fieldset disabled>${password('reset-password', 'Nueva contraseña', 'new-password')}${password('reset-confirmation', 'Confirma tu contraseña', 'new-password')}<button class="vocero-primary" type="submit">Guardar contraseña</button></fieldset></form><a href="/finados/medios/acceso/?modo=login">Volver a iniciar sesión</a>`
     : `<div class="vocero-access-intro"><p class="vocero-eyebrow">Registro de medios</p><h1>${title}</h1><p>Crea la cuenta de tu medio para completar el registro y consultar el estado de la acreditación.</p></div>
 <nav class="vocero-modes" aria-label="Acceso a tu cuenta"><button type="button" data-mode="register" aria-pressed="true">Crear cuenta</button><button type="button" data-mode="login" aria-pressed="false">Iniciar sesión</button></nav>
+<p class="vocero-notice" data-media-invitation hidden>Coordinación ya cargó los datos de <strong data-media-invitation-name></strong>. Crea tu cuenta aquí y quedará vinculada a ese registro.</p>
 <form data-media-register novalidate><fieldset disabled>${email('register-email')}${password('register-password', 'Contraseña', 'new-password')}<p class="vocero-field-help">De 10 a 128 caracteres. Puedes usar una frase larga.</p>${password('register-confirmation', 'Confirma tu contraseña', 'new-password')}<label class="vocero-check"><input name="privacyAcknowledged" type="checkbox" required checked><span>${esc(consents.account.text)}</span></label>${legalLink('privacy', 'Leer Política de Privacidad para medios')}<button class="vocero-primary" type="submit">Crear cuenta</button></fieldset></form>
 <form data-media-login novalidate hidden><fieldset disabled>${email('login-email')}${password('login-password', 'Contraseña', 'current-password')}<button class="vocero-primary" type="submit">Iniciar sesión</button></fieldset><details class="vocero-help"><summary>¿Olvidaste tu contraseña?</summary><p>Solicita al equipo de comunicación de Finados Mushuc Runa un enlace temporal para restablecer tu acceso.</p></details></form>`;
   return `<!doctype html><html lang="es"><head>

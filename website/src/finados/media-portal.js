@@ -54,7 +54,7 @@ export class MediaApiClient {
     this.fetch = fetchImplementation;
   }
   async request(path, { body, blob = false } = {}) {
-    if (!/^\/(?:auth\/(?:session|register|login|logout|reset)|profile|videos|photo)$/.test(path)) throw new Error('Ruta de API no permitida.');
+    if (!/^\/(?:auth\/(?:session|register|login|logout|reset)|profile|videos|photo|claim|invitation\?token=[a-f0-9]{64}|lookup\?name=[^&#]{1,200})$/.test(path)) throw new Error('Ruta de API no permitida.');
     if (body !== undefined && !this.#csrf) await this.session();
     const headers = { Accept: blob ? 'image/jpeg' : 'application/json' };
     const multipart = typeof FormData !== 'undefined' && body instanceof FormData;
@@ -82,7 +82,10 @@ export class MediaApiClient {
     return data;
   }
   session() { return this.request('/auth/session'); }
-  register(email, password) { return this.request('/auth/register', { body: { email, password, privacyAcknowledged: true } }); }
+  register(email, password, invitation = null) { return this.request('/auth/register', { body: { email, password, privacyAcknowledged: true, ...(invitation ? { invitation } : {}) } }); }
+  invitation(token) { return this.request(`/invitation?token=${token}`); }
+  lookup(name) { return this.request(`/lookup?name=${encodeURIComponent(name).slice(0, 200)}`); }
+  claim(publicId) { return this.request('/claim', { body: { public_id: publicId } }); }
   login(email, password) { return this.request('/auth/login', { body: { email, password } }); }
   async logout() { const result = await this.request('/auth/logout', { body: {} }); this.#csrf = ''; return result; }
   profile() { return this.request('/profile'); }
@@ -246,6 +249,11 @@ export async function initializeMediaPortal(root = document) {
   }
   for (const button of root.querySelectorAll('[data-mode]')) button.addEventListener('click', () => setMode({ mode: button.dataset.mode }));
   if (view === 'access' && new URLSearchParams(location.search).get('modo') === 'login') setMode({ mode: 'login' });
+  // An invitation from coordination creates the account already linked to the record it prepared.
+  const invitationToken = view === 'access' ? (new URLSearchParams(location.search).get('invitacion') ?? '') : '';
+  const invitationBox = root.querySelector('[data-media-invitation]');
+  let invitationValid = false;
+  if (view === 'access' && invitationToken && globalThis.history?.replaceState) globalThis.history.replaceState(null, '', location.pathname);
   // Remove the recovery token from the address bar before any subsequent navigation.
   let resetToken = view === 'reset' ? new URLSearchParams(location.search).get('token') ?? '' : '';
   if (view === 'reset' && location.search) globalThis.history?.replaceState(null, '', location.pathname);
@@ -420,9 +428,45 @@ export async function initializeMediaPortal(root = document) {
     });
   }
   submit(register, async data => {
-    await api.register(data.get('email'), data.get('password'));
-    setMode({ mode: 'login', email: data.get('email'), message: 'Cuenta creada; inicia sesión con tu correo y contraseña para completar el registro.' });
+    await api.register(data.get('email'), data.get('password'), invitationValid ? invitationToken : null);
+    setMode({ mode: 'login', email: data.get('email'), message: invitationValid ? 'Cuenta creada y vinculada a tu medio; inicia sesión para revisar tu registro.' : 'Cuenta creada; inicia sesión con tu correo y contraseña para completar el registro.' });
+    invitationValid = false; if (invitationBox) invitationBox.hidden = true;
   });
+  // While a medium types its name, records loaded by coordination are offered so it does not create a duplicate.
+  const lookupBox = root.querySelector('[data-media-lookup]');
+  const lookupList = root.querySelector('[data-media-lookup-list]');
+  const claimBox = root.querySelector('[data-media-claim]');
+  let lookupTimer = 0; let lookupEnabled = false;
+  async function lookup() {
+    if (!lookupEnabled || !lookupList) return;
+    const term = profileForm.elements.namedItem('media_name').value.trim();
+    lookupList.replaceChildren(); if (lookupBox) lookupBox.hidden = true;
+    if (term.length < 3) return;
+    try {
+      const data = await api.lookup(term);
+      for (const record of data.items ?? []) {
+        const item = document.createElement('li');
+        const button = document.createElement('button'); button.type = 'button'; button.className = 'vocero-quiet';
+        button.textContent = `${record.media_name}${record.city ? ` · ${record.city}` : ''} — Es mi medio`;
+        button.addEventListener('click', async () => {
+          button.disabled = true;
+          try { const result = await api.claim(record.public_id); showClaim(result.claim); message('Solicitud enviada. Coordinación confirmará la vinculación y verás aquí tu registro.'); }
+          catch (error) { button.disabled = false; reportError(error); }
+        });
+        item.append(button); lookupList.append(item);
+      }
+      if (lookupBox) lookupBox.hidden = lookupList.childElementCount === 0;
+    } catch { /* a failed suggestion never blocks the form */ }
+  }
+  function showClaim(claim) {
+    if (!claimBox) return;
+    if (!claim) { claimBox.hidden = true; return; }
+    claimBox.hidden = false;
+    claimBox.querySelector('[data-media-claim-name]').textContent = claim.media_name;
+    profileForm.hidden = true; if (lookupBox) lookupBox.hidden = true;
+    profileStatus.textContent = 'Vinculación pendiente de confirmación por coordinación.';
+  }
+  profileForm?.elements.namedItem('media_name')?.addEventListener('input', () => { globalThis.clearTimeout(lookupTimer); lookupTimer = globalThis.setTimeout(lookup, 400); });
   submit(login, async data => {
     const result = await api.login(data.get('email'), data.get('password'));
     if (result.authenticated !== true || result.user?.role !== 'media') throw new MediaError(401, 'login');
@@ -484,11 +528,20 @@ export async function initializeMediaPortal(root = document) {
         if (!session.authenticated || session.user?.role !== 'media') { location.replace(ACCESS); return; }
         const profile = await api.profile();
         populate(profile);
+        lookupEnabled = profile.registered !== true && !profile.claim;
+        showClaim(profile.registered ? null : profile.claim ?? null);
         if (profile.photo?.available) { try { await showSavedPhoto(); } catch { /* the record stays usable without its preview */ } }
         logout.disabled = false; ready = true; message('', false, false);
       } else {
         if (view === 'access' && session.authenticated && session.user?.role === 'media') { location.replace(PROFILE); return; }
         if (view === 'reset' && !/^[a-f0-9]{64}$/.test(resetToken)) throw new Error('El enlace no es válido. Solicita un enlace nuevo.');
+        if (view === 'access' && invitationToken) {
+          if (!/^[a-f0-9]{64}$/.test(invitationToken)) throw new Error('El enlace de invitación no es válido. Pide uno nuevo a coordinación.');
+          const preview = await api.invitation(invitationToken);
+          invitationValid = true;
+          if (invitationBox) { invitationBox.hidden = false; invitationBox.querySelector('[data-media-invitation-name]').textContent = preview.invitation.media_name; }
+          setMode({ mode: 'register' });
+        }
         for (const form of forms) form.querySelector('fieldset').disabled = false;
         ready = true; message('', false, false);
       }

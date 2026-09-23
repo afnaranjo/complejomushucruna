@@ -91,7 +91,8 @@ test('el build publica la landing, las cuentas de medios y su panel sin tocar la
   assert.match(admin, /\/assets\/admin\/admin-medios\.js\?v=/);
   assert.doesNotMatch(admin, /\/assets\/admin\/admin\.js/);
   // The paid-media flag is administrative: filter, column and dropdown live only in the panel.
-  assert.equal((admin.match(/<select name="paid_media"/g) ?? []).length, 2);
+  // Filter, status form and the coordination record dialog.
+  assert.equal((admin.match(/<select name="paid_media"/g) ?? []).length, 3);
   assert.match(admin, /<th scope="col">Pauta<\/th>/);
   const mediaProfile = await readFile(join(output, 'finados/medios/mi-registro/index.html'), 'utf8');
   assert.doesNotMatch(mediaProfile, /paid_media|Medio pautado/);
