@@ -1,6 +1,6 @@
 import { escapeHtml } from '../render/html.mjs';
 
-export const dignitiesAssetVersion = '20260922-dignities-3';
+export const dignitiesAssetVersion = '20260923-dignities-4';
 
 export const dignityCandidates = Object.freeze([
   { name: 'Golpe a Golpe', slug: 'golpe-a-golpe', category: 'rey-pan' },
