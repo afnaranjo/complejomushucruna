@@ -8,6 +8,8 @@ export const CREADORA_STATUSES = Object.freeze(['Nuevo', 'Activa', 'En pausa', '
 export const NETWORK_LABELS = Object.freeze({ tiktok: 'TikTok', instagram: 'Instagram', facebook: 'Facebook', youtube: 'YouTube', otro: 'Otra red' });
 export const ORIGIN_LABELS = Object.freeze({ coordinacion: 'Coordinación', cuenta: 'Cuenta propia' });
 export const VIEWS = Object.freeze({ day: 'Día', week: 'Semana', month: 'Mes' });
+export const CONTENT_KINDS = Object.freeze({ video: 'Video', live: 'En vivo', historia: 'Historia', foto: 'Fotografía', otro: 'Otro' });
+export const ATTENDANCE_LABELS = Object.freeze({ yes: 'Asistió', no: 'No asistió' });
 /** El calendario muestra de 6:00 a 24:00 y las cajas se acomodan de cuarto en cuarto de hora. */
 export const DAY_START_HOUR = 6;
 export const DAY_END_HOUR = 24;
@@ -35,7 +37,7 @@ export function createCreadoraAdminClient(baseUrl = API, fetchImplementation = f
   async function request(path, options = {}) {
     if (!/^\/(?:auth\/(?:session|logout)|creadoras(?:\?[^#]*)?|creadoras\/(?:calendario|bitacora|turnos)(?:\?[^#]*)?)$/.test(path)
       && !/^\/creadoras\/[a-f0-9]{32}(?:\/retirar)?$/.test(path)
-      && !/^\/creadoras\/turnos\/[a-f0-9]{32}$/.test(path)) throw new Error('Ruta de API no permitida.');
+      && !/^\/creadoras\/turnos\/[a-f0-9]{32}(?:\/contenido)?$/.test(path)) throw new Error('Ruta de API no permitida.');
     const method = (options.method ?? 'GET').toUpperCase();
     if (!['GET', 'POST', 'PATCH'].includes(method)) throw new Error('Método no permitido.');
     const headers = { Accept: 'application/json' };
@@ -70,6 +72,9 @@ export function createCreadoraAdminClient(baseUrl = API, fetchImplementation = f
     createShift: body => request('/creadoras/turnos', { method: 'POST', body }),
     updateShift: (id, body) => request(`/creadoras/turnos/${id}`, { method: 'PATCH', body }),
     removeShift: id => request(`/creadoras/turnos/${id}`, { method: 'POST', body: {} }),
+    markAttendance: (id, attended) => request(`/creadoras/turnos/${id}`, { method: 'PATCH', body: { attended } }),
+    addContent: (id, body) => request(`/creadoras/turnos/${id}/contenido`, { method: 'POST', body }),
+    removeContent: (id, content) => request(`/creadoras/turnos/${id}/contenido`, { method: 'PATCH', body: { content } }),
   };
 }
 
@@ -357,6 +362,22 @@ export function minutesFromTime(value) {
   return match === null ? null : Number(match[1]) * 60 + Number(match[2]);
 }
 
+/** Una línea de contenido tal como se lee en el turno: «Video · Recorrido por la feria». */
+export function contentLabel(entry = {}) {
+  const kind = CONTENT_KINDS[entry.kind] ?? entry.kind_label ?? '';
+  return [kind, entry.title].filter(Boolean).join(' · ');
+}
+
+/** Lo que se manda al registrar contenido, con el nombre como único dato obligatorio. */
+export function contentPayload({ kind, title, url }) {
+  const clean = value => String(value ?? '').trim();
+  if (!Object.hasOwn(CONTENT_KINDS, clean(kind))) throw new TypeError('Elige el tipo de contenido.');
+  if (clean(title) === '') throw new TypeError('Escribe el nombre del contenido.');
+  const link = clean(url);
+  if (link !== '' && !/^https:\/\/\S+$/.test(link)) throw new TypeError('El enlace debe empezar con https://');
+  return { kind: clean(kind), title: clean(title), url: link };
+}
+
 /** Los valores del formulario para un turno ya guardado. */
 export function shiftFormValues(shift = {}) {
   return {
@@ -508,6 +529,11 @@ export async function initializeAdminCreadoras() {
     box.style.setProperty('--shift-ink', color.ink);
     box.append(node('strong', shift.name), node('span', shiftLabel(shift)));
     if (shift.place) box.append(node('small', shift.place));
+    const marks = [];
+    if (shift.attended === 'yes') marks.push('✓ asistió');
+    else if (shift.attended === 'no') marks.push('✗ no asistió');
+    if (shift.content_count) marks.push(`${shift.content_count} ${shift.content_count === 1 ? 'pieza' : 'piezas'}`);
+    if (marks.length) box.append(node('small', marks.join(' · '), 'shift-box__marks'));
     if (absolute) {
       const geometry = placement ?? shiftGeometry(shift, key);
       if (geometry === null) return null;
@@ -724,6 +750,9 @@ export async function initializeAdminCreadoras() {
   const duplicateButton = shiftDialog?.querySelector('[data-shift-duplicate]');
   const copyButton = shiftDialog?.querySelector('[data-shift-copy]');
   const durationLine = shiftDialog?.querySelector('[data-shift-duration]');
+  const record = shiftDialog?.querySelector('[data-shift-record]');
+  const contentList = shiftDialog?.querySelector('[data-content-list]');
+  const contentForm = shiftDialog?.querySelector('[data-content-form]');
   const clipboardBar = query('[data-clipboard]');
   const clipboardLabel = query('[data-clipboard-label]');
   let editingShift = '';
@@ -735,6 +764,55 @@ export async function initializeAdminCreadoras() {
     const label = from === null || to === null ? '' : durationLabel(from, to);
     durationLine.textContent = label ? `Dura ${label}.` : (from !== null && to !== null ? 'La hora de fin debe ser posterior a la de inicio.' : '');
     durationLine.dataset.error = String(Boolean(from !== null && to !== null && !label));
+  }
+
+  /** La parte de «lo que pasó»: solo tiene sentido en un turno ya guardado. */
+  function renderRecord(shift) {
+    if (!record) return;
+    record.hidden = !shift;
+    if (contentForm) contentForm.hidden = true;
+    if (!shift) return;
+    for (const radio of shiftForm.querySelectorAll('[name="attended"]')) radio.checked = radio.value === (shift.attended ?? '');
+    contentList.replaceChildren();
+    const items = shift.content ?? [];
+    if (!items.length) {
+      contentList.append(node('li', 'Todavía no hay contenido registrado.', 'admin-panel-empty'));
+      return;
+    }
+    for (const entry of items) {
+      const item = node('li');
+      const body = node('span');
+      body.append(node('strong', contentLabel(entry)));
+      if (entry.url) {
+        const link = node('a', 'Ver publicación');
+        link.href = entry.url;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        body.append(link);
+      }
+      const remove = node('button', 'Quitar', 'button-quiet');
+      remove.type = 'button';
+      remove.addEventListener('click', async () => {
+        if (!confirm(`¿Quitar «${entry.title}» de este turno?`)) return;
+        await withShift(() => client.removeContent(editingShift, entry.public_id));
+      });
+      item.append(body, remove);
+      contentList.append(item);
+    }
+  }
+
+  /** Cada cambio del registro refresca el turno abierto y el calendario detrás. */
+  async function withShift(action) {
+    try {
+      const data = await action();
+      if (Array.isArray(data.log)) state.log = data.log;
+      if (data.shift) renderRecord(data.shift);
+      await load(false);
+      if (shiftFeedback) { shiftFeedback.textContent = ''; shiftFeedback.dataset.error = 'false'; }
+    } catch (error) {
+      if (shiftFeedback) { shiftFeedback.textContent = error.message; shiftFeedback.dataset.error = 'true'; }
+      if (error.status === 401) fail(error);
+    }
   }
 
   function showClipboard() {
@@ -762,6 +840,7 @@ export async function initializeAdminCreadoras() {
     for (const [name, value] of Object.entries(values)) if (shiftForm.elements[name]) shiftForm.elements[name].value = value;
     if (duplicateButton) duplicateButton.hidden = !shift;
     if (copyButton) copyButton.hidden = !shift;
+    renderRecord(shift);
     showDuration();
     shiftDialog.showModal();
   }
@@ -792,6 +871,37 @@ export async function initializeAdminCreadoras() {
   });
 
   for (const name of ['start', 'end']) shiftForm?.elements[name]?.addEventListener('input', showDuration);
+
+  // Marcar la asistencia guarda al instante, sin tocar «Guardar turno».
+  for (const radio of shiftForm?.querySelectorAll('[name="attended"]') ?? []) {
+    radio.addEventListener('change', async () => {
+      if (!editingShift) return;
+      await withShift(() => client.markAttendance(editingShift, radio.value));
+    });
+  }
+
+  // El «+» abre el formulario del contenido; se pueden registrar varios en el mismo turno.
+  shiftDialog?.querySelector('[data-content-add]')?.addEventListener('click', () => {
+    if (!contentForm) return;
+    contentForm.hidden = false;
+    contentForm.querySelector('[data-content-title]').value = '';
+    contentForm.querySelector('[data-content-url]').value = '';
+    contentForm.querySelector('[data-content-title]').focus();
+  });
+  shiftDialog?.querySelector('[data-content-cancel]')?.addEventListener('click', () => { if (contentForm) contentForm.hidden = true; });
+  shiftDialog?.querySelector('[data-content-save]')?.addEventListener('click', async () => {
+    if (!editingShift || !contentForm) return;
+    let payload;
+    try {
+      payload = contentPayload({
+        kind: contentForm.querySelector('[data-content-kind]').value,
+        title: contentForm.querySelector('[data-content-title]').value,
+        url: contentForm.querySelector('[data-content-url]').value,
+      });
+    } catch (error) { if (shiftFeedback) { shiftFeedback.textContent = error.message; shiftFeedback.dataset.error = 'true'; } return; }
+    await withShift(() => client.addContent(editingShift, payload));
+    contentForm.hidden = true;
+  });
 
   // Duplicar deja el mismo hueco listo para otra creadora: se guarda como un turno nuevo.
   duplicateButton?.addEventListener('click', async () => {

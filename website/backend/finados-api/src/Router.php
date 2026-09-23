@@ -679,7 +679,7 @@ final class Router
         if ($path === '/api/creadoras') {
             if ($method === 'GET') {
                 foreach (array_keys($query) as $key) if (!in_array($key, self::CREADORA_FILTERS, true)) throw new InvalidArgumentException();
-                return $this->json(200, $repository->list($query) + ['statuses' => CreadoraRepository::STATUSES, 'networks' => CreadoraRepository::NETWORKS], $headers);
+                return $this->json(200, $repository->list($query) + ['statuses' => CreadoraRepository::STATUSES, 'networks' => CreadoraRepository::NETWORKS, 'content_kinds' => CreadoraRepository::CONTENT_KINDS], $headers);
             }
             if ($method !== 'POST') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
             if ($query !== []) throw new InvalidArgumentException();
@@ -702,10 +702,22 @@ final class Router
             $body = $this->body($server, $rawBody, ['creadora', 'starts_at', 'ends_at', 'place', 'note']);
             return $this->json(201, ['ok' => true, ...$repository->createShift($body, $user['id'], $actor, $ip)], $headers);
         }
+        if (preg_match('~^/api/creadoras/turnos/([a-f0-9]{32})/contenido$~D', $path, $parts)) {
+            if ($query !== []) throw new InvalidArgumentException();
+            if ($method === 'POST') {
+                $body = $this->body($server, $rawBody, ['kind', 'title', 'url', 'note']);
+                return $this->json(201, ['ok' => true, ...$repository->addContent($parts[1], $body, $user['id'], $actor, $ip)], $headers);
+            }
+            if ($method === 'PATCH') {
+                $body = $this->body($server, $rawBody, ['content']);
+                return $this->json(200, ['ok' => true, ...$repository->removeContent($parts[1], (string) ($body['content'] ?? ''), $user['id'], $actor, $ip)], $headers);
+            }
+            return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+        }
         if (preg_match('~^/api/creadoras/turnos/([a-f0-9]{32})$~D', $path, $parts)) {
             if ($query !== []) throw new InvalidArgumentException();
             if ($method === 'PATCH') {
-                $body = $this->body($server, $rawBody, ['creadora', 'starts_at', 'ends_at', 'place', 'note']);
+                $body = $this->body($server, $rawBody, ['creadora', 'starts_at', 'ends_at', 'place', 'note', 'attended']);
                 return $this->json(200, ['ok' => true, ...$repository->updateShift($parts[1], $body, $user['id'], $actor, $ip)], $headers);
             }
             if ($method === 'POST') return $this->json(200, ['ok' => true, ...$repository->cancelShift($parts[1], $user['id'], $actor, $ip)], $headers);

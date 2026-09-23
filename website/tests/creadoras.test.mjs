@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import { buildSite } from '../scripts/build.mjs';
 import {
   createCreadoraAdminClient, creadoraPayload, CREADORA_FIELDS, dayKey, defaultShift, describeLogEntry, fillCreadoraForm, minutesFromOffset,
-  creadoraColor, CREADORA_HUES, dragPreview, duplicatedShift, durationLabel, layoutDay, minutesFromTime, movedShift, pastedShift, rangeLabel, resizedShift,
+  contentLabel, contentPayload, CONTENT_KINDS, creadoraColor, CREADORA_HUES, dragPreview, duplicatedShift, durationLabel, layoutDay, minutesFromTime, movedShift, pastedShift, rangeLabel, resizedShift,
   shiftFormValues, shiftGeometry, shiftLabel, shiftPayload, shiftView, viewRange, weekStart,
   DAY_START_HOUR, DAY_END_HOUR, MAX_END_MINUTES, STEP_MINUTES,
 } from '../src/admin/admin-creadoras.js';
@@ -195,6 +195,11 @@ test('la sección de creadoras se publica con su calendario, su bitácora y su e
   for (const marker of ['data-shift-duplicate', 'data-shift-copy', 'data-shift-duration', 'data-clipboard', 'data-clipboard-cancel'])
     assert.match(page, new RegExp(marker), marker);
   assert.match(page, /su borde de abajo para cambiar la hora de fin/);
+  // El turno guarda lo que pasó: asistencia y contenido con su botón «+».
+  for (const marker of ['data-shift-record', 'data-content-add', 'data-content-list', 'data-content-kind', 'data-content-title', 'data-content-url'])
+    assert.match(page, new RegExp(marker), marker);
+  assert.match(page, /name="attended" value="yes"/);
+  assert.match(page, /name="attended" value="no"/);
   // El arrastre es propio, no el del navegador: la caja ya no usa draggable.
   const bundleSource = await readFile(join(output, 'assets/admin/admin-creadoras.js'), 'utf8');
   assert.match(bundleSource, /shift-ghost/, 'la etiqueta de arrastre viaja en el bundle');
@@ -322,4 +327,23 @@ test('cada creadora conserva su color, y arrastrando se lee a dónde va el turno
   assert.equal(dragPreview(shift, '2026-09-22', 10 * 60 + 15), 'Jhos · mar 22 · 10:15–13:15');
   // La duración se conserva al cambiar de día.
   assert.equal(dragPreview(shift, '2026-09-24', 6 * 60), 'Jhos · jue 24 · 06:00–09:00');
+});
+
+test('el turno registra lo que pasó: asistencia y varias piezas de contenido', () => {
+  // Cada pieza se lee por su tipo y su nombre.
+  assert.equal(contentLabel({ kind: 'video', title: 'Recorrido por la feria' }), 'Video · Recorrido por la feria');
+  assert.equal(contentLabel({ kind: 'live', title: 'Desde el escenario' }), 'En vivo · Desde el escenario');
+  // Un tipo desconocido cae en la etiqueta que mande el servidor, sin romper la lista.
+  assert.equal(contentLabel({ kind: 'podcast', kind_label: 'Pódcast', title: 'Charla' }), 'Pódcast · Charla');
+  assert.equal(contentLabel({}), '');
+
+  // El nombre es obligatorio; el enlace, opcional pero seguro.
+  assert.deepEqual(contentPayload({ kind: 'video', title: '  Recorrido  ', url: ' https://tiktok.com/v/1 ' }),
+    { kind: 'video', title: 'Recorrido', url: 'https://tiktok.com/v/1' });
+  assert.deepEqual(contentPayload({ kind: 'foto', title: 'Galería' }), { kind: 'foto', title: 'Galería', url: '' });
+  assert.throws(() => contentPayload({ kind: 'podcast', title: 'x' }), /tipo de contenido/);
+  assert.throws(() => contentPayload({ kind: 'video', title: '   ' }), /nombre del contenido/);
+  assert.throws(() => contentPayload({ kind: 'video', title: 'x', url: 'http://inseguro.test' }), /https:\/\//);
+  // Los tipos que ofrece la pantalla son los que acepta el servidor.
+  assert.deepEqual(Object.keys(CONTENT_KINDS), ['video', 'live', 'historia', 'foto', 'otro']);
 });

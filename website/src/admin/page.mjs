@@ -61,7 +61,7 @@ function layout(page, content, script = '/assets/admin/admin.js?v=20260923-admin
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' blob:; font-src 'self'; connect-src ${connectSources}; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="admin-api-base" content="${api}">
 <link rel="icon" href="/assets/finados/favicon-finados.png">
-<link rel="stylesheet" href="/assets/admin/admin.css?v=20260923-11">
+<link rel="stylesheet" href="/assets/admin/admin.css?v=20260923-12">
 <script type="module" src="${script}"></script>
 </head><body class="admin-page">
 <a class="skip-link" href="#contenido">Ir al contenido</a>
@@ -156,7 +156,7 @@ ${select('province', 'Provincia', ecuadorProvinces)}</div>
 </dialog>${mediaRecordDialog()}</main></div>`, ADMIN_MEDIOS_SCRIPT);
 }
 
-const ADMIN_CREADORAS_SCRIPT = '/assets/admin/admin-creadoras.js?v=20260923-creadoras-4';
+const ADMIN_CREADORAS_SCRIPT = '/assets/admin/admin-creadoras.js?v=20260923-creadoras-5';
 const ADMIN_MEDIOS_SCRIPT = '/assets/admin/admin-medios.js?v=20260923-admin-medios-20';
 const RADIO_GENRE_OPTIONS = ['Noticias e información', 'Musical variada', 'Popular y tropical', 'Folclórica y andina', 'Juvenil y pop', 'Romántica', 'Religiosa', 'Deportiva', 'Comunitaria', 'Otro'];
 const PROVINCE_OPTIONS = ['Azuay', 'Bolívar', 'Cañar', 'Carchi', 'Chimborazo', 'Cotopaxi', 'El Oro', 'Esmeraldas', 'Galápagos', 'Guayas', 'Imbabura', 'Loja', 'Los Ríos', 'Manabí', 'Morona Santiago', 'Napo', 'Orellana', 'Pastaza', 'Pichincha', 'Santa Elena', 'Santo Domingo de los Tsáchilas', 'Sucumbíos', 'Tungurahua', 'Zamora Chinchipe'];
@@ -294,6 +294,24 @@ export function renderAdminCreadorasPage(page) {
 <label class="record-grid__wide">Nota<input name="note" maxlength="400" placeholder="Opcional"></label>
 </div>
 <p class="calendar-duration" data-shift-duration></p>
+<section class="shift-record" data-shift-record hidden aria-labelledby="registro-title">
+<div class="records-heading"><div><h3 id="registro-title">Lo que pasó en el turno</h3><p>Marca la asistencia y registra el contenido que se hizo.</p></div></div>
+<fieldset class="shift-attendance"><legend>Asistencia</legend>
+<label><input type="radio" name="attended" value="yes"><span>Asistió</span></label>
+<label><input type="radio" name="attended" value="no"><span>No asistió</span></label>
+<label><input type="radio" name="attended" value=""><span>Sin marcar</span></label>
+</fieldset>
+<div class="shift-content">
+<div class="shift-content__heading"><strong>Contenido realizado</strong><button type="button" class="button-quiet shift-content__add" data-content-add aria-label="Agregar contenido">+</button></div>
+<ol class="shift-content__list" data-content-list></ol>
+<div class="shift-content__form" data-content-form hidden>
+<label>Tipo<select data-content-kind><option value="video">Video</option><option value="live">En vivo</option><option value="historia">Historia</option><option value="foto">Fotografía</option><option value="otro">Otro</option></select></label>
+<label>Nombre del contenido<input data-content-title maxlength="200" placeholder="Ej.: Recorrido por la feria"></label>
+<label>Enlace<input data-content-url type="url" maxlength="500" placeholder="https:// (opcional)"></label>
+<div class="shift-content__actions"><button type="button" class="button-quiet" data-content-cancel>Cancelar</button><button type="button" class="button-primary" data-content-save>Agregar</button></div>
+</div>
+</div>
+</section>
 <p class="feedback" data-shift-feedback role="status" aria-live="polite"></p>
 <div class="record-form__actions record-form__actions--split">
 <span class="record-form__side"><button type="button" class="button-quiet" data-shift-duplicate hidden>Duplicar</button><button type="button" class="button-quiet" data-shift-copy hidden>Copiar</button><button type="button" class="button-quiet" data-shift-remove hidden>Quitar</button></span>

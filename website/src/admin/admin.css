@@ -291,3 +291,24 @@ tr[data-origin="cuenta"] > td { background: rgba(0, 210, 214, .05); }
 .shift-box__handle::after { background: var(--shift-edge, #94165e); }
 /* La etiqueta que acompaña al puntero mientras se arrastra. */
 .shift-ghost { position: fixed; top: 0; left: 0; z-index: 60; pointer-events: none; padding: .35rem .6rem; border-radius: .5rem; background: #241146; color: #f4eada; font-size: .78rem; font-weight: 650; white-space: nowrap; box-shadow: 0 6px 18px rgba(36, 17, 70, .35); }
+
+/* Lo que pasó en el turno: asistencia y contenido realizado. */
+.shift-record { margin-top: 1rem; padding-top: .75rem; border-top: 1px solid #e3dae6; }
+.shift-record .records-heading { padding: 0 0 .5rem; }
+.shift-record h3 { font-size: .95rem; }
+.shift-attendance { display: flex; flex-wrap: wrap; gap: .25rem 1rem; padding: .5rem .75rem; border: 1px solid #ddd2de; border-radius: .6rem; background: #fff; }
+.shift-attendance legend { font-size: .7rem; text-transform: uppercase; letter-spacing: .06em; color: #665771; margin: 0; padding: 0 .25rem; }
+.shift-attendance label { display: inline-flex; align-items: center; gap: .35rem; font-weight: 500; font-size: .82rem; }
+.shift-attendance input { width: 17px; min-height: 17px; margin: 0; accent-color: #1c6854; }
+.shift-content { margin-top: .75rem; }
+.shift-content__heading { display: flex; align-items: center; justify-content: space-between; gap: .5rem; }
+.shift-content__add { min-width: 38px; min-height: 38px; padding: 0; font-size: 1.25rem; line-height: 1; font-weight: 700; }
+.shift-content__list { list-style: none; margin: .5rem 0 0; padding: 0; display: grid; gap: .35rem; }
+.shift-content__list li { display: flex; align-items: center; justify-content: space-between; gap: .75rem; padding: .45rem .6rem; border: 1px solid #ddd2de; border-radius: .5rem; background: #fff; font-size: .82rem; }
+.shift-content__list strong { display: block; font-weight: 650; }
+.shift-content__list a { display: block; font-size: .72rem; }
+.shift-content__list .button-quiet { min-height: 32px; padding: 4px 10px; font-size: .72rem; }
+.shift-content__list .admin-panel-empty { border: 0; background: none; padding: 0; }
+.shift-content__form { display: grid; gap: .5rem; margin-top: .6rem; padding: .75rem; border: 1px dashed #b3a4bd; border-radius: .6rem; background: #fff; }
+.shift-content__actions { display: flex; justify-content: flex-end; gap: .5rem; }
+.shift-box__marks { font-weight: 650; opacity: .85; }

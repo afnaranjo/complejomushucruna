@@ -47,7 +47,7 @@ $config = creadora_config();
 $pdo = Database::connect($config);
 foreach (['001_initial', '002_sheets_outbox', '003_vocero_accounts', '008_media_accounts', '009_media_videos', '010_media_video_views', '011_media_contact_channels',
     '012_media_consents', '013_media_types_radio', '014_media_channels_photo', '015_media_traffic_light', '016_media_paid', '017_emprendedor_accounts',
-    '018_media_coverage', '019_media_event_attendance', '020_media_event_checkin', '021_creadora_accounts', '022_creadora_identity'] as $migration) {
+    '018_media_coverage', '019_media_event_attendance', '020_media_event_checkin', '021_creadora_accounts', '022_creadora_identity', '023_creadora_shift_content'] as $migration) {
     $pdo->exec(file_get_contents(__DIR__ . '/../migrations/' . $migration . '_sqlite.sql'));
 }
 same('021_creadora_accounts', $pdo->query("SELECT version FROM schema_migrations WHERE version = '021_creadora_accounts'")->fetchColumn());
@@ -168,6 +168,46 @@ same(422, $router->handle('GET', '/api/creadoras/calendario?from=2026-11-02&to=2
 same(422, $router->handle('GET', '/api/creadoras/calendario?from=2026-10-26&to=2027-06-01', $origin)->status);
 // Un turno fuera del rango no aparece.
 same(0, count(creadora_body($router->handle('GET', '/api/creadoras/calendario?from=2026-12-01&to=2026-12-08', $origin))['shifts']));
+
+// El turno guarda lo que pasó: asistencia y el contenido que se grabó.
+$vivo = creadora_body($router->handle('POST', '/api/creadoras/turnos', $json($csrf), creadora_json([
+    'creadora' => $ana['public_id'], 'starts_at' => '2026-11-02 09:00', 'ends_at' => '2026-11-02 13:00'])))['shift'];
+same(null, $vivo['attended']);
+same(0, count($vivo['content']));
+// La asistencia se marca desde el mismo turno y queda con su hora.
+$asistio = creadora_body($router->handle('PATCH', '/api/creadoras/turnos/' . $vivo['public_id'], $json($csrf), creadora_json(['attended' => 'yes'])));
+same('yes', $asistio['shift']['attended']);
+same(true, is_string($asistio['shift']['attendance_at']));
+same('attendance', $asistio['log'][0]['action']);
+same(true, str_contains($asistio['log'][0]['detail'], 'Asistió'));
+same(422, $router->handle('PATCH', '/api/creadoras/turnos/' . $vivo['public_id'], $json($csrf), creadora_json(['attended' => 'quizás']))->status);
+// Quitar la marca la deja sin dato otra vez.
+same(null, creadora_body($router->handle('PATCH', '/api/creadoras/turnos/' . $vivo['public_id'], $json($csrf), creadora_json(['attended' => ''])))['shift']['attended']);
+$router->handle('PATCH', '/api/creadoras/turnos/' . $vivo['public_id'], $json($csrf), creadora_json(['attended' => 'yes']));
+
+// Varios contenidos en el mismo turno, cada uno con su tipo y su nombre.
+same(422, $router->handle('POST', '/api/creadoras/turnos/' . $vivo['public_id'] . '/contenido', $json($csrf), creadora_json(['kind' => 'podcast', 'title' => 'x']))->status);
+same(422, $router->handle('POST', '/api/creadoras/turnos/' . $vivo['public_id'] . '/contenido', $json($csrf), creadora_json(['kind' => 'video', 'title' => '']))->status);
+same(422, $router->handle('POST', '/api/creadoras/turnos/' . $vivo['public_id'] . '/contenido', $json($csrf), creadora_json(['kind' => 'video', 'title' => 'Recorrido', 'url' => 'http://x.test']))->status);
+$conVideo = creadora_body($router->handle('POST', '/api/creadoras/turnos/' . $vivo['public_id'] . '/contenido', $json($csrf), creadora_json([
+    'kind' => 'video', 'title' => 'Recorrido por la feria', 'url' => 'https://www.tiktok.com/@ana/video/1'])));
+same('video', $conVideo['shift']['content'][0]['kind']);
+same('Video', $conVideo['shift']['content'][0]['kind_label']);
+same('Recorrido por la feria', $conVideo['shift']['content'][0]['title']);
+same('content', $conVideo['log'][0]['action']);
+$conLive = creadora_body($router->handle('POST', '/api/creadoras/turnos/' . $vivo['public_id'] . '/contenido', $json($csrf), creadora_json([
+    'kind' => 'live', 'title' => 'En vivo desde el escenario'])));
+same(2, count($conLive['shift']['content']), 'un turno puede dejar más de un contenido');
+// El calendario resume cuánto dejó cada turno.
+$conteo = null;
+foreach (creadora_body($router->handle('GET', '/api/creadoras/calendario?from=2026-11-02&to=2026-11-03', $origin))['shifts'] as $item) if ($item['public_id'] === $vivo['public_id']) $conteo = $item;
+same(2, $conteo['content_count']);
+same('yes', $conteo['attended']);
+// Quitar un contenido deja el otro y queda en la bitácora.
+$sinLive = creadora_body($router->handle('PATCH', '/api/creadoras/turnos/' . $vivo['public_id'] . '/contenido', $json($csrf), creadora_json(['content' => $conLive['shift']['content'][1]['public_id']])));
+same(1, count($sinLive['shift']['content']));
+same(true, str_contains($sinLive['log'][0]['detail'], 'Quitó'));
+same(422, $router->handle('PATCH', '/api/creadoras/turnos/' . $vivo['public_id'] . '/contenido', $json($csrf), creadora_json(['content' => str_repeat('f', 32)]))->status);
 
 // Quitar un turno lo saca del calendario sin borrar su rastro.
 $removed = creadora_body($router->handle('POST', '/api/creadoras/turnos/' . $otro['public_id'], $json($csrf), ''));

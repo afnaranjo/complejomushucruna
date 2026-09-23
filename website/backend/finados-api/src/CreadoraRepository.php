@@ -31,7 +31,13 @@ final class CreadoraRepository
         'edited' => 'Editó el detalle',
         'canceled' => 'Quitó el turno',
         'restored' => 'Restauró el turno',
+        'attendance' => 'Registró la asistencia',
+        'content' => 'Registró contenido',
     ];
+    /** Lo que se puede grabar o hacer durante un turno. */
+    public const CONTENT_KINDS = ['video' => 'Video', 'live' => 'En vivo', 'historia' => 'Historia', 'foto' => 'Fotografía', 'otro' => 'Otro'];
+    public const ATTENDANCE = ['yes' => 'Asistió', 'no' => 'No asistió'];
+    public const MAX_CONTENT = 50;
     /** Un turno cabe en un día y dura al menos un cuarto de hora. */
     private const MIN_MINUTES = 15;
     private const MAX_MINUTES = 24 * 60;
@@ -192,7 +198,8 @@ final class CreadoraRepository
     public function calendar(string $from, string $to, int $logLimit = 50): array
     {
         [$start, $end] = $this->range($from, $to);
-        $statement = $this->pdo->prepare('SELECT s.*, c.public_id AS creadora_public_id, c.full_name FROM creadora_shifts s'
+        $statement = $this->pdo->prepare('SELECT s.*, c.public_id AS creadora_public_id, c.full_name,'
+            . ' (SELECT COUNT(*) FROM creadora_shift_content k WHERE k.shift_id = s.id) AS content_count FROM creadora_shifts s'
             . ' JOIN creadoras c ON c.id = s.creadora_id WHERE s.canceled_at IS NULL AND s.starts_at < ? AND s.ends_at > ? ORDER BY s.starts_at, c.full_name');
         $statement->execute([$end, $start]);
         return [
@@ -206,6 +213,8 @@ final class CreadoraRepository
                 'ends_at' => $row['ends_at'],
                 'place' => $row['place'],
                 'note' => $row['note'],
+                'attended' => $row['attended'] ?? null,
+                'content_count' => (int) ($row['content_count'] ?? 0),
             ], $statement->fetchAll(PDO::FETCH_ASSOC)),
             'creadoras' => $this->list()['items'],
             'log' => $this->log_(min(max($logLimit, 1), 200)),
@@ -243,6 +252,10 @@ final class CreadoraRepository
         $place = array_key_exists('place', $input) ? $this->text($input['place'], 160) : $shift['place'];
         $note = array_key_exists('note', $input) ? $this->text($input['note'], 400) : $shift['note'];
         $now = gmdate('Y-m-d H:i:s');
+        if (array_key_exists('attended', $input)) {
+            $this->markAttendance($shift, $target, $input['attended'], $actorName, $adminId, $ip);
+            $shift = $this->shiftRow($publicId);
+        }
         $this->pdo->prepare('UPDATE creadora_shifts SET creadora_id = ?, starts_at = ?, ends_at = ?, place = ?, note = ?, updated_at = ? WHERE id = ?')
             ->execute([$target['id'], $startsAt, $endsAt, $place, $note, $now, $shift['id']]);
 
@@ -279,12 +292,78 @@ final class CreadoraRepository
         return ['removed' => $publicId, 'log' => $this->log_(50)];
     }
 
+    /** Quién vino y quién no: coordinación lo marca en el mismo turno. */
+    public function markAttendance(array $shift, array $creadora, mixed $value, string $actorName, ?int $adminId, mixed $ip): void
+    {
+        $attended = $value === null || $value === '' ? null : (string) $value;
+        if ($attended !== null && !array_key_exists($attended, self::ATTENDANCE)) throw new InvalidArgumentException('Asistencia no válida.');
+        if (($shift['attended'] ?? null) === $attended) return;
+        $now = gmdate('Y-m-d H:i:s');
+        $this->pdo->prepare('UPDATE creadora_shifts SET attended = ?, attendance_at = ?, updated_at = ? WHERE id = ?')
+            ->execute([$attended, $attended === null ? null : $now, $now, $shift['id']]);
+        $this->log('attendance', $shift, $creadora, $actorName, [
+            'detail' => $attended === null ? 'Quitó la marca de asistencia.' : self::ATTENDANCE[$attended] . '.',
+        ]);
+        $this->audit->log('creadora.attendance_marked', $adminId, 'creadora_shift', $shift['public_id'], [], $ip);
+    }
+
+    /** Un turno puede dejar varios contenidos: videos, lives, historias o lo que se haya hecho. */
+    public function addContent(string $shiftPublicId, array $input, ?int $adminId, string $actorName, mixed $ip): array
+    {
+        $shift = $this->shiftRow($shiftPublicId);
+        $creadora = $this->rowById((int) $shift['creadora_id']);
+        $kind = $this->text($input['kind'] ?? '', 16);
+        if (!array_key_exists($kind, self::CONTENT_KINDS)) throw new InvalidArgumentException('Elige el tipo de contenido.');
+        $title = $this->text($input['title'] ?? '', 200);
+        if ($title === '') throw new InvalidArgumentException('Escribe el nombre del contenido.');
+        $url = $this->text($input['url'] ?? '', 500);
+        if ($url !== '' && !preg_match('~^https://[^\s]+$~D', $url)) throw new InvalidArgumentException('El enlace debe empezar con https://');
+        $count = $this->pdo->prepare('SELECT COUNT(*) FROM creadora_shift_content WHERE shift_id = ?');
+        $count->execute([$shift['id']]);
+        if ((int) $count->fetchColumn() >= self::MAX_CONTENT) throw new InvalidArgumentException('Este turno ya tiene demasiado contenido registrado.');
+        $publicId = bin2hex(random_bytes(16));
+        $this->pdo->prepare('INSERT INTO creadora_shift_content (public_id, shift_id, kind, title, url, note, created_by_admin_id, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
+            ->execute([$publicId, $shift['id'], $kind, $title, $url, $this->text($input['note'] ?? '', 400), $adminId, gmdate('Y-m-d H:i:s')]);
+        $this->log('content', $shift, $creadora, $actorName, ['detail' => self::CONTENT_KINDS[$kind] . ': ' . $title]);
+        $this->audit->log('creadora.content_added', $adminId, 'creadora_shift', $shift['public_id'], [], $ip);
+        return $this->shiftByPublicId($shiftPublicId);
+    }
+
+    public function removeContent(string $shiftPublicId, string $contentPublicId, ?int $adminId, string $actorName, mixed $ip): array
+    {
+        $shift = $this->shiftRow($shiftPublicId);
+        if (!preg_match('~^[a-f0-9]{32}$~D', $contentPublicId)) throw new InvalidArgumentException('Contenido no encontrado.');
+        $statement = $this->pdo->prepare('SELECT * FROM creadora_shift_content WHERE public_id = ? AND shift_id = ?');
+        $statement->execute([$contentPublicId, $shift['id']]);
+        $row = $statement->fetch(PDO::FETCH_ASSOC);
+        if ($row === false) throw new InvalidArgumentException('Contenido no encontrado.');
+        $this->pdo->prepare('DELETE FROM creadora_shift_content WHERE id = ?')->execute([$row['id']]);
+        $this->log('content', $shift, $this->rowById((int) $shift['creadora_id']), $actorName, ['detail' => 'Quitó ' . mb_strtolower(self::CONTENT_KINDS[$row['kind']] ?? 'contenido') . ': ' . $row['title']]);
+        $this->audit->log('creadora.content_removed', $adminId, 'creadora_shift', $shift['public_id'], [], $ip);
+        return $this->shiftByPublicId($shiftPublicId);
+    }
+
+    private function contentFor(int $shiftId): array
+    {
+        $statement = $this->pdo->prepare('SELECT public_id, kind, title, url, note, created_at FROM creadora_shift_content WHERE shift_id = ? ORDER BY created_at, id');
+        $statement->execute([$shiftId]);
+        return array_map(static fn (array $row): array => [
+            'public_id' => $row['public_id'],
+            'kind' => $row['kind'],
+            'kind_label' => self::CONTENT_KINDS[$row['kind']] ?? $row['kind'],
+            'title' => $row['title'],
+            'url' => $row['url'],
+            'note' => $row['note'],
+            'created_at' => $row['created_at'],
+        ], $statement->fetchAll(PDO::FETCH_ASSOC));
+    }
+
     /** Los turnos de la creadora autenticada, de hoy en adelante. */
     public function shiftsForAccount(int $accountId): array
     {
         $own = $this->forAccount($accountId);
         if ($own === null) return ['shifts' => []];
-        $statement = $this->pdo->prepare('SELECT s.public_id, s.starts_at, s.ends_at, s.place, s.note FROM creadora_shifts s'
+        $statement = $this->pdo->prepare('SELECT s.public_id, s.starts_at, s.ends_at, s.place, s.note, s.attended FROM creadora_shifts s'
             . ' JOIN creadoras c ON c.id = s.creadora_id WHERE c.account_id = ? AND s.canceled_at IS NULL AND s.ends_at >= ? ORDER BY s.starts_at');
         $statement->execute([$accountId, substr($this->localNow(), 0, 10) . ' 00:00:00']);
         return ['shifts' => $statement->fetchAll(PDO::FETCH_ASSOC)];
@@ -577,6 +656,9 @@ final class CreadoraRepository
             'ends_at' => $row['ends_at'],
             'place' => $row['place'],
             'note' => $row['note'],
+            'attended' => $row['attended'] ?? null,
+            'attendance_at' => $row['attendance_at'] ?? null,
+            'content' => $this->contentFor((int) $row['id']),
         ], 'log' => $this->log_(50)];
     }
 }
