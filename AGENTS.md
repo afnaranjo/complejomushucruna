@@ -1739,3 +1739,12 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Commits: `9a9eddb` (Noticias) y `ac1b856` (cuaderno), reaplicado sobre dos commits ajenos del retiro de candidatura que entraron durante el trabajo, más el cierre documental. Publicación externa: GitHub, backend y frontend.
 - Verificación por el espejo: seis rutas administrativas en 200, la banda presente en los cinco paneles, el cuaderno y la sección de Noticias publicados, `/api/noticias` y el alta de guiones sin sesión 401, y nueve archivos con SHA-256 idéntico al build —incluidos `vocero-portal.js`, `admin-medios.js` y `/finados/voceros/mi-registro/` sin cambios—. Migraciones 024 y 025 aplicadas, siete tramos sembrados. Datos intactos: 3 creadoras, 5 turnos, 128 fichas de Voceros y 72 de Medios.
 - Pendiente: revisión visual de Alex; ajustar los tramos del mapa a las fechas definitivas cuando se ratifiquen.
+
+### 2026-09-23 — Franja de auspiciantes a ancho completo
+
+- Alex pidió hacer pull y extender a todo el ancho la franja oficial de logos en las páginas donde aparece. El mismo componente compartido de FINADOS y SHOWS dejó de limitarse a `88rem` y de reservar padding lateral.
+- En SHOWS se retiró el padding del contenedor exterior del pie y se trasladó únicamente al bloque inferior, por lo que la franja llega a ambos bordes sin alterar el logotipo, texto o enlace. En FINADOS se retiró el padding lateral del bloque independiente. Caché `20260923-sponsors-6`.
+- Se reutilizó el SVG oficial `2321 × 650` ya versionado y su WebP optimizado. La unidad `R:` no estuvo montada durante la sesión, por lo que no se sustituyó el contenido del arte.
+- QA: prueba específica 10/10 y `npm run check` completo con 205 pruebas Node, 25 suites PHP, 10 de integración, build de 184 archivos/62 HTML y 1.934 referencias. Revisión local en escritorio y móvil, sin desbordamiento horizontal.
+- Commit técnico `5f5d174` publicado en `origin/main`. Prevuelo y despliegue frontend completados con respaldo; no se desplegó backend ni se ejecutaron migraciones.
+- Verificación independiente en `complejomushucruna.com` y `finados.expoferiamushucruna.com`: FINADOS y SHOWS cargan la versión nueva, el CSS declara ancho completo y el arte coincide con el build por SHA-256. Sin cambios de base de datos, DNS, Google Sheets o formularios.
