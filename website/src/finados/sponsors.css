@@ -2,6 +2,21 @@
 .finados-sponsors-body { display: flow-root; background: #391f6f; padding: 3rem 0 0; }
 .finados-sponsors-body .finados-sponsors { margin-bottom: 0; }
 .finados-sponsors { width: 100%; margin: 0 0 3rem; }
-.finados-sponsors-art { display: block; }
+.finados-sponsors[data-reveal] {
+  opacity: 1;
+  transform: none;
+  transition: none;
+}
+.finados-sponsors[data-reveal] .finados-sponsors-art {
+  opacity: 0;
+  clip-path: inset(0 50%);
+  transition: clip-path 900ms cubic-bezier(.16, 1, .3, 1), opacity 260ms ease-out;
+}
+.finados-sponsors[data-reveal].is-visible .finados-sponsors-art { opacity: 1; clip-path: inset(0); }
+.finados-sponsors-art { display: block; overflow: hidden; }
 .finados-sponsors-art img { display: block; width: 100%; height: auto; aspect-ratio: 2321 / 650; }
 .finados-sponsors-art:focus-visible { outline: 3px solid #00d2d6; outline-offset: 6px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .finados-sponsors[data-reveal] .finados-sponsors-art { opacity: 1; clip-path: inset(0); transition: none; }
+}

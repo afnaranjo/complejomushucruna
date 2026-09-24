@@ -71,17 +71,20 @@ test('todos los auspiciantes están en el footer, sin cambios en otros pies de c
   assert.equal((output.match(/auspiciantes-finados-2026\.webp/g) ?? []).length, 2);
   assert.match(output, /width="2321" height="650"/);
   assert.match(output, /Organiza: Luis Alfonso Chango P\. Auspician:/);
+  assert.ok(output.includes('SanFra'));
+  assert.ok(output.includes('Bogati'));
   assert.ok(output.includes('Textilana Cooperativa de Ahorro y Crédito'));
   assert.doesNotMatch(renderFinadosFooter(), /finados-sponsors/);
   assert.match(output, /finados-sponsors-art[^>]*target="_blank" rel="noopener noreferrer"/);
+  assert.match(output, /class="finados-sponsors"[^>]*data-reveal/);
   assert.doesNotMatch(output, /shows-sponsors-scroll|auspiciantes-finados-2026\.svg/);
 });
 
-test('la composición web usa el orden Credi Fácil, Cogarol y John Morris solicitado', async () => {
+test('la composición web incorpora SanFra y Bogati en el orden oficial actualizado', async () => {
   const web = await readFile(new URL('../public/assets/finados/shows/auspiciantes-finados-2026.webp', import.meta.url));
-  assert.equal(createHash('sha256').update(web).digest('hex'), '13cbb1e0f2435ff8499fc8e549569ae82fa9502565eb64666de22655284a0cd3');
+  assert.equal(createHash('sha256').update(web).digest('hex'), 'c5d5a690a6f6ef4723a3f91448ff9499fd628b189fd0d9d10d302f9881a0ef4d');
   const original = await readFile(new URL('../public/assets/finados/shows/auspiciantes-finados-2026.svg', import.meta.url));
-  assert.equal(createHash('sha256').update(original).digest('hex'), '347d08ee2d56c9dfedb8d904ae55b03a737e1802a309983a5d5f38ebc34ca054');
+  assert.equal(createHash('sha256').update(original).digest('hex'), '14a7b9998fdc310e3f4ca763860cec4ea8a65ae55a9ea51eefe55ed4862551fa');
   const svg = original.toString('utf8');
   assert.match(svg, /viewBox="0 0 2321 650"/);
   assert.doesNotMatch(svg, /<(?:script|foreignObject|iframe|object|embed)\b|\bon[a-z]+\s*=|<!ENTITY|<\?xml-stylesheet/i);
@@ -119,6 +122,10 @@ test('los estilos amplían los shows y llevan la franja de auspiciantes de borde
   assert.match(sponsors, /\.finados-sponsors-body\s*\{[^}]*padding:\s*3rem 0 0;/s);
   assert.match(sponsors, /\.finados-sponsors\s*\{[^}]*width:\s*100%;[^}]*margin:\s*0 0 3rem;/s);
   assert.match(sponsors, /width: 100%; height: auto/);
+  assert.match(sponsors, /\.finados-sponsors\[data-reveal\]\s*\{[^}]*opacity:\s*1;[^}]*transition:\s*none;/s);
+  assert.match(sponsors, /\.finados-sponsors\[data-reveal\] \.finados-sponsors-art\s*\{[^}]*clip-path:\s*inset\(0 50%\);/s);
+  assert.match(sponsors, /\.finados-sponsors\[data-reveal\]\.is-visible \.finados-sponsors-art\s*\{[^}]*clip-path:\s*inset\(0\);/s);
+  assert.match(sponsors, /prefers-reduced-motion:\s*reduce/);
   assert.doesNotMatch(sponsors, /width:\s*min\(100%,\s*88rem\)/);
   assert.doesNotMatch(sponsors, /:root|@font-face|\.site-header|min-width/);
   assert.match(css, /shows-plaza-show h4[^}]*clamp\(2rem, 3\.8vw, 3\.4rem\)/);
@@ -157,9 +164,9 @@ test('el build entrega SHOWS con CSS, imágenes y aviso de cookies', async () =>
   assert.match(output, /data-cookie-consent/);
   assert.match(output, /Nuestro sitio web utiliza cookies para mejorar tu navegación\./);
   assert.match(output, /shows\.css\?v=20260917-shows-3/);
-  assert.match(output, /sponsors\.css\?v=20260923-sponsors-6/);
+  assert.match(output, /sponsors\.css\?v=20260924-sponsors-7/);
   const finados = await readFile(join(directory, 'finados/index.html'), 'utf8');
-  assert.match(finados, /sponsors\.css\?v=20260923-sponsors-6/);
+  assert.match(finados, /sponsors\.css\?v=20260924-sponsors-7/);
   assert.ok(finados.includes(renderFinadosSponsors()));
 });
 
@@ -174,12 +181,17 @@ test('Finados y SHOWS comparten al final la composición nueva sin cambiar otras
     assert.equal((output.match(/<h1\b/g) ?? []).length, 1);
     assert.ok(output.indexOf(composition) > output.indexOf('</main>'));
     assert.ok(output.indexOf(composition) < output.indexOf('Volver a complejomushucruna.com'));
-    assert.match(output, /auspiciantes-finados-2026\.webp\?v=20260923-sponsors-6/);
+    assert.match(output, /auspiciantes-finados-2026\.webp\?v=20260924-sponsors-7/);
     assert.ok(output.includes('Credi Fácil Ltda. Cooperativa de Ahorro y Crédito'));
+    assert.ok(output.includes('SanFra'));
     assert.ok(output.includes('Óptica Interandina'));
     assert.ok(output.includes('Mutualista Ambato'));
+    assert.ok(output.includes('Bogati'));
+    assert.ok(showsSponsors.indexOf('Cogarol') < showsSponsors.indexOf('SanFra'));
+    assert.ok(showsSponsors.indexOf('SanFra') < showsSponsors.indexOf('Whisky John Morris'));
     assert.ok(showsSponsors.indexOf('Óptica Interandina') < showsSponsors.indexOf('Mutualista Ambato'));
     assert.ok(showsSponsors.indexOf('Mutualista Ambato') < showsSponsors.indexOf('Pollos al Gusto'));
+    assert.ok(showsSponsors.indexOf('Pollos al Gusto') < showsSponsors.indexOf('Bogati'));
   }
   assert.ok(shows.indexOf(composition) > shows.indexOf('<footer'));
   assert.match(shows, /<footer class="bg-night py-12 text-lienzo">[\s\S]*finados-sponsors[\s\S]*<div class="px-4">/);

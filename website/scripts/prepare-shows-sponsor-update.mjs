@@ -11,8 +11,8 @@ if (!sourcePath || !sharpModule) throw new Error('Indica el SVG oficial y el mó
 const original = await readFile(sourcePath);
 const svg = original.toString('utf8');
 const digest = createHash('sha256').update(original).digest('hex');
-const approvedDigest = '1f0efb9415cbddd2a9c5535160b183346e2bc66f98498e41f5770cd4e05af2dc';
-// The second approved September 17 master includes Mutualista Ambato and one inert PNG.
+const approvedDigest = '14a7b9998fdc310e3f4ca763860cec4ea8a65ae55a9ea51eefe55ed4862551fa';
+// The September 24 master adds SanFra and Bogati and includes one inert PNG.
 const references = [...svg.matchAll(/(?:xlink:)?href=["']([^"']*)["']/gi)].map(match => match[1]);
 const safeReference = value => {
   if (/^#[\w.-]+$/.test(value)) return true;
@@ -28,7 +28,7 @@ if (digest !== approvedDigest || !svg.includes('viewBox="0 0 2321 650"')
 const directory = new URL('../public/assets/finados/shows/', import.meta.url);
 await copyFile(sourcePath, new URL('auspiciantes-finados-2026.svg', directory));
 const sharp = createRequire(import.meta.url)(resolve(sharpModule));
-// Refresh the existing raster fallback as well; the pages use the exact SVG.
+// Refresh the optimized WebP used by the pages; preserve the exact SVG as the public master.
 await sharp(original).resize({ width: 2321 }).webp({ quality: 90 })
   .toFile(fileURLToPath(new URL('auspiciantes-finados-2026.webp', directory)));
 // Official Plaza de la Luna lockup from the immutable full-resolution poster.
