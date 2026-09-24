@@ -28,6 +28,7 @@ import { renderVocerosLegalPage } from './finados/voceros-legal-page.mjs';
 import { renderVocerosPage } from './finados/voceros-page.mjs';
 import { renderVoceroPortalPage } from './finados/vocero-portal-page.mjs';
 import { renderVoceroVerificationPage } from './finados/vocero-verification-page.mjs';
+import { renderNameCapturePage, renderNameScreenPage } from './finados/nombres-en-pantalla-page.mjs';
 import { renderMediaAccreditationBody } from './media-accreditation/page.mjs';
 import { renderCreadorasLandingPage } from './creadoras/landing-page.mjs';
 import { renderCreadoraPortalPage } from './creadoras/portal-page.mjs';
@@ -342,6 +343,22 @@ const standsAccessPage = {
   render: renderStandsAccessPage,
 };
 
+const finadosNameCapturePage = {
+  route: '/finados/nombre/',
+  title: 'Tu nombre en escena · Finados 2026',
+  description: 'Comparte tu nombre y hazlo aparecer en la pantalla de Finados Mushuc Runa 2026.',
+  indexable: false,
+  render: renderNameCapturePage,
+};
+
+const finadosNameScreenPage = {
+  route: '/finados/pantalla/',
+  title: 'Nombres en pantalla · Finados 2026',
+  description: 'Pantalla de nombres compartidos con consentimiento en Finados Mushuc Runa 2026.',
+  indexable: false,
+  render: renderNameScreenPage,
+};
+
 export const pages = Object.freeze([
   { route: '/admin/', title: 'Iniciar sesión', indexable: false, render: renderAdminLoginPage },
   { route: '/admin/panel/', title: 'Panel · Administración', indexable: false, render: renderAdminPanelPage },
@@ -375,4 +392,6 @@ export const pages = Object.freeze([
   ...Object.entries(emprendedorLegalDocuments).map(([documentKey, document]) => ({ route: emprendedorLegalRoutes[documentKey], title: document.title, description: document.summary, documentKey, indexable: false, render: renderEmprendedorLegalPage })),
   finadosDignitiesPage,
   standsAccessPage,
+  finadosNameCapturePage,
+  finadosNameScreenPage,
 ]);

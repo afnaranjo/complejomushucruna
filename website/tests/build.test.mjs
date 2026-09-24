@@ -89,6 +89,22 @@ test('genera las rutas institucionales y el archivo histórico', async () => {
   }
 });
 
+test('genera las rutas públicas de nombres Finados sin añadirlas al menú', async () => {
+  const output = await mkdtemp(join(tmpdir(), 'mushuc-finados-names-'));
+  const files = await buildSite(output);
+  assert.ok(files.includes('finados/nombre/index.html'));
+  assert.ok(files.includes('finados/pantalla/index.html'));
+
+  const capture = await readFile(join(output, 'finados/nombre/index.html'), 'utf8');
+  const screen = await readFile(join(output, 'finados/pantalla/index.html'), 'utf8');
+  assert.match(capture, /class="[^"]*finados-names-page/);
+  assert.match(screen, /class="[^"]*finados-names-page/);
+  for (const html of [capture, screen]) {
+    const navigation = html.match(/<nav id="navegacion-principal"[\s\S]*?<\/nav>/)?.[0] ?? '';
+    assert.doesNotMatch(navigation, /\/finados\/(?:nombre|pantalla)\//);
+  }
+});
+
 test('cada página entrega metadatos, canonical y un único h1', async () => {
   const output = await mkdtemp(join(tmpdir(), 'mushuc-meta-'));
   await buildSite(output);
