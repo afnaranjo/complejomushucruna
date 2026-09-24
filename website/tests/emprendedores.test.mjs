@@ -14,9 +14,10 @@ import { EMPRENDEDOR_LEVELS as PORTAL_LEVELS } from '../src/emprendedores/portal
 
 const json = (status, body) => ({ ok: status >= 200 && status < 300, status, json: async () => body });
 
-test('EMPRENDEDOR va después de MEDIOS y cierra el submenú de Finados; Creadoras no aparece en el menú', () => {
+test('EMPRENDEDOR va después de MEDIOS y antes de MFS; Creadoras no aparece en el menú', () => {
   const children = primaryNavigation.find(item => item.href === '/finados/').children;
-  assert.deepEqual(children.at(-1), { label: 'EMPRENDEDOR', href: '/finados/emprendedores/' });
+  assert.deepEqual(children.at(-2), { label: 'EMPRENDEDOR', href: '/finados/emprendedores/' });
+  assert.deepEqual(children.at(-1), { label: 'MFS', href: '/finados/mfs/' });
   assert.equal(children.some(item => item.href.startsWith('/finados/creadoras/')), false);
   assert.equal(children.map(item => item.label).indexOf('EMPRENDEDOR'), children.map(item => item.label).indexOf('MEDIOS') + 1);
 });

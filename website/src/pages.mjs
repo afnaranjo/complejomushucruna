@@ -23,6 +23,7 @@ import {
 import { renderFinadosPage } from './finados/page.mjs';
 import { renderFinadosDignitiesPage } from './finados/dignities-page.mjs';
 import { renderFinadosShowsPage } from './finados/shows-page.mjs';
+import { renderMfsPage } from './finados/mfs-page.mjs';
 import { renderStandsAccessPage } from './finados/stands-page.mjs';
 import { renderVocerosLegalPage } from './finados/voceros-legal-page.mjs';
 import { renderVocerosPage } from './finados/voceros-page.mjs';
@@ -274,6 +275,14 @@ const finadosShowsPage = {
   render: renderFinadosShowsPage,
 };
 
+const finadosMfsPage = {
+  route: '/finados/mfs/',
+  title: 'Mushuc Freestyle 2026',
+  description: 'Mushuc Freestyle regresa en su 2da edición a la Plaza de la Luna en Finados Mushuc Runa 2026. Inscripción gratuita y premio económico.',
+  indexable: false,
+  render: renderMfsPage,
+};
+
 const finadosVocerosPage = {
   route: '/finados/voceros/',
   title: 'Voceros',
@@ -386,6 +395,7 @@ export const pages = Object.freeze([
   ...archivePages,
   finadosPreview,
   finadosShowsPage,
+  finadosMfsPage,
   finadosVocerosPage,
   voceroVerificationPage,
   ...['acceso', 'mi-registro', 'restablecer'].map(slug => ({ route: `/finados/voceros/${slug}/`, title: 'Cuenta de Vocero', indexable: false, render: renderVoceroPortalPage })),

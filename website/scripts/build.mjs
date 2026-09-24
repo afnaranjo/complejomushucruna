@@ -121,6 +121,7 @@ export async function buildSite(outputDirectory = join(websiteRoot, 'dist'), { a
   await cp(join(websiteRoot, 'src', 'finados', 'finados.js'), join(finadosAssets, 'finados.js'));
   await cp(join(websiteRoot, 'src', 'finados', 'navigation.css'), join(finadosAssets, 'navigation.css'));
   await cp(join(websiteRoot, 'src', 'finados', 'shows.css'), join(finadosAssets, 'shows.css'));
+  await cp(join(websiteRoot, 'src', 'finados', 'mfs.css'), join(finadosAssets, 'mfs.css'));
   await cp(join(websiteRoot, 'src', 'finados', 'sponsors.css'), join(finadosAssets, 'sponsors.css'));
   await cp(join(websiteRoot, 'src', 'finados', 'dignities-election.css'), join(finadosAssets, 'dignities-election.css'));
   await cp(join(websiteRoot, 'src', 'finados', 'presentation.css'), join(finadosAssets, 'presentation.css'));

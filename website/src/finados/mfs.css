@@ -1,0 +1,133 @@
+/* MUSHUC FREESTYLE only: línea gráfica propia (azul, lima, crema y Badeen Display). */
+@font-face {
+  font-family: "Badeen Display";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/assets/finados/mfs/fonts/badeen-display-latin.woff2") format("woff2");
+}
+
+.mfs-page {
+  --mfs-blue: #173976;
+  --mfs-deep: #0f2856;
+  --mfs-lime: #c2e817;
+  --mfs-cream: #f4eada;
+  --mfs-ink: #111;
+  background: var(--mfs-blue);
+  color: var(--mfs-cream);
+  overflow-x: hidden;
+}
+.mfs-page h1, .mfs-page h2, .mfs-page h3 { font-family: "Badeen Display", "Arial Black", sans-serif; font-weight: 400; letter-spacing: -.01em; }
+.mfs-wrap { width: min(calc(100% - 32px), 76rem); margin: 0 auto; }
+.mfs-kicker { margin: 0 0 .9rem; font: 800 .75rem/1.4 "Inter", sans-serif; letter-spacing: .18em; text-transform: uppercase; color: var(--mfs-lime); }
+
+/* Botones: bloque lima con sombra dura azul, como las placas del arte. */
+.mfs-button { display: inline-flex; align-items: center; gap: 1rem; padding: 1rem 1.5rem; border: 3px solid var(--mfs-lime); border-radius: 14px; background: var(--mfs-lime); color: var(--mfs-blue); box-shadow: 5px 5px 0 #0a1c3f; font: 400 1.25rem/1.1 "Badeen Display", "Arial Black", sans-serif; text-decoration: none; text-transform: lowercase; transition: transform .18s, box-shadow .18s; }
+.mfs-button:hover { transform: translate(3px, 3px); box-shadow: 2px 2px 0 var(--mfs-deep); }
+.mfs-button:focus-visible { outline: 3px solid var(--mfs-cream); outline-offset: 3px; }
+.mfs-button--ghost { background: transparent; color: var(--mfs-lime); box-shadow: none; }
+.mfs-button--ghost:hover { background: var(--mfs-lime); color: var(--mfs-blue); box-shadow: none; }
+
+/* Hero */
+.mfs-hero {
+  position: relative; isolation: isolate; overflow: hidden;
+  min-height: clamp(640px, 92svh, 860px);
+  padding: 130px 0 3.5rem;
+  background:
+    url("/assets/finados/mfs/mfs-letras.svg?v=20260924-mfs-1") right -14rem top -4rem / min(78vw, 1020px) auto no-repeat,
+    url("/assets/finados/mfs/mfs-fondo-1600.webp?v=20260924-mfs-1") center / cover no-repeat,
+    var(--mfs-blue);
+}
+.mfs-hero::after { content: ""; position: absolute; inset: 0; z-index: 1; border: clamp(8px, 1.1vw, 14px) solid var(--mfs-lime); pointer-events: none; }
+.mfs-hero-portrait { position: absolute; left: 0; bottom: 0; z-index: 0; height: calc(100% - 96px); max-width: 50vw; }
+.mfs-hero-portrait img { display: block; height: 100%; width: auto; max-width: 100%; object-fit: contain; object-position: left bottom; }
+.mfs-edition { position: absolute; z-index: 1; right: clamp(1.4rem, 3vw, 2.6rem); bottom: clamp(1.4rem, 3vw, 2.4rem); margin: 0; color: var(--mfs-lime); font: 400 clamp(1.1rem, 1.8vw, 1.6rem)/1 "Badeen Display", sans-serif; text-transform: lowercase; }
+.mfs-edition b { font-weight: 400; font-size: 2.4em; vertical-align: -.2em; }
+.mfs-edition sup { font-size: .7em; }
+.mfs-hero-copy { position: relative; z-index: 1; width: min(calc(100% - 32px), 78rem); margin: 0 auto; padding-left: min(40vw, 560px); display: grid; gap: 1.2rem; justify-items: start; }
+.mfs-lockup { margin: 0; width: 100%; max-width: 620px; padding: clamp(.8rem, 1.6vw, 1.2rem); border-radius: 20px; background: var(--mfs-blue); box-shadow: 0 0 0 4px var(--mfs-blue); }
+.mfs-lockup img { display: block; width: 100%; height: auto; }
+.mfs-regresa { margin: 0; padding: .4rem 1.2rem .2rem; background: var(--mfs-lime); color: var(--mfs-blue); box-shadow: 6px 6px 0 var(--mfs-deep); font: 400 clamp(2.4rem, 5.4vw, 4.6rem)/1 "Badeen Display", sans-serif; text-transform: uppercase; }
+.mfs-hero-panel { display: grid; gap: 1.2rem; width: 100%; max-width: 620px; padding: clamp(1.1rem, 2vw, 1.6rem); border: 3px solid var(--mfs-lime); border-radius: 20px; background: rgba(15, 40, 86, .94); }
+.mfs-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem 2rem; margin: 0; }
+.mfs-facts dt { font: 800 .7rem/1.4 "Inter", sans-serif; letter-spacing: .18em; text-transform: uppercase; color: var(--mfs-lime); }
+.mfs-facts dd { margin: .25rem 0 0; font: 800 italic 1.15rem/1.3 "Inter", sans-serif; }
+.mfs-facts small { display: block; margin-top: .2rem; font: 500 normal .85rem/1.4 "Inter", sans-serif; opacity: .85; }
+.mfs-actions { display: flex; flex-wrap: wrap; gap: 1rem; }
+.mfs-closing { margin: 0; font-size: .9rem; opacity: .9; }
+
+/* Cinta lima en movimiento */
+.mfs-ticker { overflow: hidden; background: var(--mfs-lime); color: var(--mfs-blue); border-block: 4px solid var(--mfs-deep); }
+.mfs-ticker-track { display: flex; align-items: center; gap: 1.5rem; width: max-content; padding: .8rem 0; animation: mfs-ticker 32s linear infinite; }
+.mfs-ticker span { font: 400 clamp(1.1rem, 2vw, 1.5rem)/1 "Badeen Display", sans-serif; text-transform: lowercase; white-space: nowrap; }
+.mfs-ticker img { width: 24px; height: 24px; filter: brightness(0) saturate(100%) invert(17%) sepia(45%) saturate(2400%) hue-rotate(205deg); }
+@keyframes mfs-ticker { to { transform: translateX(-50%); } }
+
+/* Secciones */
+.mfs-editorial, .mfs-prizes, .mfs-signup, .mfs-rules, .mfs-visit, .mfs-art { padding: clamp(3.5rem, 8vw, 6.5rem) 0; }
+.mfs-page h2 { margin: 0; font-size: clamp(2.4rem, 6vw, 4.6rem); line-height: 1; text-transform: lowercase; color: var(--mfs-lime); }
+.mfs-editorial-grid, .mfs-rules-grid, .mfs-visit-grid, .mfs-art-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: clamp(2rem, 5vw, 4rem); align-items: start; }
+.mfs-editorial-copy p { margin: 0 0 1.1rem; font-size: clamp(1.05rem, 1.6vw, 1.3rem); line-height: 1.6; }
+.mfs-plaza-logo { width: 140px; height: auto; margin-top: .5rem; }
+
+.mfs-prizes { background: var(--mfs-lime); color: var(--mfs-blue); }
+.mfs-prizes .mfs-kicker, .mfs-prizes h2 { color: var(--mfs-blue); }
+.mfs-prize-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; margin: 2.5rem 0 1.5rem; padding: 0; list-style: none; }
+.mfs-prize { display: grid; gap: .6rem; padding: 1.5rem; border-radius: 18px; background: var(--mfs-blue); color: var(--mfs-cream); box-shadow: 6px 6px 0 var(--mfs-deep); }
+.mfs-prize span { font: 800 italic 1.1rem/1 "Inter", sans-serif; }
+.mfs-prize strong { font: 400 clamp(3rem, 7vw, 5.4rem)/1 "Badeen Display", sans-serif; color: var(--mfs-lime); }
+.mfs-prize strong small { font-size: .5em; margin-right: .1em; }
+.mfs-prize--1 { transform: translateY(-.6rem); }
+.mfs-extras { display: flex; flex-wrap: wrap; gap: .6rem; margin: 0 0 1.5rem; padding: 0; list-style: none; }
+.mfs-extras li { padding: .5rem 1rem; border: 2px solid var(--mfs-blue); border-radius: 999px; font: 800 italic 1rem/1 "Inter", sans-serif; }
+.mfs-special { display: flex; align-items: center; gap: 1rem; margin: 0 0 1rem; font-size: 1.1rem; }
+.mfs-special img { flex: none; filter: brightness(0) saturate(100%) invert(17%) sepia(45%) saturate(2400%) hue-rotate(205deg); }
+.mfs-fineprint { margin: 0; max-width: 46rem; font-size: .85rem; line-height: 1.6; }
+
+.mfs-steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; margin: 2.5rem 0; padding: 0; list-style: none; counter-reset: none; }
+.mfs-steps li { padding: 1.4rem; border: 3px solid var(--mfs-lime); border-radius: 18px; background: rgba(15, 40, 86, .55); }
+.mfs-steps b { display: block; font: 400 2.4rem/1 "Badeen Display", sans-serif; color: var(--mfs-lime); }
+.mfs-steps h3 { margin: .8rem 0 .5rem; font-size: 1.35rem; line-height: 1.1; text-transform: lowercase; }
+.mfs-steps p { margin: 0; font-size: .95rem; line-height: 1.55; }
+.mfs-signup-status { padding: 1.2rem 1.4rem; border-radius: 14px; background: var(--mfs-cream); color: var(--mfs-blue); }
+.mfs-signup-status p { margin: 0; line-height: 1.55; }
+
+.mfs-rules { background: var(--mfs-deep); }
+.mfs-rule-list { margin: 0; padding: 0; list-style: none; border-top: 2px solid rgba(194, 232, 23, .5); }
+.mfs-rule-list li { position: relative; padding: 1rem 0 1rem 2.2rem; border-bottom: 2px solid rgba(194, 232, 23, .5); line-height: 1.55; }
+.mfs-rule-list li::before { content: ""; position: absolute; left: 0; top: 1.25rem; width: 1rem; height: 1rem; border-radius: 4px; background: var(--mfs-lime); }
+
+.mfs-visit p { margin: 1rem 0 1.5rem; line-height: 1.6; }
+.mfs-sponsor { padding: 1.8rem; border-radius: 20px; border: 3px dashed var(--mfs-lime); }
+.mfs-sponsor h3 { margin: 0; font-size: clamp(1.6rem, 3vw, 2.2rem); color: var(--mfs-lime); text-transform: lowercase; }
+
+.mfs-art { background: var(--mfs-cream); color: var(--mfs-blue); }
+.mfs-art .mfs-kicker { color: var(--mfs-blue); }
+.mfs-organizers { width: min(100%, 480px); height: auto; padding: 1.2rem; border-radius: 18px; background: var(--mfs-blue); }
+.mfs-poster { margin: 0; justify-self: end; width: min(100%, 460px); }
+.mfs-poster img { display: block; width: 100%; height: auto; border-radius: 12px; box-shadow: 8px 8px 0 var(--mfs-blue); }
+.mfs-poster figcaption { margin-top: .9rem; font-size: .8rem; text-align: right; }
+
+@media (max-width: 960px) {
+  .mfs-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 820px) {
+  .mfs-hero { padding: 112px 0 0; min-height: 0; display: flex; flex-direction: column; background-size: 170vw auto, cover, auto; background-position: right -70vw top -10vw, center, center; }
+  .mfs-hero-copy { padding-left: 0; }
+  .mfs-hero-portrait { position: relative; height: auto; max-width: none; width: min(78vw, 400px); margin-top: 2rem; }
+  .mfs-hero-portrait img { width: 100%; height: auto; }
+  .mfs-edition { display: none; }
+  .mfs-editorial-grid, .mfs-rules-grid, .mfs-visit-grid, .mfs-art-grid { grid-template-columns: minmax(0, 1fr); }
+  .mfs-poster { justify-self: start; }
+  .mfs-poster figcaption { text-align: left; }
+}
+@media (max-width: 560px) {
+  .mfs-facts { grid-template-columns: minmax(0, 1fr); }
+  .mfs-prize-list, .mfs-steps { grid-template-columns: minmax(0, 1fr); }
+  .mfs-prize--1 { transform: none; }
+  .mfs-actions .mfs-button { width: 100%; justify-content: center; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mfs-ticker-track { animation: none; }
+  .mfs-button { transition: none; }
+}
