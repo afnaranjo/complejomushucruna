@@ -1766,3 +1766,10 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Base (consulta en transacción de solo lectura): migración 026 registrada; 5 turnos con sus 5 integrantes, ninguno sin integrante; 0 guiones y 0 contenidos todavía. Datos intactos: 3 creadoras, 128 fichas de Voceros y 73 de Medios.
 - Publicación externa: GitHub, backend y frontend autorizados. Sin cambios en DNS, Google Sheets, Meta ni otros proyectos.
 - Pendiente: revisión visual de Alex en producción.
+
+### 2026-09-23 — Creadoras fuera del submenú de Finados
+
+- Alex pidió que `CREADORAS` no aparezca en el submenú de `FINADOS 2026`. Se retiró de `src/data/site.mjs`; el submenú cierra ahora con `EMPRENDEDOR`. Las páginas `/finados/creadoras/` y sus rutas de cuenta siguen publicadas y se abren por enlace directo; el panel `/admin/creadoras/` no cambia.
+- Las pruebas del menú ahora fijan que Creadoras no está en el submenú. `npm run check` en verde con 206 pruebas Node, 25 suites PHP y 10 de integración; build de 184 archivos, 62 HTML y 1884 referencias.
+- Commit `224fe1b`. Publicación externa: GitHub y frontend, con respaldo y sin borrar archivos exclusivos del servidor. Sin cambios de backend ni de base de datos.
+- Verificación en ambos dominios: la portada, Finados, Voceros y Shows no enlazan a `/finados/creadoras/`, mantienen `EMPRENDEDOR` y `/finados/creadoras/` responde 200 por enlace directo.
