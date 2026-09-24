@@ -16,6 +16,12 @@ const cookieConsentMarkup = `  <aside class="cookie-consent" data-cookie-consent
     <button class="cookie-consent__accept" type="button" data-cookie-consent-accept aria-label="Aceptar el uso de cookies">Aceptar</button>
   </aside>`;
 
+/** Si otro sitio incrusta la página, sus enlaces se abren en pestaña nueva con nuestro dominio. */
+export function injectFramedLinks(html) {
+  if (html.includes('/assets/framed-links.js') || !/<\/body>/i.test(html)) return html;
+  return html.replace(/<\/body>/i, '  <script type="module" src="/assets/framed-links.js?v=20260924-framed-1"></script>\n</body>');
+}
+
 export function injectCookieConsent(html) {
   if (html.includes('data-cookie-consent')) return html;
   if (!/<\/head>/i.test(html) || !/<\/body>/i.test(html)) return html;
@@ -98,6 +104,7 @@ export async function buildSite(outputDirectory = join(websiteRoot, 'dist'), { a
   await cp(join(websiteRoot, 'src', 'stands-sale-schedule.js'), join(output, 'assets', 'stands-sale-schedule.js'));
   await cp(join(websiteRoot, 'src', 'cookie-consent.css'), join(output, 'assets', 'cookie-consent.css'));
   await cp(join(websiteRoot, 'src', 'cookie-consent.js'), join(output, 'assets', 'cookie-consent.js'));
+  await cp(join(websiteRoot, 'src', 'framed-links.js'), join(output, 'assets', 'framed-links.js'));
   await cp(
     join(websiteRoot, 'src', 'media-accreditation', 'media-accreditation.css'),
     join(output, 'assets', 'media-accreditation.css'),
@@ -218,7 +225,7 @@ export async function buildSite(outputDirectory = join(websiteRoot, 'dist'), { a
     const path = join(output, htmlFile);
     const html = await readFile(path, 'utf8');
     const route = `/${htmlFile.replace(/index\.html$/, '')}`;
-    let updatedHtml = injectCookieConsent(injectInvitationOpeningHeader(html, route));
+    let updatedHtml = injectFramedLinks(injectCookieConsent(injectInvitationOpeningHeader(html, route)));
     if (!/^finados\/(?:voceros|emprendedores|mfs)\/verificar\//.test(htmlFile)) updatedHtml = injectMetaPixel(updatedHtml);
     await writeFile(path, updatedHtml, 'utf8');
   }
