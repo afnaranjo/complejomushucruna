@@ -1849,3 +1849,9 @@ Nota de relevo escrita a pedido de Alex para que otro agente (Codex) retome la s
 - Se corrigió el ciclo de la pantalla para que no borre el último nombre después de la animación; ahora consulta cada segundo, conserva el nombre visible y libera el ciclo para mostrar el siguiente sin recargar.
 - Pruebas específicas y build aprobados. Frontend publicado con el script seguro y verificado en producción.
 - Commit: `e4ef852`. No se modificaron backend, datos ni otras páginas.
+
+### 2026-09-24 — QR compatible con el dominio espejo
+
+- El QR no aparecía en `finados.expoferiamushucruna.com` porque la URL del espejo superaba la capacidad fija del generador. Se cambió a tamaño automático, manteniendo el mismo destino de escritura.
+- Se verificó visualmente en el alias espejo que el QR se genera y se muestra correctamente. Frontend publicado con el script seguro.
+- Commit: `35dc710`. No se modificaron backend ni datos.
