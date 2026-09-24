@@ -1836,3 +1836,10 @@ Nota de relevo escrita a pedido de Alex para que otro agente (Codex) retome la s
 - Verificación externa: ambas rutas respondieron HTTP 200 y `https://api.expoferiamushucruna.com/api/health` respondió `ok: true`. El registro no almacena IP, correo ni cédula; los nombres caducan a las 24 horas.
 - Commit publicado en `main`: `e008b47` (incluye implementación, pruebas y documentación). Publicación externa autorizada por Alex en esta sesión.
 - Pendiente: validar visualmente el QR desde un teléfono y confirmar con coordinación el texto final de consentimiento antes de promocionar la dinámica.
+
+### 2026-09-24 — Flujo QR de activación separado y efímero
+
+- Se separó la experiencia en tres pasos: `/finados/nombre/` muestra únicamente el QR; `/finados/nombre/escribe/` permite escribir el nombre con el consentimiento precargado; `/finados/pantalla/` mantiene la escucha automática sin recargar.
+- La cola de activación ahora vence en 10 minutos y elimina cada nombre al ser entregado a la pantalla; no conserva nombres como registros permanentes.
+- Se ejecutó verificación completa (211 Node, PHP, 10 integraciones y build) y se publicó backend primero y frontend después. Las tres rutas respondieron HTTP 200.
+- Commit: `6d428b7`. Publicación externa autorizada por Alex en esta sesión. No se tocaron otros módulos ni datos existentes.
