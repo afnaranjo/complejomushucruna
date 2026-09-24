@@ -77,7 +77,7 @@ test('empaqueta la experiencia Finados con recursos locales y optimizados', asyn
   const coladaWinner = await stat(join(output, 'assets/finados/dignidades-2025/tierra-canela-colada-morada.webp'));
   const dignitiesSponsors = await stat(join(output, 'assets/finados/dignidades-2025/auspiciantes-finados-2025.webp'));
 
-  assert.match(landing, /\/assets\/finados\/finados\.css\?v=20260916-7/);
+  assert.match(landing, /\/assets\/finados\/finados\.css\?v=20260924-manifesto-1/);
   assert.match(landing, /\/assets\/finados\/finados\.js\?v=20260918-navigation-progress-1/);
   assert.match(landing, /rel="icon" href="\/assets\/finados\/favicon-finados\.png"/);
   assert.doesNotMatch(landing, /rel="preload" as="image" href="\/assets\/finados\/expositor-artesanias\.webp"/);

@@ -455,3 +455,10 @@ El 28 de agosto quedó confirmado `¡LEGADO QUE NOS UNE!` como eslogan gráfico 
 - Commit técnico `d611272`, GitHub y frontend publicados con respaldo. QA: 214 pruebas Node, 26 suites PHP, 10 de integración, 203 archivos y 2.012 referencias; revisión visual en escritorio y móvil.
 - Los dos dominios entregan FINADOS y SHOWS con HTTP 200, SanFra y Bogati, CSS nuevo y arte remoto idéntico al build. Sin migraciones ni cambios de base de datos. Evidencia: [[11_eventos/2026_feria-finados/10_tecnologia-datos/2026-09-24_actualizacion-auspiciantes-animacion-telon-web_v01|Actualización de auspiciantes y animación tipo telón]].
 - El despliegue completo publicó además `/finados/mfs/`, ya presente en `origin/main`; la ruta respondió HTTP 200 en ambos dominios.
+
+### 2026-09-24 — Variante local de franja manifiesto
+
+- Alex pidió sustituir la banda móvil `Legado que nos une / Memoria que se celebra` por una propuesta menos genérica. Se diseñó una franja editorial asimétrica con sello de edición, titular monumental, fechas, geometrías y trama de campaña.
+- La animación deja de ser un ticker infinito: panel, palabras, sello y trama se ensamblan una sola vez al entrar en pantalla; el modo de movimiento reducido conserva la lectura inmediata.
+- QA local: 215 pruebas Node, 26 suites PHP, 10 de integración, 203 archivos y 2.012 referencias; revisión en escritorio y móvil de 390 px sin desbordamiento horizontal.
+- Estado: rama local `codex/franja-manifiesto-finados`, pendiente de aprobación de Alex. Sin GitHub, producción, backend, migraciones o cambios de base de datos. Evidencia: [[11_eventos/2026_feria-finados/10_tecnologia-datos/2026-09-24_variante-franja-manifiesto-finados-web_v01|Variante de franja manifiesto]].

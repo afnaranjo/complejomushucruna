@@ -1879,3 +1879,11 @@ Nota de relevo escrita a pedido de Alex para que otro agente (Codex) retome la s
 - QA: prueba específica 10/10; `npm run check` con 214 pruebas Node, 26 suites PHP, 10 de integración, build de 203 archivos/66 HTML y 2.012 referencias.
 - Commit técnico `d611272` publicado en `origin/main`. Prevuelo y despliegue frontend completados con respaldo recuperable; no se ejecutaron migraciones ni se modificó la base de datos.
 - Verificación independiente: FINADOS y SHOWS respondieron HTTP 200 en ambos dominios, incluyeron SanFra y Bogati, sirvieron la versión nueva de CSS y el WebP remoto coincidió con el build por SHA-256. La ruta MFS que ya estaba en `main` también quedó publicada y respondió 200 en ambos dominios.
+
+### 2026-09-24 — Variante local de franja manifiesto Finados
+
+- Alex pidió una alternativa moderna y propia para la banda `Legado que nos une / Memoria que se celebra`, porque el ticker continuo se parecía a otras webs.
+- En `codex/franja-manifiesto-finados` se sustituyó por una composición editorial asimétrica con sello `Edición 2026`, titular monumental, fecha, bloques geométricos y trama de campaña. La animación ensambla sus capas una sola vez y elimina el desplazamiento infinito; el modo reducido mantiene todo visible.
+- Responsive validado visualmente en escritorio y móvil de 390 px, sin desbordamiento horizontal. La inspección permitió corregir el espaciado vertical del titular en escritorio.
+- QA: 215 pruebas Node, 26 suites PHP, 10 de integración, build de 203 archivos/66 HTML y 2.012 referencias.
+- Publicación externa: ninguna. No se tocó backend, migraciones ni base de datos. Pendiente: aprobación de Alex antes de enviar a GitHub o producción.

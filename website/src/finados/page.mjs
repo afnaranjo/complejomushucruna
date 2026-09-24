@@ -14,7 +14,7 @@ const finadosSocialLinks = [
 
 const purchaseUrl = 'https://mushucticket.com/';
 const campaignAssetVersion = '20260903';
-const campaignRuntimeVersion = '20260916-7';
+const campaignRuntimeVersion = '20260924-manifesto-1';
 const campaignScriptVersion = '20260918-navigation-progress-1';
 const navigationAssetVersion = '20260918-navigation-progress-1';
 
@@ -205,13 +205,27 @@ export function renderFinadosPage(page) {
       </div>
     </section>
 
-    <section class="bg-purple py-5 text-lienzo" aria-label="Mensaje principal">
-      <div class="marquee" aria-hidden="true">
-        <div class="marquee-track font-display text-4xl uppercase leading-none sm:text-6xl">
-          <span>Legado que nos une</span><span>Memoria que se celebra</span><span>Legado que nos une</span><span>Memoria que se celebra</span>
+    <section class="finados-manifesto" aria-labelledby="finados-manifesto-title" data-reveal>
+      <div class="manifesto-stage">
+        <div class="manifesto-edition" aria-label="Finados, edición 2026">
+          <span>Edición</span>
+          <strong>2026</strong>
+          <small>Finados</small>
         </div>
+        <div class="manifesto-copy">
+          <p class="manifesto-eyebrow">Una feria · muchas memorias</p>
+          <h2 id="finados-manifesto-title">
+            <span class="manifesto-word manifesto-word--primary">Legado</span>
+            <span class="manifesto-word manifesto-word--secondary">que nos une</span>
+          </h2>
+        </div>
+        <div class="manifesto-aside">
+          <div class="manifesto-seal" aria-hidden="true"><span>✦</span><i></i></div>
+          <p class="manifesto-memory">Memoria <strong>que se celebra</strong></p>
+          <p class="manifesto-date">30 OCT <span aria-hidden="true">—</span> 03 NOV</p>
+        </div>
+        <div class="manifesto-weave" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
       </div>
-      <p class="sr-only">Legado que nos une. Memoria que se celebra.</p>
     </section>
 
     ${renderDignitiesElection()}

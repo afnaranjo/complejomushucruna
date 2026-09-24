@@ -362,7 +362,7 @@ test('genera las páginas de Finados y ordena sus subpáginas en un menú desple
   assert.ok(dignities.indexOf('id="ganadores"') < dignities.indexOf('class="dignities-sponsors"'));
   assert.equal((dignities.match(/<h1\b/g) ?? []).length, 1);
   assert.match(landing, /<meta name="robots" content="noindex, nofollow, noarchive">/);
-  assert.match(landing, /\/assets\/finados\/finados\.css\?v=20260916-7/);
+  assert.match(landing, /\/assets\/finados\/finados\.css\?v=20260924-manifesto-1/);
   assert.match(landing, /\/assets\/finados\/finados\.js\?v=20260918-navigation-progress-1/);
   assert.match(landing, /Finados 2026 · Venta de stands/);
   assert.match(landing, /href="https:\/\/mushucticket\.com\/" data-stands-purchase-link/);

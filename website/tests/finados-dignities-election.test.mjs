@@ -27,13 +27,21 @@ test('ordena los nueve nominados vigentes por dignidad y conserva los nombres en
   assert.equal(dignityCandidates.some(candidate => candidate.slug === 'las-diablitas-taz-taz'), false);
 });
 
-test('la elección aparece debajo de la franja lila con fecha y llamados claros', () => {
+test('la elección aparece debajo de la franja manifiesto con fecha y llamados claros', () => {
   const output = html();
-  const strip = output.indexOf('aria-label="Mensaje principal"');
+  const strip = output.indexOf('class="finados-manifesto"');
   const election = output.indexOf('id="eleccion-dignidades"');
   const territory = output.indexOf('El territorio');
   assert.ok(strip >= 0 && strip < election);
   assert.ok(election < territory);
+  assert.match(output, /id="finados-manifesto-title"/);
+  assert.match(output, /Una feria · muchas memorias/);
+  assert.match(output, /<span class="manifesto-word manifesto-word--primary">Legado<\/span>/);
+  assert.match(output, /<span class="manifesto-word manifesto-word--secondary">que nos une<\/span>/);
+  assert.match(output, /Memoria <strong>que se celebra<\/strong>/);
+  assert.match(output, /30 OCT <span aria-hidden="true">—<\/span> 03 NOV/);
+  assert.match(output, /finados\.css\?v=20260924-manifesto-1/);
+  assert.doesNotMatch(output, /class="marquee|marquee-track/);
   assert.match(output, /<span>Tú eliges<\/span> a las próximas dignidades/);
   assert.match(output, /Rey Pan y Señorita Colada Morada/);
   assert.match(output, /datetime="2026-10-27">27 de octubre/);
@@ -44,6 +52,15 @@ test('la elección aparece debajo de la franja lila con fecha y llamados claros'
   assert.equal((output.match(/target="_blank" rel="noopener noreferrer"/g) ?? []).length >= 9, true);
   assert.doesNotMatch(output, /Las Diablitas|las-diablitas-taz-taz/);
   assert.equal(output.includes(renderDignitiesElection()), true);
+});
+
+test('la franja manifiesto usa una entrada por capas y no un ticker infinito', async () => {
+  const css = await readFile(new URL('../src/finados/finados.css', import.meta.url), 'utf8');
+  assert.match(css, /\.finados-manifesto\.is-visible \.manifesto-word--primary/);
+  assert.match(css, /\.finados-manifesto\.is-visible \.manifesto-word--secondary/);
+  assert.match(css, /\.finados-manifesto\.is-visible \.manifesto-weave span/);
+  assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
+  assert.doesNotMatch(css, /@keyframes ticker/);
 });
 
 test('los artes optimizados están presentes, son WebP y respetan el presupuesto', async () => {
