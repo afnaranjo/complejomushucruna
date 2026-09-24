@@ -1886,4 +1886,5 @@ Nota de relevo escrita a pedido de Alex para que otro agente (Codex) retome la s
 - En `codex/franja-manifiesto-finados` se sustituyó por una composición editorial asimétrica con sello `Edición 2026`, titular monumental, fecha, bloques geométricos y trama de campaña. La animación ensambla sus capas una sola vez y elimina el desplazamiento infinito; el modo reducido mantiene todo visible.
 - Responsive validado visualmente en escritorio y móvil de 390 px, sin desbordamiento horizontal. La inspección permitió corregir el espaciado vertical del titular en escritorio.
 - QA: 215 pruebas Node, 26 suites PHP, 10 de integración, build de 203 archivos/66 HTML y 2.012 referencias.
-- Publicación externa: ninguna. No se tocó backend, migraciones ni base de datos. Pendiente: aprobación de Alex antes de enviar a GitHub o producción.
+- Publicación externa autorizada por Alex: commit técnico `88f670c` integrado en `origin/main`; prevuelo y despliegue frontend completados con respaldo recuperable.
+- Verificación independiente en los dos dominios: HTTP 200, caché `20260924-manifesto-1`, franja nueva presente, ticker anterior ausente y CSS remoto idéntico al build por SHA-256. No se desplegó backend ni se ejecutaron migraciones o cambios de base de datos.

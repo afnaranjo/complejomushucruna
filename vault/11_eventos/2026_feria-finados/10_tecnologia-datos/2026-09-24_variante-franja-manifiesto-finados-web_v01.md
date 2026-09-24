@@ -1,7 +1,7 @@
 ---
 titulo: "Variante de franja manifiesto para Finados"
 responsable: "tecnología/diseño"
-estado: en_revision
+estado: publicado
 ultima_actualizacion: 2026-09-24
 fuente: "Solicitud de Alex del 24 de septiembre de 2026"
 confidencialidad: interno
@@ -29,10 +29,13 @@ Reemplazar la banda de texto en desplazamiento continuo por una pieza con identi
 - Revisión visual local en escritorio y móvil de 390 px; `scrollWidth` no supera el ancho útil.
 - La revisión visual detectó y corrigió falta de respiración vertical del titular en escritorio.
 
-## Estado de publicación
+## Publicación
 
-- La variante permanece únicamente en la rama local `codex/franja-manifiesto-finados`.
-- No se subió a GitHub ni a producción y no se modificaron backend, migraciones o base de datos.
+- Commit técnico `88f670c`, integrado y publicado en `origin/main` con autorización de Alex.
+- Prevuelo y despliegue frontend completados con respaldo recuperable.
+- Verificación HTTPS independiente en `complejomushucruna.com` y `finados.expoferiamushucruna.com`: HTTP 200, caché `20260924-manifesto-1`, franja manifiesto presente y ticker anterior ausente.
+- El CSS remoto coincide con el build local por SHA-256 (`41B04A132357F64439ECF20317CC4864B2182B5B81DB00F4891DD463548E782C`), contiene la entrada por capas y el modo de movimiento reducido.
+- No se desplegó backend ni se ejecutaron migraciones o cambios de base de datos.
 
 ## Relación
 
