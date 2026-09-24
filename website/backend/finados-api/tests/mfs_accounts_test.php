@@ -96,7 +96,7 @@ same(404, $router->handle('GET', '/api/mfs/inventado', $origin)->status);
 $empty = mfs_body($router->handle('GET', '/api/mfs/profile', $origin));
 same(false, $empty['registered']);
 same('mc@example.invalid', $empty['email']);
-$record = ['nombre_completo' => 'Juan Rimador Prueba', 'nombre_artistico' => 'MC Prueba', 'whatsapp' => '0991112222',
+$record = ['nombre_completo' => 'Juan Rimador Prueba', 'nombre_artistico' => 'MC Prueba', 'cedula' => '1804567890', 'whatsapp' => '0991112222',
     'audicion_tiktok' => 'https://www.tiktok.com/@mcprueba/video/7420000000000000000', 'declaracion_video' => 'Sí',
     'consentimiento_bases' => 'Sí', 'autorizacion_imagen' => 'Sí', 'consentimiento_datos' => 'Sí'];
 same(415, $router->handle('POST', '/api/mfs/profile', $json($login['csrf']), '', $record)->status);
@@ -108,6 +108,8 @@ foreach ([
     ['audicion_tiktok' => 'https://www.tiktok.com/'],
     ['audicion_tiktok' => 'https://tiktok.com.evil.test/@x/video/1'],
     ['whatsapp' => '0891112222'],
+    ['cedula' => '18045'],
+    ['cedula' => '18045678AB'],
     ['nombre_completo' => 'Ana'],
     ['declaracion_video' => 'No'],
     ['consentimiento_datos' => 'No'],
@@ -128,6 +130,9 @@ $saved = $repository->saveForAccount($accountId, $record, ['tmp_name' => $upload
 same('Nuevo', $saved['status']);
 same('MC Prueba', $saved['stage_name']);
 same('0991112222', $saved['whatsapp']);
+same('1804567890', $saved['cedula']);
+same(false, $saved['cedula_missing']);
+same(false, str_contains((string) $pdo->query('SELECT cedula_enc FROM mfs_profiles')->fetchColumn(), '1804567890'));
 same(true, $saved['photo']['available']);
 same(true, $saved['editable']);
 same(3, count($saved['consents']));
@@ -159,9 +164,25 @@ same(202, $router->handle('POST', '/api/mfs/auth/register', $json($session2['csr
 $account2 = (int) $pdo->query("SELECT MAX(id) FROM mfs_accounts")->fetchColumn();
 $upload = mfs_jpeg();
 throws(fn () => $repository->saveForAccount($account2, $record, ['tmp_name' => $upload, 'size' => filesize($upload)], $storage, '192.0.2.92'), Finados\DuplicateRegistration::class);
+throws(fn () => $repository->saveForAccount($account2, [...$record, 'whatsapp' => '0995556666'], ['tmp_name' => $upload, 'size' => filesize($upload)], $storage, '192.0.2.92'), Finados\DuplicateRegistration::class);
 unlink($upload);
 same(1, (int) $pdo->query('SELECT COUNT(*) FROM mfs_profiles')->fetchColumn());
 same(1, count(array_diff(scandir($photoRoot . '/mfs-photos/files'), ['.', '..'])));
+mfs_close_session();
+
+// Quien se inscribió sin cédula la completa una sola vez, aunque la inscripción ya esté revisada.
+$pdo->exec("UPDATE mfs_profiles SET cedula_enc = NULL, cedula_idx = NULL, status = 'Aprobado'");
+mfs_close_session();
+$s3 = mfs_body($router->handle('GET', '/api/mfs/auth/session', $origin));
+$l3 = mfs_body($router->handle('POST', '/api/mfs/auth/login', $json($s3['csrf']), mfs_json(['email' => 'mc@example.invalid', 'password' => $secret])));
+same(true, mfs_body($router->handle('GET', '/api/mfs/profile', $origin))['cedula_missing']);
+same(422, $router->handle('POST', '/api/mfs/cedula', $json($l3['csrf']), mfs_json(['cedula' => '123']))->status);
+$withCedula = mfs_body($router->handle('POST', '/api/mfs/cedula', $json($l3['csrf']), mfs_json(['cedula' => '1804567890'])));
+same('1804567890', $withCedula['cedula']);
+same(false, $withCedula['cedula_missing']);
+same('Aprobado', $withCedula['status']);
+same(403, $router->handle('POST', '/api/mfs/cedula', $json($l3['csrf']), mfs_json(['cedula' => '1800000009']))->status);
+$pdo->exec("UPDATE mfs_profiles SET status = 'Nuevo'");
 mfs_close_session();
 
 // Administración: sesión aparte, estados, notas, audición, archivo reversible y exportación.
@@ -179,6 +200,7 @@ same(1, $list['pagination']['total']);
 same('mc@example.invalid', $list['items'][0]['email']);
 same(true, $list['items'][0]['has_photo']);
 same(1, mfs_body($router->handle('GET', '/api/mfs-participants?search=0991112222', $origin))['pagination']['total']);
+same(1, mfs_body($router->handle('GET', '/api/mfs-participants?search=1804567890', $origin))['pagination']['total']);
 same(1, mfs_body($router->handle('GET', '/api/mfs-participants?search=mc@example.invalid', $origin))['pagination']['total']);
 same(422, $router->handle('GET', '/api/mfs-participants?status=Inventado', $origin)->status);
 same(422, $router->handle('GET', '/api/mfs-participants?city=Ambato', $origin)->status);
@@ -203,6 +225,7 @@ same(1, preg_match('~^https://example\.invalid/finados/mfs/restablecer/\?token=[
 $csv = $router->handle('POST', '/api/mfs-participants/export', $admin, '{}');
 same('text/csv; charset=utf-8', $csv->headers['Content-Type']);
 same(true, str_contains($csv->body, 'MC Plaza'));
+same(true, str_contains($csv->body, '1804567890'));
 // Retirar oculta la inscripción y desactiva la cuenta; restaurar lo deshace sin perder datos.
 same(200, $router->handle('POST', '/api/mfs-participants/' . $publicId . '/delete', $admin, '{}')->status);
 same(0, mfs_body($router->handle('GET', '/api/mfs-participants', $origin))['pagination']['total']);

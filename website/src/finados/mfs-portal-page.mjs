@@ -4,7 +4,8 @@ import { apiBasesForCsp, LOCAL_API_BASE, PRIMARY_API_BASE } from './runtime-orig
 
 // El texto de los consentimientos es del servidor: se incorpora al compilar y se escapa como HTML.
 const consents = JSON.parse(readFileSync(new URL('../../backend/finados-api/resources/mfs-consents.json', import.meta.url), 'utf8'));
-export const mfsPortalScriptVersion = '20260924-mfs-portal-1';
+export const mfsPortalScriptVersion = '20260924-mfs-portal-2';
+export const mfsPortalStyleVersion = '20260924-mfs-portal-2';
 const BASE = '/finados/mfs';
 
 const email = id => `<label class="vocero-field" for="${id}"><span>Correo electrónico</span><input id="${id}" name="email" type="email" autocomplete="username" maxlength="254" autocapitalize="none" spellcheck="false" required></label>`;
@@ -12,7 +13,8 @@ const password = (id, label, autocomplete) => `<label class="vocero-field" for="
 const field = (name, label, attrs = '', optional = false) => `<label class="vocero-field" for="${name}"><span>${label}${optional ? ' <small>Opcional</small>' : ' <span aria-hidden="true">*</span>'}</span><input id="${name}" name="${name}" ${attrs}${optional ? '' : ' required'}></label>`;
 
 export function renderMfsForm() {
-  return `<form data-mfs-profile class="vocero-profile-form" novalidate>
+  return `<details class="mfs-sent" data-mfs-sent hidden><summary>Ver los datos que enviaste</summary><p>Tu inscripción ya fue revisada, por eso estos datos quedan como los enviaste. Si necesitas corregir algo, escribe a la coordinación.</p></details>
+<form data-mfs-profile class="vocero-profile-form" novalidate>
 <fieldset data-profile-fields disabled>
 <legend class="sr-only">Mi inscripción en Mushuc Freestyle</legend>
 <div class="vocero-profile-layout">
@@ -27,6 +29,7 @@ export function renderMfsForm() {
 <div class="vocero-fields">
 ${field('nombre_completo', 'Nombres y apellidos', 'autocomplete="name" minlength="5" maxlength="160"')}
 ${field('nombre_artistico', 'Nombre artístico', 'maxlength="80" placeholder="Ej.: MC Chimborazo"', true)}
+${field('cedula', 'Número de cédula', 'inputmode="numeric" autocomplete="off" pattern="[0-9]{10}" minlength="10" maxlength="10" placeholder="Ej.: 1804567890"')}
 ${field('whatsapp', 'Número de WhatsApp', 'type="tel" autocomplete="tel" inputmode="numeric" pattern="09[0-9]{8}" maxlength="10" placeholder="Ej.: 0995874566"')}
 <label class="vocero-field" for="account-email"><span>Correo de tu cuenta</span><input id="account-email" type="email" data-account-email readonly aria-describedby="email-help"><small id="email-help">Este correo está vinculado a tu cuenta.</small></label>
 </div></section>
@@ -44,12 +47,24 @@ ${[['bases', 'consentimiento_bases'], ['image', 'autorizacion_imagen'], ['data',
 </div></div></fieldset></form>`;
 }
 
+
+/** Lo primero que ve el participante: su estado, contado con la emoción de la competencia. */
+export function renderMfsStatusPanels() {
+  return `<section class="mfs-status" data-mfs-status data-state="loading" aria-live="polite">
+<img class="mfs-status__icon" src="/assets/finados/mfs/mfs-icono.svg" width="96" height="96" alt="">
+<div><p class="mfs-status__kicker" data-mfs-status-kicker>Mushuc Freestyle 2026 · 2da edición</p><h2 class="mfs-status__title" data-mfs-status-title>Comprobando tu inscripción…</h2><p class="mfs-status__text" data-mfs-status-text></p><p class="mfs-status__meta" data-mfs-status-meta></p></div>
+</section>
+<section class="mfs-cedula" data-mfs-cedula hidden aria-labelledby="cedula-title"><h2 id="cedula-title">Completa tu número de cédula</h2><p>Ahora pedimos la cédula para identificar a cada participante. Escríbela una sola vez; después no se puede cambiar desde tu cuenta.</p>
+<form data-mfs-cedula-form novalidate><fieldset><label class="vocero-field" for="cedula-completar"><span>Número de cédula</span><input id="cedula-completar" name="cedula" inputmode="numeric" autocomplete="off" pattern="[0-9]{10}" minlength="10" maxlength="10" placeholder="Ej.: 1804567890" required></label><button class="vocero-primary" type="submit">Guardar cédula</button></fieldset></form></section>
+<section class="mfs-badge" data-mfs-badge hidden aria-labelledby="badge-title"><div class="mfs-badge__copy"><p class="mfs-status__kicker">Para tus historias</p><h2 id="badge-title">Tu gafete de Mushuc Freestyle</h2><p>Descárgalo y compártelo en tus historias de Instagram, TikTok, Facebook o WhatsApp. Formato vertical 1080 × 1920. No incluye tu cédula, tu correo ni tu teléfono.</p><p class="mfs-badge__status" data-mfs-badge-status role="status">Preparando tu gafete…</p><div class="mfs-badge__actions"><button class="vocero-primary" type="button" data-mfs-badge-download disabled>Descargar gafete</button><button class="vocero-quiet" type="button" data-mfs-badge-share disabled>Compartir</button></div></div><div class="mfs-badge__preview"><img data-mfs-badge-preview alt="Gafete de participante de Mushuc Freestyle 2026 en formato historia" hidden></div></section>`;
+}
+
 export function renderMfsPortalPage(page) {
   const mode = page.route.endsWith('/mi-registro/') ? 'profile' : page.route.endsWith('/restablecer/') ? 'reset' : 'access';
   const api = page.adminEnvironment === 'development' ? (page.adminApiBase ?? LOCAL_API_BASE) : PRIMARY_API_BASE;
   const connectSources = apiBasesForCsp(api);
   const title = { access: 'Inscríbete en Mushuc Freestyle', profile: 'Mi inscripción', reset: 'Restablecer contraseña' }[mode];
-  const content = mode === 'profile' ? `<div class="vocero-workspace-heading"><div><p class="vocero-eyebrow">Mushuc Freestyle 2026 · 2da edición</p><h1>${title}</h1><p data-profile-status>Comprobando tu inscripción…</p></div><button class="vocero-quiet" type="button" data-mfs-logout disabled>Cerrar sesión</button></div>${renderMfsForm()}`
+  const content = mode === 'profile' ? `<div class="vocero-workspace-heading"><div><p class="vocero-eyebrow">Mushuc Freestyle 2026 · 2da edición</p><h1>${title}</h1><p data-profile-status hidden></p></div><button class="vocero-quiet" type="button" data-mfs-logout disabled>Cerrar sesión</button></div>${renderMfsStatusPanels()}${renderMfsForm()}`
     : mode === 'reset' ? `<div class="vocero-access-intro"><p class="vocero-eyebrow">Recupera tu acceso</p><h1>${title}</h1><p>Elige una contraseña de 10 a 128 caracteres.</p></div><form data-mfs-reset novalidate><fieldset disabled>${password('reset-password', 'Nueva contraseña', 'new-password')}${password('reset-confirmation', 'Confirma tu contraseña', 'new-password')}<button class="vocero-primary" type="submit">Guardar contraseña</button></fieldset></form><a href="${BASE}/acceso/?modo=login">Volver a iniciar sesión</a>`
     : `<div class="vocero-access-intro"><p class="vocero-eyebrow">Mushuc Freestyle 2026 · Inscripción gratuita</p><h1>${title}</h1><p>Crea tu cuenta, inicia sesión y envía tus datos, tu foto y el enlace de tu audición en TikTok.</p></div>
 <nav class="vocero-modes" aria-label="Acceso a tu cuenta"><button type="button" data-mode="register" aria-pressed="true">Crear cuenta</button><button type="button" data-mode="login" aria-pressed="false">Iniciar sesión</button></nav>
@@ -62,7 +77,7 @@ export function renderMfsPortalPage(page) {
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' blob:; font-src 'self'; connect-src ${connectSources}; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="mfs-api-base" content="${esc(api)}"><meta name="theme-color" content="#173976">
 <link rel="canonical" href="https://complejomushucruna.com${esc(page.route)}"><link rel="icon" href="/assets/finados/mfs/mfs-icono.svg" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/finados/vocero-portal.css?v=20260915-1"><script type="module" src="/assets/finados/mfs-portal.js?v=${mfsPortalScriptVersion}"></script>
+<link rel="stylesheet" href="/assets/finados/vocero-portal.css?v=20260915-1"><link rel="stylesheet" href="/assets/finados/mfs-portal.css?v=${mfsPortalStyleVersion}"><script type="module" src="/assets/finados/mfs-portal.js?v=${mfsPortalScriptVersion}"></script>
 </head><body class="vocero-portal" data-mfs-view="${mode}">
 <a class="skip-link" href="#contenido">Ir al contenido</a><div class="vocero-chumbi" aria-hidden="true"></div>
 <header class="vocero-header"><a href="${BASE}/" aria-label="Mushuc Freestyle 2026"><img src="/assets/finados/mfs/mfs-logo.svg" width="1686" height="469" alt="Mushuc Freestyle"></a><a href="${BASE}/">← Volver a Mushuc Freestyle</a></header>

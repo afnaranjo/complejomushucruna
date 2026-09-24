@@ -5,9 +5,10 @@ const LOCAL_API = 'http://127.0.0.1:4174/api';
 const BASE = '/finados/mfs';
 const ACCESS = `${BASE}/acceso/?modo=login`;
 const PROFILE = `${BASE}/mi-registro/`;
-export const MFS_FIELDS = Object.freeze(['nombre_completo', 'nombre_artistico', 'whatsapp', 'audicion_tiktok']);
+export const MFS_FIELDS = Object.freeze(['nombre_completo', 'nombre_artistico', 'cedula', 'whatsapp', 'audicion_tiktok']);
 export const MFS_CHECKS = Object.freeze(['declaracion_video', 'consentimiento_bases', 'autorizacion_imagen', 'consentimiento_datos']);
-const PROFILE_KEYS = Object.freeze({ nombre_completo: 'full_name', nombre_artistico: 'stage_name', whatsapp: 'whatsapp', audicion_tiktok: 'audition_url' });
+const PROFILE_KEYS = Object.freeze({ nombre_completo: 'full_name', nombre_artistico: 'stage_name', cedula: 'cedula', whatsapp: 'whatsapp', audicion_tiktok: 'audition_url' });
+const CELEBRATE = Object.freeze(['Aprobado', 'Seleccionado']);
 
 export class MfsError extends Error {
   constructor(status, context = '') {
@@ -15,7 +16,7 @@ export class MfsError extends Error {
       401: context === 'login' ? 'No se pudo iniciar sesión. Revisa tu correo y contraseña.' : 'Tu sesión venció. Inicia sesión nuevamente.',
       403: 'No se autorizó el cambio. Tu inscripción puede estar en revisión.',
       404: 'La función o el enlace no está disponible. Solicita ayuda a la coordinación.',
-      409: 'Ya existe una inscripción con ese número de WhatsApp. Consulta con la coordinación.',
+      409: 'Ya existe una inscripción con esa cédula o ese número de WhatsApp. Consulta con la coordinación.',
       413: 'El archivo supera el tamaño permitido. Selecciona una fotografía de máximo 5 MB.',
       415: 'El formato no es compatible. Selecciona una fotografía JPG, PNG o WebP.',
       422: 'Revisa los campos, la fotografía, el enlace de TikTok y los consentimientos.',
@@ -33,7 +34,7 @@ export class MfsApiClient {
     this.fetch = fetchImplementation;
   }
   async request(path, { body, blob = false } = {}) {
-    if (!/^\/(?:auth\/(?:session|register|login|logout|reset)|profile|photo)$/.test(path)) throw new Error('Ruta de API no permitida.');
+    if (!/^\/(?:auth\/(?:session|register|login|logout|reset)|profile|photo|cedula)$/.test(path)) throw new Error('Ruta de API no permitida.');
     if (body !== undefined && !this.#csrf) await this.session();
     const headers = { Accept: blob ? 'image/jpeg' : 'application/json' };
     const multipart = body instanceof FormData;
@@ -68,6 +69,7 @@ export class MfsApiClient {
   profile() { return this.request('/profile'); }
   saveProfile(body) { return this.request('/profile', { body }); }
   photo() { return this.request('/photo', { blob: true }); }
+  addCedula(cedula) { return this.request('/cedula', { body: { cedula } }); }
   reset(token, password) { return this.request('/auth/reset', { body: { token, password } }); }
 }
 
@@ -84,12 +86,132 @@ export function buildMfsFormData(form, file = null) {
 export function validateMfsForm(values, { hasPhoto }) {
   if (!hasPhoto) return 'Sube tu fotografía tipo retrato.';
   if ((values.nombre_completo ?? '').trim().length < 5) return 'Escribe tus nombres y apellidos.';
+  if (!/^\d{10}$/.test((values.cedula ?? '').trim())) return 'La cédula debe tener 10 dígitos.';
   if (!/^09\d{8}$/.test((values.whatsapp ?? '').trim())) return 'El WhatsApp debe tener 10 dígitos y empezar con 09.';
   let url;
   try { url = new URL((values.audicion_tiktok ?? '').trim()); } catch { return 'Pega el enlace completo de tu video en TikTok.'; }
   const hosts = ['tiktok.com', 'www.tiktok.com', 'm.tiktok.com', 'vm.tiktok.com', 'vt.tiktok.com'];
   if (url.protocol !== 'https:' || !hosts.includes(url.hostname) || url.pathname.length < 2) return 'El enlace debe ser de un video público de TikTok (https://www.tiktok.com/…).';
   return '';
+}
+
+
+/** Fecha y hora en Ecuador, que es como la entiende el participante. */
+export function ecuadorDateTime(value) {
+  if (!value) return '';
+  const parsed = new Date(/Z$|[+-]\d\d:\d\d$/.test(value) ? value : String(value).replace(' ', 'T') + 'Z');
+  if (Number.isNaN(parsed.getTime())) return '';
+  return new Intl.DateTimeFormat('es-EC', { dateStyle: 'long', timeStyle: 'short', timeZone: 'America/Guayaquil', hourCycle: 'h23' }).format(parsed);
+}
+
+/** El mensaje de cada estado: la inscripción se cuenta con la emoción de la competencia. */
+export function mfsStatusMessage(profile = {}) {
+  const name = String(profile.stage_name || profile.full_name || '').trim();
+  const hey = name ? `${name}, ` : '';
+  if (!profile.registered) return { state: 'calm', kicker: 'Inscripción gratuita · 32 cupos', title: 'Tu lugar en la tarima empieza aquí', text: 'Completa tus datos, sube tu foto y pega el enlace de tu audición en TikTok. Tienes hasta el jueves 29 de octubre, 23:59.' };
+  const messages = {
+    'Nuevo': { state: 'default', kicker: 'Inscripción recibida', title: `¡${hey}ya estás en la lista!`, text: 'Recibimos tu audición. La coordinación la va a escuchar y te avisaremos por WhatsApp. Mientras tanto, sigue afinando tus barras.' },
+    'En revisión': { state: 'default', kicker: 'Audición en revisión', title: 'Estamos escuchando tu audición', text: 'La coordinación está revisando tu video. Prepárate: muy pronto sabrás si subes a la tarima de la Plaza de la Luna.' },
+    'Aprobado': { state: 'celebrate', kicker: 'Audición aprobada', title: `¡${hey}tu audición fue aprobada!`, text: 'Tu flow convenció. Estás un paso más cerca de la final en la Plaza de la Luna, el lunes 2 de noviembre a las 13:00. Descarga tu gafete y compártelo.' },
+    'Seleccionado': { state: 'celebrate', kicker: '¡Estás dentro de los 32!', title: `¡${hey}nos vemos en la tarima!`, text: 'Fuiste seleccionado para competir en Mushuc Freestyle 2026. La final es el lunes 2 de noviembre a las 13:00 en la Plaza de la Luna. Descarga tu gafete y que todos lo sepan.' },
+    'Rechazado': { state: 'calm', kicker: 'Resultado de tu audición', title: 'Esta vez no fue, pero la plaza te espera', text: 'Tu audición no quedó entre las seleccionadas. Gracias por atreverte a rimar: te esperamos en la Plaza de la Luna para vivir la final y en la próxima edición.' },
+  };
+  return messages[profile.status] ?? { state: 'default', kicker: 'Tu inscripción', title: `Estado: ${profile.status ?? '—'}`, text: '' };
+}
+
+export function canShowMfsBadge(profile = {}) {
+  return Boolean(profile.registered && CELEBRATE.includes(profile.status) && profile.photo?.available);
+}
+
+function loadImage(source) {
+  return new Promise((resolve, reject) => {
+    const element = new Image();
+    element.onload = () => resolve(element);
+    element.onerror = reject;
+    element.src = source;
+  });
+}
+
+/** Gafete en formato historia (1080 × 1920) con el arte de Mushuc Freestyle. No lleva cédula, correo ni teléfono. */
+export async function mfsBadgeBlob(profile, photoBlob) {
+  if (!globalThis.document?.createElement || !photoBlob) return null;
+  const canvas = document.createElement('canvas');
+  canvas.width = 1080; canvas.height = 1920;
+  const context = canvas.getContext('2d');
+  if (!context) return null;
+  const W = canvas.width, H = canvas.height;
+  const BLUE = '#173976', DEEP = '#0f2856', LIME = '#c2e817', CREAM = '#f4eada';
+  const round = (x, y, width, height, radius) => { context.beginPath(); if (context.roundRect) context.roundRect(x, y, width, height, radius); else context.rect(x, y, width, height); };
+  try {
+    if (globalThis.FontFace && document.fonts) {
+      const badeen = new FontFace('Badeen Display', 'url(/assets/finados/mfs/fonts/badeen-display-latin.woff2)');
+      document.fonts.add(await badeen.load());
+    }
+    await Promise.all(['900 80px Inter', '800 30px Inter', '700 30px Inter'].map(font => document.fonts?.load(font)));
+  } catch { /* si una fuente falla, el gafete se dibuja con la de respaldo */ }
+  const [background, letters, logo, finados, photo] = await Promise.all([
+    loadImage('/assets/finados/mfs/mfs-fondo-1600.webp').catch(() => null),
+    loadImage('/assets/finados/mfs/mfs-letras.svg').catch(() => null),
+    loadImage('/assets/finados/mfs/mfs-logo.svg').catch(() => null),
+    loadImage('/assets/finados/logo-finados.svg').catch(() => null),
+    globalThis.createImageBitmap ? globalThis.createImageBitmap(photoBlob) : loadImage(URL.createObjectURL(photoBlob)),
+  ]);
+
+  context.fillStyle = BLUE; context.fillRect(0, 0, W, H);
+  if (background) { const scale = Math.max(W / background.width, H / background.height); context.drawImage(background, (W - background.width * scale) / 2, (H - background.height * scale) / 2, background.width * scale, background.height * scale); }
+  if (letters) { context.save(); context.globalAlpha = .95; context.drawImage(letters, 180, -120, 1260, 1260); context.restore(); }
+
+  // Logo sobre una placa azul, como en el arte oficial.
+  if (logo) {
+    const width = 820, height = width * logo.height / logo.width;
+    context.fillStyle = BLUE; round((W - width) / 2 - 28, 96, width + 56, height + 56, 28); context.fill();
+    context.drawImage(logo, (W - width) / 2, 124, width, height);
+  }
+
+  // Retrato con borde crema, ligeramente girado como un recorte.
+  const frame = { x: 190, y: 470, width: 700, height: 860 };
+  context.save();
+  context.translate(W / 2, frame.y + frame.height / 2); context.rotate(-.025); context.translate(-W / 2, -(frame.y + frame.height / 2));
+  context.fillStyle = CREAM; round(frame.x - 22, frame.y - 22, frame.width + 44, frame.height + 44, 26); context.fill();
+  context.save(); round(frame.x, frame.y, frame.width, frame.height, 16); context.clip();
+  const scale = Math.max(frame.width / photo.width, frame.height / photo.height);
+  context.drawImage(photo, frame.x + (frame.width - photo.width * scale) / 2, frame.y + (frame.height - photo.height * scale) / 2, photo.width * scale, photo.height * scale);
+  context.restore(); context.restore();
+  photo.close?.();
+
+  // Sello del estado en Badeen, la voz de la marca.
+  const stamp = profile.status === 'Seleccionado' ? 'SELECCIONADO' : 'APROBADO';
+  context.save(); context.translate(W / 2, 1352); context.rotate(-.04);
+  context.font = '400 88px "Badeen Display", "Arial Black", sans-serif';
+  const stampWidth = Math.min(900, context.measureText(stamp).width + 80);
+  context.fillStyle = DEEP; context.fillRect(-stampWidth / 2 + 10, -62, stampWidth, 116);
+  context.fillStyle = LIME; context.fillRect(-stampWidth / 2, -72, stampWidth, 116);
+  context.fillStyle = BLUE; context.textAlign = 'center'; context.textBaseline = 'middle'; context.fillText(stamp, 0, -10);
+  context.restore();
+
+  // Nombre legible: Inter extra negrita, ajustado al ancho.
+  context.textAlign = 'center'; context.textBaseline = 'alphabetic';
+  const stageName = String(profile.stage_name || '').trim().slice(0, 32);
+  const fullName = String(profile.full_name || '').trim().slice(0, 48);
+  const fit = (text, start, min, weight) => { let size = start; while (size > min) { context.font = `${weight} ${size}px Inter, Arial, sans-serif`; if (context.measureText(text).width <= 920) break; size -= 2; } return size; };
+  if (stageName) {
+    fit(stageName.toUpperCase(), 104, 56, 900); context.fillStyle = LIME; context.fillText(stageName.toUpperCase(), W / 2, 1530);
+    fit(fullName, 44, 28, 700); context.fillStyle = CREAM; context.fillText(fullName, W / 2, 1592);
+  } else {
+    fit(fullName.toUpperCase(), 84, 44, 900); context.fillStyle = LIME; context.fillText(fullName.toUpperCase(), W / 2, 1560);
+  }
+  context.fillStyle = CREAM; context.font = '800 30px Inter, Arial, sans-serif';
+  context.fillText('FINAL · LUNES 2 DE NOVIEMBRE · 13:00', W / 2, 1668);
+  context.font = '700 28px Inter, Arial, sans-serif';
+  context.fillText('Plaza de la Luna · Complejo Mushuc Runa', W / 2, 1712);
+
+  // Pie: franja lima con la edición y el logo de Finados.
+  context.fillStyle = LIME; context.fillRect(0, H - 150, W, 150);
+  context.fillStyle = BLUE; context.textAlign = 'left'; context.font = '900 40px Inter, Arial, sans-serif'; context.fillText('MUSHUC FREESTYLE 2026', 70, H - 86);
+  context.font = '800 26px Inter, Arial, sans-serif'; context.fillText('2DA EDICIÓN · #MUSHUCFREESTYLE', 70, H - 44);
+  if (finados) { const width = 210, height = width * finados.height / finados.width; context.fillStyle = BLUE; round(W - width - 110, H - 138, width + 40, height + 16, 14); context.fill(); context.drawImage(finados, W - width - 90, H - 130, width, height); }
+  context.strokeStyle = LIME; context.lineWidth = 18; context.strokeRect(9, 9, W - 18, H - 18);
+  return new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
 }
 
 export function initializeMfsPortal() {
@@ -174,7 +296,6 @@ export function initializeMfsPortal() {
   }
 
   const form = document.querySelector('[data-mfs-profile]');
-  const statusLine = document.querySelector('[data-profile-status]');
   const saveStatus = form.querySelector('[data-save-status]');
   const saveButton = form.querySelector('[data-save-button]');
   const logout = document.querySelector('[data-mfs-logout]');
@@ -201,13 +322,73 @@ export function initializeMfsPortal() {
     if (photoLabel) photoLabel.textContent = 'Cambiar fotografía';
   });
 
-  const describe = profile => {
-    if (!profile.registered) return 'Completa tus datos y envía tu inscripción. Tienes hasta el jueves 29 de octubre, 23:59.';
-    const when = profile.submitted_at ? ` Recibida el ${String(profile.submitted_at).slice(0, 16).replace('T', ' ')} (hora UTC).` : '';
-    const detail = { 'Nuevo': 'Tu inscripción fue recibida y espera revisión.', 'En revisión': 'La coordinación está revisando tu audición.',
-      'Aprobado': 'Tu audición fue aprobada.', 'Rechazado': 'Tu inscripción no fue aprobada en esta ocasión.', 'Seleccionado': '¡Fuiste seleccionado para la competencia!' }[profile.status] ?? '';
-    return `Estado: ${profile.status}. ${detail}${when}`;
-  };
+  const statusPanel = document.querySelector('[data-mfs-status]');
+  const cedulaPanel = document.querySelector('[data-mfs-cedula]');
+  const cedulaForm = document.querySelector('[data-mfs-cedula-form]');
+  const sent = document.querySelector('[data-mfs-sent]');
+  const badgePanel = document.querySelector('[data-mfs-badge]');
+  const badgePreview = document.querySelector('[data-mfs-badge-preview]');
+  const badgeStatus = document.querySelector('[data-mfs-badge-status]');
+  const badgeDownload = document.querySelector('[data-mfs-badge-download]');
+  const badgeShare = document.querySelector('[data-mfs-badge-share]');
+  let badgeUrl = '';
+  let badgeFile = null;
+  let photoBlob = null;
+
+  function showStatus(profile) {
+    const message = mfsStatusMessage(profile);
+    statusPanel.dataset.state = message.state;
+    statusPanel.querySelector('[data-mfs-status-kicker]').textContent = message.kicker;
+    statusPanel.querySelector('[data-mfs-status-title]').textContent = message.title;
+    statusPanel.querySelector('[data-mfs-status-text]').textContent = message.text;
+    const when = profile.registered ? ecuadorDateTime(profile.submitted_at) : '';
+    statusPanel.querySelector('[data-mfs-status-meta]').textContent = when ? `Inscripción recibida el ${when} (hora de Ecuador).` : '';
+    cedulaPanel.hidden = !(profile.registered && profile.cedula_missing);
+    // Una inscripción revisada se guarda plegada: ya no es un formulario para llenar.
+    if (profile.registered && profile.editable === false) {
+      if (form.parentElement !== sent) sent.append(form);
+      sent.hidden = false;
+    }
+  }
+
+  async function showBadge(profile) {
+    if (!canShowMfsBadge(profile)) { badgePanel.hidden = true; return; }
+    badgePanel.hidden = false;
+    badgeStatus.textContent = 'Preparando tu gafete…';
+    try {
+      photoBlob ??= await client.photo();
+      const blob = await mfsBadgeBlob(profile, photoBlob);
+      if (!blob) throw new Error();
+      if (badgeUrl) URL.revokeObjectURL(badgeUrl);
+      badgeUrl = URL.createObjectURL(blob);
+      badgeFile = new File([blob], 'gafete-mushuc-freestyle-2026.png', { type: 'image/png' });
+      badgePreview.src = badgeUrl; badgePreview.hidden = false;
+      badgeDownload.disabled = false; badgeShare.disabled = false;
+      badgeStatus.textContent = '¡Listo! Descárgalo y súbelo a tus historias.';
+    } catch { badgeStatus.textContent = 'No se pudo preparar el gafete. Recarga la página para intentarlo de nuevo.'; }
+  }
+  badgeDownload?.addEventListener('click', () => {
+    if (!badgeUrl) return;
+    const link = document.createElement('a'); link.href = badgeUrl; link.download = 'gafete-mushuc-freestyle-2026.png'; document.body.append(link); link.click(); link.remove();
+  });
+  badgeShare?.addEventListener('click', async () => {
+    if (!badgeFile) return;
+    try {
+      if (navigator.share && navigator.canShare?.({ files: [badgeFile] })) await navigator.share({ title: 'Mushuc Freestyle 2026', text: '¡Nos vemos en la Plaza de la Luna! #MushucFreestyle', files: [badgeFile] });
+      else { badgeDownload.click(); badgeStatus.textContent = 'Tu dispositivo descargó el gafete para que lo compartas.'; }
+    } catch (error) { if (error?.name !== 'AbortError') badgeStatus.textContent = 'No se pudo compartir. Descarga el gafete y súbelo desde tu red social.'; }
+  });
+  cedulaForm?.addEventListener('submit', async event => {
+    event.preventDefault();
+    const value = String(cedulaForm.elements.cedula.value).trim();
+    if (!/^\d{10}$/.test(value)) { say('La cédula debe tener 10 dígitos.', 'error'); feedback?.focus(); return; }
+    enable(cedulaForm, false);
+    try {
+      const saved = await client.addCedula(value);
+      fill(saved); showStatus(saved);
+      say('Cédula guardada. ¡Gracias!', 'success');
+    } catch (error) { fail(error); enable(cedulaForm); }
+  });
 
   function fill(profile) {
     const mail = form.querySelector('[data-account-email]');
@@ -239,8 +420,10 @@ export function initializeMfsPortal() {
       hasSavedPhoto = Boolean(saved.photo?.available);
       photoInput.value = '';
       fill(saved);
-      if (statusLine) statusLine.textContent = describe(saved);
+      showStatus(saved);
+      showBadge(saved);
       say('¡Inscripción recibida! Te contactaremos por WhatsApp con el resultado de la revisión.', 'success');
+      statusPanel.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
       if (saveStatus) saveStatus.textContent = 'Guardado.';
       if (!saved.editable) enable(form, false);
       else enable(form);
@@ -261,12 +444,13 @@ export function initializeMfsPortal() {
       fill(profile);
       hasSavedPhoto = Boolean(profile.photo?.available);
       if (hasSavedPhoto) {
-        try { showPhoto(await client.photo()); if (photoLabel) photoLabel.textContent = 'Cambiar fotografía'; } catch { /* la foto es opcional para mostrar */ }
+        try { photoBlob = await client.photo(); showPhoto(photoBlob); if (photoLabel) photoLabel.textContent = 'Cambiar fotografía'; } catch { /* la foto es opcional para mostrar */ }
       }
-      if (statusLine) statusLine.textContent = describe(profile);
+      showStatus(profile);
       if (profile.editable !== false) enable(form);
       if (logout) logout.disabled = false;
-      say(profile.editable === false ? 'Tu inscripción ya fue revisada y no se puede editar desde aquí.' : '');
+      say('');
+      showBadge(profile);
     } catch (error) { fail(error); }
   })();
 }

@@ -255,7 +255,7 @@ export async function initializeMfsAdmin() {
           row.append(td); return td;
         };
         cell('Participante', record.full_name, record.stage_name ? `«${record.stage_name}»` : 'Sin nombre artístico').className = 'record-name';
-        cell('Contacto', maskPhone(record.whatsapp), record.email);
+        cell('Contacto', maskPhone(record.whatsapp), [record.email, record.cedula ? 'C.I. ' + maskPhone(record.cedula) : 'Sin cédula'].join(' · '));
         cell('Audición', tiktokLink(record.audition_url));
         cell('Foto', record.has_photo ? 'Sí' : 'No');
         cell('Inscripción', dateTime(record.submitted_at));
@@ -280,10 +280,10 @@ export async function initializeMfsAdmin() {
     }
   }
 
-  const fields = [['public_id', 'Identificador'], ['full_name', 'Nombres y apellidos'], ['stage_name', 'Nombre artístico'], ['whatsapp', 'WhatsApp'], ['email', 'Correo']];
+  const fields = [['public_id', 'Identificador'], ['full_name', 'Nombres y apellidos'], ['stage_name', 'Nombre artístico'], ['cedula', 'Cédula'], ['whatsapp', 'WhatsApp'], ['email', 'Correo']];
   function renderDetail(data) {
     const dl = node('dl', undefined, 'detail-fields');
-    for (const [key, label] of fields) { const field = node('div'); field.append(node('dt', label), node('dd', data[key] || '—')); dl.append(field); }
+    for (const [key, label] of fields) { const field = node('div'); field.append(node('dt', label), node('dd', key === 'cedula' && !data.cedula ? 'Pendiente: el participante debe completarla' : data[key] || '—')); dl.append(field); }
     const audition = node('div'); audition.append(node('dt', 'Audición en TikTok'));
     const auditionValue = node('dd'); auditionValue.append(tiktokLink(data.audition_url), node('small', ` · enviada ${dateTime(data.audition_submitted_at)}`)); audition.append(auditionValue); dl.append(audition);
     const submitted = node('p', `Inscripción: ${dateTime(data.submitted_at)} · Estado: ${data.status}${data.account?.active === false ? ' · Cuenta desactivada' : ''}`);

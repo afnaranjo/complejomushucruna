@@ -27,7 +27,7 @@ final class MfsRepository
     public const ARCHIVED = 'Archivado';
     /** Campo del formulario → columna. Llegan como texto multipart, igual que en los demás programas. */
     public const FIELDS = [
-        'nombre_completo' => 'full_name', 'nombre_artistico' => 'stage_name', 'whatsapp' => 'whatsapp',
+        'nombre_completo' => 'full_name', 'nombre_artistico' => 'stage_name', 'cedula' => 'cedula', 'whatsapp' => 'whatsapp',
         'audicion_tiktok' => 'audition_url', 'declaracion_video' => 'video_declaration',
     ];
     /** Casilla del formulario → clave del catálogo. Las tres son obligatorias para inscribirse. */
@@ -89,6 +89,7 @@ final class MfsRepository
             $values = [
                 'full_name' => $record['full_name'], 'stage_name' => $record['stage_name'],
                 'whatsapp_enc' => $this->crypto->encrypt($record['whatsapp']), 'whatsapp_idx' => $this->crypto->lookup($record['whatsapp']),
+                'cedula_enc' => $this->crypto->encrypt($record['cedula']), 'cedula_idx' => $this->crypto->lookup($record['cedula']),
                 'updated_at' => $now,
             ];
             if ($existing === false) {
@@ -135,13 +136,49 @@ final class MfsRepository
         return $this->forAccount($accountId) ?? throw new RuntimeException();
     }
 
-    /** Un WhatsApp identifica una sola inscripción activa; las archivadas liberan su dato. */
+    /** Una cédula y un WhatsApp identifican una sola inscripción activa; las archivadas liberan sus datos. */
     private function assertUnique(array $record, ?int $exceptId): void
     {
-        $query = $this->pdo->prepare('SELECT id FROM mfs_profiles WHERE whatsapp_idx = ? AND status <> ?' . ($exceptId === null ? '' : ' AND id <> ?'));
-        $lookup = $this->crypto->lookup($record['whatsapp']);
-        $query->execute($exceptId === null ? [$lookup, self::ARCHIVED] : [$lookup, self::ARCHIVED, $exceptId]);
-        if ($query->fetchColumn() !== false) throw new DuplicateRegistration();
+        foreach (['whatsapp', 'cedula'] as $field) {
+            if (!isset($record[$field])) continue;
+            $query = $this->pdo->prepare('SELECT id FROM mfs_profiles WHERE ' . $field . '_idx = ? AND status <> ?' . ($exceptId === null ? '' : ' AND id <> ?'));
+            $lookup = $this->crypto->lookup($record[$field]);
+            $query->execute($exceptId === null ? [$lookup, self::ARCHIVED] : [$lookup, self::ARCHIVED, $exceptId]);
+            if ($query->fetchColumn() !== false) throw new DuplicateRegistration();
+        }
+    }
+
+    /**
+     * Quien se inscribió antes de que se pidiera la cédula la completa una sola vez, aunque su
+     * inscripción ya esté revisada. Una cédula guardada no se cambia desde la cuenta.
+     */
+    public function addCedulaForAccount(int $accountId, mixed $cedula, string $ip): array
+    {
+        $cedula = is_string($cedula) ? trim($cedula) : '';
+        if (!self::isCedula($cedula)) throw new InvalidArgumentException();
+        $this->begin();
+        try {
+            $statement = $this->pdo->prepare('SELECT id, public_id, status, cedula_idx FROM mfs_profiles WHERE account_id = ?' . $this->rowLock());
+            $statement->execute([$accountId]);
+            $row = $statement->fetch();
+            if ($row === false || $row['status'] === self::ARCHIVED) throw new OutOfBoundsException();
+            if ($row['cedula_idx'] !== null && $row['cedula_idx'] !== '') throw new Forbidden();
+            $this->assertUnique(['cedula' => $cedula], (int) $row['id']);
+            $this->pdo->prepare('UPDATE mfs_profiles SET cedula_enc = ?, cedula_idx = ?, updated_at = ? WHERE id = ?')
+                ->execute([$this->crypto->encrypt($cedula), $this->crypto->lookup($cedula), gmdate('Y-m-d H:i:s'), $row['id']]);
+            $this->audit->log('mfs.cedula_added', null, 'mfs_profile', $row['public_id'], [], $ip);
+            $this->commit();
+        } catch (Throwable $error) {
+            $this->rollBack();
+            throw $error;
+        }
+        return $this->forAccount($accountId) ?? throw new RuntimeException();
+    }
+
+    /** Cédula ecuatoriana: diez dígitos. */
+    public static function isCedula(string $value): bool
+    {
+        return preg_match('/^\d{10}$/D', $value) === 1;
     }
 
     public static function validate(array $fields): array
@@ -156,10 +193,10 @@ final class MfsRepository
             return $value;
         };
         $record = [
-            'full_name' => $text('nombre_completo', 160, 5), 'stage_name' => $text('nombre_artistico', 80),
+            'full_name' => $text('nombre_completo', 160, 5), 'stage_name' => $text('nombre_artistico', 80), 'cedula' => $text('cedula', 10, 10),
             'whatsapp' => $text('whatsapp', 10, 10), 'audition_url' => $text('audicion_tiktok', 500, 12),
         ];
-        if (preg_match('/^09\d{8}$/D', $record['whatsapp']) !== 1) throw new InvalidArgumentException();
+        if (preg_match('/^09\d{8}$/D', $record['whatsapp']) !== 1 || !self::isCedula($record['cedula'])) throw new InvalidArgumentException();
         if (!self::isTikTokUrl($record['audition_url'])) throw new InvalidArgumentException();
         if ($text('declaracion_video', 4, 1) !== 'Sí') throw new InvalidArgumentException();
         foreach (array_keys(self::CONSENTS) as $consent) if ($text($consent, 4, 1) !== 'Sí') throw new InvalidArgumentException();
@@ -218,19 +255,20 @@ final class MfsRepository
         if (self::length($search) > 180) throw new InvalidArgumentException();
         if ($search !== '') {
             $like = '%' . addcslashes($search, '\\%_') . '%';
-            $where[] = "(p.full_name LIKE ? ESCAPE '\\' OR p.stage_name LIKE ? ESCAPE '\\' OR p.whatsapp_idx = ? OR a.email_idx = ?)";
-            array_push($parameters, $like, $like, $this->crypto->lookup($search), $this->crypto->lookup(strtolower($search)));
+            $where[] = "(p.full_name LIKE ? ESCAPE '\\' OR p.stage_name LIKE ? ESCAPE '\\' OR p.whatsapp_idx = ? OR p.cedula_idx = ? OR a.email_idx = ?)";
+            array_push($parameters, $like, $like, $this->crypto->lookup($search), $this->crypto->lookup($search), $this->crypto->lookup(strtolower($search)));
         }
         $condition = implode(' AND ', $where);
         $from = ' FROM mfs_profiles p JOIN mfs_accounts a ON a.id = p.account_id WHERE ' . $condition;
         $count = $this->pdo->prepare('SELECT COUNT(*)' . $from);
         $count->execute($parameters);
         $total = (int) $count->fetchColumn();
-        $rows = $this->pdo->prepare('SELECT p.id, p.public_id, p.status, p.full_name, p.stage_name, p.whatsapp_enc, p.audition_url, p.submitted_at, a.email_enc, (SELECT COUNT(*) FROM mfs_photos f WHERE f.profile_id = p.id) AS has_photo' . $from . ' ORDER BY p.submitted_at DESC, p.id DESC LIMIT ' . $perPage . ' OFFSET ' . (($page - 1) * $perPage));
+        $rows = $this->pdo->prepare('SELECT p.id, p.public_id, p.status, p.full_name, p.stage_name, p.whatsapp_enc, p.cedula_enc, p.audition_url, p.submitted_at, a.email_enc, (SELECT COUNT(*) FROM mfs_photos f WHERE f.profile_id = p.id) AS has_photo' . $from . ' ORDER BY p.submitted_at DESC, p.id DESC LIMIT ' . $perPage . ' OFFSET ' . (($page - 1) * $perPage));
         $rows->execute($parameters);
         $items = array_map(fn (array $row): array => [
             'public_id' => $row['public_id'], 'status' => $row['status'], 'full_name' => $row['full_name'], 'stage_name' => $row['stage_name'],
             'whatsapp' => $this->crypto->decrypt($row['whatsapp_enc']), 'email' => $this->crypto->decrypt($row['email_enc']),
+            'cedula' => $row['cedula_enc'] === null ? '' : $this->crypto->decrypt($row['cedula_enc']),
             'audition_url' => $row['audition_url'], 'has_photo' => (int) $row['has_photo'] > 0, 'submitted_at' => $row['submitted_at'],
         ], $rows->fetchAll(PDO::FETCH_ASSOC));
         return ['items' => $items, 'page' => $page, 'per_page' => $perPage, 'total' => $total];
@@ -405,6 +443,8 @@ final class MfsRepository
         return [
             'public_id' => $row['public_id'], 'status' => $row['status'], 'full_name' => (string) $row['full_name'], 'stage_name' => (string) $row['stage_name'],
             'whatsapp' => $this->crypto->decrypt($row['whatsapp_enc']), 'audition_url' => (string) $row['audition_url'],
+            'cedula' => ($row['cedula_enc'] ?? null) === null ? '' : $this->crypto->decrypt($row['cedula_enc']),
+            'cedula_missing' => ($row['cedula_enc'] ?? null) === null,
             'audition_submitted_at' => $row['audition_submitted_at'], 'video_declaration_at' => $row['video_declaration_at'],
             'submitted_at' => $row['submitted_at'], 'updated_at' => $row['updated_at'],
         ];

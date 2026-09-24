@@ -1,0 +1,64 @@
+/* Portal de Mushuc Freestyle: se suma a vocero-portal.css solo en las páginas de MFS. */
+@font-face {
+  font-family: "Badeen Display";
+  src: url("/assets/finados/mfs/fonts/badeen-display-latin.woff2") format("woff2");
+  font-display: swap;
+  font-weight: 400;
+}
+
+.mfs-status {
+  --mfs-blue: #173976;
+  --mfs-deep: #0f2856;
+  --mfs-lime: #c2e817;
+  --mfs-cream: #f4eada;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 1.4rem;
+  align-items: center;
+  margin: 0 0 2rem;
+  padding: clamp(1.4rem, 3vw, 2.2rem);
+  border: 4px solid var(--mfs-lime);
+  border-radius: 22px;
+  background: var(--mfs-blue);
+  color: var(--mfs-cream);
+  box-shadow: 8px 8px 0 var(--mfs-deep);
+}
+.mfs-status__icon { width: clamp(64px, 9vw, 96px); height: auto; }
+.mfs-status__kicker { margin: 0 0 .5rem; font: 800 .75rem/1.4 Inter, sans-serif; letter-spacing: .16em; text-transform: uppercase; color: var(--mfs-lime, #c2e817); }
+.mfs-status__title { margin: 0; font: 900 clamp(1.7rem, 4vw, 2.6rem)/1.08 Inter, sans-serif; letter-spacing: -.02em; }
+.mfs-status__text { margin: .7rem 0 0; font-size: 1.05rem; line-height: 1.55; }
+.mfs-status__meta { margin: .6rem 0 0; font-size: .85rem; opacity: .8; }
+.mfs-status__meta:empty, .mfs-status__text:empty { display: none; }
+/* Aprobado y seleccionado celebran: el panel pasa a lima. */
+.mfs-status[data-state="celebrate"] { background: var(--mfs-lime); color: var(--mfs-blue); border-color: var(--mfs-blue); box-shadow: 8px 8px 0 var(--mfs-blue); }
+.mfs-status[data-state="celebrate"] .mfs-status__kicker { color: var(--mfs-blue); }
+.mfs-status[data-state="celebrate"] .mfs-status__icon { filter: brightness(0) saturate(100%) invert(17%) sepia(45%) saturate(2400%) hue-rotate(205deg); }
+.mfs-status[data-state="calm"] { background: var(--mfs-cream); color: var(--mfs-blue); border-color: var(--mfs-blue); box-shadow: 8px 8px 0 var(--mfs-blue); }
+.mfs-status[data-state="calm"] .mfs-status__kicker { color: var(--mfs-blue); }
+
+.mfs-cedula { margin: 0 0 2rem; padding: 1.4rem; border: 3px dashed #173976; border-radius: 18px; background: #fff; }
+.mfs-cedula h2 { margin: 0 0 .4rem; font: 900 1.4rem/1.2 Inter, sans-serif; color: #173976; }
+.mfs-cedula p { margin: 0 0 1rem; line-height: 1.55; }
+.mfs-cedula fieldset { display: flex; flex-wrap: wrap; align-items: end; gap: 1rem; margin: 0; padding: 0; border: 0; }
+.mfs-cedula .vocero-field { flex: 1 1 14rem; margin: 0; }
+
+.mfs-badge { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); gap: 2rem; align-items: center; margin: 0 0 2.4rem; padding: clamp(1.4rem, 3vw, 2rem); border-radius: 22px; background: #173976; color: #f4eada; }
+.mfs-badge .mfs-status__kicker { color: #c2e817; }
+.mfs-badge h2 { margin: 0 0 .7rem; font: 900 clamp(1.6rem, 3.4vw, 2.2rem)/1.1 Inter, sans-serif; }
+.mfs-badge p { line-height: 1.55; }
+.mfs-badge__status { font-weight: 700; color: #c2e817; }
+.mfs-badge__actions { display: flex; flex-wrap: wrap; gap: .8rem; }
+.mfs-badge .vocero-primary { background: #c2e817; border-color: #c2e817; color: #173976; }
+.mfs-badge .vocero-quiet { border-color: #f4eada; color: #f4eada; background: transparent; }
+.mfs-badge__preview { display: flex; justify-content: center; }
+.mfs-badge__preview img { width: min(100%, 300px); height: auto; border-radius: 16px; box-shadow: 8px 8px 0 #c2e817; }
+
+.mfs-sent { margin: 0 0 1.4rem; padding: 1rem 1.2rem; border: 2px solid #173976; border-radius: 14px; background: #fff; }
+.mfs-sent summary { cursor: pointer; font-weight: 800; color: #173976; }
+.mfs-sent p { margin: .7rem 0 0; line-height: 1.55; }
+
+@media (max-width: 760px) {
+  .mfs-status { grid-template-columns: minmax(0, 1fr); }
+  .mfs-badge { grid-template-columns: minmax(0, 1fr); }
+  .mfs-badge__preview { order: -1; }
+}

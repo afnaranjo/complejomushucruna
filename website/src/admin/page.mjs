@@ -424,7 +424,7 @@ export function renderAdminPanelPage(page) {
 
 // Mushuc Freestyle: los estados viven aquí para que el HTML no dependa del módulo del navegador.
 const MFS_STATUS_OPTIONS = Object.freeze(['Nuevo', 'En revisión', 'Aprobado', 'Rechazado', 'Seleccionado']);
-export const ADMIN_MFS_SCRIPT = '/assets/admin/admin-mfs.js?v=20260924-admin-mfs-1';
+export const ADMIN_MFS_SCRIPT = '/assets/admin/admin-mfs.js?v=20260924-admin-mfs-2';
 
 export function renderAdminMfsPage(page) {
   return layout(page, `<div class="admin-shell">${adminSidebar(page)}<main id="contenido" class="admin-workspace" data-admin-mfs>${campaignBanner}
@@ -434,7 +434,7 @@ export function renderAdminMfsPage(page) {
 <section aria-label="Resumen de inscripciones" class="summary" data-admin-dashboard aria-busy="true"></section>
 <form class="filters" data-admin-filters><fieldset disabled data-panel-fields>
 <legend>Filtrar inscripciones</legend>
-<div class="filter-grid"><label class="search-field">Buscar<input type="search" name="search" maxlength="180" placeholder="Nombre, nombre artístico, correo o WhatsApp"></label>
+<div class="filter-grid"><label class="search-field">Buscar<input type="search" name="search" maxlength="180" placeholder="Nombre, nombre artístico, cédula, correo o WhatsApp"></label>
 <label>Estado<select name="status"><option value="">Todos (sin archivados)</option>${options(MFS_STATUS_OPTIONS)}<option value="Archivado">Archivado</option></select></label></div>
 <div class="filter-actions"><button type="submit" class="button-primary">Aplicar filtros</button><button type="reset" class="button-quiet">Limpiar</button><label>Por página<select name="pageSize"><option>25</option><option>50</option><option>100</option></select></label></div>
 </fieldset></form>

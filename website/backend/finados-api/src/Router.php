@@ -533,6 +533,15 @@ final class Router
                 ? ['registered' => false, 'email' => $user['email'], 'status' => null, 'editable' => true, 'photo' => ['available' => false, 'width' => null, 'height' => null, 'created_at' => null]]
                 : ['registered' => true, 'email' => $user['email'], ...$own], $headers);
         }
+        if ($path === '/api/mfs/cedula') {
+            $user = $auth->requireUser();
+            if ($method !== 'POST') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+            if (!$this->config->isAllowedOrigin($origin) || !$validIp || $query !== []) throw new Forbidden();
+            $auth->verifyCsrf($token);
+            $body = $this->body($server, $rawBody, ['cedula']);
+            $saved = $this->mfs()->addCedulaForAccount($user['id'], $body['cedula'] ?? null, $ip);
+            return $this->json(200, ['registered' => true, 'email' => $user['email'], ...$saved], $headers);
+        }
         // Nada más bajo este prefijo pertenece a un programa: nunca cae en la guardia administrativa.
         return $this->error(404, 'not_found', 'Recurso no encontrado.', $headers);
     }
@@ -640,7 +649,7 @@ final class Router
 
     private function mfsExport(array $filters, int $actorId, string $ip, array $headers): Response
     {
-        $columns = ['public_id', 'status', 'submitted_at', 'full_name', 'stage_name', 'whatsapp', 'email', 'audition_url', 'audition_submitted_at', 'has_photo'];
+        $columns = ['public_id', 'status', 'submitted_at', 'full_name', 'stage_name', 'cedula', 'whatsapp', 'email', 'audition_url', 'audition_submitted_at', 'has_photo'];
         $stream = fopen('php://temp/maxmemory:2097152', 'w+');
         if ($stream === false) throw new \RuntimeException();
         try {

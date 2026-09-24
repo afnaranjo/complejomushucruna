@@ -1907,3 +1907,11 @@ Nota de relevo escrita a pedido de Alex para que otro agente (Codex) retome la s
 
 - Alex indicó que Badeen Display le agrada, pero en datos importantes no se lee bien. Queda solo para marca: títulos de sección, «REGRESA» y el sello de edición. Pasan a Inter extra negrita: botones, cinta, subtítulos, números de pasos, montos de premios y el título «Más de USD 950 en premios» (los dígitos de Badeen se confundían: «950» parecía «q50»). Caché `20260924-mfs-4`. Solo frontend.
 - QA: prueba nueva que fija qué elementos usan Inter y cuáles Badeen, `npm run check` en el prevuelo del despliegue y revisión visual en 1440 px.
+
+### 2026-09-24 — Estado con emoción, gafete en formato historia y cédula en Mushuc Freestyle
+
+- Alex pidió un estado más emocionante para el participante, un gafete en formato historia al ser aprobado y la cédula en la inscripción.
+- Portal `/finados/mfs/mi-registro/`: panel de estado con la paleta de MFS y un mensaje por estado (Nuevo, En revisión, Aprobado, Seleccionado, Rechazado); Aprobado y Seleccionado lo celebran en lima. La fecha se muestra en hora de Ecuador y en 24 horas, no en UTC. Una inscripción revisada queda plegada en «Ver los datos que enviaste».
+- Gafete 1080 × 1920 generado en el navegador cuando el estado es Aprobado o Seleccionado y hay foto: logo de MFS, foto con borde crema, sello del estado, nombre artístico y nombre, datos de la final y franja con Finados. Descarga y compartir nativo. No incluye cédula, correo ni teléfono.
+- Cédula: migración aditiva `029_mfs_cedula` (dos columnas y un índice en `mfs_profiles`). Obligatoria en la ficha, 10 dígitos, cifrada, única entre inscripciones activas y buscable en el panel; quien se inscribió antes la completa una sola vez con `POST /api/mfs/cedula`, aunque ya esté revisado. Aparece en el detalle, la lista (enmascarada) y el CSV.
+- QA: `npm run check` en verde (221 Node, suites PHP con la cédula en `mfs_accounts_test.php`, 10 integración; 212 archivos). Revisión visual del gafete.

@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises';
 import { pages } from '../src/pages.mjs';
 import { primaryNavigation } from '../src/data/site.mjs';
 import { mfsAssetVersion, mfsEvent, mfsPrizes } from '../src/finados/mfs-page.mjs';
-import { buildMfsFormData, MfsApiClient, validateMfsForm } from '../src/finados/mfs-portal.js';
+import { buildMfsFormData, canShowMfsBadge, ecuadorDateTime, MfsApiClient, mfsStatusMessage, validateMfsForm } from '../src/finados/mfs-portal.js';
 import { createMfsAdminClient, normalizeMfsFilters, safeTikTokLink } from '../src/admin/admin-mfs.js';
 
 const page = pages.find(item => item.route === '/finados/mfs/');
@@ -67,7 +67,7 @@ test('el portal de MFS tiene acceso, registro y restablecer, privados y con su p
     assert.doesNotMatch(markup, /voceros-portal\.js|emprendedor-portal\.js/);
   }
   const profile = pages.find(item => item.route === '/finados/mfs/mi-registro/').render({ route: '/finados/mfs/mi-registro/' });
-  for (const name of ['nombre_completo', 'nombre_artistico', 'whatsapp', 'audicion_tiktok', 'declaracion_video', 'consentimiento_bases', 'autorizacion_imagen', 'consentimiento_datos', 'fotografia']) {
+  for (const name of ['nombre_completo', 'nombre_artistico', 'cedula', 'whatsapp', 'audicion_tiktok', 'declaracion_video', 'consentimiento_bases', 'autorizacion_imagen', 'consentimiento_datos', 'fotografia']) {
     assert.match(profile, new RegExp(`name="${name}"`), name);
   }
   for (const route of ['/finados/mfs/bases/', '/finados/mfs/politica-de-privacidad/']) {
@@ -78,13 +78,14 @@ test('el portal de MFS tiene acceso, registro y restablecer, privados y con su p
 });
 
 test('el formulario de MFS valida como el servidor y arma el multipart exacto', () => {
-  const ok = { nombre_completo: 'Juan Rimador', whatsapp: '0991112222', audicion_tiktok: 'https://www.tiktok.com/@mc/video/1' };
+  const ok = { nombre_completo: 'Juan Rimador', cedula: '1804567890', whatsapp: '0991112222', audicion_tiktok: 'https://www.tiktok.com/@mc/video/1' };
+  assert.match(validateMfsForm({ ...ok, cedula: '18045' }, { hasPhoto: true }), /cédula/);
   assert.equal(validateMfsForm(ok, { hasPhoto: true }), '');
   assert.match(validateMfsForm(ok, { hasPhoto: false }), /fotografía/);
   assert.match(validateMfsForm({ ...ok, whatsapp: '0891112222' }, { hasPhoto: true }), /WhatsApp/);
   assert.match(validateMfsForm({ ...ok, audicion_tiktok: 'https://youtube.com/watch?v=1' }, { hasPhoto: true }), /TikTok/);
   assert.match(validateMfsForm({ ...ok, audicion_tiktok: 'https://tiktok.com.evil.test/x' }, { hasPhoto: true }), /TikTok/);
-  const elements = { nombre_completo: { value: ' Juan ' }, nombre_artistico: { value: '' }, whatsapp: { value: '0991112222' }, audicion_tiktok: { value: ok.audicion_tiktok },
+  const elements = { nombre_completo: { value: ' Juan ' }, nombre_artistico: { value: '' }, cedula: { value: '1804567890' }, whatsapp: { value: '0991112222' }, audicion_tiktok: { value: ok.audicion_tiktok },
     declaracion_video: { checked: true }, consentimiento_bases: { checked: true }, autorizacion_imagen: { checked: false }, consentimiento_datos: { checked: true } };
   const data = buildMfsFormData({ elements });
   assert.equal(data.get('nombre_completo'), 'Juan');
@@ -131,4 +132,20 @@ test('Badeen Display queda solo para títulos de marca; lo que hay que leer va e
     assert.doesNotMatch(rule(selector), /Badeen/, selector);
   }
   assert.match(rule('.mfs-regresa'), /Badeen Display/);
+});
+
+test('el portal celebra la aprobación y solo entonces ofrece el gafete', () => {
+  assert.equal(mfsStatusMessage({ registered: true, status: 'Aprobado', stage_name: 'MC Plaza' }).state, 'celebrate');
+  assert.match(mfsStatusMessage({ registered: true, status: 'Aprobado', stage_name: 'MC Plaza' }).title, /MC Plaza, tu audición fue aprobada/);
+  assert.match(mfsStatusMessage({ registered: true, status: 'Seleccionado' }).kicker, /32/);
+  assert.equal(mfsStatusMessage({ registered: true, status: 'Nuevo' }).state, 'default');
+  assert.equal(mfsStatusMessage({ registered: false }).state, 'calm');
+  for (const [status, expected] of [['Aprobado', true], ['Seleccionado', true], ['Nuevo', false], ['En revisión', false], ['Rechazado', false]]) {
+    assert.equal(canShowMfsBadge({ registered: true, status, photo: { available: true } }), expected, status);
+  }
+  assert.equal(canShowMfsBadge({ registered: true, status: 'Aprobado', photo: { available: false } }), false);
+  assert.match(ecuadorDateTime('2026-09-24 21:06:00'), /16:06/);
+  const profile = pages.find(item => item.route === '/finados/mfs/mi-registro/').render({ route: '/finados/mfs/mi-registro/' });
+  for (const marker of ['data-mfs-status', 'data-mfs-badge', 'data-mfs-cedula-form', 'mfs-portal.css']) assert.match(profile, new RegExp(marker), marker);
+  assert.doesNotMatch(profile, /hora UTC/);
 });
