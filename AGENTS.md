@@ -1843,3 +1843,9 @@ Nota de relevo escrita a pedido de Alex para que otro agente (Codex) retome la s
 - La cola de activación ahora vence en 10 minutos y elimina cada nombre al ser entregado a la pantalla; no conserva nombres como registros permanentes.
 - Se ejecutó verificación completa (211 Node, PHP, 10 integraciones y build) y se publicó backend primero y frontend después. Las tres rutas respondieron HTTP 200.
 - Commit: `6d428b7`. Publicación externa autorizada por Alex en esta sesión. No se tocaron otros módulos ni datos existentes.
+
+### 2026-09-24 — Pantalla viva conserva el último nombre
+
+- Se corrigió el ciclo de la pantalla para que no borre el último nombre después de la animación; ahora consulta cada segundo, conserva el nombre visible y libera el ciclo para mostrar el siguiente sin recargar.
+- Pruebas específicas y build aprobados. Frontend publicado con el script seguro y verificado en producción.
+- Commit: `e4ef852`. No se modificaron backend, datos ni otras páginas.
