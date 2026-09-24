@@ -34,6 +34,11 @@ test('la landing usa la línea gráfica de Mushuc Freestyle y sus datos aprobado
   // La inscripción ya está abierta: los botones llevan a la cuenta del participante.
   assert.ok(html.includes('href="/finados/mfs/acceso/"'));
   assert.ok(html.includes('href="/finados/mfs/acceso/?modo=login"'));
+  // La portada ofrece las dos entradas: inscribirse o iniciar sesión.
+  const hero = html.slice(html.indexOf('class="mfs-hero"'), html.indexOf('class="mfs-ticker"'));
+  assert.match(hero, /href="\/finados\/mfs\/acceso\/">Inscríbete gratis/);
+  assert.match(hero, /href="\/finados\/mfs\/acceso\/\?modo=login">Iniciar sesión<\/a>/);
+  assert.match(hero, /href="#bases">Ver las bases/);
   assert.doesNotMatch(html, /muy pronto/);
   assert.ok(html.includes('href="#bases"') && html.includes('id="bases"'));
   assert.ok(html.includes('https://wa.me/593980346729'));

@@ -5,7 +5,7 @@ import { renderFinadosNavigation } from './navigation.mjs';
 
 // Mushuc Freestyle 2026: su propia línea gráfica (azul, lima y crema, Badeen Display)
 // dentro del marco de Finados. Los datos salen de la especificación aprobada del módulo.
-export const mfsAssetVersion = '20260924-mfs-2';
+export const mfsAssetVersion = '20260924-mfs-3';
 const asset = name => `/assets/finados/mfs/${name}?v=${mfsAssetVersion}`;
 
 export const mfsEvent = Object.freeze({
@@ -102,7 +102,8 @@ export function renderMfsPage(page) {
         </dl>
         <div class="mfs-actions">
           <a class="mfs-button" href="/finados/mfs/acceso/">Inscríbete gratis <span aria-hidden="true">→</span></a>
-          <a class="mfs-button mfs-button--ghost" href="#bases">Ver las bases</a>
+          <a class="mfs-button mfs-button--ghost" href="/finados/mfs/acceso/?modo=login">Iniciar sesión</a>
+          <a class="mfs-text-link" href="#bases">Ver las bases</a>
         </div>
         <p class="mfs-closing">Inscripciones hasta el <time datetime="${mfsEvent.closingIso}">${mfsEvent.closing.toLowerCase()}</time>.</p>
         </div>
