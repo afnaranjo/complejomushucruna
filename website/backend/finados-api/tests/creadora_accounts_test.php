@@ -393,6 +393,22 @@ $tras = array_values(array_filter(creadora_body($router->handle('GET', '/api/cre
 same('Ana Creadora', $tras['name']);
 same($ana['public_id'], $tras['creadora']);
 
+// El panel principal resume a cada creadora: horas que vino y su historial, sin modificar nada.
+$antesPanel = (int) $pdo->query('SELECT COUNT(*) FROM creadora_shift_log')->fetchColumn();
+$panelCrypto = new Finados\Crypto($config);
+$panel = ['creadoras' => (new Finados\CreadoraRepository($pdo, $panelCrypto, new Finados\Audit($pdo, $panelCrypto)))->panel()];
+same(true, is_array($panel['creadoras']));
+$anaPanel = array_values(array_filter($panel['creadoras']['people'], static fn (array $person): bool => $person['creadora'] === $ana['public_id']))[0];
+same('Ana Creadora', $anaPanel['name']);
+same(true, $anaPanel['attended_minutes'] > 0);
+same(true, $anaPanel['scheduled_minutes'] >= $anaPanel['attended_minutes']);
+same($anaPanel['shifts'], count($anaPanel['history']['shifts']));
+same(true, isset($anaPanel['history']['content'], $anaPanel['history']['recorded_scripts']));
+foreach ($anaPanel['history']['shifts'] as $turno) same(true, $turno['minutes'] >= 15);
+same(array_sum(array_column($panel['creadoras']['people'], 'attended_minutes')), $panel['creadoras']['totals']['attended_minutes']);
+same(false, in_array($completa['public_id'], array_column($panel['creadoras']['people'], 'creadora'), true));
+same($antesPanel, (int) $pdo->query('SELECT COUNT(*) FROM creadora_shift_log')->fetchColumn());
+
 // El resto de secciones sigue intacto.
 same(0, (int) $pdo->query('SELECT COUNT(*) FROM voceros')->fetchColumn());
 same(0, (int) $pdo->query('SELECT COUNT(*) FROM media_profiles')->fetchColumn());

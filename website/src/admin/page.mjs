@@ -24,7 +24,10 @@ const videoSlotControls = (prefix = 'video') => VIDEO_SLOTS.map(slot => `<label 
 
 function adminSidebar(page) {
   const currentForm = ADMIN_FORMS.find(item => item.route === page.route || (item.children ?? []).some(child => child.route === page.route));
-  const links = ADMIN_FORMS.map((item) => {
+  // «Panel» es la portada de la administración: va sola, arriba de la lista de formularios.
+  const home = ADMIN_FORMS.find(item => item.route === '/admin/panel/');
+  const homeLink = home ? `<a class="admin-nav-link" href="${esc(home.route)}"${home.route === page.route ? ' aria-current="page"' : ''} data-nav-home><span class="admin-nav-marker" aria-hidden="true">${esc(home.marker)}</span><span><strong>${esc(home.label)}</strong><small>${esc(home.description)}</small></span></a>` : '';
+  const links = ADMIN_FORMS.filter(item => item !== home).map((item) => {
     const current = item.route === page.route ? ' aria-current="page"' : '';
     // A submenu (e.g. Medios → Eventos) stays inside its section and opens on the first click.
     const children = item.children ?? [];
@@ -41,6 +44,7 @@ function adminSidebar(page) {
 <summary><span>Menú administrativo</span><span class="admin-sidebar__current">${esc(currentForm?.label ?? 'Formularios')}</span><span class="admin-sidebar__chevron" aria-hidden="true">⌄</span></summary>
 <div class="admin-sidebar__content">
 <div class="admin-sidebar__intro"><p class="eyebrow">Panel de gestión</p><p>Administración</p></div>
+${homeLink ? `<nav class="admin-sidebar__home" aria-label="Resumen general">${homeLink}</nav>` : ''}
 <nav aria-labelledby="admin-forms-title"><p id="admin-forms-title" class="admin-nav-title">Panel y formularios</p>${links}</nav>
 <p class="admin-sidebar__future">Los próximos formularios aparecerán aquí cuando estén habilitados.</p>
 <div class="admin-sidebar__account"><p><span>Sesión activa</span><strong data-admin-sidebar-user>Comprobando…</strong></p><button type="button" class="button-quiet" data-admin-logout disabled>Cerrar sesión</button></div>
@@ -66,7 +70,7 @@ function layout(page, content, script = '/assets/admin/admin.js?v=20260923-admin
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' blob:; font-src 'self'; connect-src ${connectSources}; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="admin-api-base" content="${api}">
 <link rel="icon" href="/assets/finados/favicon-finados.png">
-<link rel="stylesheet" href="/assets/admin/admin.css?v=20260923-15">
+<link rel="stylesheet" href="/assets/admin/admin.css?v=20260924-16">
 <script type="module" src="${script}"></script>
 </head><body class="admin-page">
 <a class="skip-link" href="#contenido">Ir al contenido</a>
@@ -418,8 +422,9 @@ export function renderAdminPanelPage(page) {
 <button type="button" class="button-quiet" data-session-retry hidden>Reintentar conexión</button>
 <section class="admin-panel-section" aria-labelledby="panel-medios-title"><div class="records-heading"><div><h2 id="panel-medios-title">Medios</h2><p>Toca un número para ver la lista.</p></div></div><div data-panel-media></div>
 <section class="admin-panel-subsection" aria-labelledby="panel-eventos-title"><div class="records-heading"><div><h3 id="panel-eventos-title">Medios por evento</h3><p>Abre un evento para ver su cobertura.</p></div></div><div data-panel-events></div></section></section>
+<section class="admin-panel-section" aria-labelledby="panel-creadoras-title"><div class="records-heading"><div><h2 id="panel-creadoras-title">Creadoras de contenido</h2><p>Horas que vinieron, lo que grabaron y sus videos. Toca a una creadora para ver su historial.</p></div></div><div data-panel-creadoras></div></section>
 <section class="admin-panel-section" aria-labelledby="panel-voceros-title"><div class="records-heading"><div><h2 id="panel-voceros-title">Voceros</h2><p>Toca un número para ver la lista.</p></div></div><div data-panel-voceros></div></section>
-</main></div>`, '/assets/admin/panel.js?v=20260923-admin-panel-3');
+</main></div>`, '/assets/admin/panel.js?v=20260924-admin-panel-4');
 }
 
 // Mushuc Freestyle: los estados viven aquí para que el HTML no dependa del módulo del navegador.

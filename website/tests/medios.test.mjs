@@ -100,7 +100,7 @@ test('el build publica la landing, las cuentas de medios y su panel sin tocar la
   const voceros = await readFile(join(output, 'admin/voceros/index.html'), 'utf8');
   for (const html of [admin, voceros]) {
     const order = [...html.matchAll(/class="admin-nav-link" href="([^"]+)"/g)].map(match => match[1]);
-    assert.deepEqual(order, ['/admin/noticias/', '/admin/panel/', '/admin/voceros/', '/admin/medios/', '/admin/emprendedores/', '/admin/creadoras/', '/admin/mfs/']);
+    assert.deepEqual(order, ['/admin/panel/', '/admin/noticias/', '/admin/voceros/', '/admin/medios/', '/admin/emprendedores/', '/admin/creadoras/', '/admin/mfs/']);
   }
   assert.match(admin, /href="\/admin\/medios\/" aria-current="page"/);
   assert.match(voceros, /href="\/admin\/voceros\/" aria-current="page"/);

@@ -1439,8 +1439,11 @@ final class Router
         $videos->execute();
         $videoRows = $videos->fetchAll(PDO::FETCH_ASSOC);
         $videoEntry = static fn (array $row): array => ['public_id' => $row['public_id'], 'name' => $row['full_name'], 'detail' => trim(implode(' · ', array_filter([$row['city'], 'Video ' . (int) $row['slot'], (int) $row['views_count'] > 0 ? (int) $row['views_count'] . ' views' : ''])))];
+        // Creadoras es de solo lectura aquí; si su módulo falla, el resto del panel sigue en pie.
+        try { $creadoras = $this->creadoras()->panel(); } catch (Throwable) { $creadoras = null; }
         return [
             'media' => $media,
+            'creadoras' => $creadoras,
             'voceros' => ['cards' => [
                 ['key' => 'voceros_registrados', 'label' => 'Voceros registrados', 'items' => $group(static fn (): bool => true)],
                 ['key' => 'voceros_aprobados', 'label' => 'Voceros aprobados', 'items' => $group(static fn (array $row): bool => $row['status'] === 'Aprobado')],

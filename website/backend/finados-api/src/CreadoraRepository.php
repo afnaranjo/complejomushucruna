@@ -271,6 +271,50 @@ final class CreadoraRepository
         return ['items' => $items, 'totals' => array_map('intval', $totals)];
     }
 
+    /**
+     * Resumen de solo lectura para el panel principal: por creadora, sus indicadores, las horas que
+     * vino (turnos con asistencia marcada) y su historial de turnos, guiones grabados y contenido.
+     */
+    public function panel(): array
+    {
+        $indicators = $this->indicators();
+        $minutes = static function (string $start, string $end): int {
+            $from = strtotime($start . ' UTC'); $to = strtotime($end . ' UTC');
+            return $from === false || $to === false || $to <= $from ? 0 : intdiv($to - $from, 60);
+        };
+        $ids = $this->pdo->query("SELECT id, public_id FROM creadoras WHERE status <> 'Retirada'")->fetchAll(PDO::FETCH_KEY_PAIR);
+        $byPublic = array_flip($ids);
+        $shifts = $this->pdo->prepare('SELECT s.public_id, s.starts_at, s.ends_at, s.place, m.attended FROM creadora_shift_members m JOIN creadora_shifts s ON s.id = m.shift_id WHERE m.creadora_id = ? AND s.canceled_at IS NULL ORDER BY s.starts_at DESC LIMIT 200');
+        $content = $this->pdo->prepare('SELECT k.kind, k.title, k.url, k.created_at, s.starts_at FROM creadora_shift_content k JOIN creadora_shifts s ON s.id = k.shift_id WHERE k.creadora_id = ? AND s.canceled_at IS NULL ORDER BY s.starts_at DESC, k.id DESC LIMIT 200');
+        $scripts = $this->pdo->prepare('SELECT g.title, g.reference_url, g.recorded_at, s.starts_at FROM creadora_shift_script g JOIN creadora_shifts s ON s.id = g.shift_id WHERE s.canceled_at IS NULL AND g.recorded_at IS NOT NULL'
+            . ' AND (g.creadora_id = ? OR (g.creadora_id IS NULL AND EXISTS (SELECT 1 FROM creadora_shift_members m WHERE m.shift_id = g.shift_id AND m.creadora_id = ?))) ORDER BY g.recorded_at DESC, g.id DESC LIMIT 200');
+        $people = [];
+        foreach ($indicators['items'] as $item) {
+            $id = (int) ($byPublic[$item['creadora']] ?? 0);
+            if ($id === 0) continue;
+            $shifts->execute([$id]);
+            $history = []; $attendedMinutes = 0; $scheduledMinutes = 0;
+            foreach ($shifts->fetchAll(PDO::FETCH_ASSOC) as $row) {
+                $length = $minutes((string) $row['starts_at'], (string) $row['ends_at']);
+                $scheduledMinutes += $length;
+                if ($row['attended'] === 'yes') $attendedMinutes += $length;
+                $history[] = ['starts_at' => $row['starts_at'], 'ends_at' => $row['ends_at'], 'place' => (string) $row['place'], 'attended' => $row['attended'], 'minutes' => $length];
+            }
+            $content->execute([$id]);
+            $scripts->execute([$id, $id]);
+            $people[] = [...$item,
+                'attended_minutes' => $attendedMinutes, 'scheduled_minutes' => $scheduledMinutes,
+                'history' => [
+                    'shifts' => $history,
+                    'content' => array_map(static fn (array $row): array => ['kind' => $row['kind'], 'title' => $row['title'], 'url' => $row['url'], 'shift_at' => $row['starts_at'], 'created_at' => $row['created_at']], $content->fetchAll(PDO::FETCH_ASSOC)),
+                    'recorded_scripts' => array_map(static fn (array $row): array => ['title' => $row['title'], 'reference_url' => (string) $row['reference_url'], 'shift_at' => $row['starts_at'], 'recorded_at' => $row['recorded_at']], $scripts->fetchAll(PDO::FETCH_ASSOC)),
+                ],
+            ];
+        }
+        $totalAttended = array_sum(array_column($people, 'attended_minutes'));
+        return ['totals' => [...$indicators['totals'], 'attended_minutes' => $totalAttended, 'creadoras' => count($people)], 'people' => $people];
+    }
+
     public function createShift(array $input, ?int $adminId, string $actorName, mixed $ip): array
     {
         $people = $this->resolveMembers($input);

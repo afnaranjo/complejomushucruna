@@ -91,13 +91,14 @@ test('la banda del tema central sale en todos los paneles y Noticias tiene su se
     assert.match(await readFile(join(output, 'assets', bundle), 'utf8'), /campaign-banner\.js\?v=/, `${route} carga la banda`);
   }
 
-  // Noticias es la primera entrada del menú y trae el mapa y los avisos.
+  // Panel va solo arriba; Noticias abre la lista de «Panel y formularios» y trae el mapa y los avisos.
   const page = await readFile(join(output, 'admin/noticias/index.html'), 'utf8');
   for (const marker of ['data-admin-noticias', 'data-phase-list', 'data-notice-list', 'data-phase-dialog', 'data-notice-dialog', 'data-phase-new', 'data-notice-new'])
     assert.match(page, new RegExp(marker), marker);
   assert.match(page, /Mapa de la campaña/);
   const order = [...page.matchAll(/class="admin-nav-link(?: admin-nav-link--child)?" href="([^"]+)"/g)].map(match => match[1]);
-  assert.equal(order[0], '/admin/noticias/', 'Noticias abre el menú');
+  assert.equal(order[0], '/admin/panel/', 'Panel va arriba, solo');
+  assert.equal(order[1], '/admin/noticias/', 'Noticias abre la lista de formularios');
 
   // El bundle no lleva la API local a producción.
   const bundle = await readFile(join(output, 'assets/admin/admin-noticias.js'), 'utf8');

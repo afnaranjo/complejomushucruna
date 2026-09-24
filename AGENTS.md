@@ -1934,3 +1934,11 @@ Nota de relevo escrita a pedido de Alex para que otro agente (Codex) retome la s
 - Alex pidió, solo en la portada, un botón «Comprar un stand» junto a «Mapa de ubicación» hacia `https://reserva.mushucticket.com/customers`, y que ambos se noten más como botones.
 - La cabecera compartida recibe la opción `standCta`, activada solo en `/`; las demás páginas con esa cabecera no muestran el botón. El enlace abre en otra pestaña con `noopener noreferrer`. Los botones de la cabecera ahora se levantan al pasar el cursor, se hunden al presionarlos y mueven su flecha; con movimiento reducido quedan quietos. Caché `20260924-fair-start-2`.
 - QA: prueba nueva en `finados-opening-headers.test.mjs`, `npm run check` en el prevuelo y revisión visual en 1440 px y 375 px. Solo frontend.
+
+### 2026-09-24 — Panel arriba en el menú y sección de Creadoras en el Panel
+
+- Alex pidió mover «Panel» arriba de «Panel y formularios» (debajo de «Administración») y sumar al Panel los datos de las creadoras: quiénes son, cuánto grabaron, sus horas y, al tocar a una persona, su historial.
+- Sidebar: «Panel» va solo, en su propio bloque de navegación; «Noticias» abre la lista de formularios. Todas las pantallas administrativas comparten el cambio.
+- Panel: nueva sección «Creadoras de contenido» con totales (creadoras, horas asistidas, turnos, asistencias, guiones grabados, videos y contenido) y una tarjeta por creadora (horas, asistencia, grabados, videos). Al tocarla se abre su historial: turnos con fecha, horario, lugar, asistencia y horas; guiones grabados; videos y contenido con su enlace. Las horas suman la duración de los turnos con asistencia marcada.
+- Backend: `CreadoraRepository::panel()` de solo lectura, incluido en `/api/panel`; si falla, el resto del panel sigue funcionando. Sin migraciones ni cambios de datos. Caché `admin.css` `20260924-16` y `panel.js` `20260924-admin-panel-4`.
+- QA: pruebas nuevas en `admin-panel.test.mjs` y `creadora_accounts_test.php`; se actualizaron las expectativas del orden del menú; `npm run check` completo; revisión visual con datos de ejemplo.

@@ -25,7 +25,7 @@ test('el panel es la primera pantalla tras iniciar sesión y trae sus tres secci
   assert.match(panel, /href="\/admin\/panel\/" aria-current="page"/);
   // Noticias abre el menú porque manda sobre todo lo demás; el panel va justo después.
   const order = [...panel.matchAll(/class="admin-nav-link(?: admin-nav-link--child)?" href="([^"]+)"/g)].map(match => match[1]);
-  assert.deepEqual(order, ['/admin/noticias/', '/admin/panel/', '/admin/voceros/', '/admin/medios/', '/admin/medios/eventos/', '/admin/emprendedores/', '/admin/creadoras/', '/admin/mfs/']);
+  assert.deepEqual(order, ['/admin/panel/', '/admin/noticias/', '/admin/voceros/', '/admin/medios/', '/admin/medios/eventos/', '/admin/emprendedores/', '/admin/creadoras/', '/admin/mfs/']);
   // Al iniciar sesión se llega al panel, no a Voceros.
   const login = await readFile(join(output, 'assets/admin/admin.js'), 'utf8');
   assert.match(login, /redirect\('\/admin\/panel\/'\)/);
@@ -49,4 +49,24 @@ test('las tarjetas del panel conservan la lista detrás de cada número', () => 
   assert.deepEqual(panelCards({ cards: null }), []);
   assert.equal(eventLabel({ event_date: '2026-09-17', place: 'Complejo Mushuc Runa' }), '17 de septiembre de 2026 · Complejo Mushuc Runa');
   assert.equal(eventLabel({ event_date: null, place: '' }), 'Fecha por confirmar');
+});
+
+test('Panel va arriba de «Panel y formularios» y el panel muestra la sección de Creadoras', async () => {
+  const { pages } = await import('../src/pages.mjs');
+  const { creadoraTotals, formatHours, shiftWhen } = await import('../src/admin/panel.js');
+  const page = pages.find(item => item.route === '/admin/panel/');
+  const html = page.render(page);
+  const home = html.indexOf('class="admin-sidebar__home"');
+  assert.ok(home > html.indexOf('<p>Administración</p>'), 'debajo de Administración');
+  assert.ok(home < html.indexOf('id="admin-forms-title"'), 'arriba de Panel y formularios');
+  assert.ok(html.indexOf('href="/admin/panel/"') < html.indexOf('id="admin-forms-title"'));
+  assert.match(html, /data-panel-creadoras/);
+  assert.match(html, /Creadoras de contenido/);
+  assert.equal(formatHours(750), '12 h 30 min');
+  assert.equal(formatHours(45), '45 min');
+  assert.equal(formatHours(0), '0 h');
+  assert.match(shiftWhen('2026-10-30 09:00:00', '2026-10-30 12:30:00'), /30 oct.*09:00–12:30/);
+  const totals = Object.fromEntries(creadoraTotals({ totals: { creadoras: 3, attended_minutes: 600, shifts: 5, attended: 4, scripts: 10, recorded: 2, videos: 1, content: 2 } }));
+  assert.equal(totals['Horas asistidas'], '10 h');
+  assert.equal(totals['Guiones grabados'], '2 de 10');
 });

@@ -413,3 +413,24 @@ tr[data-origin="cuenta"] > td { background: rgba(0, 210, 214, .05); }
   .creadora-totals { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .creadora-indicators__list { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* Panel: el acceso a «Panel» va solo, arriba de la lista de formularios. */
+.admin-sidebar__home { margin: 0 0 1.25rem; }
+
+/* Panel: sección de Creadoras. */
+.admin-big-numbers--static .admin-big-number { cursor: default; }
+.admin-creadora-people { display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); gap: .9rem; margin-top: 1.2rem; }
+.admin-creadora-person { display: grid; gap: .7rem; padding: 1rem 1.1rem; border: 2px solid rgba(36, 17, 70, .14); border-radius: 16px; background: #fff; color: inherit; cursor: pointer; font: inherit; text-align: left; transition: border-color .15s, box-shadow .15s, transform .15s; }
+.admin-creadora-person:hover { border-color: #6e2ce0; transform: translateY(-2px); box-shadow: 0 6px 18px rgba(36, 17, 70, .12); }
+.admin-creadora-person[aria-pressed="true"] { border-color: #6e2ce0; box-shadow: 4px 4px 0 #6e2ce0; }
+.admin-creadora-person:focus-visible { outline: 3px solid #ffc42e; outline-offset: 3px; }
+.admin-creadora-person > strong { font-size: 1.05rem; }
+.admin-creadora-person dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .45rem .8rem; margin: 0; }
+.admin-creadora-person dt { font-size: .7rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; opacity: .7; }
+.admin-creadora-person dd { margin: 0; font-weight: 800; }
+.admin-creadora-history { margin-top: 1rem; }
+.admin-creadora-history__columns { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.2rem; margin: 1rem 0; }
+.admin-creadora-history__column h4 { margin: 0 0 .6rem; }
+.admin-creadora-history li[data-attended="yes"] small { color: #1f7a45; }
+.admin-creadora-history li[data-attended="no"] small { color: #b3261e; }
+@media (max-width: 900px) { .admin-creadora-history__columns { grid-template-columns: minmax(0, 1fr); } }
