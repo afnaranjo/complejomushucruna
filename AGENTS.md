@@ -1758,3 +1758,11 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Migración aditiva `026_creadora_shift_members`: tabla de integrantes cargada con los turnos existentes, `creadora_id` y `recorded_at` en guiones y `creadora_id` en contenido, rellenados desde la creadora del turno. No borra ni modifica registros. Retirar a una creadora de un turno compartido deja el turno en pie para las demás; el portal de la creadora ve también los turnos que comparte.
 - QA: `npm run check` completo en verde con 206 pruebas Node, 25 suites PHP y 10 de integración; build de 184 archivos, 62 HTML y 1934 referencias, repetido tras integrar dos commits ajenos de auspiciantes. La interacción visual no se revisó en navegador desde esta sesión.
 - Commit: `Reunir varias creadoras en un turno y mostrar sus indicadores`. Publicación externa: solo GitHub. **No está desplegado**: requiere autorización de Alex para backend → frontend con la migración 026.
+
+### 2026-09-23 — Publicación de turnos compartidos e indicadores de Creadoras
+
+- Alex autorizó con «sube a producción». Desde `main` limpia y sincronizada, llave cargada desde el Llavero de macOS: backend primero (verificación completa, respaldo, migración 026 y activación) y frontend después, con respaldo y sin borrar archivos exclusivos del servidor.
+- Verificación: `/admin/creadoras/` en 200 en ambos dominios, con indicadores, casillas de creadoras, `admin-creadoras.js?v=20260923-creadoras-8` y `admin.css?v=20260923-15` con SHA-256 idéntico al build; `vocero-portal.js`, `admin.js` y `admin-medios.js` sin cambios. `health` 200 en ambas APIs y el calendario sin sesión 401.
+- Base (consulta en transacción de solo lectura): migración 026 registrada; 5 turnos con sus 5 integrantes, ninguno sin integrante; 0 guiones y 0 contenidos todavía. Datos intactos: 3 creadoras, 128 fichas de Voceros y 73 de Medios.
+- Publicación externa: GitHub, backend y frontend autorizados. Sin cambios en DNS, Google Sheets, Meta ni otros proyectos.
+- Pendiente: revisión visual de Alex en producción.
