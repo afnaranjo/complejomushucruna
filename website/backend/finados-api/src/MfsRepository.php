@@ -237,6 +237,33 @@ final class MfsRepository
         return array_values($current);
     }
 
+    /** Estados en los que el gafete es válido. */
+    public const BADGE_STATUSES = ['Aprobado', 'Seleccionado'];
+
+    /** Cédula para mostrar: primeros tres y últimos dos dígitos. El número completo nunca sale del servidor. */
+    public static function maskCedula(?string $cedula): string
+    {
+        $digits = preg_replace('/\D/', '', (string) $cedula) ?? '';
+        if ($digits === '') return '';
+        if (strlen($digits) <= 5) return str_repeat('•', strlen($digits));
+        return substr($digits, 0, 3) . str_repeat('•', strlen($digits) - 5) . substr($digits, -2);
+    }
+
+    /** Proyección pública y mínima para la página a la que lleva el QR del gafete. */
+    public function publicVerification(string $publicId): ?array
+    {
+        if (preg_match('/^[a-f0-9]{32}$/D', $publicId) !== 1) throw new InvalidArgumentException();
+        $query = $this->pdo->prepare('SELECT full_name, stage_name, status, cedula_enc FROM mfs_profiles WHERE public_id = ? AND status <> ?');
+        $query->execute([$publicId, self::ARCHIVED]);
+        $row = $query->fetch();
+        if ($row === false) return null;
+        return [
+            'name' => (string) $row['full_name'], 'stage_name' => (string) $row['stage_name'], 'status' => (string) $row['status'],
+            'valid' => in_array($row['status'], self::BADGE_STATUSES, true),
+            'cedula_masked' => $row['cedula_enc'] === null ? '' : self::maskCedula($this->crypto->decrypt($row['cedula_enc'])),
+        ];
+    }
+
     // ---------------------------------------------------------------- administración
 
     public function list(array $filters): array

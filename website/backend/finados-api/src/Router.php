@@ -118,6 +118,13 @@ final class Router
                 if ($verification === null) throw new OutOfBoundsException();
                 return $this->json(200, ['ok' => true, 'verification' => $verification], $headers);
             }
+            if (preg_match('~^/api/mfs/verify/([a-f0-9]{32})$~D', $path, $parts)) {
+                if ($method !== 'GET') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+                if ($query !== []) throw new InvalidArgumentException();
+                $verification = $this->mfs()->publicVerification($parts[1]);
+                if ($verification === null) throw new OutOfBoundsException();
+                return $this->json(200, ['ok' => true, 'verification' => $verification], $headers);
+            }
             if (preg_match('~^/api/emprendedores/verify/([a-f0-9]{32})$~D', $path, $parts)) {
                 if ($method !== 'GET') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
                 if ($query !== []) throw new InvalidArgumentException();

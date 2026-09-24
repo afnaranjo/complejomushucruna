@@ -1915,3 +1915,10 @@ Nota de relevo escrita a pedido de Alex para que otro agente (Codex) retome la s
 - Gafete 1080 × 1920 generado en el navegador cuando el estado es Aprobado o Seleccionado y hay foto: logo de MFS, foto con borde crema, sello del estado, nombre artístico y nombre, datos de la final y franja con Finados. Descarga y compartir nativo. No incluye cédula, correo ni teléfono.
 - Cédula: migración aditiva `029_mfs_cedula` (dos columnas y un índice en `mfs_profiles`). Obligatoria en la ficha, 10 dígitos, cifrada, única entre inscripciones activas y buscable en el panel; quien se inscribió antes la completa una sola vez con `POST /api/mfs/cedula`, aunque ya esté revisado. Aparece en el detalle, la lista (enmascarada) y el CSV.
 - QA: `npm run check` en verde (221 Node, suites PHP con la cédula en `mfs_accounts_test.php`, 10 integración; 212 archivos). Revisión visual del gafete.
+
+### 2026-09-24 — QR de validación y cédula en el gafete de Mushuc Freestyle
+
+- Alex precisó que el gafete es exclusivo de Mushuc Freestyle, que debe llevar la cédula y un QR que, al escanearse, muestre el estado aprobado.
+- El gafete (solo en el portal de MFS, solo para Aprobado o Seleccionado) incluye ahora la cédula enmascarada («180•••••90») y un QR único que lleva a `/finados/mfs/verificar/?id=<id público>`. El QR no contiene la cédula: la inscripción ligada al QR es la que la tiene, y la validación la muestra enmascarada para cotejarla con el documento físico. El QR usa el dominio desde el que se generó el gafete (principal o espejo).
+- Nueva ruta pública `GET /api/mfs/verify/{id}`: devuelve nombre, nombre artístico, estado, si el gafete es vigente (Aprobado o Seleccionado) y la cédula enmascarada en el servidor; nunca el número completo, el correo ni el teléfono. La página de validación es noindex y sin Meta Pixel.
+- QA: `npm run check` en verde (222 Node, suites PHP con la validación en `mfs_accounts_test.php`, 10 integración; 214 archivos). El QR del gafete generado se leyó con jsQR y apunta a la validación correcta. Sin migraciones.

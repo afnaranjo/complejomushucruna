@@ -151,6 +151,7 @@ export async function buildSite(outputDirectory = join(websiteRoot, 'dist'), { a
     adminEnvironment === 'production' ? 'const LOCAL_API = null;' : `const LOCAL_API = '${developmentApi}';`), 'utf8');
 
   await cp(join(websiteRoot, 'src', 'finados', 'mfs-portal.css'), join(finadosAssets, 'mfs-portal.css'));
+  await cp(join(websiteRoot, 'src', 'finados', 'mfs-verification.js'), join(finadosAssets, 'mfs-verification.js'));
   const mfsPortalScript = await readFile(join(websiteRoot, 'src', 'finados', 'mfs-portal.js'), 'utf8');
   await writeFile(join(finadosAssets, 'mfs-portal.js'), mfsPortalScript.replace(
     "const LOCAL_API = 'http://127.0.0.1:4174/api';",
@@ -218,7 +219,7 @@ export async function buildSite(outputDirectory = join(websiteRoot, 'dist'), { a
     const html = await readFile(path, 'utf8');
     const route = `/${htmlFile.replace(/index\.html$/, '')}`;
     let updatedHtml = injectCookieConsent(injectInvitationOpeningHeader(html, route));
-    if (!/^finados\/(?:voceros|emprendedores)\/verificar\//.test(htmlFile)) updatedHtml = injectMetaPixel(updatedHtml);
+    if (!/^finados\/(?:voceros|emprendedores|mfs)\/verificar\//.test(htmlFile)) updatedHtml = injectMetaPixel(updatedHtml);
     await writeFile(path, updatedHtml, 'utf8');
   }
 

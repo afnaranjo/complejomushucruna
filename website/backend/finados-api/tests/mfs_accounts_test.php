@@ -185,6 +185,20 @@ same(403, $router->handle('POST', '/api/mfs/cedula', $json($l3['csrf']), mfs_jso
 $pdo->exec("UPDATE mfs_profiles SET status = 'Nuevo'");
 mfs_close_session();
 
+// El QR lleva a una validación pública: estado y cédula enmascarada, nunca el número completo.
+$verifyId = (string) $pdo->query('SELECT public_id FROM mfs_profiles')->fetchColumn();
+$verify = mfs_body($router->handle('GET', '/api/mfs/verify/' . $verifyId, ['REMOTE_ADDR' => '192.0.2.99']));
+same('Nuevo', $verify['verification']['status']);
+same(false, $verify['verification']['valid']);
+same('180•••••90', $verify['verification']['cedula_masked']);
+same(false, str_contains(json_encode($verify, JSON_UNESCAPED_UNICODE), '1804567890'));
+same(false, array_key_exists('email', $verify['verification']));
+$pdo->exec("UPDATE mfs_profiles SET status = 'Aprobado'");
+same(true, mfs_body($router->handle('GET', '/api/mfs/verify/' . $verifyId, ['REMOTE_ADDR' => '192.0.2.99']))['verification']['valid']);
+$pdo->exec("UPDATE mfs_profiles SET status = 'Nuevo'");
+same(404, $router->handle('GET', '/api/mfs/verify/' . str_repeat('0', 32), ['REMOTE_ADDR' => '192.0.2.99'])->status);
+same(404, $router->handle('GET', '/api/mfs/verify/xyz', ['REMOTE_ADDR' => '192.0.2.99'])->status);
+
 // Administración: sesión aparte, estados, notas, audición, archivo reversible y exportación.
 same(401, $router->handle('GET', '/api/mfs-participants', $origin)->status);
 same(401, $router->handle('GET', '/api/mfs-dashboard', $origin)->status);

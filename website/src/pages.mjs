@@ -25,6 +25,7 @@ import { renderFinadosDignitiesPage } from './finados/dignities-page.mjs';
 import { renderFinadosShowsPage } from './finados/shows-page.mjs';
 import { renderMfsPage } from './finados/mfs-page.mjs';
 import { renderMfsPortalPage } from './finados/mfs-portal-page.mjs';
+import { renderMfsVerificationPage } from './finados/mfs-verification-page.mjs';
 import { mfsLegalDocuments, mfsLegalRoutes, renderMfsLegalPage } from './finados/mfs-legal-page.mjs';
 import { renderStandsAccessPage } from './finados/stands-page.mjs';
 import { renderVocerosLegalPage } from './finados/voceros-legal-page.mjs';
@@ -400,6 +401,7 @@ export const pages = Object.freeze([
   finadosShowsPage,
   finadosMfsPage,
   ...['acceso', 'mi-registro', 'restablecer'].map(slug => ({ route: `/finados/mfs/${slug}/`, title: 'Cuenta de Mushuc Freestyle', indexable: false, render: renderMfsPortalPage })),
+  { route: '/finados/mfs/verificar/', title: 'Validación de gafete · Mushuc Freestyle', indexable: false, render: renderMfsVerificationPage },
   ...Object.entries(mfsLegalDocuments).map(([documentKey, document]) => ({ route: mfsLegalRoutes[documentKey], title: document.title, description: document.summary, documentKey, indexable: false, render: renderMfsLegalPage })),
   finadosVocerosPage,
   voceroVerificationPage,

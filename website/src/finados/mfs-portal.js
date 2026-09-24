@@ -1,4 +1,5 @@
-import { isAllowedSiteOrigin, MIRROR_API_BASE, PRIMARY_API_BASE, resolveRuntimeOrigins } from './runtime-origins.mjs';
+import { qrcode } from './qrcode-generator.mjs';
+import { isAllowedSiteOrigin, MIRROR_API_BASE, PRIMARY_API_BASE, PRIMARY_SITE_ORIGIN, resolveRuntimeOrigins } from './runtime-origins.mjs';
 
 const API = PRIMARY_API_BASE;
 const LOCAL_API = 'http://127.0.0.1:4174/api';
@@ -119,6 +120,29 @@ export function mfsStatusMessage(profile = {}) {
   return messages[profile.status] ?? { state: 'default', kicker: 'Tu inscripción', title: `Estado: ${profile.status ?? '—'}`, text: '' };
 }
 
+/** El QR del gafete lleva solo a la validación pública de ese participante. */
+export function mfsBadgeVerificationUrl(publicId, siteOrigin = PRIMARY_SITE_ORIGIN) {
+  if (typeof publicId !== 'string' || !/^[a-f0-9]{32}$/.test(publicId)) throw new TypeError('Identificador público inválido.');
+  if (!isAllowedSiteOrigin(siteOrigin)) throw new TypeError('Origen de validación inválido.');
+  return `${siteOrigin}/finados/mfs/verificar/?id=${publicId}`;
+}
+
+/** Cédula para el gafete: primeros tres y últimos dos dígitos, como en la validación. */
+export function maskMfsCedula(value) {
+  const digits = String(value ?? '').replace(/\D/g, '');
+  if (!digits) return '';
+  if (digits.length <= 5) return '•'.repeat(digits.length);
+  return `${digits.slice(0, 3)}${'•'.repeat(digits.length - 5)}${digits.slice(-2)}`;
+}
+
+export function mfsQrMatrix(value) {
+  const code = qrcode(0, 'M');
+  code.addData(value, 'Byte');
+  code.make();
+  const size = code.getModuleCount();
+  return Array.from({ length: size }, (_, row) => Array.from({ length: size }, (_, column) => code.isDark(row, column)));
+}
+
 export function canShowMfsBadge(profile = {}) {
   return Boolean(profile.registered && CELEBRATE.includes(profile.status) && profile.photo?.available);
 }
@@ -132,9 +156,10 @@ function loadImage(source) {
   });
 }
 
-/** Gafete en formato historia (1080 × 1920) con el arte de Mushuc Freestyle. No lleva cédula, correo ni teléfono. */
-export async function mfsBadgeBlob(profile, photoBlob) {
+/** Gafete en formato historia (1080 × 1920) con el arte de Mushuc Freestyle: foto, nombre, cédula enmascarada y un QR de validación. */
+export async function mfsBadgeBlob(profile, photoBlob, siteOrigin = PRIMARY_SITE_ORIGIN) {
   if (!globalThis.document?.createElement || !photoBlob) return null;
+  const matrix = mfsQrMatrix(mfsBadgeVerificationUrl(String(profile.public_id ?? ''), siteOrigin));
   const canvas = document.createElement('canvas');
   canvas.width = 1080; canvas.height = 1920;
   const context = canvas.getContext('2d');
@@ -169,10 +194,10 @@ export async function mfsBadgeBlob(profile, photoBlob) {
   }
 
   // Retrato con borde crema, ligeramente girado como un recorte.
-  const frame = { x: 190, y: 470, width: 700, height: 860 };
+  const frame = { x: 220, y: 440, width: 640, height: 740 };
   context.save();
   context.translate(W / 2, frame.y + frame.height / 2); context.rotate(-.025); context.translate(-W / 2, -(frame.y + frame.height / 2));
-  context.fillStyle = CREAM; round(frame.x - 22, frame.y - 22, frame.width + 44, frame.height + 44, 26); context.fill();
+  context.fillStyle = CREAM; round(frame.x - 20, frame.y - 20, frame.width + 40, frame.height + 40, 26); context.fill();
   context.save(); round(frame.x, frame.y, frame.width, frame.height, 16); context.clip();
   const scale = Math.max(frame.width / photo.width, frame.height / photo.height);
   context.drawImage(photo, frame.x + (frame.width - photo.width * scale) / 2, frame.y + (frame.height - photo.height * scale) / 2, photo.width * scale, photo.height * scale);
@@ -181,29 +206,43 @@ export async function mfsBadgeBlob(profile, photoBlob) {
 
   // Sello del estado en Badeen, la voz de la marca.
   const stamp = profile.status === 'Seleccionado' ? 'SELECCIONADO' : 'APROBADO';
-  context.save(); context.translate(W / 2, 1352); context.rotate(-.04);
-  context.font = '400 88px "Badeen Display", "Arial Black", sans-serif';
+  context.save(); context.translate(W / 2, 1206); context.rotate(-.04);
+  context.font = '400 84px "Badeen Display", "Arial Black", sans-serif';
   const stampWidth = Math.min(900, context.measureText(stamp).width + 80);
-  context.fillStyle = DEEP; context.fillRect(-stampWidth / 2 + 10, -62, stampWidth, 116);
-  context.fillStyle = LIME; context.fillRect(-stampWidth / 2, -72, stampWidth, 116);
-  context.fillStyle = BLUE; context.textAlign = 'center'; context.textBaseline = 'middle'; context.fillText(stamp, 0, -10);
+  context.fillStyle = DEEP; context.fillRect(-stampWidth / 2 + 10, -60, stampWidth, 110);
+  context.fillStyle = LIME; context.fillRect(-stampWidth / 2, -70, stampWidth, 110);
+  context.fillStyle = BLUE; context.textAlign = 'center'; context.textBaseline = 'middle'; context.fillText(stamp, 0, -12);
   context.restore();
 
   // Nombre legible: Inter extra negrita, ajustado al ancho.
   context.textAlign = 'center'; context.textBaseline = 'alphabetic';
   const stageName = String(profile.stage_name || '').trim().slice(0, 32);
   const fullName = String(profile.full_name || '').trim().slice(0, 48);
-  const fit = (text, start, min, weight) => { let size = start; while (size > min) { context.font = `${weight} ${size}px Inter, Arial, sans-serif`; if (context.measureText(text).width <= 920) break; size -= 2; } return size; };
+  const fit = (text, start, min, weight, max = 940) => { let size = start; while (size > min) { context.font = `${weight} ${size}px Inter, Arial, sans-serif`; if (context.measureText(text).width <= max) break; size -= 2; } return size; };
   if (stageName) {
-    fit(stageName.toUpperCase(), 104, 56, 900); context.fillStyle = LIME; context.fillText(stageName.toUpperCase(), W / 2, 1530);
-    fit(fullName, 44, 28, 700); context.fillStyle = CREAM; context.fillText(fullName, W / 2, 1592);
+    fit(stageName.toUpperCase(), 96, 52, 900); context.fillStyle = LIME; context.fillText(stageName.toUpperCase(), W / 2, 1356);
+    fit(fullName, 40, 26, 700); context.fillStyle = CREAM; context.fillText(fullName, W / 2, 1408);
   } else {
-    fit(fullName.toUpperCase(), 84, 44, 900); context.fillStyle = LIME; context.fillText(fullName.toUpperCase(), W / 2, 1560);
+    fit(fullName.toUpperCase(), 80, 42, 900); context.fillStyle = LIME; context.fillText(fullName.toUpperCase(), W / 2, 1380);
   }
-  context.fillStyle = CREAM; context.font = '800 30px Inter, Arial, sans-serif';
-  context.fillText('FINAL · LUNES 2 DE NOVIEMBRE · 13:00', W / 2, 1668);
-  context.font = '700 28px Inter, Arial, sans-serif';
-  context.fillText('Plaza de la Luna · Complejo Mushuc Runa', W / 2, 1712);
+
+  // Bloque de validación: cédula enmascarada y datos a la izquierda, QR único a la derecha.
+  const block = { x: 60, y: 1446, width: W - 120, height: 300 };
+  context.fillStyle = CREAM; round(block.x, block.y, block.width, block.height, 24); context.fill();
+  context.textAlign = 'left'; context.fillStyle = BLUE;
+  context.font = '800 22px Inter, Arial, sans-serif'; context.fillText('PARTICIPANTE', block.x + 40, block.y + 60);
+  const cedula = maskMfsCedula(profile.cedula);
+  context.font = '900 44px Inter, Arial, sans-serif'; context.fillText(cedula ? `C.I. ${cedula}` : 'C.I. pendiente', block.x + 40, block.y + 112);
+  context.font = '800 26px Inter, Arial, sans-serif'; context.fillText('FINAL · LUNES 2 DE NOVIEMBRE', block.x + 40, block.y + 172);
+  context.fillText('13:00 · PLAZA DE LA LUNA', block.x + 40, block.y + 210);
+  context.font = '700 20px Inter, Arial, sans-serif'; context.fillText('Escanea el QR para validar el estado', block.x + 40, block.y + 262);
+  const qrSize = 240, qrX = block.x + block.width - qrSize - 30, qrY = block.y + 30;
+  context.fillStyle = '#ffffff'; round(qrX - 10, qrY - 10, qrSize + 20, qrSize + 20, 14); context.fill();
+  const quiet = 2, cell = qrSize / (matrix.length + quiet * 2);
+  context.fillStyle = BLUE;
+  for (let row = 0; row < matrix.length; row += 1) for (let column = 0; column < matrix.length; column += 1) {
+    if (matrix[row][column]) context.fillRect(qrX + (column + quiet) * cell, qrY + (row + quiet) * cell, cell + .4, cell + .4);
+  }
 
   // Pie: franja lima con la edición y el logo de Finados.
   context.fillStyle = LIME; context.fillRect(0, H - 150, W, 150);
@@ -357,7 +396,7 @@ export function initializeMfsPortal() {
     badgeStatus.textContent = 'Preparando tu gafete…';
     try {
       photoBlob ??= await client.photo();
-      const blob = await mfsBadgeBlob(profile, photoBlob);
+      const blob = await mfsBadgeBlob(profile, photoBlob, resolveRuntimeOrigins(location).siteOrigin);
       if (!blob) throw new Error();
       if (badgeUrl) URL.revokeObjectURL(badgeUrl);
       badgeUrl = URL.createObjectURL(blob);

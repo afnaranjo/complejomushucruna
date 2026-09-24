@@ -149,3 +149,28 @@ test('el portal celebra la aprobación y solo entonces ofrece el gafete', () => 
   for (const marker of ['data-mfs-status', 'data-mfs-badge', 'data-mfs-cedula-form', 'mfs-portal.css']) assert.match(profile, new RegExp(marker), marker);
   assert.doesNotMatch(profile, /hora UTC/);
 });
+
+test('el QR del gafete de MFS lleva a su validación y la cédula nunca va completa', async () => {
+  const { maskMfsCedula, mfsBadgeVerificationUrl, mfsQrMatrix } = await import('../src/finados/mfs-portal.js');
+  const { describeMfsVerification, mfsVerificationApiUrl } = await import('../src/finados/mfs-verification.js');
+  const id = 'a'.repeat(32);
+  assert.equal(mfsBadgeVerificationUrl(id), `https://complejomushucruna.com/finados/mfs/verificar/?id=${id}`);
+  assert.equal(mfsBadgeVerificationUrl(id, 'https://finados.expoferiamushucruna.com'), `https://finados.expoferiamushucruna.com/finados/mfs/verificar/?id=${id}`);
+  assert.throws(() => mfsBadgeVerificationUrl('1804567890'), /Identificador/);
+  assert.throws(() => mfsBadgeVerificationUrl(id, 'https://otro.example'), /Origen/);
+  assert.equal(maskMfsCedula('1804567890'), '180•••••90');
+  assert.ok(mfsQrMatrix(mfsBadgeVerificationUrl(id)).length >= 21);
+  assert.equal(mfsVerificationApiUrl('https://finados.complejomushucruna.com/api', id), `https://finados.complejomushucruna.com/api/mfs/verify/${id}`);
+  assert.throws(() => mfsVerificationApiUrl('https://otro.example/api', id), /Origen/);
+  const approved = describeMfsVerification({ status: 'Aprobado', valid: true, name: 'Juan', stage_name: 'MC', cedula_masked: '180•••••90' });
+  assert.equal(approved.state, 'APROBADO');
+  assert.match(approved.kicker, /verificado/);
+  assert.equal(approved.cedula, 'C.I. 180•••••90');
+  assert.equal(describeMfsVerification({ status: 'Rechazado', valid: false }).kicker, 'Gafete no vigente');
+  const page = pages.find(item => item.route === '/finados/mfs/verificar/');
+  const markup = page.render(page);
+  assert.match(markup, /noindex, nofollow, noarchive/);
+  assert.match(markup, /data-mfs-verification/);
+  assert.match(markup, /mfs-verification\.js\?v=/);
+  assert.doesNotMatch(markup, /emprendedor|vocero-verification/);
+});

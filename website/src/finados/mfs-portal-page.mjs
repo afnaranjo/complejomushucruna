@@ -4,8 +4,8 @@ import { apiBasesForCsp, LOCAL_API_BASE, PRIMARY_API_BASE } from './runtime-orig
 
 // El texto de los consentimientos es del servidor: se incorpora al compilar y se escapa como HTML.
 const consents = JSON.parse(readFileSync(new URL('../../backend/finados-api/resources/mfs-consents.json', import.meta.url), 'utf8'));
-export const mfsPortalScriptVersion = '20260924-mfs-portal-2';
-export const mfsPortalStyleVersion = '20260924-mfs-portal-2';
+export const mfsPortalScriptVersion = '20260924-mfs-portal-3';
+export const mfsPortalStyleVersion = '20260924-mfs-portal-3';
 const BASE = '/finados/mfs';
 
 const email = id => `<label class="vocero-field" for="${id}"><span>Correo electrónico</span><input id="${id}" name="email" type="email" autocomplete="username" maxlength="254" autocapitalize="none" spellcheck="false" required></label>`;
@@ -56,7 +56,7 @@ export function renderMfsStatusPanels() {
 </section>
 <section class="mfs-cedula" data-mfs-cedula hidden aria-labelledby="cedula-title"><h2 id="cedula-title">Completa tu número de cédula</h2><p>Ahora pedimos la cédula para identificar a cada participante. Escríbela una sola vez; después no se puede cambiar desde tu cuenta.</p>
 <form data-mfs-cedula-form novalidate><fieldset><label class="vocero-field" for="cedula-completar"><span>Número de cédula</span><input id="cedula-completar" name="cedula" inputmode="numeric" autocomplete="off" pattern="[0-9]{10}" minlength="10" maxlength="10" placeholder="Ej.: 1804567890" required></label><button class="vocero-primary" type="submit">Guardar cédula</button></fieldset></form></section>
-<section class="mfs-badge" data-mfs-badge hidden aria-labelledby="badge-title"><div class="mfs-badge__copy"><p class="mfs-status__kicker">Para tus historias</p><h2 id="badge-title">Tu gafete de Mushuc Freestyle</h2><p>Descárgalo y compártelo en tus historias de Instagram, TikTok, Facebook o WhatsApp. Formato vertical 1080 × 1920. No incluye tu cédula, tu correo ni tu teléfono.</p><p class="mfs-badge__status" data-mfs-badge-status role="status">Preparando tu gafete…</p><div class="mfs-badge__actions"><button class="vocero-primary" type="button" data-mfs-badge-download disabled>Descargar gafete</button><button class="vocero-quiet" type="button" data-mfs-badge-share disabled>Compartir</button></div></div><div class="mfs-badge__preview"><img data-mfs-badge-preview alt="Gafete de participante de Mushuc Freestyle 2026 en formato historia" hidden></div></section>`;
+<section class="mfs-badge" data-mfs-badge hidden aria-labelledby="badge-title"><div class="mfs-badge__copy"><p class="mfs-status__kicker">Para tus historias</p><h2 id="badge-title">Tu gafete de Mushuc Freestyle</h2><p>Descárgalo y compártelo en tus historias de Instagram, TikTok, Facebook o WhatsApp. Formato vertical 1080 × 1920. Incluye tu cédula parcialmente oculta y un QR único con el que la coordinación valida tu estado en la entrada. No incluye tu correo ni tu teléfono.</p><p class="mfs-badge__status" data-mfs-badge-status role="status">Preparando tu gafete…</p><div class="mfs-badge__actions"><button class="vocero-primary" type="button" data-mfs-badge-download disabled>Descargar gafete</button><button class="vocero-quiet" type="button" data-mfs-badge-share disabled>Compartir</button></div></div><div class="mfs-badge__preview"><img data-mfs-badge-preview alt="Gafete de participante de Mushuc Freestyle 2026 en formato historia" hidden></div></section>`;
 }
 
 export function renderMfsPortalPage(page) {
