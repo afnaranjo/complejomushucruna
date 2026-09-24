@@ -9,7 +9,7 @@ use OutOfBoundsException;
 use PDO;
 use Throwable;
 
-foreach (['Config', 'Database', 'Crypto', 'Audit', 'VocerosRepository', 'Auth', 'VoceroAuth', 'VoceroProfile', 'VoceroPasswordReset', 'MediaAuth', 'MediaRepository', 'MediaPasswordReset', 'EmprendedorAuth', 'EmprendedorRepository', 'EmprendedorPasswordReset', 'CreadoraAuth', 'CreadoraRepository', 'CreadoraPasswordReset', 'NewsRepository'] as $dependency) {
+foreach (['Config', 'Database', 'Crypto', 'Audit', 'VocerosRepository', 'FinadosNameQueue', 'Auth', 'VoceroAuth', 'VoceroProfile', 'VoceroPasswordReset', 'MediaAuth', 'MediaRepository', 'MediaPasswordReset', 'EmprendedorAuth', 'EmprendedorRepository', 'EmprendedorPasswordReset', 'CreadoraAuth', 'CreadoraRepository', 'CreadoraPasswordReset', 'NewsRepository'] as $dependency) {
     require_once __DIR__ . '/' . $dependency . '.php';
 }
 
@@ -42,6 +42,7 @@ final class Router
     private ?CreadoraAuth $creadoraAuthInstance = null;
     private ?CreadoraRepository $creadoraInstance = null;
     private ?NewsRepository $newsInstance = null;
+    private ?FinadosNameQueue $nameQueueInstance = null;
     private readonly Audit $audit;
     private readonly Crypto $crypto;
     private const FILTERS = ['search', 'status', 'city', 'main_network', 'previous_participation', 'date_from', 'date_to'];
@@ -93,6 +94,18 @@ final class Router
             $token = $server['HTTP_X_CSRF_TOKEN'] ?? '';
             if ($path === '/api/health' && $method === 'GET') {
                 return $this->health($headers);
+            }
+            if ($path === '/api/finados/nombres') {
+                if ($method !== 'POST' || $query !== []) return $this->error($method === 'POST' ? 422 : 405, $method === 'POST' ? 'validation_error' : 'method_not_allowed', $method === 'POST' ? 'Revisa los datos de la solicitud.' : 'Método no permitido.', $headers);
+                $body = $this->body($server, $rawBody, ['name', 'consent']);
+                if (!is_string($body['name'] ?? null) || !is_bool($body['consent'] ?? null)) throw new InvalidArgumentException();
+                return $this->json(201, $this->nameQueue()->enqueue($body['name'], $body['consent']), $headers);
+            }
+            if ($path === '/api/finados/nombres/cola') {
+                if ($method !== 'GET' || array_diff(array_keys($query), ['limit']) !== []) return $this->error($method === 'GET' ? 422 : 405, $method === 'GET' ? 'validation_error' : 'method_not_allowed', $method === 'GET' ? 'Revisa los datos de la solicitud.' : 'Método no permitido.', $headers);
+                $limit = isset($query['limit']) ? (int) $query['limit'] : 20;
+                if ($limit < 1 || $limit > 20) throw new InvalidArgumentException();
+                return $this->json(200, ['items' => $this->nameQueue()->pending($limit)], $headers);
             }
             // Badge QR validation is deliberately public but returns only a minimal projection.
             if (preg_match('~^/api/voceros/verify/([a-f0-9]{32})$~D', $path, $parts)) {
@@ -391,6 +404,8 @@ final class Router
             return $this->error($error->status, $error->errorCode, 'Formato de solicitud no válido.', $headers);
         } catch (PasswordResetRateLimit) {
             return $this->error(429, 'rate_limited', 'Espera antes de volver a intentar.', $headers);
+        } catch (RateLimitException) {
+            return $this->error(429, 'rate_limited', 'Espera antes de volver a intentar.', $headers);
         } catch (DuplicateRegistration) {
             return $this->error(409, 'duplicate_registration', 'Ya existe un registro con los datos proporcionados.', $headers);
         } catch (InvalidArgumentException | \JsonException) {
@@ -407,6 +422,11 @@ final class Router
     private function emprendedorAuth(): EmprendedorAuth
     {
         return $this->emprendedorAuthInstance ??= new EmprendedorAuth($this->pdo, $this->config);
+    }
+
+    private function nameQueue(): FinadosNameQueue
+    {
+        return $this->nameQueueInstance ??= new FinadosNameQueue($this->pdo);
     }
 
     private function emprendedor(): EmprendedorRepository
