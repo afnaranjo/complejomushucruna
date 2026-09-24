@@ -1,0 +1,94 @@
+CREATE TABLE IF NOT EXISTS mfs_accounts (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  public_id CHAR(32) NOT NULL UNIQUE,
+  email_enc TEXT NOT NULL,
+  email_idx CHAR(64) NOT NULL UNIQUE,
+  password_hash VARCHAR(255) NOT NULL,
+  privacy_version VARCHAR(80) NOT NULL,
+  privacy_hash CHAR(64) NOT NULL,
+  privacy_acknowledged_at DATETIME NOT NULL,
+  active TINYINT(1) NOT NULL DEFAULT 1,
+  created_at DATETIME NOT NULL,
+  updated_at DATETIME NOT NULL,
+  last_login_at DATETIME NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS mfs_login_attempts (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  email_idx CHAR(64) NOT NULL,
+  ip_hash CHAR(64) NOT NULL,
+  succeeded TINYINT(1) NOT NULL,
+  attempted_at DATETIME NOT NULL,
+  INDEX idx_mfs_login_email_window (email_idx, attempted_at),
+  INDEX idx_mfs_login_ip_window (ip_hash, attempted_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS mfs_profiles (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  public_id CHAR(32) NOT NULL UNIQUE,
+  account_id BIGINT UNSIGNED NOT NULL UNIQUE,
+  status VARCHAR(40) NOT NULL DEFAULT 'Nuevo',
+  full_name VARCHAR(160) NOT NULL,
+  stage_name VARCHAR(80) NOT NULL DEFAULT '',
+  whatsapp_enc TEXT NOT NULL,
+  whatsapp_idx CHAR(64) NOT NULL,
+  audition_url VARCHAR(500) NOT NULL,
+  audition_submitted_at DATETIME NOT NULL,
+  video_declaration_at DATETIME NOT NULL,
+  submitted_at DATETIME NOT NULL,
+  updated_at DATETIME NOT NULL,
+  INDEX idx_mfs_profiles_status_date (status, submitted_at),
+  INDEX idx_mfs_profiles_name (full_name),
+  INDEX idx_mfs_profiles_whatsapp (whatsapp_idx),
+  CONSTRAINT fk_mfs_profile_account FOREIGN KEY (account_id) REFERENCES mfs_accounts(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS mfs_consents (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  profile_id BIGINT UNSIGNED NOT NULL,
+  consent_type VARCHAR(40) NOT NULL,
+  accepted TINYINT(1) NOT NULL,
+  text_version VARCHAR(80) NOT NULL,
+  text_hash CHAR(64) NOT NULL,
+  ip_hash CHAR(64) NOT NULL,
+  recorded_at DATETIME NOT NULL,
+  INDEX idx_mfs_consents_profile (profile_id, consent_type, recorded_at),
+  CONSTRAINT fk_mfs_consent_profile FOREIGN KEY (profile_id) REFERENCES mfs_profiles(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS mfs_photos (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  profile_id BIGINT UNSIGNED NOT NULL UNIQUE,
+  storage_key VARCHAR(500) NOT NULL UNIQUE,
+  content_type VARCHAR(100) NOT NULL,
+  bytes BIGINT UNSIGNED NOT NULL,
+  sha256 CHAR(64) NOT NULL,
+  width INT UNSIGNED NOT NULL,
+  height INT UNSIGNED NOT NULL,
+  created_at DATETIME NOT NULL,
+  CONSTRAINT fk_mfs_photo_profile FOREIGN KEY (profile_id) REFERENCES mfs_profiles(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS mfs_notes (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  profile_id BIGINT UNSIGNED NOT NULL,
+  author_id BIGINT UNSIGNED NOT NULL,
+  body TEXT NOT NULL,
+  created_at DATETIME NOT NULL,
+  CONSTRAINT fk_mfs_note_profile FOREIGN KEY (profile_id) REFERENCES mfs_profiles(id),
+  CONSTRAINT fk_mfs_note_author FOREIGN KEY (author_id) REFERENCES admin_users(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS mfs_password_resets (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  account_id BIGINT UNSIGNED NOT NULL,
+  token_hash CHAR(64) NOT NULL UNIQUE,
+  expires_at DATETIME NOT NULL,
+  consumed_at DATETIME NULL,
+  created_by_admin_id BIGINT UNSIGNED NOT NULL,
+  created_at DATETIME NOT NULL,
+  CONSTRAINT fk_mfs_password_reset_account FOREIGN KEY (account_id) REFERENCES mfs_accounts(id),
+  CONSTRAINT fk_mfs_password_reset_admin FOREIGN KEY (created_by_admin_id) REFERENCES admin_users(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT IGNORE INTO schema_migrations (version, applied_at) VALUES ('028_mfs_accounts', UTC_TIMESTAMP());

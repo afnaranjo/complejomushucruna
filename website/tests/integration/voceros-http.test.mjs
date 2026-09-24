@@ -253,7 +253,7 @@ test('development build uses its configured loopback API; production refuses ove
       assert.doesNotMatch(await readFile(join(root, 'production', file), 'utf8'), /VOCEROS_TEST_CONFIG|local_test_config|http:\/\/127\.0\.0\.1:/, file);
     }
     assert.match(await readFile(join(root, 'production/admin/index.html'), 'utf8'), /https:\/\/finados\.complejomushucruna\.com\/api/);
-    for (const file of files.filter((file) => !file.startsWith('admin/') && !file.startsWith('assets/admin/') && !/^finados\/(?:voceros|medios|emprendedores|creadoras)\/(acceso|mi-registro|restablecer|acreditacion)\//.test(file) && !['assets/finados/vocero-portal.js', 'assets/finados/media-portal.js', 'assets/finados/emprendedor-portal.js', 'assets/finados/creadora-portal.js', 'assets/admin/campaign-banner.js'].includes(file))) {
+    for (const file of files.filter((file) => !file.startsWith('admin/') && !file.startsWith('assets/admin/') && !/^finados\/(?:voceros|medios|emprendedores|creadoras|mfs)\/(acceso|mi-registro|restablecer|acreditacion)\//.test(file) && !['assets/finados/vocero-portal.js', 'assets/finados/media-portal.js', 'assets/finados/emprendedor-portal.js', 'assets/finados/creadora-portal.js', 'assets/finados/mfs-portal.js', 'assets/admin/campaign-banner.js'].includes(file))) {
       assert.deepEqual(await readFile(join(root, 'production', file)), await readFile(join(root, 'dev', file)), file);
     }
   } finally { await rm(root, { recursive: true, force: true }); }

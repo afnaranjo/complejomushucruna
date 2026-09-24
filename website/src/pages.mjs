@@ -24,6 +24,8 @@ import { renderFinadosPage } from './finados/page.mjs';
 import { renderFinadosDignitiesPage } from './finados/dignities-page.mjs';
 import { renderFinadosShowsPage } from './finados/shows-page.mjs';
 import { renderMfsPage } from './finados/mfs-page.mjs';
+import { renderMfsPortalPage } from './finados/mfs-portal-page.mjs';
+import { mfsLegalDocuments, mfsLegalRoutes, renderMfsLegalPage } from './finados/mfs-legal-page.mjs';
 import { renderStandsAccessPage } from './finados/stands-page.mjs';
 import { renderVocerosLegalPage } from './finados/voceros-legal-page.mjs';
 import { renderVocerosPage } from './finados/voceros-page.mjs';
@@ -35,7 +37,7 @@ import { renderCreadorasLandingPage } from './creadoras/landing-page.mjs';
 import { renderCreadoraPortalPage } from './creadoras/portal-page.mjs';
 import { renderCreadoraLegalPage } from './creadoras/legal-page.mjs';
 import { renderAdminNoticiasPage,
-  renderAdminCreadorasPage,
+  renderAdminCreadorasPage, renderAdminMfsPage,
   renderAdminEmprendedoresPage, renderAdminLoginPage, renderAdminMediosEventosPage, renderAdminMediosPage, renderAdminPanelPage, renderAdminVocerosPage } from './admin/page.mjs';
 import { renderMediaLandingBody } from './medios/landing-page.mjs';
 import { renderMediaPortalPage } from './medios/portal-page.mjs';
@@ -385,6 +387,7 @@ export const pages = Object.freeze([
   { route: '/admin/emprendedores/', title: 'Emprendedores · Administración', indexable: false, render: renderAdminEmprendedoresPage },
   { route: '/admin/creadoras/', title: 'Creadoras · Administración', indexable: false, render: renderAdminCreadorasPage },
   { route: '/admin/noticias/', title: 'Noticias · Administración', indexable: false, render: renderAdminNoticiasPage },
+  { route: '/admin/mfs/', title: 'Mushuc Freestyle · Administración', indexable: false, render: renderAdminMfsPage },
   { route: '/finados/creadoras/', title: 'Creadoras de contenido · Finados 2026', indexable: false, render: renderCreadorasLandingPage },
   { route: '/finados/creadoras/acceso/', title: 'Tu cuenta de creadora', indexable: false, render: renderCreadoraPortalPage },
   { route: '/finados/creadoras/mi-registro/', title: 'Mi registro · Creadoras', indexable: false, render: renderCreadoraPortalPage },
@@ -396,6 +399,8 @@ export const pages = Object.freeze([
   finadosPreview,
   finadosShowsPage,
   finadosMfsPage,
+  ...['acceso', 'mi-registro', 'restablecer'].map(slug => ({ route: `/finados/mfs/${slug}/`, title: 'Cuenta de Mushuc Freestyle', indexable: false, render: renderMfsPortalPage })),
+  ...Object.entries(mfsLegalDocuments).map(([documentKey, document]) => ({ route: mfsLegalRoutes[documentKey], title: document.title, description: document.summary, documentKey, indexable: false, render: renderMfsLegalPage })),
   finadosVocerosPage,
   voceroVerificationPage,
   ...['acceso', 'mi-registro', 'restablecer'].map(slug => ({ route: `/finados/voceros/${slug}/`, title: 'Cuenta de Vocero', indexable: false, render: renderVoceroPortalPage })),

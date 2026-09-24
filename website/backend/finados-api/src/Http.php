@@ -24,6 +24,7 @@ final class Http
             'media' => ['finados_media', 'Lax'],
             'emprendedor' => ['finados_emprendedor', 'Lax'],
             'creadora' => ['finados_creadora', 'Lax'],
+            'mfs' => ['finados_mfs', 'Lax'],
             default => throw new RuntimeException('Ámbito de sesión no válido.'),
         };
         if (session_status() === PHP_SESSION_ACTIVE) {

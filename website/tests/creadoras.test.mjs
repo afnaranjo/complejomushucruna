@@ -230,7 +230,7 @@ test('la sección de creadoras se publica con su calendario, su bitácora y su e
 
   // Aparece en el menú administrativo, después de Emprendedores.
   const order = [...page.matchAll(/class="admin-nav-link(?: admin-nav-link--child)?" href="([^"]+)"/g)].map(match => match[1]);
-  assert.deepEqual(order, ['/admin/noticias/', '/admin/panel/', '/admin/voceros/', '/admin/medios/', '/admin/medios/eventos/', '/admin/emprendedores/', '/admin/creadoras/']);
+  assert.deepEqual(order, ['/admin/noticias/', '/admin/panel/', '/admin/voceros/', '/admin/medios/', '/admin/medios/eventos/', '/admin/emprendedores/', '/admin/creadoras/', '/admin/mfs/']);
 
   // El bundle no lleva la API local a producción y conserva el menú plegable compartido.
   const bundle = await readFile(join(output, 'assets/admin/admin-creadoras.js'), 'utf8');

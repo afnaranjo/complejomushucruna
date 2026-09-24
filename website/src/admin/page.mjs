@@ -14,9 +14,10 @@ const ADMIN_FORMS = Object.freeze([
   { route: '/admin/medios/', label: 'Medios', description: 'Acreditación de medios', marker: 'M', children: [{ route: '/admin/medios/eventos/', label: 'Eventos', description: 'Cobertura por evento' }] },
   { route: '/admin/emprendedores/', label: 'Emprendedores', description: 'De emprendedor a influencer', marker: 'E' },
   { route: '/admin/creadoras/', label: 'Creadoras', description: 'Contenido y calendario', marker: 'C' },
+  { route: '/admin/mfs/', label: 'Mushuc Freestyle', description: 'Inscripciones y audiciones', marker: 'F' },
 ]);
 // Public landing that each panel returns to from its header.
-const PANEL_LANDINGS = Object.freeze({ '/admin/noticias/': ['/finados/', 'Volver a Finados'], '/admin/panel/': ['/finados/', 'Volver a Finados'], '/admin/voceros/': ['/finados/voceros/', 'Volver a Voceros'], '/admin/medios/': ['/finados/medios/', 'Volver a Medios'], '/admin/medios/eventos/': ['/finados/medios/', 'Volver a Medios'], '/admin/emprendedores/': ['/finados/emprendedores/', 'Volver a Emprendedores'], '/admin/creadoras/': ['/finados/creadoras/', 'Volver a Creadoras'] });
+const PANEL_LANDINGS = Object.freeze({ '/admin/noticias/': ['/finados/', 'Volver a Finados'], '/admin/panel/': ['/finados/', 'Volver a Finados'], '/admin/voceros/': ['/finados/voceros/', 'Volver a Voceros'], '/admin/medios/': ['/finados/medios/', 'Volver a Medios'], '/admin/medios/eventos/': ['/finados/medios/', 'Volver a Medios'], '/admin/emprendedores/': ['/finados/emprendedores/', 'Volver a Emprendedores'], '/admin/creadoras/': ['/finados/creadoras/', 'Volver a Creadoras'], '/admin/mfs/': ['/finados/mfs/', 'Volver a Mushuc Freestyle'] });
 const PROGRESS_LEVELS = ['En preparación', 'Primer paso', 'Gorra', 'Kit completo', 'Trae a los tuyos', 'Noche de concierto', 'Tope'];
 const VIDEO_SLOTS = Object.freeze([1, 2, 3, 4, 5]);
 const videoSlotControls = (prefix = 'video') => VIDEO_SLOTS.map(slot => `<label class="admin-video-control"><span class="admin-video-check"><input type="checkbox" name="${prefix}_${slot}_enabled" value="1"><strong>Video ${slot}</strong></span><span class="admin-video-date"><span>Habilitado desde</span><input type="date" name="${prefix}_${slot}_enabled_at" aria-label="Fecha de habilitación del video ${slot}"></span></label>`).join('');
@@ -419,4 +420,36 @@ export function renderAdminPanelPage(page) {
 <section class="admin-panel-subsection" aria-labelledby="panel-eventos-title"><div class="records-heading"><div><h3 id="panel-eventos-title">Medios por evento</h3><p>Abre un evento para ver su cobertura.</p></div></div><div data-panel-events></div></section></section>
 <section class="admin-panel-section" aria-labelledby="panel-voceros-title"><div class="records-heading"><div><h2 id="panel-voceros-title">Voceros</h2><p>Toca un número para ver la lista.</p></div></div><div data-panel-voceros></div></section>
 </main></div>`, '/assets/admin/panel.js?v=20260923-admin-panel-3');
+}
+
+// Mushuc Freestyle: los estados viven aquí para que el HTML no dependa del módulo del navegador.
+const MFS_STATUS_OPTIONS = Object.freeze(['Nuevo', 'En revisión', 'Aprobado', 'Rechazado', 'Seleccionado']);
+export const ADMIN_MFS_SCRIPT = '/assets/admin/admin-mfs.js?v=20260924-admin-mfs-1';
+
+export function renderAdminMfsPage(page) {
+  return layout(page, `<div class="admin-shell">${adminSidebar(page)}<main id="contenido" class="admin-workspace" data-admin-mfs>${campaignBanner}
+<div class="workspace-heading"><div><p class="eyebrow">Finados 2026 · 2da edición</p><h1>Mushuc Freestyle</h1><p data-admin-user>Comprobando acceso…</p></div><button type="button" class="button-primary" data-admin-export disabled>Exportar CSV</button></div>
+<p class="feedback" data-admin-feedback role="status" aria-live="polite" aria-atomic="true"></p>
+<button type="button" class="button-quiet" data-session-retry hidden>Reintentar conexión</button>
+<section aria-label="Resumen de inscripciones" class="summary" data-admin-dashboard aria-busy="true"></section>
+<form class="filters" data-admin-filters><fieldset disabled data-panel-fields>
+<legend>Filtrar inscripciones</legend>
+<div class="filter-grid"><label class="search-field">Buscar<input type="search" name="search" maxlength="180" placeholder="Nombre, nombre artístico, correo o WhatsApp"></label>
+<label>Estado<select name="status"><option value="">Todos (sin archivados)</option>${options(MFS_STATUS_OPTIONS)}<option value="Archivado">Archivado</option></select></label></div>
+<div class="filter-actions"><button type="submit" class="button-primary">Aplicar filtros</button><button type="reset" class="button-quiet">Limpiar</button><label>Por página<select name="pageSize"><option>25</option><option>50</option><option>100</option></select></label></div>
+</fieldset></form>
+<section class="records" aria-labelledby="records-title" aria-busy="true" data-records-region><div class="records-heading"><h2 id="records-title" tabindex="-1">Inscripciones</h2><p data-record-count>—</p></div>
+<p data-list-message role="status">Cargando inscripciones…</p>
+<table><caption class="sr-only">Participantes inscritos en Mushuc Freestyle. Abre una inscripción para revisar su audición, foto y notas.</caption><thead><tr><th scope="col">Participante</th><th scope="col">Contacto</th><th scope="col">Audición</th><th scope="col">Foto</th><th scope="col">Inscripción</th><th scope="col">Estado</th><th scope="col"><span class="sr-only">Acciones</span></th></tr></thead><tbody data-records></tbody></table>
+<nav class="pagination" aria-label="Paginación de inscripciones"><button class="button-quiet" data-previous disabled>← Anterior</button><span data-page-label>Página —</span><button class="button-quiet" data-next disabled>Siguiente →</button></nav></section>
+<details class="pending-accounts" data-pending-panel><summary><span><strong id="pending-accounts-title">Cuentas pendientes de ficha</strong><small>Personas que crearon su cuenta pero todavía no envían su inscripción.</small></span><span data-pending-count>—</span></summary><div class="pending-accounts-body" aria-labelledby="pending-accounts-title"><p class="feedback" data-pending-message role="status" aria-live="polite">Cargando cuentas…</p><div class="pending-accounts-table"><table><caption class="sr-only">Cuentas creadas que todavía no envían su inscripción</caption><thead><tr><th scope="col">Correo</th><th scope="col">Creada</th><th scope="col"><span class="sr-only">Acciones</span></th></tr></thead><tbody data-pending-accounts></tbody></table></div></div></details>
+<dialog class="detail-dialog" aria-labelledby="detail-title" data-detail><div class="detail-heading"><h2 id="detail-title" tabindex="-1">Detalle del participante</h2><button type="button" class="button-quiet" data-detail-close aria-label="Cerrar detalle">Cerrar ×</button></div>
+<p class="feedback" data-detail-feedback role="status" aria-live="polite" aria-atomic="true"></p><div data-detail-content></div>
+<section class="admin-photo" aria-label="Fotografía privada"><h3>Fotografía tipo retrato</h3><p data-admin-photo-message role="status">Sin fotografía</p><img data-admin-photo-image alt="Fotografía privada del participante" hidden></section>
+<form data-status-form><fieldset disabled><label>Estado de la inscripción<select name="status" required>${options(MFS_STATUS_OPTIONS)}</select></label><button class="button-primary" type="submit">Guardar estado</button></fieldset></form>
+<form data-audition-form><fieldset disabled><label>Corregir audición (solo si el participante lo solicita)<input type="url" name="url" maxlength="500" inputmode="url" placeholder="https://www.tiktok.com/@usuario/video/…" required></label><button class="button-quiet" type="submit">Reemplazar enlace</button></fieldset></form>
+<section class="notes-section"><h3>Notas internas</h3><ol data-notes></ol><form data-note-form><fieldset disabled><label>Añadir nota<textarea name="body" rows="3" maxlength="2000" required></textarea></label><button class="button-primary" type="submit">Guardar nota</button></fieldset></form></section>
+<section class="admin-reset"><h3>Recuperar acceso</h3><button type="button" class="button-quiet" data-admin-reset disabled>Generar enlace temporal</button><div data-reset-output hidden><label>Enlace temporal<input type="text" readonly data-reset-url autocomplete="off" spellcheck="false"></label><button type="button" class="button-quiet" data-reset-copy>Copiar enlace</button></div><p class="feedback" data-reset-feedback role="status" aria-live="polite"></p></section>
+<div class="detail-danger-zone"><p>Retirar oculta la inscripción y desactiva el acceso; no borra nada y se puede deshacer.</p><button type="button" class="button-danger" data-admin-delete disabled>Retirar inscripción</button><button type="button" class="button-primary" data-admin-restore hidden>Restaurar inscripción</button></div>
+</dialog></main></div>`, ADMIN_MFS_SCRIPT);
 }

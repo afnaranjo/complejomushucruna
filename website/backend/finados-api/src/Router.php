@@ -40,6 +40,8 @@ final class Router
     private ?EmprendedorAuth $emprendedorAuthInstance = null;
     private ?EmprendedorRepository $emprendedorInstance = null;
     private ?CreadoraAuth $creadoraAuthInstance = null;
+    private ?MfsAuth $mfsAuthInstance = null;
+    private ?MfsRepository $mfsInstance = null;
     private ?CreadoraRepository $creadoraInstance = null;
     private ?NewsRepository $newsInstance = null;
     private ?FinadosNameQueue $nameQueueInstance = null;
@@ -49,6 +51,7 @@ final class Router
     private const MEDIA_FILTERS = ['search', 'status', 'province', 'media_type', 'paid_media', 'origin'];
     private const EMPRENDEDOR_FILTERS = ['search', 'status', 'city', 'main_network'];
     private const CREADORA_FILTERS = ['search', 'status', 'origin'];
+    private const MFS_FILTERS = ['search', 'status'];
     private const METHODS = ['GET', 'POST', 'PATCH', 'OPTIONS'];
 
     public function __construct(private readonly Config $config, private readonly PDO $pdo)
@@ -238,6 +241,11 @@ final class Router
                 $response = $this->creadoraAccount($method, $path, $query, $server, $rawBody, $origin, $ip, $token, $headers);
                 if ($response !== null) return $response;
             }
+            // Mushuc Freestyle participants use their own session scope, isolated from every other programme.
+            if (str_starts_with($path, '/api/mfs/')) {
+                $response = $this->mfsAccount($method, $path, $query, $server, $rawBody, $post, $files, $origin, $ip, $token, $headers);
+                if ($response !== null) return $response;
+            }
             // Entrepreneur accounts use their own session scope, isolated from Voceros, Medios and administration.
             if (str_starts_with($path, '/api/emprendedor/')) {
                 $response = $this->emprendedorAccount($method, $path, $query, $server, $rawBody, $post, $files, $origin, $ip, $token, $headers);
@@ -267,6 +275,9 @@ final class Router
             }
             if ($path === '/api/creadoras' || str_starts_with($path, '/api/creadoras/')) {
                 return $this->creadoraAdmin($method, $path, $query, $server, $rawBody, $ip, $user, $headers);
+            }
+            if ($path === '/api/mfs-participants' || str_starts_with($path, '/api/mfs-participants/') || $path === '/api/mfs-accounts' || str_starts_with($path, '/api/mfs-accounts/') || $path === '/api/mfs-dashboard') {
+                return $this->mfsAdmin($method, $path, $query, $server, $rawBody, $origin, $refererOrigin, $ip, $user, $headers);
             }
             if ($path === '/api/emprendedores' || str_starts_with($path, '/api/emprendedores/') || $path === '/api/emprendedor-accounts' || str_starts_with($path, '/api/emprendedor-accounts/') || in_array($path, ['/api/emprendedor-dashboard', '/api/emprendedor-video-schedule'], true)) {
                 return $this->emprendedorAdmin($method, $path, $query, $server, $rawBody, $origin, $refererOrigin, $ip, $user, $headers);
@@ -415,6 +426,243 @@ final class Router
         } catch (Throwable) {
             error_log('Finados API request failed.');
             return $this->error(500, 'internal_error', 'No se pudo completar la solicitud.', $headers);
+        }
+    }
+
+    // Mushuc Freestyle loads its classes only when one of its routes is used, so a fault there
+    // can never take down Voceros, Medios, Emprendedores or Creadoras.
+    private function mfsAuth(): MfsAuth
+    {
+        require_once __DIR__ . '/MfsAuth.php';
+        return $this->mfsAuthInstance ??= new MfsAuth($this->pdo, $this->config);
+    }
+
+    private function mfs(): MfsRepository
+    {
+        require_once __DIR__ . '/MfsRepository.php';
+        return $this->mfsInstance ??= new MfsRepository($this->pdo, $this->crypto, $this->audit);
+    }
+
+    private function mfsReset(): MfsPasswordReset
+    {
+        require_once __DIR__ . '/MfsPasswordReset.php';
+        return new MfsPasswordReset($this->pdo, $this->config);
+    }
+
+    private function mfsPhotos(): MfsPhotoStorage
+    {
+        require_once __DIR__ . '/MfsPhotoStorage.php';
+        return new MfsPhotoStorage($this->config, $this->crypto);
+    }
+
+    private function mfsAccount(string $method, string $path, array $query, array $server, string $rawBody, array $post, array $files, ?string $origin, mixed $ip, string $token, array $headers): ?Response
+    {
+        $validIp = is_string($ip) && inet_pton($ip) !== false;
+        $auth = $this->mfsAuth();
+        if ($path === '/api/mfs/auth/session') {
+            if ($method !== 'GET') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+            try { $user = $auth->requireUser(); } catch (Unauthorized) { $user = null; }
+            return $this->json(200, ['authenticated' => $user !== null, 'user' => $user, 'csrf' => $auth->csrfToken()], $headers);
+        }
+        if (in_array($path, ['/api/mfs/auth/register', '/api/mfs/auth/login', '/api/mfs/auth/logout', '/api/mfs/auth/reset'], true)) {
+            if ($method !== 'POST') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+            if (!$this->config->isAllowedOrigin($origin) || !$validIp) throw new Forbidden();
+            $auth->verifyCsrf($token);
+            if ($query !== []) throw new InvalidArgumentException();
+            if ($path === '/api/mfs/auth/reset') {
+                $body = $this->body($server, $rawBody, ['token', 'password']);
+                if (!is_string($body['token'] ?? null) || !is_string($body['password'] ?? null)) throw new InvalidArgumentException();
+                $this->mfsReset()->consume($body['token'], $body['password'], $ip);
+                $auth->logout();
+                return $this->json(200, ['ok' => true, 'csrf' => $auth->csrfToken()], $headers);
+            }
+            if ($path === '/api/mfs/auth/register') {
+                $body = $this->body($server, $rawBody, ['email', 'password', 'privacyAcknowledged']);
+                if (!is_string($body['email'] ?? null) || !is_string($body['password'] ?? null) || !is_bool($body['privacyAcknowledged'] ?? null)) throw new InvalidArgumentException();
+                $auth->register($body['email'], $body['password'], $body['privacyAcknowledged'], $ip);
+                return $this->json(202, ['ok' => true, 'message' => 'Cuenta creada; inicia sesión.'], $headers);
+            }
+            if ($path === '/api/mfs/auth/login') {
+                $body = $this->body($server, $rawBody, ['email', 'password']);
+                if (!is_string($body['email'] ?? null) || !is_string($body['password'] ?? null)) throw new InvalidArgumentException();
+                $result = $auth->login($body['email'], $body['password'], $ip);
+                try { $this->audit->log('mfs_account.login', null, 'mfs_account', $result['user']['public_id'], [], $ip); }
+                catch (Throwable $error) { $auth->logout(); throw $error; }
+                return $this->json(200, ['authenticated' => true, ...$result], $headers);
+            }
+            $user = $auth->requireUser();
+            $this->audit->log('mfs_account.logout', null, 'mfs_account', $user['public_id'], [], $ip);
+            $auth->logout();
+            return $this->json(200, ['ok' => true], $headers);
+        }
+        if (in_array($path, ['/api/mfs/profile', '/api/mfs/photo'], true)) {
+            $user = $auth->requireUser();
+            if (!in_array($method, $path === '/api/mfs/profile' ? ['GET', 'POST'] : ['GET'], true)) return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+            if ($query !== []) throw new InvalidArgumentException();
+            if ($method === 'POST') {
+                // Mismo contrato multipart que los demás programas: campos de texto más la fotografía.
+                if (!$this->config->isAllowedOrigin($origin) || !$validIp) throw new Forbidden();
+                $auth->verifyCsrf($token);
+                $length = $server['CONTENT_LENGTH'] ?? null;
+                if ($length !== null && ((!is_string($length) && !is_int($length)) || preg_match('/^\d+$/D', (string) $length) !== 1)) throw new InvalidArgumentException();
+                if (($length !== null && (float) $length > self::PHOTO_UPLOAD_BYTES + self::PROFILE_REQUEST_OVERHEAD_BYTES) || strlen($rawBody) > self::PHOTO_UPLOAD_BYTES + self::PROFILE_REQUEST_OVERHEAD_BYTES) throw new RequestBodyError(413, 'payload_too_large');
+                if (strtolower(trim(explode(';', $server['CONTENT_TYPE'] ?? '')[0])) !== 'multipart/form-data') throw new RequestBodyError(415, 'unsupported_media_type');
+                $fieldBytes = 0;
+                foreach ($post as $field => $value) {
+                    if (!is_string($value)) throw new InvalidArgumentException();
+                    $fieldBytes += strlen((string) $field) + strlen($value);
+                }
+                if ($fieldBytes > self::PROFILE_REQUEST_OVERHEAD_BYTES) throw new RequestBodyError(413, 'payload_too_large');
+                $upload = null;
+                if ($files !== []) {
+                    $upload = $files['fotografia'] ?? null;
+                    if (count($files) !== 1 || !is_array($upload)) throw new InvalidArgumentException();
+                    if (($upload['error'] ?? null) === UPLOAD_ERR_NO_FILE) $upload = null;
+                    elseif (($upload['error'] ?? null) !== UPLOAD_ERR_OK || !is_string($upload['tmp_name'] ?? null) || !is_int($upload['size'] ?? null) || !is_uploaded_file($upload['tmp_name'])) throw new InvalidArgumentException();
+                    elseif ($upload['size'] > self::PHOTO_UPLOAD_BYTES) throw new RequestBodyError(413, 'payload_too_large');
+                }
+                $saved = $this->mfs()->saveForAccount($user['id'], $post, $upload, $this->mfsPhotos(), $ip);
+                return $this->json(200, ['registered' => true, 'email' => $user['email'], ...$saved], $headers);
+            }
+            if ($path === '/api/mfs/photo') {
+                $headers['Content-Type'] = 'image/jpeg'; $headers['Cache-Control'] = 'private, no-store';
+                return new Response(200, $headers, $this->mfs()->photoForAccount($user['id'], $this->mfsPhotos()));
+            }
+            $own = $this->mfs()->forAccount($user['id']);
+            return $this->json(200, $own === null
+                ? ['registered' => false, 'email' => $user['email'], 'status' => null, 'editable' => true, 'photo' => ['available' => false, 'width' => null, 'height' => null, 'created_at' => null]]
+                : ['registered' => true, 'email' => $user['email'], ...$own], $headers);
+        }
+        // Nada más bajo este prefijo pertenece a un programa: nunca cae en la guardia administrativa.
+        return $this->error(404, 'not_found', 'Recurso no encontrado.', $headers);
+    }
+
+    /** Rutas administrativas de Mushuc Freestyle; la sesión admin y el CSRF de escritura ya se comprobaron. */
+    private function mfsAdmin(string $method, string $path, array $query, array $server, string $rawBody, ?string $origin, ?string $refererOrigin, mixed $ip, array $user, array $headers): Response
+    {
+        $notAllowed = fn (): Response => $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+        if (!is_string($ip) || inet_pton($ip) === false) throw new Forbidden();
+        $repository = $this->mfs();
+        if ($path === '/api/mfs-participants') {
+            if ($method !== 'GET') return $notAllowed();
+            $result = $repository->list($this->mfsFilters($query, true));
+            return $this->json(200, ['items' => $result['items'], 'pagination' => [
+                'page' => $result['page'], 'pageSize' => $result['per_page'], 'total' => $result['total'],
+                'pages' => (int) ceil($result['total'] / $result['per_page']),
+            ]], $headers);
+        }
+        if ($path === '/api/mfs-dashboard') {
+            if ($method !== 'GET') return $notAllowed();
+            if ($query !== []) throw new InvalidArgumentException();
+            return $this->json(200, $repository->dashboard(), $headers);
+        }
+        if ($path === '/api/mfs-accounts') {
+            if ($method !== 'GET') return $notAllowed();
+            if ($query !== []) throw new InvalidArgumentException();
+            return $this->json(200, ['items' => $repository->pendingAccounts()], $headers);
+        }
+        if ($path === '/api/mfs-participants/export') {
+            if ($method !== 'POST') return $notAllowed();
+            if ($query !== []) throw new InvalidArgumentException();
+            return $this->mfsExport($this->mfsFilters($this->body($server, $rawBody, self::MFS_FILTERS)), $user['id'], $ip, $headers);
+        }
+        if (preg_match('~^/api/mfs-accounts/([a-f0-9]{32})/delete$~D', $path, $parts)) {
+            if ($method !== 'POST') return $notAllowed();
+            if ($query !== []) throw new InvalidArgumentException();
+            $this->body($server, $rawBody, []);
+            $repository->archiveAccount($parts[1], $user['id'], $ip);
+            return $this->json(200, ['ok' => true], $headers);
+        }
+        if (preg_match('~^/api/mfs-participants/([a-f0-9]{32})/photo$~D', $path, $parts)) {
+            if ($method !== 'GET') return $notAllowed();
+            if ($query !== []) throw new InvalidArgumentException();
+            $jpeg = $repository->photoForAdmin($parts[1], $this->mfsPhotos(), $user['id'], $ip);
+            $headers['Content-Type'] = 'image/jpeg'; $headers['Cache-Control'] = 'private, no-store';
+            return new Response(200, $headers, $jpeg);
+        }
+        if (preg_match('~^/api/mfs-participants/([a-f0-9]{32})(?:/(delete|restore|notes|audition|password-reset))?$~D', $path, $parts)) {
+            $id = $parts[1]; $action = $parts[2] ?? '';
+            if ($query !== []) throw new InvalidArgumentException();
+            if ($action === '' && $method === 'GET') {
+                $detail = $repository->find($id, true);
+                if ($detail === null) throw new OutOfBoundsException();
+                $this->audit->log('mfs.viewed', $user['id'], 'mfs_profile', $id, [], $ip);
+                return $this->json(200, $detail, $headers);
+            }
+            if ($action === '' && $method === 'PATCH') {
+                $body = $this->body($server, $rawBody, ['status']);
+                if (!is_string($body['status'] ?? null)) throw new InvalidArgumentException();
+                $repository->changeStatus($id, $body['status'], $user['id'], $ip);
+                return $this->json(200, ['ok' => true], $headers);
+            }
+            if ($action !== '' && $method !== 'POST') return $notAllowed();
+            if ($action === 'notes') {
+                $body = $this->body($server, $rawBody, ['body']);
+                if (!is_string($body['body'] ?? null)) throw new InvalidArgumentException();
+                $repository->addNote($id, $body['body'], $user['id'], $ip);
+                return $this->json(201, ['ok' => true], $headers);
+            }
+            if ($action === 'audition') {
+                $body = $this->body($server, $rawBody, ['url']);
+                $repository->correctAudition($id, $body['url'] ?? null, $user['id'], $ip);
+                return $this->json(200, ['ok' => true], $headers);
+            }
+            if ($action === 'delete') {
+                $this->body($server, $rawBody, []);
+                $repository->archive($id, $user['id'], $ip);
+                return $this->json(200, ['ok' => true], $headers);
+            }
+            if ($action === 'restore') {
+                $this->body($server, $rawBody, []);
+                $repository->restore($id, $user['id'], $ip);
+                return $this->json(200, ['ok' => true], $headers);
+            }
+            if ($action === 'password-reset') {
+                if (!$this->config->isAllowedOrigin($origin)) throw new Forbidden();
+                $this->body($server, $rawBody, []);
+                $raw = $this->mfsReset()->create($id, $user['id'], $ip);
+                $resetOrigin = $origin ?? $refererOrigin ?? $this->config->allowedOrigin();
+                return $this->json(201, ['resetUrl' => $resetOrigin . '/finados/mfs/restablecer/?token=' . $raw], $headers);
+            }
+            return $notAllowed();
+        }
+        return $this->error(404, 'not_found', 'Recurso no encontrado.', $headers);
+    }
+
+    private function mfsFilters(array $input, bool $pagination = false): array
+    {
+        $allowed = $pagination ? [...self::MFS_FILTERS, 'page', 'pageSize'] : self::MFS_FILTERS;
+        if (array_diff(array_keys($input), $allowed) !== []) throw new InvalidArgumentException();
+        foreach ($input as $value) if (!is_string($value)) throw new InvalidArgumentException();
+        if (isset($input['pageSize'])) { $input['per_page'] = $input['pageSize']; unset($input['pageSize']); }
+        return $input;
+    }
+
+    private function mfsExport(array $filters, int $actorId, string $ip, array $headers): Response
+    {
+        $columns = ['public_id', 'status', 'submitted_at', 'full_name', 'stage_name', 'whatsapp', 'email', 'audition_url', 'audition_submitted_at', 'has_photo'];
+        $stream = fopen('php://temp/maxmemory:2097152', 'w+');
+        if ($stream === false) throw new \RuntimeException();
+        try {
+            fwrite($stream, "\xEF\xBB\xBF");
+            fputcsv($stream, $columns, ',', '"', '', "\r\n");
+            $rows = $this->mfs()->exportRows($filters);
+            foreach ($rows as $detail) {
+                $detail = [...$detail, 'has_photo' => ($detail['photo']['available'] ?? false) ? 'Sí' : 'No'];
+                fputcsv($stream, array_map(static function (string $column) use ($detail): string {
+                    $value = (string) ($detail[$column] ?? '');
+                    return preg_match('/^[\x00-\x20]*[=+@-]/', $value) ? "'" . $value : $value;
+                }, $columns), ',', '"', '', "\r\n");
+            }
+            $this->audit->log('mfs.exported', $actorId, 'mfs_profile', null, ['count' => count($rows)], $ip);
+            rewind($stream);
+            $csv = stream_get_contents($stream);
+            if ($csv === false) throw new \RuntimeException();
+            $headers['Content-Type'] = 'text/csv; charset=utf-8';
+            $headers['Content-Disposition'] = 'attachment; filename="mushuc-freestyle-' . gmdate('Y-m-d') . '.csv"';
+            return new Response(200, $headers, $csv);
+        } finally {
+            fclose($stream);
         }
     }
 

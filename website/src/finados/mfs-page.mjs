@@ -5,7 +5,7 @@ import { renderFinadosNavigation } from './navigation.mjs';
 
 // Mushuc Freestyle 2026: su propia línea gráfica (azul, lima y crema, Badeen Display)
 // dentro del marco de Finados. Los datos salen de la especificación aprobada del módulo.
-export const mfsAssetVersion = '20260924-mfs-1';
+export const mfsAssetVersion = '20260924-mfs-2';
 const asset = name => `/assets/finados/mfs/${name}?v=${mfsAssetVersion}`;
 
 export const mfsEvent = Object.freeze({
@@ -30,7 +30,7 @@ export const mfsPrizes = Object.freeze([
 const steps = [
   ['Graba tu audición', 'Preséntate con tu nombre artístico, suelta tus barras y anuncia en el video que la final será en Finados Mushuc Runa 2026.'],
   ['Súbela a TikTok', 'Publica el video en tu cuenta de TikTok con acceso público y copia el enlace.'],
-  ['Regístrate aquí', 'Crea tu cuenta, completa tus datos, sube una foto tipo retrato y pega el enlace de tu audición.'],
+  ['Inscríbete aquí', 'Crea tu cuenta, inicia sesión, completa tus datos, sube una foto tipo retrato y pega el enlace de tu audición.'],
   ['Espera la revisión', `Coordinación revisa cada audición y confirma a quienes ocupan los ${mfsEvent.slots} cupos de la competencia.`],
 ];
 
@@ -101,7 +101,7 @@ export function renderMfsPage(page) {
           <div><dt>Dónde</dt><dd>${mfsEvent.place}<small>${mfsEvent.venue}</small></dd></div>
         </dl>
         <div class="mfs-actions">
-          <a class="mfs-button" href="#inscripcion">Inscríbete gratis <span aria-hidden="true">→</span></a>
+          <a class="mfs-button" href="/finados/mfs/acceso/">Inscríbete gratis <span aria-hidden="true">→</span></a>
           <a class="mfs-button mfs-button--ghost" href="#bases">Ver las bases</a>
         </div>
         <p class="mfs-closing">Inscripciones hasta el <time datetime="${mfsEvent.closingIso}">${mfsEvent.closing.toLowerCase()}</time>.</p>
@@ -147,8 +147,12 @@ export function renderMfsPage(page) {
         <ol class="mfs-steps">
           ${steps.map(([title, text], index) => `<li><b>${String(index + 1).padStart(2, '0')}</b><h3>${escapeHtml(title)}</h3><p>${escapeHtml(text)}</p></li>`).join('\n          ')}
         </ol>
-        <div class="mfs-signup-status" role="status">
-          <p><strong>El registro en línea se habilita muy pronto en esta misma página.</strong> Ve grabando tu audición: tienes hasta el ${mfsEvent.closing.toLowerCase()}.</p>
+        <div class="mfs-signup-status">
+          <p><strong>La inscripción ya está abierta.</strong> Tienes hasta el ${mfsEvent.closing.toLowerCase()}.</p>
+          <div class="mfs-actions">
+            <a class="mfs-button mfs-button--dark" href="/finados/mfs/acceso/">Crear mi cuenta <span aria-hidden="true">→</span></a>
+            <a class="mfs-button mfs-button--dark-ghost" href="/finados/mfs/acceso/?modo=login">Ya tengo cuenta</a>
+          </div>
         </div>
       </div>
     </section>
@@ -159,9 +163,12 @@ export function renderMfsPage(page) {
           <p class="mfs-kicker">Lo que tienes que saber</p>
           <h2 id="mfs-rules-title">Bases resumidas</h2>
         </div>
-        <ul class="mfs-rule-list">
-          ${rules.map(rule => `<li>${escapeHtml(rule)}</li>`).join('\n          ')}
-        </ul>
+        <div>
+          <ul class="mfs-rule-list">
+            ${rules.map(rule => `<li>${escapeHtml(rule)}</li>`).join('\n            ')}
+          </ul>
+          <p class="mfs-rules-links"><a href="/finados/mfs/bases/">Leer las bases completas</a> · <a href="/finados/mfs/politica-de-privacidad/">Política de Privacidad</a></p>
+        </div>
       </div>
     </section>
 
