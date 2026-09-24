@@ -1828,3 +1828,11 @@ Nota de relevo escrita a pedido de Alex para que otro agente (Codex) retome la s
 - Corregir la Política de Privacidad de Creadoras (`legal-page.mjs` y `creadora-consents.json`) para declarar cédula, fecha de nacimiento y correo de contacto antes de difundir el registro; definir el consentimiento del representante si se registra una persona menor de edad.
 - La bitácora registra todo a nombre de `admin` porque existe una sola cuenta administrativa; distinguir personas requiere cuentas por persona.
 - Posibles mejoras no pedidas todavía: filtrar los indicadores por rango de fechas y abrir la lista de turnos de una creadora al tocar su tarjeta.
+
+### 2026-09-24 — Publicación de nombres en pantalla Finados 2026
+
+- Se publicó la experiencia QR de nombres: `/finados/nombre/` para capturar un nombre con consentimiento y `/finados/pantalla/` para mostrarlo con animación serifa sobre fondo lila, con cola y tamaños escalonados para concurrencia.
+- Se desplegó primero el backend con la migración 027 de la cola de nombres y después el frontend mediante los scripts seguros del proyecto. Se conservaron los datos existentes y no se modificaron rutas ni menús actuales.
+- Verificación externa: ambas rutas respondieron HTTP 200 y `https://api.expoferiamushucruna.com/api/health` respondió `ok: true`. El registro no almacena IP, correo ni cédula; los nombres caducan a las 24 horas.
+- Commit publicado en `main`: `e008b47` (incluye implementación, pruebas y documentación). Publicación externa autorizada por Alex en esta sesión.
+- Pendiente: validar visualmente el QR desde un teléfono y confirmar con coordinación el texto final de consentimiento antes de promocionar la dinámica.
