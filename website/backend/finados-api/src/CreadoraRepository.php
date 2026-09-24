@@ -934,6 +934,12 @@ final class CreadoraRepository
         return $row;
     }
 
+    /** Un turno completo, con sus guiones y su contenido: lo que abre el diálogo del calendario. */
+    public function shift(string $publicId): array
+    {
+        return $this->shiftByPublicId($publicId);
+    }
+
     private function shiftByPublicId(string $publicId): array
     {
         $row = $this->shiftRow($publicId);

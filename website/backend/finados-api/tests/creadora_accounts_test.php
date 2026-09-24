@@ -238,6 +238,12 @@ same(1, count(creadora_body($router->handle('POST', '/api/creadoras/turnos/' . $
 $conteoGuion = null;
 foreach (creadora_body($router->handle('GET', '/api/creadoras/calendario?from=2026-11-02&to=2026-11-03', $origin))['shifts'] as $item) if ($item['public_id'] === $vivo['public_id']) $conteoGuion = $item;
 same(1, $conteoGuion['script_count']);
+// Al abrir el turno, su detalle trae los guiones que el calendario solo cuenta.
+$detalle = creadora_body($router->handle('GET', '/api/creadoras/turnos/' . $vivo['public_id'], $origin));
+same(1, count($detalle['shift']['scripts']));
+same($conteoGuion['script_count'], count($detalle['shift']['scripts']));
+same(true, is_array($detalle['shift']['content']));
+same(422, $router->handle('GET', '/api/creadoras/turnos/' . str_repeat('0', 32), $origin)->status);
 
 // Quitar un turno lo saca del calendario sin borrar su rastro.
 $removed = creadora_body($router->handle('POST', '/api/creadoras/turnos/' . $otro['public_id'], $json($csrf), ''));

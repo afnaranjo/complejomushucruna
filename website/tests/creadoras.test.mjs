@@ -128,6 +128,7 @@ test('el cliente administrativo solo llama a las rutas de creadoras y exige CSRF
   await client.session();
   await client.calendar('2026-10-26', '2026-11-02');
   const id = 'a'.repeat(32);
+  await client.getShift(id);
   await client.createShift({ creadora: id });
   await client.updateShift(id, { starts_at: '2026-10-30 09:00' });
   await client.removeShift(id);
@@ -135,13 +136,14 @@ test('el cliente administrativo solo llama a las rutas de creadoras y exige CSRF
   assert.deepEqual(calls.map(([url, method]) => [url.replace('https://finados.complejomushucruna.com/api', ''), method]), [
     ['/auth/session', 'GET'],
     ['/creadoras/calendario?from=2026-10-26&to=2026-11-02', 'GET'],
+    [`/creadoras/turnos/${id}`, 'GET'],
     ['/creadoras/turnos', 'POST'],
     [`/creadoras/turnos/${id}`, 'PATCH'],
     [`/creadoras/turnos/${id}`, 'POST'],
     [`/creadoras/${id}/retirar`, 'POST'],
   ]);
   assert.equal(calls[0][2], null, 'una lectura no manda token');
-  assert.ok(calls.slice(2).every(([, , token]) => token === 'token-nuevo'), 'cada escritura manda el token vigente');
+  assert.ok(calls.slice(3).every(([, , token]) => token === 'token-nuevo'), 'cada escritura manda el token vigente');
   assert.throws(() => createCreadoraAdminClient('https://otro.example/api'), /Origen de API no permitido/);
 });
 

@@ -71,6 +71,7 @@ export function createCreadoraAdminClient(baseUrl = API, fetchImplementation = f
     calendar: (from, to) => request('/creadoras/calendario?' + new URLSearchParams({ from, to })),
     log: () => request('/creadoras/bitacora'),
     createShift: body => request('/creadoras/turnos', { method: 'POST', body }),
+    getShift: id => request(`/creadoras/turnos/${id}`),
     updateShift: (id, body) => request(`/creadoras/turnos/${id}`, { method: 'PATCH', body }),
     removeShift: id => request(`/creadoras/turnos/${id}`, { method: 'POST', body: {} }),
     markAttendance: (id, attended, member = '') => request(`/creadoras/turnos/${id}`, { method: 'PATCH', body: member ? { attended, attendance_for: member } : { attended } }),
@@ -1127,6 +1128,25 @@ export async function initializeAdminCreadoras() {
     renderNotebook(shift);
     showDuration();
     shiftDialog.showModal();
+    // El calendario solo trae cuántos guiones y piezas hay: el detalle se pide al abrir el turno.
+    if (shift && !Array.isArray(shift.scripts)) loadShiftDetail(shift.public_id);
+  }
+
+  async function loadShiftDetail(publicId) {
+    if (scriptList) scriptList.replaceChildren(node('p', 'Cargando guiones…', 'admin-panel-empty'));
+    if (contentList) contentList.replaceChildren(node('li', 'Cargando contenido…', 'admin-panel-empty'));
+    try {
+      const data = await client.getShift(publicId);
+      if (editingShift !== publicId || !data.shift) return;
+      openMembers = shiftMembers(data.shift);
+      renderRecord(data.shift);
+      renderNotebook(data.shift);
+    } catch (error) {
+      if (editingShift !== publicId) return;
+      if (scriptList) scriptList.replaceChildren(node('p', 'No se pudieron cargar los guiones. Cierra y vuelve a abrir el turno.', 'admin-panel-empty'));
+      if (shiftFeedback) { shiftFeedback.textContent = error.message; shiftFeedback.dataset.error = 'true'; }
+      if (error.status === 401) fail(error);
+    }
   }
 
   function editShift(shift) { openShiftDialog(shift); }

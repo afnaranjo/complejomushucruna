@@ -790,6 +790,7 @@ final class Router
         }
         if (preg_match('~^/api/creadoras/turnos/([a-f0-9]{32})$~D', $path, $parts)) {
             if ($query !== []) throw new InvalidArgumentException();
+            if ($method === 'GET') return $this->json(200, $repository->shift($parts[1]), $headers);
             if ($method === 'PATCH') {
                 $body = $this->body($server, $rawBody, ['creadora', 'creadoras', 'starts_at', 'ends_at', 'place', 'note', 'attended', 'attendance_for']);
                 return $this->json(200, ['ok' => true, ...$repository->updateShift($parts[1], $body, $user['id'], $actor, $ip)], $headers);
