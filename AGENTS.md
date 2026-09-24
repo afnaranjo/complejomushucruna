@@ -112,6 +112,16 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 
 ## Bitácora
 
+### 2026-09-24 — Experiencia QR de nombres en pantalla Finados 2026
+
+- Se implementaron las rutas directas `/finados/nombre/` y `/finados/pantalla/` para capturar nombres con consentimiento y mostrarlos en una pantalla de proyección, sin añadirlas al menú ni tocar los flujos existentes de Voceros, Medios, Creadoras, Emprendedores o Administración.
+- Se añadió la cola temporal `finados_name_queue` con migraciones SQLite/MariaDB, expiración de 24 horas, sanitización, deduplicación breve y límite conservador de envíos; no almacena IP, correo, cédula ni otros datos personales.
+- Se creó la animación con protagonista aleatorio, hasta seis nombres secundarios, cola progresiva, fondo lila con grano/niebla, QR y adaptación a `prefers-reduced-motion`.
+- Commits: `3a94872`, `fe8f7f5`, `9c28c6c`, `8b3ac32`, `839e9e4`.
+- Validación: `npm run check` pasó 211 pruebas Node, todas las pruebas PHP, 10 pruebas de integración, build y `check-dist`.
+- Publicación externa: ninguna; no se desplegó a producción ni se ejecutó migración en la base real.
+- Riesgos/pendientes: confirmar el texto final de consentimiento y decidir si se imprimirá una URL corta; revisar visualmente en los dominios espejo antes de publicar.
+
 ### 2026-08-24 — Arquitectura inicial
 
 - Se creó desde cero la arquitectura documental del equipo de marketing.

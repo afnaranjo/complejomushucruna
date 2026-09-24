@@ -260,3 +260,4 @@ tags:
 ## Regla
 
 Todo pendiente debe tener acción concreta, responsable y fecha. Si todavía no se conocen, se marcan `por definir`; no se inventan.
+- [ ] Revisar localmente y aprobar el texto final de consentimiento y la decisión sobre URL corta para el QR de nombres en pantalla antes de publicar `/finados/nombre/` y `/finados/pantalla/`. Responsable: Alex/dirección. Fecha: por definir.

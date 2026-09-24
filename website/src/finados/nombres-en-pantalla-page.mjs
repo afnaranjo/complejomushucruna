@@ -56,6 +56,7 @@ export function renderNameScreenPage() {
   <div class="name-screen__grain" aria-hidden="true"></div>
   <div class="name-screen__fog name-screen__fog--one" aria-hidden="true"></div>
   <div class="name-screen__fog name-screen__fog--two" aria-hidden="true"></div>
+  <h1 class="sr-only">Nombres en pantalla de Finados 2026</h1>
   <p class="name-screen__context">Finados Mushuc Runa <span>2026</span></p>
   <section class="name-scene" data-name-scene aria-live="off" aria-label="Nombres compartidos por la comunidad"></section>
   <p class="name-screen__note">Nombres compartidos con consentimiento</p>
