@@ -30,7 +30,8 @@ function apiBase() {
 }
 
 function makeQr(target, url) {
-  const code = qrcode(4, 'M');
+  // El alias espejo usa una URL más larga; el tipo automático evita desbordar la capacidad.
+  const code = qrcode(0, 'M');
   code.addData(url);
   code.make();
   target.innerHTML = code.createImgTag(5, 8, 'Código QR para abrir la experiencia de nombres');
