@@ -103,6 +103,22 @@ test('genera las rutas públicas de nombres Finados sin añadirlas al menú', as
     const navigation = html.match(/<nav id="navegacion-principal"[\s\S]*?<\/nav>/)?.[0] ?? '';
     assert.doesNotMatch(navigation, /\/finados\/(?:nombre|pantalla)\//);
   }
+  assert.match(screen, /data-name-screen/);
+  assert.match(screen, /data-name-scene/);
+  const namesCss = await readFile(join(output, 'assets/finados/nombres-en-pantalla.css'), 'utf8');
+  assert.match(namesCss, /prefers-reduced-motion/);
+});
+
+test('la captura de nombres incluye QR, consentimiento y assets aislados', async () => {
+  const output = await mkdtemp(join(tmpdir(), 'mushuc-finados-name-capture-'));
+  await buildSite(output);
+  const page = await readFile(join(output, 'finados/nombre/index.html'), 'utf8');
+  assert.match(page, /name="name"[^>]*maxlength="60"/);
+  assert.match(page, /name="consent"[^>]*required/);
+  assert.match(page, /data-name-qr/);
+  assert.match(page, /data-name-status[^>]*aria-live="polite"|aria-live="polite"[^>]*data-name-status/);
+  assert.match(page, /\/assets\/finados\/nombres-en-pantalla\.css\?v=20260924-nombres-1/);
+  assert.match(page, /\/assets\/finados\/nombres-en-pantalla\.js\?v=20260924-nombres-1/);
 });
 
 test('cada página entrega metadatos, canonical y un único h1', async () => {

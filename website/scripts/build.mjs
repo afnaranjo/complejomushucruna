@@ -130,6 +130,8 @@ export async function buildSite(outputDirectory = join(websiteRoot, 'dist'), { a
   await cp(join(websiteRoot, 'src', 'finados', 'vocero-portal.css'), join(finadosAssets, 'vocero-portal.css'));
   await cp(join(websiteRoot, 'src', 'finados', 'qrcode-generator.mjs'), join(finadosAssets, 'qrcode-generator.mjs'));
   await cp(join(websiteRoot, 'src', 'finados', 'runtime-origins.mjs'), join(finadosAssets, 'runtime-origins.mjs'));
+  await cp(join(websiteRoot, 'src', 'finados', 'nombres-en-pantalla.css'), join(finadosAssets, 'nombres-en-pantalla.css'));
+  await cp(join(websiteRoot, 'src', 'finados', 'nombres-en-pantalla.js'), join(finadosAssets, 'nombres-en-pantalla.js'));
   await cp(join(websiteRoot, 'src', 'finados', 'vocero-verification.js'), join(finadosAssets, 'vocero-verification.js'));
   await cp(join(websiteRoot, 'src', 'finados', 'creadoras.css'), join(finadosAssets, 'creadoras.css'));
   const creadoraPortalScript = await readFile(join(websiteRoot, 'src', 'finados', 'creadora-portal.js'), 'utf8');
