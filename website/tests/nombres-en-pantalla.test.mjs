@@ -21,7 +21,10 @@ test('distribuye secundarios en posiciones únicas y limita capas en móvil', ()
 
 test('declara el ciclo escénico de tres segundos y el modo reducido', async () => {
   const css = await readFile(join(process.cwd(), 'src', 'finados', 'nombres-en-pantalla.css'), 'utf8');
+  const js = await readFile(join(process.cwd(), 'src', 'finados', 'nombres-en-pantalla.js'), 'utf8');
   assert.match(css, /animation: name-arrive 4\.2s/);
   assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
   assert.match(css, /filter: blur\(10px\)/);
+  assert.match(js, /setInterval\(\(\) => void tick\(\), 1000\)/);
+  assert.doesNotMatch(js, /root\.innerHTML = ''; delete root\.dataset\.playing/);
 });

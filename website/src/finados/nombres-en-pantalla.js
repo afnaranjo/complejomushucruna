@@ -104,12 +104,14 @@ async function initScreen() {
         scene.secondary.forEach((item) => seen.add(item.public_id));
         root.dataset.playing = 'true';
         renderScene(scene, reducedMotion);
-        window.setTimeout(() => { root.innerHTML = ''; delete root.dataset.playing; }, reducedMotion ? 1800 : 4200);
+        // Conserva el último nombre visible: la pantalla es un lienzo vivo, no una página que se reinicia.
+        // Solo liberamos el ciclo para que el siguiente nombre pueda entrar cuando llegue.
+        window.setTimeout(() => { delete root.dataset.playing; }, reducedMotion ? 1800 : 4200);
       }
     } catch { /* La pantalla continúa con el último estado visible. */ }
   };
   await tick();
-  window.setInterval(() => void tick(), 2000);
+  window.setInterval(() => void tick(), 1000);
 }
 
 if (typeof document !== 'undefined') {
