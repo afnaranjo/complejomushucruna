@@ -21,7 +21,6 @@ export const primaryNavigation = Object.freeze([
       { label: 'VOCEROS', href: '/finados/voceros/' },
       { label: 'MEDIOS', href: '/finados/medios/' },
       { label: 'EMPRENDEDOR', href: '/finados/emprendedores/' },
-      { label: 'CREADORAS', href: '/finados/creadoras/' },
     ]),
   },
   { label: 'ACREDITACIÓN DE MEDIOS', href: '/acreditacion-de-medios/' },

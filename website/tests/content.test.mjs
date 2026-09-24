@@ -37,7 +37,6 @@ test('la navegación institucional agrupa venta dentro de Finados y conserva el 
       { label: 'VOCEROS', href: '/finados/voceros/' },
       { label: 'MEDIOS', href: '/finados/medios/' },
       { label: 'EMPRENDEDOR', href: '/finados/emprendedores/' },
-      { label: 'CREADORAS', href: '/finados/creadoras/' },
     ],
   });
   assert.deepEqual(primaryNavigation[2], {

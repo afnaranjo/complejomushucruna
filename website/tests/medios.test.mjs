@@ -17,8 +17,8 @@ test('MEDIOS aparece en el submenú de Finados inmediatamente después de VOCERO
   const children = primaryNavigation.find(item => item.href === '/finados/').children.map(item => item.label);
   assert.equal(children.indexOf('MEDIOS'), children.indexOf('VOCEROS') + 1);
   assert.equal(children.indexOf('EMPRENDEDOR'), children.indexOf('MEDIOS') + 1);
-  assert.equal(children.indexOf('CREADORAS'), children.indexOf('EMPRENDEDOR') + 1);
-  assert.equal(children.at(-1), 'CREADORAS');
+  assert.equal(children.at(-1), 'EMPRENDEDOR');
+  assert.equal(children.includes('CREADORAS'), false, 'Creadoras se abre por enlace directo, no desde el menú');
 });
 
 test('el build publica la landing, las cuentas de medios y su panel sin tocar la acreditación vigente', async () => {
