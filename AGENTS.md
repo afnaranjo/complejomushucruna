@@ -1928,3 +1928,9 @@ Nota de relevo escrita a pedido de Alex para que otro agente (Codex) retome la s
 - Mushuc Ticket (`mushucticket.com`) muestra la portada del sitio dentro de un marco. Al tocar el menú, la navegación ocurría dentro del marco y el visitante seguía viendo `mushucticket.com`. Alex pidió que ahí solo se vea la portada y que cada opción del menú o submenú se abra en otra pestaña con el dominio real.
 - Nuevo `src/framed-links.js`, inyectado por el build en todas las páginas públicas (no en admin ni portales privados). Solo actúa si la página está dentro de un marco: entonces cada enlace abre una pestaña nueva con el dominio del sitio. Respeta el primer toque que despliega un submenú, los saltos dentro de la misma página, las descargas y los enlaces que ya abrían otra pestaña. Visitando `complejomushucruna.com` o `finados.expoferiamushucruna.com` directamente no cambia nada.
 - QA: pruebas nuevas en `framed-links.test.mjs`, `npm run check` en el prevuelo del despliegue y prueba real en Chrome con la portada incrustada (FINADOS 2026 despliega el submenú; SHOWS y GRANJA abren pestaña nueva; el marco sigue en la portada). Solo frontend.
+
+### 2026-09-24 — Botón «Comprar un stand» en la portada
+
+- Alex pidió, solo en la portada, un botón «Comprar un stand» junto a «Mapa de ubicación» hacia `https://reserva.mushucticket.com/customers`, y que ambos se noten más como botones.
+- La cabecera compartida recibe la opción `standCta`, activada solo en `/`; las demás páginas con esa cabecera no muestran el botón. El enlace abre en otra pestaña con `noopener noreferrer`. Los botones de la cabecera ahora se levantan al pasar el cursor, se hunden al presionarlos y mueven su flecha; con movimiento reducido quedan quietos. Caché `20260924-fair-start-2`.
+- QA: prueba nueva en `finados-opening-headers.test.mjs`, `npm run check` en el prevuelo y revisión visual en 1440 px y 375 px. Solo frontend.

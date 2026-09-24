@@ -82,8 +82,8 @@ test('empaqueta la experiencia Finados con recursos locales y optimizados', asyn
   assert.match(landing, /rel="icon" href="\/assets\/finados\/favicon-finados\.png"/);
   assert.doesNotMatch(landing, /rel="preload" as="image" href="\/assets\/finados\/expositor-artesanias\.webp"/);
   assert.match(landing, /<img src="\/assets\/finados\/expositor-artesanias\.webp"[^>]*loading="lazy" decoding="async"/);
-  assert.match(landing, /\/assets\/finados\/presentation\.css\?v=20260917-fair-start-1/);
-  assert.match(landing, /\/assets\/finados\/presentation\.js\?v=20260917-fair-start-1/);
+  assert.match(landing, /\/assets\/finados\/presentation\.css\?v=20260924-fair-start-2/);
+  assert.match(landing, /\/assets\/finados\/presentation\.js\?v=20260924-fair-start-2/);
   const presentationCss = await stat(join(output, 'assets/finados/presentation.css'));
   const presentationJs = await stat(join(output, 'assets/finados/presentation.js'));
   assert.ok(presentationCss.size < 10_000);

@@ -16,9 +16,19 @@
 .presentation-date strong span { font: 800 1rem/1 "Finados Opening Inter", sans-serif; }
 .presentation-location { max-width: 32rem; margin: 0 0 1.75rem; font: 500 1.125rem/1.6 "Finados Opening Inter", sans-serif; }
 .presentation-location strong { display: block; color: #00d2d6; font-weight: 800; }
-.presentation-map { display: inline-flex; align-items: center; justify-content: center; gap: 1rem; min-height: 3.5rem; border: 2px solid #f4eada; border-radius: 999px; background: #00d2d6; padding: 1rem 1.5rem; box-shadow: 5px 5px 0 #ff2e8a; color: #241146; font: 800 .875rem/1.4 "Finados Opening Inter", sans-serif; text-decoration: none; }
-.presentation-map:hover { background: #f4eada; }
+.presentation-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 1.25rem; }
+/* Botones con volumen: se levantan al pasar el cursor y se hunden al presionarlos. */
+.presentation-map { display: inline-flex; align-items: center; justify-content: center; gap: 1rem; min-height: 3.5rem; border: 2px solid #f4eada; border-radius: 999px; background: #00d2d6; padding: 1rem 1.6rem; box-shadow: 5px 5px 0 #ff2e8a; color: #241146; cursor: pointer; font: 800 .95rem/1.4 "Finados Opening Inter", sans-serif; text-decoration: none; transition: transform .16s ease, box-shadow .16s ease, background-color .16s ease, color .16s ease; }
+.presentation-map:hover { background: #f4eada; transform: translate(-3px, -3px); box-shadow: 8px 8px 0 #ff2e8a; }
+.presentation-map:active { transform: translate(3px, 3px); box-shadow: 2px 2px 0 #ff2e8a; }
 .presentation-map:focus-visible { outline: 3px solid #ffc42e; outline-offset: 6px; }
+.presentation-arrow { display: inline-block; transition: transform .16s ease; }
+.presentation-map:hover .presentation-arrow { transform: translate(3px, -3px); }
+.presentation-map--stand { background: #ff2e8a; color: #f4eada; box-shadow: 5px 5px 0 #ffc42e; }
+.presentation-map--stand:hover { background: #ffc42e; color: #241146; box-shadow: 8px 8px 0 #f4eada; }
+.presentation-map--stand:active { box-shadow: 2px 2px 0 #f4eada; }
+.presentation-map--stand:hover .presentation-arrow { transform: translateX(5px); }
+@media (prefers-reduced-motion: reduce) { .presentation-map, .presentation-arrow { transition: none; } .presentation-map:hover, .presentation-map:active, .presentation-map:hover .presentation-arrow { transform: none; } }
 .presentation-timer-wrap { position: relative; min-width: 0; }
 .presentation-symbol { display: block; width: clamp(6rem, 10vw, 10rem); height: auto; margin: 0 0 1.75rem auto; padding: 1rem; border-radius: 50%; background: #f4eada; }
 .presentation-countdown { position: relative; border: 2px solid #f4eada; background: #f4eada; padding: clamp(1rem, 2vw, 2rem); box-shadow: 8px 8px 0 #00d2d6; color: #241146; }

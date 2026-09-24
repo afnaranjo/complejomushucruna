@@ -45,7 +45,7 @@ test('Invitaciones preserva el RSVP y traslada la cabecera al documento desempaq
   const result = injectInvitationOpeningHeader(original, '/invitaciones/');
   assert.equal(injectInvitationOpeningHeader(result, '/invitaciones/'), result);
   assert.match(result, /doc\.body\.prepend\(fairHeader\.cloneNode\(true\)\)/);
-  assert.match(result, /fairRuntime\.src = '\/assets\/finados\/presentation\.js\?v=20260917-fair-start-1'/);
+  assert.match(result, /fairRuntime\.src = '\/assets\/finados\/presentation\.js\?v=20260924-fair-start-2'/);
   assert.ok(result.indexOf('doc.body.prepend') < result.indexOf('document.documentElement.replaceWith'));
   const encodedApp = original.split(/\r?\n/).find(line => line.startsWith('"<!DOCTYPE html>'));
   assert.ok(encodedApp, 'La aplicación congelada debe existir');
@@ -65,4 +65,18 @@ test('las variantes no generan otro H1 y escapan los identificadores', () => {
   assert.match(compact, /presentation-hero--compact/);
   assert.match(renderFairOpeningHeader({ compact: true, standalone: true }), /presentation-hero--standalone/);
   assert.equal((renderFairOpeningHeader().match(/<h1\b/g) ?? []).length, 1);
+});
+
+test('solo la portada ofrece «Comprar un stand» junto al mapa, en otra pestaña', async () => {
+  const { pages } = await import('../src/pages.mjs');
+  const { renderLayout } = await import('../src/render/layout.mjs');
+  const { STAND_PURCHASE_URL } = await import('../src/finados/opening-header.mjs');
+  assert.equal(STAND_PURCHASE_URL, 'https://reserva.mushucticket.com/customers');
+  const home = renderLayout(pages.find(page => page.route === '/'));
+  const actions = home.slice(home.indexOf('class="presentation-actions"'), home.indexOf('class="presentation-timer-wrap"'));
+  assert.match(actions, /Mapa de ubicación/);
+  assert.match(actions, /href="https:\/\/reserva\.mushucticket\.com\/customers" target="_blank" rel="noopener noreferrer">Comprar un stand/);
+  assert.ok(actions.indexOf('Mapa de ubicación') < actions.indexOf('Comprar un stand'), 'el stand va al lado del mapa');
+  const finados = pages.find(page => page.route === '/finados/');
+  assert.doesNotMatch(finados.render(finados), /Comprar un stand/);
 });

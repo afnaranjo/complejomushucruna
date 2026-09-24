@@ -19,7 +19,7 @@ export function hero({ eyebrow, heading, intro, image = '' }) {
 export function homeFinadosHero() {
   const purchaseUrl = 'https://mushucticket.com/';
 
-  return `${renderFairOpeningHeader({ titleId: 'home-finados-title' })}
+  return `${renderFairOpeningHeader({ titleId: 'home-finados-title', standCta: true })}
   <section class="hero hero--finados home-story__hero" aria-labelledby="home-stands-title">
     <img class="hero-finados__watermark" src="/assets/icons/logo-complejo.svg?v=20260904-2" width="1800" height="1800" alt="" aria-hidden="true">
     <div class="hero-finados__grid shell">
