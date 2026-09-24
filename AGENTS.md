@@ -1855,3 +1855,10 @@ Nota de relevo escrita a pedido de Alex para que otro agente (Codex) retome la s
 - El QR no aparecía en `finados.expoferiamushucruna.com` porque la URL del espejo superaba la capacidad fija del generador. Se cambió a tamaño automático, manteniendo el mismo destino de escritura.
 - Se verificó visualmente en el alias espejo que el QR se genera y se muestra correctamente. Frontend publicado con el script seguro.
 - Commit: `35dc710`. No se modificaron backend ni datos.
+
+### 2026-09-24 — Guiones visibles al abrir un turno de Creadoras
+
+- Alex reportó que, al abrir un turno, no se veían los guiones aunque el indicador marcaba 10. Causa: el calendario solo trae el conteo (`script_count`) y el diálogo se dibujaba con esos datos, sin el texto de guiones ni el contenido registrado. Los datos nunca se perdieron.
+- Se añadió la lectura `GET /api/creadoras/turnos/{id}` (solo lectura, sesión admin) y el diálogo pide el turno completo al abrirse; caché `admin-creadoras.js?v=20260924-creadoras-9`. Pruebas Node y PHP ampliadas; `npm run check` completo en verde.
+- Commits: `Cargar guiones y contenido al abrir un turno de Creadoras` y, a pedido de Alex, el plan `Planificar implementacion de Mushuc Freestyle 2026`.
+- Publicación externa autorizada: backend y luego frontend con respaldo previo, sin migraciones ni cambios de datos. Verificado en el espejo: `admin-creadoras.js` con SHA-256 igual al build, `health` 200 y la ruta nueva 401 sin sesión. El dominio principal no resolvía desde esta red; el despliegue reportó verificación correcta.
