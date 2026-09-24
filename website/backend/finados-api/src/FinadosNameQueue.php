@@ -27,7 +27,8 @@ final class FinadosNameQueue
         if ((int) $recentCount->fetchColumn() >= 30) throw new RateLimitException();
 
         $publicId = bin2hex(random_bytes(16));
-        $expires = gmdate('Y-m-d H:i:s', time() + 86400);
+        // La activación es efímera: el nombre solo espera unos minutos a que la pantalla lo consuma.
+        $expires = gmdate('Y-m-d H:i:s', time() + 600);
         $insert = $this->pdo->prepare('INSERT INTO finados_name_queue (public_id, display_name, consent_given, created_at, expires_at) VALUES (?, ?, 1, ?, ?)');
         $insert->execute([$publicId, $displayName, $now, $expires]);
         return ['public_id' => $publicId, 'display_name' => $this->safe($displayName), 'created_at' => $now, 'queued' => true];
@@ -38,13 +39,20 @@ final class FinadosNameQueue
         $limit = max(1, min(20, $limit));
         $now = gmdate('Y-m-d H:i:s');
         $this->pdo->prepare('DELETE FROM finados_name_queue WHERE expires_at <= ?')->execute([$now]);
-        $statement = $this->pdo->prepare('SELECT public_id, display_name, created_at FROM finados_name_queue WHERE expires_at > ? ORDER BY created_at ASC, id ASC LIMIT ' . $limit);
+        $statement = $this->pdo->prepare('SELECT id, public_id, display_name, created_at FROM finados_name_queue WHERE expires_at > ? ORDER BY created_at ASC, id ASC LIMIT ' . $limit);
         $statement->execute([$now]);
+        $rows = $statement->fetchAll();
+        if ($rows !== []) {
+            $ids = array_map(static fn (array $row): int => (int) $row['id'], $rows);
+            $placeholders = implode(',', array_fill(0, count($ids), '?'));
+            $delete = $this->pdo->prepare('DELETE FROM finados_name_queue WHERE id IN (' . $placeholders . ')');
+            $delete->execute($ids);
+        }
         return array_map(fn (array $row): array => [
             'public_id' => (string) $row['public_id'],
             'display_name' => $this->safe((string) $row['display_name']),
             'created_at' => (string) $row['created_at'],
-        ], $statement->fetchAll());
+        ], $rows);
     }
 
     private function safe(string $value): string

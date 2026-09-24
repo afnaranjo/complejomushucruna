@@ -63,8 +63,8 @@ function initCapture() {
   const form = document.querySelector('[data-name-form]');
   const status = document.querySelector('[data-name-status]');
   const qr = document.querySelector('[data-name-qr]');
-  if (!form || !status || !qr) return false;
-  makeQr(qr, `${resolveRuntimeOrigins().siteOrigin}/finados/nombre/`);
+  if (qr) makeQr(qr, `${resolveRuntimeOrigins().siteOrigin}/finados/nombre/escribe/`);
+  if (!form || !status) return false;
   form.addEventListener('submit', (event) => { event.preventDefault(); void submitName(form, status); });
   return true;
 }
@@ -112,4 +112,7 @@ async function initScreen() {
   window.setInterval(() => void tick(), 2000);
 }
 
-if (typeof document !== 'undefined' && !initCapture()) void initScreen();
+if (typeof document !== 'undefined') {
+  const hasCapture = initCapture();
+  if (!hasCapture && document.querySelector('[data-name-screen]')) void initScreen();
+}

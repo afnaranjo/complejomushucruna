@@ -348,7 +348,15 @@ const finadosNameCapturePage = {
   title: 'Tu nombre en escena · Finados 2026',
   description: 'Comparte tu nombre y hazlo aparecer en la pantalla de Finados Mushuc Runa 2026.',
   indexable: false,
-  render: renderNameCapturePage,
+  render: () => renderNameCapturePage({ mode: 'qr' }),
+};
+
+const finadosNameWritePage = {
+  route: '/finados/nombre/escribe/',
+  title: 'Escribe tu nombre · Finados 2026',
+  description: 'Escribe el nombre que quieres compartir en la pantalla de Finados Mushuc Runa 2026.',
+  indexable: false,
+  render: () => renderNameCapturePage({ mode: 'write' }),
 };
 
 const finadosNameScreenPage = {
@@ -393,5 +401,6 @@ export const pages = Object.freeze([
   finadosDignitiesPage,
   standsAccessPage,
   finadosNameCapturePage,
+  finadosNameWritePage,
   finadosNameScreenPage,
 ]);

@@ -93,13 +93,15 @@ test('genera las rutas públicas de nombres Finados sin añadirlas al menú', as
   const output = await mkdtemp(join(tmpdir(), 'mushuc-finados-names-'));
   const files = await buildSite(output);
   assert.ok(files.includes('finados/nombre/index.html'));
+  assert.ok(files.includes('finados/nombre/escribe/index.html'));
   assert.ok(files.includes('finados/pantalla/index.html'));
 
   const capture = await readFile(join(output, 'finados/nombre/index.html'), 'utf8');
+  const write = await readFile(join(output, 'finados/nombre/escribe/index.html'), 'utf8');
   const screen = await readFile(join(output, 'finados/pantalla/index.html'), 'utf8');
   assert.match(capture, /class="[^"]*finados-names-page/);
   assert.match(screen, /class="[^"]*finados-names-page/);
-  for (const html of [capture, screen]) {
+  for (const html of [capture, write, screen]) {
     const navigation = html.match(/<nav id="navegacion-principal"[\s\S]*?<\/nav>/)?.[0] ?? '';
     assert.doesNotMatch(navigation, /\/finados\/(?:nombre|pantalla)\//);
   }
@@ -109,16 +111,18 @@ test('genera las rutas públicas de nombres Finados sin añadirlas al menú', as
   assert.match(namesCss, /prefers-reduced-motion/);
 });
 
-test('la captura de nombres incluye QR, consentimiento y assets aislados', async () => {
+test('la activación separa QR y captura de nombre con assets aislados', async () => {
   const output = await mkdtemp(join(tmpdir(), 'mushuc-finados-name-capture-'));
   await buildSite(output);
   const page = await readFile(join(output, 'finados/nombre/index.html'), 'utf8');
-  assert.match(page, /name="name"[^>]*maxlength="60"/);
-  assert.match(page, /name="consent"[^>]*required/);
+  const write = await readFile(join(output, 'finados/nombre/escribe/index.html'), 'utf8');
+  assert.doesNotMatch(page, /data-name-form/);
   assert.match(page, /data-name-qr/);
-  assert.match(page, /data-name-status[^>]*aria-live="polite"|aria-live="polite"[^>]*data-name-status/);
-  assert.match(page, /\/assets\/finados\/nombres-en-pantalla\.css\?v=20260924-nombres-1/);
-  assert.match(page, /\/assets\/finados\/nombres-en-pantalla\.js\?v=20260924-nombres-1/);
+  assert.match(write, /name="name"[^>]*maxlength="60"/);
+  assert.match(write, /name="consent"[^>]*checked[^>]*required/);
+  assert.match(write, /data-name-status[^>]*aria-live="polite"|aria-live="polite"[^>]*data-name-status/);
+  assert.match(write, /\/assets\/finados\/nombres-en-pantalla\.css\?v=20260924-nombres-2/);
+  assert.match(write, /\/assets\/finados\/nombres-en-pantalla\.js\?v=20260924-nombres-2/);
 });
 
 test('cada página entrega metadatos, canonical y un único h1', async () => {

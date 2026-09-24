@@ -1,9 +1,9 @@
 import { escapeHtml } from '../render/html.mjs';
 import { site } from '../data/site.mjs';
 
-const assetVersion = '20260924-nombres-1';
+const assetVersion = '20260924-nombres-2';
 
-function documentShell({ title, description, body, script = true }) {
+function documentShell({ title, description, body, canonicalPath, script = true }) {
   return `<!doctype html>
 <html lang="es" class="finados-names-page">
 <head>
@@ -12,7 +12,7 @@ function documentShell({ title, description, body, script = true }) {
   <title>${escapeHtml(title)}</title>
   <meta name="description" content="${escapeHtml(description)}">
   <meta name="robots" content="noindex, nofollow, noarchive">
-  <link rel="canonical" href="${escapeHtml(site.baseUrl)}${script ? '/finados/nombre/' : '/finados/pantalla/'}">
+  <link rel="canonical" href="${escapeHtml(site.baseUrl)}${canonicalPath ?? (script ? '/finados/nombre/' : '/finados/pantalla/')}">
   <link rel="icon" href="/assets/finados/favicon-finados.png" type="image/png">
   <link rel="stylesheet" href="/assets/finados/nombres-en-pantalla.css?v=${assetVersion}">
 </head>
@@ -23,25 +23,26 @@ function documentShell({ title, description, body, script = true }) {
 </html>`;
 }
 
-export function renderNameCapturePage() {
+export function renderNameCapturePage({ mode = 'qr' } = {}) {
+  const isWrite = mode === 'write';
   return documentShell({
-    title: 'Tu nombre en Finados 2026 | Mushuc Runa',
-    description: 'Comparte tu nombre y hazlo aparecer en la pantalla de Finados Mushuc Runa 2026.',
-    body: `<main class="name-capture" id="contenido">
+    title: isWrite ? 'Escribe tu nombre · Finados 2026' : 'Escanea para participar · Finados 2026',
+    description: isWrite ? 'Escribe el nombre que quieres compartir en la pantalla de Finados Mushuc Runa 2026.' : 'Escanea el código para escribir tu nombre y compartirlo en la pantalla de Finados Mushuc Runa 2026.',
+    canonicalPath: isWrite ? '/finados/nombre/escribe/' : '/finados/nombre/',
+    body: `<main class="name-capture name-capture--${isWrite ? 'write' : 'qr'}" id="contenido">
   <div class="name-capture__mist" aria-hidden="true"></div>
   <section class="name-capture__card" aria-labelledby="name-capture-title">
     <p class="name-kicker">Finados Mushuc Runa · 2026</p>
-    <h1 id="name-capture-title">Deja tu nombre en escena</h1>
-    <p class="name-capture__intro">Escanea, escribe cómo quieres aparecer y comparte este momento con la comunidad.</p>
-    <div class="name-qr" data-name-qr aria-label="Código QR para abrir esta experiencia"></div>
-    <p class="name-qr__caption">Escanea este código para participar desde tu teléfono.</p>
-    <form class="name-form" data-name-form novalidate>
+    <h1 id="name-capture-title">${isWrite ? 'Escribe tu nombre' : 'Escanea para participar'}</h1>
+    <p class="name-capture__intro">${isWrite ? 'Tu nombre aparecerá en la pantalla de Finados durante esta activación.' : 'Escanea este código y escribe tu nombre desde tu teléfono.'}</p>
+    ${isWrite ? '' : '<div class="name-qr" data-name-qr aria-label="Código QR para escribir tu nombre"></div><p class="name-qr__caption">Escanea para escribir tu nombre.</p>'}
+    ${isWrite ? `<form class="name-form" data-name-form novalidate>
       <label for="display-name">¿Cómo quieres que aparezca tu nombre?</label>
       <input id="display-name" name="name" type="text" maxlength="60" autocomplete="name" required>
-      <label class="name-consent"><input name="consent" type="checkbox" required> <span>Acepto que mi nombre aparezca públicamente en la pantalla de Finados.</span></label>
+      <label class="name-consent"><input name="consent" type="checkbox" checked required> <span>Acepto que mi nombre aparezca públicamente en la pantalla de Finados.</span></label>
       <button type="submit">Enviar a pantalla <span aria-hidden="true">↗</span></button>
       <p class="name-form__status" data-name-status aria-live="polite"></p>
-    </form>
+    </form>` : ''}
   </section>
 </main>`,
   });
