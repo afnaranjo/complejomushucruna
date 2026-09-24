@@ -1773,3 +1773,48 @@ Ejemplo: `2026-09-15_video_granja-instagram_v03.mp4`.
 - Las pruebas del menú ahora fijan que Creadoras no está en el submenú. `npm run check` en verde con 206 pruebas Node, 25 suites PHP y 10 de integración; build de 184 archivos, 62 HTML y 1884 referencias.
 - Commit `224fe1b`. Publicación externa: GitHub y frontend, con respaldo y sin borrar archivos exclusivos del servidor. Sin cambios de backend ni de base de datos.
 - Verificación en ambos dominios: la portada, Finados, Voceros y Shows no enlazan a `/finados/creadoras/`, mantienen `EMPRENDEDOR` y `/finados/creadoras/` responde 200 por enlace directo.
+
+### 2026-09-23 — Traspaso del tema Creadoras de contenido (para continuar desde Codex)
+
+Nota de relevo escrita a pedido de Alex para que otro agente (Codex) retome la sección **Creadoras** sin perder contexto. Estado al commit `ef91619`, `main` sincronizada con `origin/main`, todo publicado en producción.
+
+**Qué es y qué pidió Alex**
+- Sección para coordinar a las creadoras de contenido (influencers) de Finados 2026: quién viene, qué día y a qué hora, qué se va a grabar, qué se grabó y qué se publicó.
+- Pedidos de Alex, en orden: lista de creadoras con ficha completa (cédula, fecha de nacimiento, correo, redes, seguidores); un **calendario único** con vistas día/semana/mes donde se arrastran las cajas de los turnos; **bitácora** de cada cambio debajo; asistencia y contenido realizado dentro del turno; **cuaderno de apuntes** (guiones plegables con referencia) a la derecha del turno; **varias creadoras en una misma caja** cuando coinciden en el horario; **indicadores arriba** por creadora (videos, guiones, grabados); y, al final, **sacar `CREADORAS` del submenú** público de `FINADOS 2026` (la página se comparte solo por enlace directo).
+
+**Dónde vive el código**
+- Panel: `website/src/admin/admin-creadoras.js` (cliente, lógica y pantalla; funciones puras exportadas y probadas), HTML en `renderAdminCreadorasPage` de `website/src/admin/page.mjs`, estilos al final de `website/src/admin/admin.css`. Caché vigente: `admin-creadoras.js?v=20260923-creadoras-8`, `admin.css?v=20260923-15`. Si se cambian, subir esas versiones.
+- Portal público `noindex`: `website/src/creadoras/landing-page.mjs`, `portal-page.mjs`, `legal-page.mjs`, `website/src/finados/creadora-portal.js`, `website/src/finados/creadoras.css`. Rutas `/finados/creadoras/`, `acceso/`, `mi-registro/`, `restablecer/`, `condiciones/`, `politica-de-privacidad/` (registradas en `website/src/pages.mjs`). Ya **no** están en el menú: se quitaron de `website/src/data/site.mjs` y las pruebas de menú lo fijan.
+- Backend: `website/backend/finados-api/src/CreadoraRepository.php` (todo el dominio), `CreadoraAuth.php`, `CreadoraPasswordReset.php`, `resources/creadora-consents.json`; rutas en `Router.php` (`creadoraAccount` y `creadoraAdmin`). Se cargan bajo demanda; el artefacto de despliegue los exige.
+- Migraciones: `021_creadora_accounts`, `022_creadora_identity`, `023_creadora_shift_content`, `025_creadora_shift_script`, `026_creadora_shift_members` (cada una con `_mysql.sql` y `_sqlite.sql`). La 024 es de Noticias, no de Creadoras. En MariaDB el migrador parte por `;`: no poner `;` dentro de comentarios SQL.
+- Pruebas: `website/tests/creadoras.test.mjs` (frontend y build) y `website/backend/finados-api/tests/creadora_accounts_test.php` (flujo completo del backend; la lista de migraciones que carga está al inicio del archivo y hay que ampliarla con cada migración nueva).
+
+**API**
+- Administración (sesión admin + CSRF): `GET|POST /api/creadoras`, `GET|PATCH /api/creadoras/{id}`, `POST /api/creadoras/{id}/retirar`, `GET /api/creadoras/calendario?from&to` (turnos, creadoras, `indicators` y bitácora en una sola respuesta), `GET /api/creadoras/bitacora`, `POST /api/creadoras/turnos`, `PATCH|POST /api/creadoras/turnos/{id}` (editar | quitar), `POST|PATCH /api/creadoras/turnos/{id}/contenido` (agregar | quitar), `POST /api/creadoras/turnos/{id}/guiones`, `PATCH|POST /api/creadoras/turnos/{id}/guiones/{guion}` (editar/marcar grabado | quitar).
+- Portal (sesión `finados_creadora`): `/api/creadora/auth/{session,register,login,logout,reset}`, `GET|POST /api/creadora/profile`, `GET /api/creadora/turnos`.
+
+**Modelo y reglas que no hay que romper**
+- Un turno (`creadora_shifts`) tiene **integrantes** en `creadora_shift_members` (con asistencia propia). `creadora_shifts.creadora_id` guarda la primera integrante solo por compatibilidad. Se envía `creadoras: [ids]`; `creadora` (una sola) se sigue aceptando y reemplaza el grupo.
+- Ninguna integrante puede tener dos turnos solapados (409). Varias creadoras distintas sí pueden estar a la misma hora.
+- Asistencia: `PATCH` con `attended` (`yes`/`no`/`''`) y `attendance_for` (id de la creadora); en turnos de una sola integrante se sobreentiende. El turno resume `attended` como `yes`, `no`, `partial` o `null`.
+- Contenido: tipos `video`, `live`, `historia`, `foto`, `otro`; en turno compartido exige `creadora`. Máximo 50 por turno.
+- Guiones: `creadora` vacía = «para todas»; `recorded: true/false` marca «Ya está grabado» (`recorded_at`). Máximo 30 por turno.
+- Indicadores: por creadora cuentan turnos, asistencias, guiones (los «para todas» cuentan para cada integrante), grabados, videos y contenido total; los totales no duplican los guiones compartidos. Excluyen turnos quitados y creadoras retiradas.
+- Horas en hora de Ecuador, sin conversión; el día termina a las 23:59 (el backend no acepta `24:00`), mínimo 15 minutos por turno.
+- Quitar turnos o retirar creadoras no borra: se marca `canceled_at`/`Retirada`. Retirar a una integrante de un turno compartido deja el turno para las demás. La bitácora (`creadora_shift_log`) solo agrega; su `CHECK` de acciones existe solo en SQLite (acciones válidas: `created, moved, resized, reassigned, edited, canceled, restored, attendance, content`); agregar una acción nueva obliga a recrear esa tabla en la migración SQLite.
+- Cédula, fecha de nacimiento, correo y WhatsApp van cifrados; la cédula no se repite entre fichas activas (409).
+
+**Estado en producción (verificado 2026-09-23)**
+- Backend y frontend publicados en `complejomushucruna.com` / `finados.complejomushucruna.com` y en el espejo `finados.expoferiamushucruna.com` / `api.expoferiamushucruna.com`. Migración 026 aplicada: 5 turnos con sus 5 integrantes, 3 creadoras, 0 guiones y 0 contenidos todavía.
+- `/finados/creadoras/` responde 200 por enlace directo y no aparece en el menú.
+
+**Cómo verificar y publicar**
+- `cd website && npm run check` (Node + PHP + integración + build + `check-dist`); todo en verde al cierre: 206 Node, 25 PHP, 10 integración.
+- Publicar siempre desde `main` limpia y sincronizada, y **solo con autorización expresa de Alex**: `ssh-add --apple-load-keychain` y luego `npm run backend:deploy` (si cambia backend o hay migración) y después `npm run deploy`. Los dos crean respaldo y no borran archivos exclusivos. No tocar `.env.deploy`, llaves ni credenciales, ni copiarlos al repositorio.
+- Para comprobar datos en producción usar solo consultas en `START TRANSACTION READ ONLY` y conteos, sin datos personales.
+
+**Pendientes del tema**
+- Revisión visual de Alex en producción: arrastre de cajas, casillas de varias creadoras, soltar un nombre sobre una caja, asistencia por creadora, «Ya está grabado» e indicadores. No se pudo revisar en navegador desde la sesión de Claude.
+- Corregir la Política de Privacidad de Creadoras (`legal-page.mjs` y `creadora-consents.json`) para declarar cédula, fecha de nacimiento y correo de contacto antes de difundir el registro; definir el consentimiento del representante si se registra una persona menor de edad.
+- La bitácora registra todo a nombre de `admin` porque existe una sola cuenta administrativa; distinguir personas requiere cuentas por persona.
+- Posibles mejoras no pedidas todavía: filtrar los indicadores por rango de fechas y abrir la lista de turnos de una creadora al tocar su tarjeta.
