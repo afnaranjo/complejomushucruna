@@ -256,6 +256,7 @@ tags:
 - [x] Retirar de `/finados/` la candidatura de Las Diablitas Taz Taz y acoplar a Karina Chango, Kramelo Latino y Las Ñañas en tres columnas responsivas; publicar GitHub y frontend con respaldo y verificación en ambos dominios. Responsable: tecnología/diseño. Completado: 2026-09-23. Evidencia: [[11_eventos/2026_feria-finados/10_tecnologia-datos/2026-09-23_retiro-diablitas-ajuste-tres-candidatas-web_v01|Retiro de Las Diablitas y ajuste de tres candidatas]].
 - [ ] Ratificar en la sección Noticias las fechas definitivas de cada tramo del mapa de campaña; hoy están cargadas las del mapa maestro de la presentación. Responsable: Alex/dirección. Fecha: por definir.
 - [x] Extender a todo el ancho la franja oficial de auspiciantes en FINADOS y SHOWS, conservar el contenido del pie y validar escritorio/móvil en ambos dominios. Responsable: tecnología/diseño. Completado: 2026-09-23. Evidencia: [[11_eventos/2026_feria-finados/10_tecnologia-datos/2026-09-23_franja-auspiciantes-ancho-completo-web_v01|Franja de auspiciantes a ancho completo]].
+- [x] Actualizar la franja oficial de auspiciantes con SanFra y Bogati y reemplazar su movimiento por una apertura central tipo telón, una sola vez y compatible con movimiento reducido; publicar y verificar FINADOS y SHOWS en ambos dominios. Responsable: tecnología/diseño. Completado: 2026-09-24. Evidencia: [[11_eventos/2026_feria-finados/10_tecnologia-datos/2026-09-24_actualizacion-auspiciantes-animacion-telon-web_v01|Actualización de auspiciantes y animación tipo telón]].
 
 ## Regla
 

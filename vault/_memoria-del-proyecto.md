@@ -447,3 +447,11 @@ El 28 de agosto quedó confirmado `¡LEGADO QUE NOS UNE!` como eslogan gráfico 
 - Se reutilizó el SVG oficial ya versionado y su WebP optimizado; `R:` no estuvo montado y no se sustituyó el contenido del arte. La caché pasó a `20260923-sponsors-6`.
 - Commit técnico `5f5d174`, GitHub y frontend publicados con respaldo. QA: 205 pruebas Node, 25 suites PHP, 10 de integración, 184 archivos y 1.934 referencias; ambos dominios entregan FINADOS y SHOWS con la nueva versión, CSS de ancho completo y el arte idéntico al build. Sin backend, migraciones ni cambios de datos. Evidencia: [[11_eventos/2026_feria-finados/10_tecnologia-datos/2026-09-23_franja-auspiciantes-ancho-completo-web_v01|Franja de auspiciantes a ancho completo]].
 - 2026-09-24: Se implementó en rama aislada la experiencia QR de nombres en pantalla para Finados 2026. Incluye `/finados/nombre/`, `/finados/pantalla/`, cola temporal con consentimiento, animación de protagonista y hasta seis nombres secundarios, responsive y modo de movimiento reducido. No se añadió al menú ni se desplegó. Especificación: [[../docs/superpowers/specs/2026-09-24-nombres-en-pantalla-finados-design|Especificación de nombres en pantalla]].
+
+### 2026-09-24 — Nuevos auspiciantes y animación tipo telón
+
+- Alex entregó el nuevo `logos auspiciantes.svg`. La composición oficial conserva el formato `2321 × 650` e incorpora SanFra y Bogati; FINADOS y SHOWS comparten el WebP optimizado y la caché `20260924-sponsors-7`.
+- La franja mantiene el ancho completo y ahora se revela una sola vez desde el centro, como un telón, sin movimiento perpetuo. El modo de movimiento reducido la muestra inmediatamente.
+- Commit técnico `d611272`, GitHub y frontend publicados con respaldo. QA: 214 pruebas Node, 26 suites PHP, 10 de integración, 203 archivos y 2.012 referencias; revisión visual en escritorio y móvil.
+- Los dos dominios entregan FINADOS y SHOWS con HTTP 200, SanFra y Bogati, CSS nuevo y arte remoto idéntico al build. Sin migraciones ni cambios de base de datos. Evidencia: [[11_eventos/2026_feria-finados/10_tecnologia-datos/2026-09-24_actualizacion-auspiciantes-animacion-telon-web_v01|Actualización de auspiciantes y animación tipo telón]].
+- El despliegue completo publicó además `/finados/mfs/`, ya presente en `origin/main`; la ruta respondió HTTP 200 en ambos dominios.
