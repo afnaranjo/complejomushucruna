@@ -1902,3 +1902,8 @@ Nota de relevo escrita a pedido de Alex para que otro agente (Codex) retome la s
 
 - Alex pidió el botón de inicio de sesión en la landing `/finados/mfs/`. La portada muestra ahora «Inscríbete gratis» y «Iniciar sesión» (hacia `/finados/mfs/acceso/?modo=login`); «Ver las bases» pasa a enlace de texto. Caché `20260924-mfs-3`. Solo frontend; sin cambios de backend ni datos.
 - QA: prueba de la landing ampliada, `npm run check` completo en el prevuelo del despliegue y revisión visual en 1440 px y 375 px.
+
+### 2026-09-24 — Legibilidad tipográfica de la landing de Mushuc Freestyle
+
+- Alex indicó que Badeen Display le agrada, pero en datos importantes no se lee bien. Queda solo para marca: títulos de sección, «REGRESA» y el sello de edición. Pasan a Inter extra negrita: botones, cinta, subtítulos, números de pasos, montos de premios y el título «Más de USD 950 en premios» (los dígitos de Badeen se confundían: «950» parecía «q50»). Caché `20260924-mfs-4`. Solo frontend.
+- QA: prueba nueva que fija qué elementos usan Inter y cuáles Badeen, `npm run check` en el prevuelo del despliegue y revisión visual en 1440 px.

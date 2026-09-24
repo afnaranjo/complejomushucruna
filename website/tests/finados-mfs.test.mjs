@@ -122,3 +122,13 @@ test('Mushuc Freestyle aparece en el panel debajo de Creadoras', () => {
   assert.match(markup, /admin-mfs\.js\?v=/);
   assert.match(markup, /data-admin-restore/);
 });
+
+test('Badeen Display queda solo para títulos de marca; lo que hay que leer va en Inter', async () => {
+  const css = await readFile(new URL('../src/finados/mfs.css', import.meta.url), 'utf8');
+  const rule = selector => css.match(new RegExp(`(?:^|\\n)${selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} \\{[^}]*\\}`))?.[0] ?? '';
+  for (const selector of ['.mfs-button', '.mfs-ticker span', '.mfs-prize strong', '.mfs-steps b', '.mfs-page h3', '.mfs-page .mfs-prizes h2']) {
+    assert.match(rule(selector), /"Inter"/, selector);
+    assert.doesNotMatch(rule(selector), /Badeen/, selector);
+  }
+  assert.match(rule('.mfs-regresa'), /Badeen Display/);
+});

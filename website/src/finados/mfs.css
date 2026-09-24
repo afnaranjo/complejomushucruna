@@ -1,4 +1,5 @@
-/* MUSHUC FREESTYLE only: línea gráfica propia (azul, lima, crema y Badeen Display). */
+/* MUSHUC FREESTYLE only: línea gráfica propia (azul, lima, crema).
+   Badeen Display solo para títulos de marca; lo que hay que leer va en Inter. */
 @font-face {
   font-family: "Badeen Display";
   font-style: normal;
@@ -17,12 +18,13 @@
   color: var(--mfs-cream);
   overflow-x: hidden;
 }
-.mfs-page h1, .mfs-page h2, .mfs-page h3 { font-family: "Badeen Display", "Arial Black", sans-serif; font-weight: 400; letter-spacing: -.01em; }
+.mfs-page h1, .mfs-page h2 { font-family: "Badeen Display", "Arial Black", sans-serif; font-weight: 400; letter-spacing: -.01em; }
+.mfs-page h3 { font-family: "Inter", sans-serif; font-weight: 800; letter-spacing: -.01em; }
 .mfs-wrap { width: min(calc(100% - 32px), 76rem); margin: 0 auto; }
 .mfs-kicker { margin: 0 0 .9rem; font: 800 .75rem/1.4 "Inter", sans-serif; letter-spacing: .18em; text-transform: uppercase; color: var(--mfs-lime); }
 
 /* Botones: bloque lima con sombra dura azul, como las placas del arte. */
-.mfs-button { display: inline-flex; align-items: center; gap: 1rem; padding: 1rem 1.5rem; border: 3px solid var(--mfs-lime); border-radius: 14px; background: var(--mfs-lime); color: var(--mfs-blue); box-shadow: 5px 5px 0 #0a1c3f; font: 400 1.25rem/1.1 "Badeen Display", "Arial Black", sans-serif; text-decoration: none; text-transform: lowercase; transition: transform .18s, box-shadow .18s; }
+.mfs-button { display: inline-flex; align-items: center; gap: 1rem; padding: 1rem 1.5rem; border: 3px solid var(--mfs-lime); border-radius: 14px; background: var(--mfs-lime); color: var(--mfs-blue); box-shadow: 5px 5px 0 #0a1c3f; font: 800 1rem/1.2 "Inter", sans-serif; letter-spacing: .01em; text-decoration: none; transition: transform .18s, box-shadow .18s; }
 .mfs-button:hover { transform: translate(3px, 3px); box-shadow: 2px 2px 0 var(--mfs-deep); }
 .mfs-button:focus-visible { outline: 3px solid var(--mfs-cream); outline-offset: 3px; }
 .mfs-button--ghost { background: transparent; color: var(--mfs-lime); box-shadow: none; }
@@ -34,8 +36,8 @@
   min-height: clamp(640px, 92svh, 860px);
   padding: 130px 0 3.5rem;
   background:
-    url("/assets/finados/mfs/mfs-letras.svg?v=20260924-mfs-3") right -14rem top -4rem / min(78vw, 1020px) auto no-repeat,
-    url("/assets/finados/mfs/mfs-fondo-1600.webp?v=20260924-mfs-3") center / cover no-repeat,
+    url("/assets/finados/mfs/mfs-letras.svg?v=20260924-mfs-4") right -14rem top -4rem / min(78vw, 1020px) auto no-repeat,
+    url("/assets/finados/mfs/mfs-fondo-1600.webp?v=20260924-mfs-4") center / cover no-repeat,
     var(--mfs-blue);
 }
 .mfs-hero::after { content: ""; position: absolute; inset: 0; z-index: 1; border: clamp(8px, 1.1vw, 14px) solid var(--mfs-lime); pointer-events: none; }
@@ -61,23 +63,25 @@
 /* Cinta lima en movimiento */
 .mfs-ticker { overflow: hidden; background: var(--mfs-lime); color: var(--mfs-blue); border-block: 4px solid var(--mfs-deep); }
 .mfs-ticker-track { display: flex; align-items: center; gap: 1.5rem; width: max-content; padding: .8rem 0; animation: mfs-ticker 32s linear infinite; }
-.mfs-ticker span { font: 400 clamp(1.1rem, 2vw, 1.5rem)/1 "Badeen Display", sans-serif; text-transform: lowercase; white-space: nowrap; }
+.mfs-ticker span { font: 800 clamp(.95rem, 1.6vw, 1.15rem)/1 "Inter", sans-serif; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
 .mfs-ticker img { width: 24px; height: 24px; filter: brightness(0) saturate(100%) invert(17%) sepia(45%) saturate(2400%) hue-rotate(205deg); }
 @keyframes mfs-ticker { to { transform: translateX(-50%); } }
 
 /* Secciones */
 .mfs-editorial, .mfs-prizes, .mfs-signup, .mfs-rules, .mfs-visit, .mfs-art { padding: clamp(3.5rem, 8vw, 6.5rem) 0; }
-.mfs-page h2 { margin: 0; font-size: clamp(2.4rem, 6vw, 4.6rem); line-height: 1; text-transform: lowercase; color: var(--mfs-lime); }
+.mfs-page h2 { margin: 0; font-size: clamp(2.4rem, 6vw, 4.6rem); line-height: 1; text-transform: uppercase; letter-spacing: .01em; color: var(--mfs-lime); }
 .mfs-editorial-grid, .mfs-rules-grid, .mfs-visit-grid, .mfs-art-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: clamp(2rem, 5vw, 4rem); align-items: start; }
 .mfs-editorial-copy p { margin: 0 0 1.1rem; font-size: clamp(1.05rem, 1.6vw, 1.3rem); line-height: 1.6; }
 .mfs-plaza-logo { width: 140px; height: auto; margin-top: .5rem; }
 
 .mfs-prizes { background: var(--mfs-lime); color: var(--mfs-blue); }
 .mfs-prizes .mfs-kicker, .mfs-prizes h2 { color: var(--mfs-blue); }
+/* Con cifras, el título va en Inter: los números de Badeen se confunden (950 parecía q50). */
+.mfs-page .mfs-prizes h2 { font: 900 clamp(2.2rem, 5.4vw, 4.2rem)/1.02 "Inter", sans-serif; letter-spacing: -.03em; text-transform: none; }
 .mfs-prize-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; margin: 2.5rem 0 1.5rem; padding: 0; list-style: none; }
 .mfs-prize { display: grid; gap: .6rem; padding: 1.5rem; border-radius: 18px; background: var(--mfs-blue); color: var(--mfs-cream); box-shadow: 6px 6px 0 var(--mfs-deep); }
 .mfs-prize span { font: 800 italic 1.1rem/1 "Inter", sans-serif; }
-.mfs-prize strong { font: 400 clamp(3rem, 7vw, 5.4rem)/1 "Badeen Display", sans-serif; color: var(--mfs-lime); }
+.mfs-prize strong { font: 900 clamp(2.8rem, 6vw, 4.6rem)/1 "Inter", sans-serif; font-variant-numeric: tabular-nums; letter-spacing: -.03em; color: var(--mfs-lime); }
 .mfs-prize strong small { font-size: .5em; margin-right: .1em; }
 .mfs-prize--1 { transform: translateY(-.6rem); }
 .mfs-extras { display: flex; flex-wrap: wrap; gap: .6rem; margin: 0 0 1.5rem; padding: 0; list-style: none; }
@@ -88,8 +92,8 @@
 
 .mfs-steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; margin: 2.5rem 0; padding: 0; list-style: none; counter-reset: none; }
 .mfs-steps li { padding: 1.4rem; border: 3px solid var(--mfs-lime); border-radius: 18px; background: rgba(15, 40, 86, .55); }
-.mfs-steps b { display: block; font: 400 2.4rem/1 "Badeen Display", sans-serif; color: var(--mfs-lime); }
-.mfs-steps h3 { margin: .8rem 0 .5rem; font-size: 1.35rem; line-height: 1.1; text-transform: lowercase; }
+.mfs-steps b { display: block; font: 900 2.2rem/1 "Inter", sans-serif; font-variant-numeric: tabular-nums; letter-spacing: -.02em; color: var(--mfs-lime); }
+.mfs-steps h3 { margin: .8rem 0 .5rem; font-size: 1.15rem; line-height: 1.2; }
 .mfs-steps p { margin: 0; font-size: .95rem; line-height: 1.55; }
 .mfs-signup-status { padding: 1.2rem 1.4rem; border-radius: 14px; background: var(--mfs-cream); color: var(--mfs-blue); }
 .mfs-signup-status p { margin: 0 0 1rem; line-height: 1.55; }
@@ -107,7 +111,7 @@
 
 .mfs-visit p { margin: 1rem 0 1.5rem; line-height: 1.6; }
 .mfs-sponsor { padding: 1.8rem; border-radius: 20px; border: 3px dashed var(--mfs-lime); }
-.mfs-sponsor h3 { margin: 0; font-size: clamp(1.6rem, 3vw, 2.2rem); color: var(--mfs-lime); text-transform: lowercase; }
+.mfs-sponsor h3 { margin: 0; font-size: clamp(1.4rem, 2.6vw, 1.8rem); color: var(--mfs-lime); }
 
 .mfs-art { background: var(--mfs-cream); color: var(--mfs-blue); }
 .mfs-art .mfs-kicker { color: var(--mfs-blue); }
