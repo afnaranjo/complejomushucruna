@@ -12,7 +12,7 @@ use Finados\Router;
 $planRoot = tempnam(sys_get_temp_dir(), 'finados-plan-');
 if ($planRoot === false || !unlink($planRoot) || !mkdir($planRoot, 0700)) throw new RuntimeException('Unable to create plan test root.');
 register_shutdown_function(static function () use ($planRoot): void {
-    foreach (glob($planRoot . '/*') ?: [] as $file) unlink($file);
+    foreach (glob($planRoot . '/*') ?: [] as $file) is_dir($file) ? null : unlink($file);
     rmdir($planRoot);
 });
 file_put_contents($planRoot . '/config.json', json_encode([
@@ -85,6 +85,45 @@ $payload = json_encode(['data' => $big, 'version' => 2]);
 same(true, strlen($payload) > 16384);
 same(3, $decode($router->handle('POST', '/api/media-plan', $post($csrf), $payload))['version']);
 
+// Guion de la voz y audio de cada spot.
+$store = new Finados\MediaPlanStore($pdo, new Finados\Audit($pdo, new Finados\Crypto($config)), $planRoot);
+$wav = $planRoot . '/voz.wav';
+$samples = str_repeat(pack('v', 0), 800);
+file_put_contents($wav, 'RIFF' . pack('V', 36 + strlen($samples)) . 'WAVEfmt ' . pack('VvvVVvv', 16, 1, 1, 8000, 16000, 2, 16) . 'data' . pack('V', strlen($samples)) . $samples);
+$audio = $store->saveAudio($wav, filesize($wav), 'Spot general "final".wav', 1, '192.0.2.60');
+same(true, (bool) preg_match('/^[a-f0-9]{32}$/', $audio['id']));
+same('Spot general final.wav', $audio['name']);
+same(true, in_array($audio['type'], ['audio/x-wav', 'audio/wav', 'audio/wave'], true));
+same(1, (int) $pdo->query("SELECT COUNT(*) FROM audit_log WHERE event_type = 'media.plan_audio_uploaded'")->fetchColumn());
+// Un archivo que no es audio se rechaza aunque se llame .mp3.
+$fake = $planRoot . '/falso.mp3';
+file_put_contents($fake, '<?php echo 1;');
+throws(static fn () => $store->saveAudio($fake, filesize($fake), 'falso.mp3', 1, '192.0.2.60'), InvalidArgumentException::class);
+throws(static fn () => $store->saveAudio($wav, Finados\MediaPlanStore::AUDIO_BYTES + 1, 'grande.wav', 1, '192.0.2.60'), InvalidArgumentException::class);
+// El spot guarda su guion (con saltos de línea) y la referencia al audio.
+$withAudio = $plan;
+$withAudio['spots'][0]['script'] = "LOCUTOR: ¡Llega Finados 2026!\nDel 30 de octubre al 2 de noviembre.";
+$withAudio['spots'][0]['audio'] = $audio;
+$savedAudio = $decode($router->handle('POST', '/api/media-plan', $post($csrf), json_encode(['data' => $withAudio, 'version' => 3])));
+same("LOCUTOR: ¡Llega Finados 2026!\nDel 30 de octubre al 2 de noviembre.", $savedAudio['data']['spots'][0]['script']);
+same($audio['id'], $savedAudio['data']['spots'][0]['audio']['id']);
+$badAudio = $withAudio; $badAudio['spots'][0]['audio']['type'] = 'application/pdf';
+same(422, $router->handle('POST', '/api/media-plan', $post($csrf), json_encode(['data' => $badAudio, 'version' => 4]))->status);
+$longScript = $withAudio; $longScript['spots'][0]['script'] = str_repeat('a', Finados\MediaPlanStore::SCRIPT_CHARS + 1);
+same(422, $router->handle('POST', '/api/media-plan', $post($csrf), json_encode(['data' => $longScript, 'version' => 4]))->status);
+// Descarga: el mismo archivo, como adjunto, sin caché y con el nombre original.
+$download = $router->handle('GET', '/api/media-plan/audio/' . $audio['id'], $origin);
+same(200, $download->status);
+same(file_get_contents($wav), $download->body);
+same('private, no-store', $download->headers['Cache-Control']);
+same(true, str_starts_with($download->headers['Content-Disposition'], 'attachment; filename="Spot general final.wav"'));
+same(404, $router->handle('GET', '/api/media-plan/audio/' . str_repeat('0', 32), $origin)->status);
+// La subida exige multipart y un archivo realmente recibido por PHP.
+same(415, $router->handle('POST', '/api/media-plan/audio', $post($csrf), '{}')->status);
+same(422, $router->handle('POST', '/api/media-plan/audio', [...$origin, 'CONTENT_TYPE' => 'multipart/form-data; boundary=x', 'HTTP_X_CSRF_TOKEN' => $csrf], '', [], ['audio' => ['tmp_name' => $wav, 'size' => filesize($wav), 'error' => UPLOAD_ERR_OK, 'name' => 'x.wav']])->status);
+same(413, $router->handle('POST', '/api/media-plan/audio', [...$origin, 'CONTENT_TYPE' => 'multipart/form-data; boundary=x', 'CONTENT_LENGTH' => (string) (Finados\MediaPlanStore::AUDIO_BYTES * 2), 'HTTP_X_CSRF_TOKEN' => $csrf], '', [], [])->status);
+foreach (glob($planRoot . '/media-plan-audio/*') ?: [] as $file) unlink($file);
+rmdir($planRoot . '/media-plan-audio');
 if (session_status() === PHP_SESSION_ACTIVE) session_write_close();
 session_id('');
 $_SESSION = [];

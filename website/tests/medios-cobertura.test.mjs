@@ -58,7 +58,7 @@ test('el build publica el submenú Eventos de Medios, el alta desde coordinació
   assert.match(admin, /<textarea name="tv_channel"/);
   assert.match(admin, /name="audience_count"/);
   assert.match(admin, /<select name="radio_genre">/);
-  assert.match(admin, /admin-medios\.js\?v=20260925-admin-medios-24/);
+  assert.match(admin, /admin-medios\.js\?v=20260925-admin-medios-25/);
   // Portal: invitation notice on access, suggestion and pending-claim notices on the profile.
   const access = await readFile(join(output, 'finados/medios/acceso/index.html'), 'utf8');
   assert.match(access, /data-media-invitation hidden/);

@@ -95,20 +95,22 @@ export function createMediaAdminClient(baseUrl = API, fetchImplementation = fetc
     if (!/^\/(?:auth\/(?:session|logout)|panel|redes-sociales|media-plan|media-accounts|media-claims|media-events|medios(?:\/export)?)(?:\?[^#]*)?$/.test(path)
       && !/^\/medios\/[a-f0-9]{32}(?:\/(?:delete|notes|password-reset|video-views|videos|photo|details|invite|claim\/(?:approve|reject)))?$/.test(path)
       && !/^\/media-events\/[a-f0-9]{32}(?:\/coverage\/[a-f0-9]{32})?$/.test(path)
-      && !/^\/media-accounts\/[a-f0-9]{32}\/delete$/.test(path)) throw new Error('Ruta de API no permitida.');
+      && !/^\/media-accounts\/[a-f0-9]{32}\/delete$/.test(path)
+      && !/^\/media-plan\/audio(?:\/[a-f0-9]{32})?$/.test(path)) throw new Error('Ruta de API no permitida.');
     const method = (options.method ?? 'GET').toUpperCase();
     if (!['GET', 'POST', 'PATCH'].includes(method)) throw new Error('Método no permitido.');
-    const headers = { Accept: !options.blob ? 'application/json' : path.endsWith('/photo') ? 'image/jpeg' : 'text/csv' };
+    const headers = { Accept: !options.blob ? 'application/json' : path.endsWith('/photo') ? 'image/jpeg' : path.includes('/audio/') ? 'audio/*' : 'text/csv' };
     if (method !== 'GET') {
       if (!csrf) throw new MediaAdminError(403);
       headers['X-CSRF-Token'] = csrf;
-      headers['Content-Type'] = 'application/json';
+      // Con un archivo, el navegador arma el multipart y su separador.
+      if (!options.form) headers['Content-Type'] = 'application/json';
     }
     let response;
     try {
       response = await fetchImplementation(`${baseUrl}${path}`, {
         method, credentials: 'include', cache: 'no-store', redirect: 'error', referrerPolicy: 'no-referrer', headers,
-        ...(options.body === undefined ? {} : { body: JSON.stringify(options.body) }),
+        ...(options.form ? { body: options.form } : options.body === undefined ? {} : { body: JSON.stringify(options.body) }),
       });
     } catch { throw new MediaAdminError(0); }
     if (!response.ok) throw new MediaAdminError(response.status);
@@ -146,6 +148,8 @@ export function createMediaAdminClient(baseUrl = API, fetchImplementation = fetc
     panel: () => request('/panel'),
     mediaPlan: () => request('/media-plan'),
     saveMediaPlan: (data, version) => request('/media-plan', { method: 'POST', body: { data, version } }),
+    uploadMediaPlanAudio: file => { const form = new FormData(); form.append('audio', file, file.name); return request('/media-plan/audio', { method: 'POST', form }); },
+    mediaPlanAudio: id => request(`/media-plan/audio/${id}`, { blob: true }),
     social: (from, to, refresh = false) => request('/redes-sociales?' + new URLSearchParams({ from, to, ...(refresh ? { refresh: '1' } : {}) })),
     events: () => request('/media-events'),
     createEvent: body => request('/media-events', { method: 'POST', body }),

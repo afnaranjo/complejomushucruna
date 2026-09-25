@@ -1,6 +1,6 @@
 import { resolveRuntimeOrigins } from '../finados/runtime-origins.mjs';
 // Mismo cliente administrativo que Medios: lista de rutas permitidas, CSRF y sesión compartidos.
-import { createMediaAdminClient } from './admin-medios.js?v=20260925-admin-medios-24';
+import { createMediaAdminClient } from './admin-medios.js?v=20260925-admin-medios-25';
 
 const LOCAL_API = 'http://127.0.0.1:4174/api';
 
@@ -94,11 +94,18 @@ export function textColorFor(hex) {
 export function importedPlan(value) {
   if (!value || typeof value !== 'object' || !['spots', 'assignments', 'media', 'plans'].every(key => Array.isArray(value[key]))) throw new Error('El archivo no es un respaldo del calendario.');
   return {
-    spots: value.spots.map(spot => ({ id: String(spot.id), qty: Number.parseInt(spot.qty, 10) || 1, name: String(spot.name ?? ''), desc: String(spot.desc ?? ''), color: String(spot.color ?? '#94165e'), national: !!spot.national, regional: !!spot.regional, local: !!spot.local })),
+    spots: value.spots.map(spot => ({ id: String(spot.id), qty: Number.parseInt(spot.qty, 10) || 1, name: String(spot.name ?? ''), desc: String(spot.desc ?? ''), color: String(spot.color ?? '#94165e'), national: !!spot.national, regional: !!spot.regional, local: !!spot.local, script: String(spot.script ?? ''), audio: spot.audio && typeof spot.audio === 'object' ? spot.audio : null })),
     assignments: value.assignments.map(item => ({ id: String(item.id), spotId: String(item.spotId), weekId: String(item.weekId), start: String(item.start), end: String(item.end), note: String(item.note ?? '') })),
     media: value.media.map(item => ({ id: String(item.id), name: String(item.name ?? ''), type: MEDIA_TYPES.includes(item.type) ? item.type : 'Otro', coverage: COVERAGES.includes(item.coverage) ? item.coverage : 'Local', city: String(item.city ?? ''), program: String(item.program ?? ''), contact: String(item.contact ?? ''), rate: Number(item.rate) || 0, status: item.status === 'pending' ? 'pending' : 'active', notes: String(item.notes ?? ''), sourceId: /^[a-f0-9]{32}$/.test(item.sourceId ?? '') ? item.sourceId : '' })),
     plans: value.plans.map(item => ({ id: String(item.id), mediaId: String(item.mediaId), spotId: String(item.spotId), start: String(item.start), end: String(item.end), freq: Number.parseInt(item.freq, 10) || 1, cost: Number(item.cost) || 0, objective: String(item.objective ?? '') })),
   };
+}
+
+/** «1,2 MB», «640 KB». */
+export function fileSize(bytes) {
+  const value = Number(bytes) || 0;
+  if (value >= 1024 * 1024) return `${new Intl.NumberFormat('es-EC', { maximumFractionDigits: 1 }).format(value / 1024 / 1024)} MB`;
+  return `${Math.max(1, Math.round(value / 1024))} KB`;
 }
 
 export function shortDate(value) {
@@ -255,6 +262,8 @@ export async function initializeMediaPlan() {
   const sidebarUser = document.querySelector('[data-admin-sidebar-user]');
   const feedback = (element, message, kind = '') => { element.textContent = message; element.dataset.error = String(kind === 'error'); element.dataset.success = String(kind === 'success'); };
   const fail = error => { if (error.status === 401) { location.replace('/admin/'); return; } feedback(status, error.message, 'error'); };
+  const numberFormat = new Intl.NumberFormat('es-EC');
+  const saveBlob = (blob, name) => { const link = node('a'); link.href = URL.createObjectURL(blob); link.download = name; document.body.append(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(link.href), 4000); };
   let toastTimer = 0;
   const toast = message => { toastLine.textContent = message; toastLine.dataset.show = 'true'; clearTimeout(toastTimer); toastTimer = setTimeout(() => { toastLine.dataset.show = 'false'; }, 2200); };
 
@@ -335,11 +344,15 @@ export async function initializeMediaPlan() {
     const kpis = $('[data-spot-kpis]'); kpis.replaceChildren();
     for (const [label, value] of spotKpis(state)) { const box = node('div', undefined, 'mc-kpi'); box.append(node('span', label), node('strong', value)); kpis.append(box); }
     const body = $('[data-spot-rows]'); body.replaceChildren();
-    if (!state.spots.length) { const row = node('tr'); const cell = node('td', 'Aún no hay spots. Usa «+ Añadir spot».', 'mc-empty'); cell.colSpan = 7; row.append(cell); body.append(row); return; }
+    if (!state.spots.length) { const row = node('tr'); const cell = node('td', 'Aún no hay spots. Usa «+ Añadir spot».', 'mc-empty'); cell.colSpan = 8; row.append(cell); body.append(row); return; }
     for (const spot of state.spots) {
       const row = node('tr');
       const name = node('td'); const swatch = node('span', undefined, 'mc-swatch'); tint(swatch, spot.color); name.append(swatch, node('strong', spot.name));
-      row.append(node('td', spot.qty, 'mc-num'), name, node('td', spot.desc || '—'));
+      const voice = node('td', undefined, 'mc-voice-cell');
+      voice.append(node('span', spot.script ? 'Guion ✓' : 'Sin guion', `mc-pill${spot.script ? ' mc-pill--local' : ''}`));
+      if (spot.audio) voice.append(button(`⬇ ${spot.audio.name}`, 'button-quiet mc-small mc-audio-download', () => downloadAudio(spot.audio), `Descargar el audio de ${spot.name}`));
+      else voice.append(node('span', 'Sin audio', 'mc-pill'));
+      row.append(node('td', spot.qty, 'mc-num'), name, node('td', spot.desc || '—'), voice);
       for (const key of ['national', 'regional', 'local']) { const cell = node('td'); if (spot[key]) { const check = node('span', '✓', 'mc-yes'); check.setAttribute('aria-label', 'Sí'); cell.append(check); } else cell.append(node('span', '—', 'mc-no')); row.append(cell); }
       const actions = node('td', undefined, 'mc-actions');
       actions.append(button('Editar', 'button-quiet mc-small', () => openSpot(spot.id)), button('Eliminar', 'button-quiet mc-small mc-danger', () => deleteSpot(spot.id)));
@@ -352,14 +365,75 @@ export async function initializeMediaPlan() {
     form.dataset.id = id; dialogs.spot.querySelector('[data-dialog-title]').textContent = spot ? 'Editar spot' : 'Añadir spot';
     form.elements.qty.value = spot?.qty ?? 1; form.elements.name.value = spot?.name ?? ''; form.elements.desc.value = spot?.desc ?? ''; form.elements.color.value = spot?.color ?? '#94165e';
     for (const key of ['national', 'regional', 'local']) form.elements[key].checked = !!spot?.[key];
+    form.elements.script.value = spot?.script ?? '';
+    form.dataset.newId = spot ? '' : uid('spot');
+    pendingAudio = spot?.audio ?? null;
+    updateScriptCount(); renderAudioBox(); feedback(audioStatus, 'MP3, WAV, M4A, AAC, OGG o FLAC · hasta 30 MB.');
     dialogs.spot.showModal();
   }
+
+  /* Guion de la voz y audio del spot */
+  const spotForm = formOf('spot');
+  const scriptCount = dialogs.spot.querySelector('[data-script-count]');
+  const audioCurrent = dialogs.spot.querySelector('[data-audio-current]');
+  const audioStatus = dialogs.spot.querySelector('[data-audio-status]');
+  const audioPlayer = dialogs.spot.querySelector('[data-audio-player]');
+  const audioListen = dialogs.spot.querySelector('[data-audio-listen]');
+  const audioDownload = dialogs.spot.querySelector('[data-audio-download]');
+  const audioInput = dialogs.spot.querySelector('[data-audio-input]');
+  const audioUploadLabel = dialogs.spot.querySelector('[data-audio-upload-label]');
+  let pendingAudio = null; let playerUrl = '';
+  const updateScriptCount = () => { scriptCount.textContent = `${numberFormat.format(spotForm.elements.script.value.length)} / 8.000`; };
+  spotForm.elements.script.addEventListener('input', updateScriptCount);
+  function resetPlayer() { if (playerUrl) URL.revokeObjectURL(playerUrl); playerUrl = ''; audioPlayer.removeAttribute('src'); audioPlayer.hidden = true; }
+  function renderAudioBox() {
+    resetPlayer();
+    audioCurrent.textContent = pendingAudio ? `${pendingAudio.name} · ${fileSize(pendingAudio.size)}` : 'Todavía no hay audio.';
+    audioListen.hidden = audioDownload.hidden = !pendingAudio;
+    audioUploadLabel.textContent = pendingAudio ? 'Reemplazar audio' : 'Subir audio';
+  }
+  async function audioBlob(audio) {
+    const blob = await client.mediaPlanAudio(audio.id);
+    return blob.type ? blob : new Blob([blob], { type: audio.type });
+  }
+  async function downloadAudio(audio) {
+    try { saveBlob(await audioBlob(audio), audio.name); toast('Descargando audio'); }
+    catch (error) { if (error.status === 401) location.replace('/admin/'); else toast(error.status === 404 ? 'No se encontró el audio en el servidor.' : error.message); }
+  }
+  audioListen.addEventListener('click', async () => {
+    if (!pendingAudio) return;
+    feedback(audioStatus, 'Cargando audio…');
+    try {
+      resetPlayer(); playerUrl = URL.createObjectURL(await audioBlob(pendingAudio));
+      audioPlayer.src = playerUrl; audioPlayer.hidden = false; feedback(audioStatus, '');
+      audioPlayer.play().catch(() => {});
+    } catch (error) { feedback(audioStatus, error.status === 404 ? 'No se encontró el audio en el servidor.' : error.message, 'error'); }
+  });
+  audioDownload.addEventListener('click', () => { if (pendingAudio) downloadAudio(pendingAudio); });
+  audioInput.addEventListener('change', async () => {
+    const file = audioInput.files?.[0]; audioInput.value = '';
+    if (!file) return;
+    if (file.size > 30 * 1024 * 1024) { feedback(audioStatus, 'El audio supera los 30 MB. Expórtalo en MP3 para que pese menos.', 'error'); return; }
+    feedback(audioStatus, `Subiendo ${file.name} (${fileSize(file.size)})…`); audioInput.disabled = true;
+    try {
+      const { audio } = await client.uploadMediaPlanAudio(file);
+      pendingAudio = audio; renderAudioBox();
+      const id = spotForm.dataset.id;
+      // En un spot que ya existe, el audio queda guardado en el acto; en uno nuevo, al guardar el spot.
+      if (id) { state.spots = state.spots.map(item => item.id === id ? { ...item, audio } : item); commit('Audio subido y guardado'); feedback(audioStatus, 'Audio subido y guardado para todo el equipo.', 'success'); }
+      else feedback(audioStatus, 'Audio subido. Se guardará con «Guardar spot».', 'success');
+    } catch (error) {
+      if (error.status === 401) { location.replace('/admin/'); return; }
+      feedback(audioStatus, error.status === 413 ? 'El audio supera los 30 MB.' : error.status === 422 ? 'El archivo no es un audio válido (MP3, WAV, M4A, AAC, OGG o FLAC).' : error.message, 'error');
+    } finally { audioInput.disabled = false; }
+  });
+  dialogs.spot.addEventListener('close', resetPlayer);
   formOf('spot').addEventListener('submit', event => {
     event.preventDefault();
     const form = event.currentTarget; const id = form.dataset.id;
     const name = form.elements.name.value.trim();
     if (!name) return toast('Escribe el nombre del spot.');
-    const data = { id: id || uid('spot'), qty: Math.min(999, Math.max(1, Number.parseInt(form.elements.qty.value, 10) || 1)), name, desc: form.elements.desc.value.trim(), color: form.elements.color.value.toLowerCase(), national: form.elements.national.checked, regional: form.elements.regional.checked, local: form.elements.local.checked };
+    const data = { id: id || form.dataset.newId || uid('spot'), qty: Math.min(999, Math.max(1, Number.parseInt(form.elements.qty.value, 10) || 1)), name, desc: form.elements.desc.value.trim(), color: form.elements.color.value.toLowerCase(), national: form.elements.national.checked, regional: form.elements.regional.checked, local: form.elements.local.checked, script: form.elements.script.value.trim(), audio: pendingAudio };
     if (id) state.spots = state.spots.map(item => item.id === id ? data : item); else state.spots.push(data);
     dialogs.spot.close(); commit('Spot guardado');
   });
@@ -451,7 +525,7 @@ export async function initializeMediaPlan() {
     try { await document.fonts?.load(`800 20px Inter`); } catch { /* sin la fuente, usa la del sistema */ }
     drawCalendarReport(canvas, state);
   }
-  const download = (blob, name) => { const link = node('a'); link.href = URL.createObjectURL(blob); link.download = name; document.body.append(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(link.href), 4000); };
+  const download = saveBlob;
   $('[data-report-png]').addEventListener('click', async () => { await renderReport(); canvas.toBlob(blob => { if (blob) { download(blob, `${reportName}.png`); toast('Imagen generada'); } }, 'image/png'); });
   $('[data-report-pdf]').addEventListener('click', async () => {
     await renderReport();

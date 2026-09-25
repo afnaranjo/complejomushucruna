@@ -23,8 +23,64 @@ final class MediaPlanStore
     public const WEEKS = ['w1', 'w2', 'w3', 'w4', 'w5', 'w6', 'w7'];
     public const MEDIA_TYPES = ['Radio', 'Televisión', 'Digital', 'Prensa', 'Influencer', 'Otro'];
     public const COVERAGES = ['Nacional', 'Regional', 'Local'];
+    public const SCRIPT_CHARS = 8000;
+    public const AUDIO_BYTES = 30 * 1024 * 1024;
+    /** Formatos de audio aceptados, según el contenido real del archivo (no su nombre). */
+    public const AUDIO_TYPES = [
+        'audio/mpeg' => 'mp3', 'audio/mp3' => 'mp3', 'audio/wav' => 'wav', 'audio/x-wav' => 'wav', 'audio/wave' => 'wav',
+        'audio/mp4' => 'm4a', 'audio/x-m4a' => 'm4a', 'audio/m4a' => 'm4a', 'video/mp4' => 'm4a', 'audio/aac' => 'aac', 'audio/x-hx-aac-adts' => 'aac',
+        'audio/ogg' => 'ogg', 'audio/opus' => 'opus', 'audio/webm' => 'webm', 'audio/flac' => 'flac', 'audio/x-flac' => 'flac',
+    ];
 
-    public function __construct(private readonly PDO $pdo, private readonly Audit $audit) {}
+    public function __construct(private readonly PDO $pdo, private readonly Audit $audit, private readonly ?string $privateDirectory = null) {}
+
+    /** Guarda el audio de un spot en la carpeta privada del backend y devuelve sus datos para el calendario. */
+    public function saveAudio(string $tmpPath, int $size, mixed $originalName, int $actorId, string $ip): array
+    {
+        if ($size < 1 || $size > self::AUDIO_BYTES || !is_file($tmpPath)) throw new InvalidArgumentException();
+        $type = (new \finfo(FILEINFO_MIME_TYPE))->file($tmpPath);
+        if (!is_string($type) || !isset(self::AUDIO_TYPES[$type])) throw new InvalidArgumentException();
+        $name = is_string($originalName) ? self::fileName($originalName) : '';
+        if ($name === '') $name = 'audio.' . self::AUDIO_TYPES[$type];
+        $id = bin2hex(random_bytes(16));
+        $directory = $this->audioDirectory();
+        $target = $directory . '/' . $id . '.audio';
+        $moved = is_uploaded_file($tmpPath) ? move_uploaded_file($tmpPath, $target) : copy($tmpPath, $target);
+        if (!$moved) throw new \RuntimeException('No se pudo guardar el audio.');
+        @chmod($target, 0600);
+        $meta = ['id' => $id, 'name' => $name, 'size' => $size, 'type' => $type, 'uploaded_at' => gmdate('Y-m-d H:i:s')];
+        file_put_contents($directory . '/' . $id . '.json', json_encode($meta, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE));
+        @chmod($directory . '/' . $id . '.json', 0600);
+        $this->audit->log('media.plan_audio_uploaded', $actorId, 'media_plan', $id, ['count' => $size], $ip);
+        return $meta;
+    }
+
+    /** @return array{0: array, 1: string} datos del audio y su contenido */
+    public function audio(string $id): array
+    {
+        if (preg_match('/^[a-f0-9]{32}$/D', $id) !== 1) throw new \OutOfBoundsException();
+        $directory = $this->audioDirectory();
+        $meta = is_file($directory . '/' . $id . '.json') ? json_decode((string) file_get_contents($directory . '/' . $id . '.json'), true) : null;
+        $bytes = is_file($directory . '/' . $id . '.audio') ? file_get_contents($directory . '/' . $id . '.audio') : false;
+        if (!is_array($meta) || !is_string($bytes)) throw new \OutOfBoundsException();
+        return [$meta, $bytes];
+    }
+
+    private function audioDirectory(): string
+    {
+        if ($this->privateDirectory === null) throw new \RuntimeException('Sin carpeta privada.');
+        $directory = $this->privateDirectory . '/media-plan-audio';
+        if (!is_dir($directory) && !@mkdir($directory, 0700, true) && !is_dir($directory)) throw new \RuntimeException('No se pudo preparar la carpeta de audios.');
+        return $directory;
+    }
+
+    /** Nombre de archivo legible y seguro para mostrar y descargar. */
+    public static function fileName(string $name): string
+    {
+        $name = basename(str_replace('\\', '/', $name));
+        $name = preg_replace('~[\x00-\x1F\x7F"/<>:|?*\\\\]~u', '', $name) ?? '';
+        return mb_substr(trim($name), 0, 160);
+    }
 
     public function get(): array
     {
@@ -74,6 +130,8 @@ final class MediaPlanStore
             'national' => (bool) ($item['national'] ?? false),
             'regional' => (bool) ($item['regional'] ?? false),
             'local' => (bool) ($item['local'] ?? false),
+            'script' => self::text($item['script'] ?? '', self::SCRIPT_CHARS, false, true),
+            'audio' => self::audioRef($item['audio'] ?? null),
         ]);
         $spotIds = array_column($spots, 'id');
         $assignments = self::items($data['assignments'] ?? [], 500, static function (array $item) use ($spotIds): array {
@@ -126,10 +184,25 @@ final class MediaPlanStore
         return $value;
     }
 
-    private static function text(mixed $value, int $max, bool $required = false): string
+    /** El audio de un spot: solo la referencia al archivo privado ya subido. */
+    private static function audioRef(mixed $value): ?array
+    {
+        if ($value === null) return null;
+        if (!is_array($value) || !is_string($value['id'] ?? null) || preg_match('/^[a-f0-9]{32}$/D', $value['id']) !== 1
+            || !is_int($value['size'] ?? null) || $value['size'] < 1 || $value['size'] > self::AUDIO_BYTES
+            || !is_string($value['type'] ?? null) || !isset(self::AUDIO_TYPES[$value['type']])) throw new InvalidArgumentException();
+        $uploaded = $value['uploaded_at'] ?? '';
+        if (!is_string($uploaded) || preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/D', $uploaded) !== 1) throw new InvalidArgumentException();
+        $name = is_string($value['name'] ?? null) ? self::fileName($value['name']) : '';
+        if ($name === '') throw new InvalidArgumentException();
+        return ['id' => $value['id'], 'name' => $name, 'size' => $value['size'], 'type' => $value['type'], 'uploaded_at' => $uploaded];
+    }
+
+    private static function text(mixed $value, int $max, bool $required = false, bool $multiline = false): string
     {
         if (!is_string($value)) throw new InvalidArgumentException();
-        $value = trim(preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u', '', $value) ?? '');
+        // El guion conserva sus saltos de línea; los demás campos son de una sola línea.
+        $value = trim(preg_replace($multiline ? '/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u' : '/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u', '', $multiline ? str_replace("\r\n", "\n", $value) : $value) ?? '');
         if (($required && $value === '') || mb_strlen($value) > $max) throw new InvalidArgumentException();
         return $value;
     }

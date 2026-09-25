@@ -277,6 +277,32 @@ final class Router
                 if ($query !== []) throw new InvalidArgumentException();
                 return $this->json(200, $this->panelSummary(), $headers);
             }
+            // El calendario de medios se carga bajo demanda: sus rutas usan constantes de la clase antes de instanciarla.
+            if (str_starts_with($path, '/api/media-plan')) require_once __DIR__ . '/MediaPlanStore.php';
+            if ($path === '/api/media-plan/audio') {
+                if ($method !== 'POST') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+                if ($query !== []) throw new InvalidArgumentException();
+                $length = $server['CONTENT_LENGTH'] ?? null;
+                if ($length !== null && ((!is_string($length) && !is_int($length)) || preg_match('/^\d+$/D', (string) $length) !== 1)) throw new InvalidArgumentException();
+                if ($length !== null && (float) $length > MediaPlanStore::AUDIO_BYTES + self::PROFILE_REQUEST_OVERHEAD_BYTES) throw new RequestBodyError(413, 'payload_too_large');
+                if (strtolower(trim(explode(';', $server['CONTENT_TYPE'] ?? '')[0])) !== 'multipart/form-data') throw new RequestBodyError(415, 'unsupported_media_type');
+                $upload = $files['audio'] ?? null;
+                if (count($files) !== 1 || !is_array($upload) || ($upload['error'] ?? null) !== UPLOAD_ERR_OK || !is_string($upload['tmp_name'] ?? null)
+                    || !is_int($upload['size'] ?? null) || !is_uploaded_file($upload['tmp_name'])) throw new InvalidArgumentException();
+                if ($upload['size'] > MediaPlanStore::AUDIO_BYTES) throw new RequestBodyError(413, 'payload_too_large');
+                return $this->json(201, ['ok' => true, 'audio' => $this->mediaPlan()->saveAudio($upload['tmp_name'], $upload['size'], $upload['name'] ?? null, $user['id'], $ip)], $headers);
+            }
+            if (preg_match('~^/api/media-plan/audio/([a-f0-9]{32})$~D', $path, $parts)) {
+                if ($method !== 'GET') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+                if ($query !== []) throw new InvalidArgumentException();
+                [$meta, $bytes] = $this->mediaPlan()->audio($parts[1]);
+                $name = MediaPlanStore::fileName((string) ($meta['name'] ?? 'audio'));
+                $ascii = preg_replace('/[^A-Za-z0-9._ -]/', '_', $name) ?: 'audio';
+                $headers['Content-Type'] = (string) $meta['type'];
+                $headers['Cache-Control'] = 'private, no-store';
+                $headers['Content-Disposition'] = 'attachment; filename="' . $ascii . '"; filename*=UTF-8\'\'' . rawurlencode($name);
+                return new Response(200, $headers, $bytes);
+            }
             if ($path === '/api/media-plan') {
                 if ($query !== []) throw new InvalidArgumentException();
                 if ($method === 'GET') return $this->json(200, $this->mediaPlan()->get(), $headers);
@@ -468,7 +494,7 @@ final class Router
     private function mediaPlan(): MediaPlanStore
     {
         require_once __DIR__ . '/MediaPlanStore.php';
-        return new MediaPlanStore($this->pdo, $this->audit);
+        return new MediaPlanStore($this->pdo, $this->audit, $this->config->privateDirectory());
     }
 
     private function socialMetrics(): SocialMetrics

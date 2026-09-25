@@ -15,7 +15,9 @@ try {
     $router = new Finados\Router($config, $pdo);
     $bootstrapStage = 'B4';
     // Bound reads before JSON decoding, including chunked requests without Content-Length.
-    $raw = file_get_contents('php://input', false, null, 0, 16385);
+    // The shared media calendar is one larger document (with voice scripts); it has its own cap.
+    $limit = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) === '/api/media-plan' ? 512 * 1024 + 1 : 16385;
+    $raw = file_get_contents('php://input', false, null, 0, $limit);
     if ($raw === false) throw new RuntimeException();
     $bootstrapStage = 'B5';
     $router->handle($_SERVER['REQUEST_METHOD'] ?? 'GET', $_SERVER['REQUEST_URI'] ?? '/', $_SERVER, $raw, $_POST, $_FILES)->send();
