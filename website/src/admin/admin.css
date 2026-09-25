@@ -647,3 +647,22 @@ tr[data-origin="cuenta"] > td { background: rgba(0, 210, 214, .05); }
 .mc-upload:focus-within { outline: 3px solid #94165e; outline-offset: 3px; }
 .mc-voice-cell { display: grid; gap: .35rem; justify-items: start; min-width: 210px; }
 .mc-audio-download { max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Varios guiones por spot: cada uno es una tarjeta que se abre con un clic. */
+.mc-scripts { display: grid; gap: .7rem; }
+.mc-scripts__head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: .6rem; }
+.mc-scripts__head strong { font-size: .95rem; }
+.mc-scripts__list { display: grid; gap: .55rem; }
+.mc-script-card { border: 1px solid #d9ced6; border-left: 4px solid #94165e; border-radius: .7rem; background: #fff; }
+.mc-script-card[open] { border-color: #c3b6c7; border-left-color: #94165e; box-shadow: 0 6px 18px rgba(36, 17, 70, .08); }
+.mc-script-card > summary { display: flex; align-items: center; justify-content: space-between; gap: .75rem; padding: .75rem .9rem; list-style: none; cursor: pointer; }
+.mc-script-card > summary::-webkit-details-marker { display: none; }
+.mc-script-card > summary::after { content: ""; flex: none; width: .5rem; height: .5rem; margin-left: .25rem; border-right: 2px solid #241146; border-bottom: 2px solid #241146; transform: rotate(45deg); transition: transform .15s; }
+.mc-script-card[open] > summary::after { transform: rotate(-135deg); }
+.mc-script-card > summary:hover strong { color: #94165e; }
+.mc-script-card__summary { display: grid; gap: .1rem; min-width: 0; flex: 1; }
+.mc-script-card__summary strong { font-size: .88rem; }
+.mc-script-card__summary small { overflow: hidden; color: #665771; font-size: .76rem; text-overflow: ellipsis; white-space: nowrap; }
+.mc-script-card__body { display: grid; gap: .8rem; padding: 0 .9rem .9rem; }
+.mc-script-card__body > .mc-danger { justify-self: start; }
+@media (prefers-reduced-motion: reduce) { .mc-script-card > summary::after { transition: none; } }

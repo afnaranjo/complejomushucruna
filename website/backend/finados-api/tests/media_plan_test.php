@@ -105,12 +105,29 @@ $withAudio = $plan;
 $withAudio['spots'][0]['script'] = "LOCUTOR: ¡Llega Finados 2026!\nDel 30 de octubre al 2 de noviembre.";
 $withAudio['spots'][0]['audio'] = $audio;
 $savedAudio = $decode($router->handle('POST', '/api/media-plan', $post($csrf), json_encode(['data' => $withAudio, 'version' => 3])));
-same("LOCUTOR: ¡Llega Finados 2026!\nDel 30 de octubre al 2 de noviembre.", $savedAudio['data']['spots'][0]['script']);
-same($audio['id'], $savedAudio['data']['spots'][0]['audio']['id']);
+// Un spot guardado con el formato anterior (un guion y un audio) pasa a ser su primer guion.
+same(1, count($savedAudio['data']['spots'][0]['scripts']));
+same(['guion_1', 'Guion 1'], [$savedAudio['data']['spots'][0]['scripts'][0]['id'], $savedAudio['data']['spots'][0]['scripts'][0]['title']]);
+same("LOCUTOR: ¡Llega Finados 2026!\nDel 30 de octubre al 2 de noviembre.", $savedAudio['data']['spots'][0]['scripts'][0]['text']);
+same($audio['id'], $savedAudio['data']['spots'][0]['scripts'][0]['audio']['id']);
+same(false, array_key_exists('script', $savedAudio['data']['spots'][0]));
+// Varios guiones por spot, cada uno con su título, su texto y su audio (o sin audio).
+$multi = $plan;
+$multi['spots'][0]['scripts'] = [
+    ['id' => 'cartelera_1', 'title' => 'Cartelera viernes', 'text' => 'LOCUTOR: el viernes…', 'audio' => $audio],
+    ['id' => 'cartelera_2', 'title' => 'Cartelera sábado', 'text' => 'LOCUTOR: el sábado…', 'audio' => null],
+];
+$savedMulti = $decode($router->handle('POST', '/api/media-plan', $post($csrf), json_encode(['data' => $multi, 'version' => 4])));
+same(['Cartelera viernes', 'Cartelera sábado'], array_column($savedMulti['data']['spots'][0]['scripts'], 'title'));
+same(null, $savedMulti['data']['spots'][0]['scripts'][1]['audio']);
+$tooMany = $multi; $tooMany['spots'][0]['scripts'] = array_map(static fn (int $i): array => ['id' => 'g' . $i, 'title' => '', 'text' => '', 'audio' => null], range(1, Finados\MediaPlanStore::SCRIPTS_PER_SPOT + 1));
+same(422, $router->handle('POST', '/api/media-plan', $post($csrf), json_encode(['data' => $tooMany, 'version' => 5]))->status);
+$repeated = $multi; $repeated['spots'][0]['scripts'][1]['id'] = 'cartelera_1';
+same(422, $router->handle('POST', '/api/media-plan', $post($csrf), json_encode(['data' => $repeated, 'version' => 5]))->status);
 $badAudio = $withAudio; $badAudio['spots'][0]['audio']['type'] = 'application/pdf';
-same(422, $router->handle('POST', '/api/media-plan', $post($csrf), json_encode(['data' => $badAudio, 'version' => 4]))->status);
+same(422, $router->handle('POST', '/api/media-plan', $post($csrf), json_encode(['data' => $badAudio, 'version' => 5]))->status);
 $longScript = $withAudio; $longScript['spots'][0]['script'] = str_repeat('a', Finados\MediaPlanStore::SCRIPT_CHARS + 1);
-same(422, $router->handle('POST', '/api/media-plan', $post($csrf), json_encode(['data' => $longScript, 'version' => 4]))->status);
+same(422, $router->handle('POST', '/api/media-plan', $post($csrf), json_encode(['data' => $longScript, 'version' => 5]))->status);
 // Descarga: el mismo archivo, como adjunto, sin caché y con el nombre original.
 $download = $router->handle('GET', '/api/media-plan/audio/' . $audio['id'], $origin);
 same(200, $download->status);

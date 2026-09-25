@@ -16,7 +16,7 @@ try {
     $bootstrapStage = 'B4';
     // Bound reads before JSON decoding, including chunked requests without Content-Length.
     // The shared media calendar is one larger document (with voice scripts); it has its own cap.
-    $limit = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) === '/api/media-plan' ? 512 * 1024 + 1 : 16385;
+    $limit = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) === '/api/media-plan' ? 1024 * 1024 + 1 : 16385;
     $raw = file_get_contents('php://input', false, null, 0, $limit);
     if ($raw === false) throw new RuntimeException();
     $bootstrapStage = 'B5';

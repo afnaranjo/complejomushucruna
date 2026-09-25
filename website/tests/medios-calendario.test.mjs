@@ -7,7 +7,7 @@ import { join } from 'node:path';
 import { buildSite } from '../scripts/build.mjs';
 import { pages } from '../src/pages.mjs';
 import {
-  daysInclusive, fileSize, importedPlan, initialPlan, moveToWeek, pdfFromJpeg, spotKpis, suggestedAssignments, textColorFor, weekFor, WEEKS,
+  daysInclusive, fileSize, firstLine, importedPlan, spotScripts, initialPlan, moveToWeek, pdfFromJpeg, spotKpis, suggestedAssignments, textColorFor, weekFor, WEEKS,
 } from '../src/admin/admin-medios-calendario.js';
 
 test('Calendario de medios: página propia dentro de Medios, sin estilos ni scripts en línea', async () => {
@@ -23,11 +23,14 @@ test('Calendario de medios: página propia dentro de Medios, sin estilos ni scri
   // Medios de comunicación y Plan de medios se retiraron: ya viven en Seguimiento de medios.
   assert.doesNotMatch(html, /data-plan-tab="(?:medios|plan)"|data-dialog="(?:media|plan)"|Plan de medios|Medios de comunicación/);
   assert.match(html, />3\. Reportes</);
-  // Cada spot guarda el guion de la voz y su audio, que se puede escuchar y descargar.
-  assert.match(html, /<textarea name="script" maxlength="8000"/);
-  assert.match(html, /data-audio-input/);
-  assert.match(html, /data-audio-download/);
-  assert.match(html, /<th scope="col">Guion y audio<\/th>/);
+  // Cada spot tiene varios guiones de la voz, cada uno con su audio para escuchar y descargar.
+  assert.match(html, /data-script-list/);
+  assert.match(html, /data-script-add>\+ Agregar guion</);
+  assert.match(html, /<th scope="col">Guiones y audio<\/th>/);
+  assert.doesNotMatch(html, /name="script"/);
+  const calendarBundle = await readFile(join(output, 'assets/admin/admin-medios-calendario.js'), 'utf8');
+  assert.match(calendarBundle, /Subir audio/);
+  assert.match(calendarBundle, /Descargar audio/);
   assert.match(html, /media-src blob:/);
   // La política de seguridad del panel no admite estilos en línea ni librerías externas.
   assert.doesNotMatch(html, /\sstyle="/);
@@ -76,9 +79,15 @@ test('Calendario de medios: importa el respaldo del archivo original sin perder 
   assert.equal(imported.spots[0].color, '#d91f26');
   assert.throws(() => importedPlan({ spots: [] }), /no es un respaldo/);
   const withVoice = importedPlan({ ...original, spots: [{ ...original.spots[0], script: 'LOCUTOR: hola', audio: { id: 'a'.repeat(32), name: 'voz.mp3', size: 10, type: 'audio/mpeg', uploaded_at: '2026-09-25 10:00:00' } }] });
-  assert.equal(withVoice.spots[0].script, 'LOCUTOR: hola');
-  assert.equal(withVoice.spots[0].audio.name, 'voz.mp3');
-  assert.equal(importedPlan(original).spots[0].audio, null);
+  assert.equal(withVoice.spots[0].scripts[0].text, 'LOCUTOR: hola');
+  assert.equal(withVoice.spots[0].scripts[0].audio.name, 'voz.mp3');
+  assert.deepEqual(importedPlan(original).spots[0].scripts, []);
+  // Varios guiones por spot; el formato anterior pasa a ser el primero.
+  assert.deepEqual(spotScripts({ scripts: [{ id: 'a', title: 'Viernes', text: 'x', audio: null }, { id: 'b', title: 'Sábado', text: 'y' }] }).map(item => item.title), ['Viernes', 'Sábado']);
+  assert.deepEqual(spotScripts({ script: 'Hola', audio: null }), [{ id: 'guion_1', title: 'Guion 1', text: 'Hola', audio: null }]);
+  assert.deepEqual(spotScripts({}), []);
+  assert.equal(firstLine('\n  LOCUTOR: hola\notra'), 'LOCUTOR: hola');
+  assert.equal(firstLine('a'.repeat(200)).length, 90);
   assert.equal(fileSize(1024 * 1024 * 1.25), '1,3 MB');
   assert.equal(fileSize(2048), '2 KB');
 });

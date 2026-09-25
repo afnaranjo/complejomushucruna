@@ -94,11 +94,26 @@ export function textColorFor(hex) {
 export function importedPlan(value) {
   if (!value || typeof value !== 'object' || !['spots', 'assignments', 'media', 'plans'].every(key => Array.isArray(value[key]))) throw new Error('El archivo no es un respaldo del calendario.');
   return {
-    spots: value.spots.map(spot => ({ id: String(spot.id), qty: Number.parseInt(spot.qty, 10) || 1, name: String(spot.name ?? ''), desc: String(spot.desc ?? ''), color: String(spot.color ?? '#94165e'), national: !!spot.national, regional: !!spot.regional, local: !!spot.local, script: String(spot.script ?? ''), audio: spot.audio && typeof spot.audio === 'object' ? spot.audio : null })),
+    spots: value.spots.map(spot => ({ id: String(spot.id), qty: Number.parseInt(spot.qty, 10) || 1, name: String(spot.name ?? ''), desc: String(spot.desc ?? ''), color: String(spot.color ?? '#94165e'), national: !!spot.national, regional: !!spot.regional, local: !!spot.local, scripts: spotScripts(spot) })),
     assignments: value.assignments.map(item => ({ id: String(item.id), spotId: String(item.spotId), weekId: String(item.weekId), start: String(item.start), end: String(item.end), note: String(item.note ?? '') })),
     media: value.media.map(item => ({ id: String(item.id), name: String(item.name ?? ''), type: MEDIA_TYPES.includes(item.type) ? item.type : 'Otro', coverage: COVERAGES.includes(item.coverage) ? item.coverage : 'Local', city: String(item.city ?? ''), program: String(item.program ?? ''), contact: String(item.contact ?? ''), rate: Number(item.rate) || 0, status: item.status === 'pending' ? 'pending' : 'active', notes: String(item.notes ?? ''), sourceId: /^[a-f0-9]{32}$/.test(item.sourceId ?? '') ? item.sourceId : '' })),
     plans: value.plans.map(item => ({ id: String(item.id), mediaId: String(item.mediaId), spotId: String(item.spotId), start: String(item.start), end: String(item.end), freq: Number.parseInt(item.freq, 10) || 1, cost: Number(item.cost) || 0, objective: String(item.objective ?? '') })),
   };
+}
+
+/** Los guiones de un spot. Uno guardado con el formato anterior (un solo guion y un audio) pasa a ser el primero. */
+export function spotScripts(spot = {}) {
+  if (Array.isArray(spot.scripts)) {
+    return spot.scripts.map((item, index) => ({ id: String(item?.id || `guion_${index + 1}`), title: String(item?.title ?? ''), text: String(item?.text ?? ''), audio: item?.audio && typeof item.audio === 'object' ? item.audio : null }));
+  }
+  const text = String(spot.script ?? ''); const audio = spot.audio && typeof spot.audio === 'object' ? spot.audio : null;
+  return text.trim() || audio ? [{ id: 'guion_1', title: 'Guion 1', text, audio }] : [];
+}
+
+/** La primera línea con texto, para reconocer un guion sin abrirlo. */
+export function firstLine(text, max = 90) {
+  const line = String(text ?? '').split('\n').map(item => item.trim()).find(Boolean) ?? '';
+  return line.length > max ? `${line.slice(0, max - 1)}…` : line;
 }
 
 /** «1,2 MB», «640 KB». */
@@ -348,10 +363,10 @@ export async function initializeMediaPlan() {
     for (const spot of state.spots) {
       const row = node('tr');
       const name = node('td'); const swatch = node('span', undefined, 'mc-swatch'); tint(swatch, spot.color); name.append(swatch, node('strong', spot.name));
+      const scripts = spotScripts(spot); const audios = scripts.filter(item => item.audio).length;
       const voice = node('td', undefined, 'mc-voice-cell');
-      voice.append(node('span', spot.script ? 'Guion ✓' : 'Sin guion', `mc-pill${spot.script ? ' mc-pill--local' : ''}`));
-      if (spot.audio) voice.append(button(`⬇ ${spot.audio.name}`, 'button-quiet mc-small mc-audio-download', () => downloadAudio(spot.audio), `Descargar el audio de ${spot.name}`));
-      else voice.append(node('span', 'Sin audio', 'mc-pill'));
+      voice.append(node('span', scripts.length === 1 ? '1 guion' : `${scripts.length} guiones`, `mc-pill${scripts.length ? ' mc-pill--local' : ''}`), node('span', audios === 1 ? '1 audio' : `${audios} audios`, `mc-pill${audios ? ' mc-pill--local' : ''}`));
+      voice.append(button(scripts.length ? 'Ver guiones' : '+ Agregar guion', 'button-quiet mc-small', () => openSpot(spot.id, true), `Guiones de ${spot.name}`));
       row.append(node('td', spot.qty, 'mc-num'), name, node('td', spot.desc || '—'), voice);
       for (const key of ['national', 'regional', 'local']) { const cell = node('td'); if (spot[key]) { const check = node('span', '✓', 'mc-yes'); check.setAttribute('aria-label', 'Sí'); cell.append(check); } else cell.append(node('span', '—', 'mc-no')); row.append(cell); }
       const actions = node('td', undefined, 'mc-actions');
@@ -359,39 +374,33 @@ export async function initializeMediaPlan() {
       row.append(actions); body.append(row);
     }
   }
-  function openSpot(id = '') {
+  function openSpot(id = '', showScripts = false) {
     const spot = state.spots.find(item => item.id === id) ?? null;
     const form = formOf('spot');
     form.dataset.id = id; dialogs.spot.querySelector('[data-dialog-title]').textContent = spot ? 'Editar spot' : 'Añadir spot';
     form.elements.qty.value = spot?.qty ?? 1; form.elements.name.value = spot?.name ?? ''; form.elements.desc.value = spot?.desc ?? ''; form.elements.color.value = spot?.color ?? '#94165e';
     for (const key of ['national', 'regional', 'local']) form.elements[key].checked = !!spot?.[key];
-    form.elements.script.value = spot?.script ?? '';
     form.dataset.newId = spot ? '' : uid('spot');
-    pendingAudio = spot?.audio ?? null;
-    updateScriptCount(); renderAudioBox(); feedback(audioStatus, 'MP3, WAV, M4A, AAC, OGG o FLAC · hasta 30 MB.');
+    releasePlayers();
+    draftScripts = spotScripts(spot ?? {});
+    // Desde «Ver guiones» se abre el primero; si el spot aún no tiene, se crea uno vacío para escribir.
+    if (showScripts && !draftScripts.length) draftScripts.push({ id: uid('guion'), title: '', text: '', audio: null });
+    renderScripts(showScripts ? draftScripts[0]?.id : '');
     dialogs.spot.showModal();
+    if (showScripts) dialogs.spot.querySelector('.mc-scripts')?.scrollIntoView({ block: 'start' });
   }
 
-  /* Guion de la voz y audio del spot */
+  /* Guiones de la voz: un spot puede tener varios, cada uno con su texto y su audio. */
   const spotForm = formOf('spot');
-  const scriptCount = dialogs.spot.querySelector('[data-script-count]');
-  const audioCurrent = dialogs.spot.querySelector('[data-audio-current]');
-  const audioStatus = dialogs.spot.querySelector('[data-audio-status]');
-  const audioPlayer = dialogs.spot.querySelector('[data-audio-player]');
-  const audioListen = dialogs.spot.querySelector('[data-audio-listen]');
-  const audioDownload = dialogs.spot.querySelector('[data-audio-download]');
-  const audioInput = dialogs.spot.querySelector('[data-audio-input]');
-  const audioUploadLabel = dialogs.spot.querySelector('[data-audio-upload-label]');
-  let pendingAudio = null; let playerUrl = '';
-  const updateScriptCount = () => { scriptCount.textContent = `${numberFormat.format(spotForm.elements.script.value.length)} / 8.000`; };
-  spotForm.elements.script.addEventListener('input', updateScriptCount);
-  function resetPlayer() { if (playerUrl) URL.revokeObjectURL(playerUrl); playerUrl = ''; audioPlayer.removeAttribute('src'); audioPlayer.hidden = true; }
-  function renderAudioBox() {
-    resetPlayer();
-    audioCurrent.textContent = pendingAudio ? `${pendingAudio.name} · ${fileSize(pendingAudio.size)}` : 'Todavía no hay audio.';
-    audioListen.hidden = audioDownload.hidden = !pendingAudio;
-    audioUploadLabel.textContent = pendingAudio ? 'Reemplazar audio' : 'Subir audio';
-  }
+  const scriptList = dialogs.spot.querySelector('[data-script-list]');
+  const scriptEmpty = dialogs.spot.querySelector('[data-script-empty]');
+  const scriptTotal = dialogs.spot.querySelector('[data-script-total]');
+  const scriptAdd = dialogs.spot.querySelector('[data-script-add]');
+  const AUDIO_HINT = 'MP3, WAV, M4A, AAC, OGG o FLAC · hasta 30 MB.';
+  let draftScripts = [];
+  const playerUrls = new Set();
+  function releasePlayers() { for (const url of playerUrls) URL.revokeObjectURL(url); playerUrls.clear(); }
+  const cleanScripts = list => list.map(item => ({ id: item.id, title: item.title.trim(), text: item.text.trim(), audio: item.audio ?? null }));
   async function audioBlob(audio) {
     const blob = await client.mediaPlanAudio(audio.id);
     return blob.type ? blob : new Blob([blob], { type: audio.type });
@@ -400,40 +409,110 @@ export async function initializeMediaPlan() {
     try { saveBlob(await audioBlob(audio), audio.name); toast('Descargando audio'); }
     catch (error) { if (error.status === 401) location.replace('/admin/'); else toast(error.status === 404 ? 'No se encontró el audio en el servidor.' : error.message); }
   }
-  audioListen.addEventListener('click', async () => {
-    if (!pendingAudio) return;
-    feedback(audioStatus, 'Cargando audio…');
-    try {
-      resetPlayer(); playerUrl = URL.createObjectURL(await audioBlob(pendingAudio));
-      audioPlayer.src = playerUrl; audioPlayer.hidden = false; feedback(audioStatus, '');
-      audioPlayer.play().catch(() => {});
-    } catch (error) { feedback(audioStatus, error.status === 404 ? 'No se encontró el audio en el servidor.' : error.message, 'error'); }
+  /** En un spot que ya existe, subir o quitar un audio se guarda en el acto; en uno nuevo, con «Guardar spot». */
+  function persistDraft(message) {
+    const id = spotForm.dataset.id;
+    if (!id) return false;
+    state.spots = state.spots.map(item => item.id === id ? { ...item, scripts: cleanScripts(draftScripts) } : item);
+    commit(message);
+    return true;
+  }
+  function scriptCard(script, index, open) {
+    const card = document.createElement('details'); card.className = 'mc-script-card'; card.open = open;
+    const summary = node('summary');
+    const heading = node('strong', script.title || `Guion ${index + 1}`);
+    const preview = node('small', firstLine(script.text) || 'Sin texto todavía');
+    const badge = node('span', '', 'mc-pill');
+    const paintBadge = () => { badge.textContent = script.audio ? 'Con audio' : 'Sin audio'; badge.className = `mc-pill${script.audio ? ' mc-pill--local' : ''}`; };
+    paintBadge();
+    const summaryText = node('span', undefined, 'mc-script-card__summary'); summaryText.append(heading, preview);
+    summary.append(summaryText, badge);
+
+    const titleLabel = node('label', 'Título del guion', 'mc-field');
+    const titleInput = document.createElement('input'); titleInput.maxLength = 120; titleInput.value = script.title; titleInput.placeholder = `Guion ${index + 1} · por ejemplo, Cartelera del viernes`;
+    titleInput.addEventListener('input', () => { script.title = titleInput.value; heading.textContent = titleInput.value || `Guion ${index + 1}`; });
+    titleLabel.append(titleInput);
+
+    const textLabel = node('label', 'Texto que leerá el locutor', 'mc-field mc-script');
+    const textarea = document.createElement('textarea'); textarea.maxLength = 8000; textarea.rows = 8; textarea.value = script.text;
+    textarea.placeholder = 'LOCUTOR: ¡Llega Finados 2026! Del 30 de octubre al 2 de noviembre…';
+    const count = node('small', `${numberFormat.format(script.text.length)} / 8.000`);
+    textarea.addEventListener('input', () => { script.text = textarea.value; count.textContent = `${numberFormat.format(textarea.value.length)} / 8.000`; preview.textContent = firstLine(textarea.value) || 'Sin texto todavía'; });
+    textLabel.append(textarea, count);
+
+    const voice = node('div', undefined, 'mc-voice');
+    const current = node('p'); const status = node('p', AUDIO_HINT, 'mc-subtle');
+    const player = document.createElement('audio'); player.controls = true; player.preload = 'none'; player.hidden = true;
+    const actions = node('div', undefined, 'mc-voice__actions');
+    const listen = button('Escuchar', 'button-quiet', async () => {
+      if (!script.audio) return;
+      feedback(status, 'Cargando audio…');
+      try {
+        const url = URL.createObjectURL(await audioBlob(script.audio)); playerUrls.add(url);
+        player.src = url; player.hidden = false; feedback(status, '');
+        player.play().catch(() => {});
+      } catch (error) { feedback(status, error.status === 404 ? 'No se encontró el audio en el servidor.' : error.message, 'error'); }
+    });
+    const download = button('Descargar audio', 'button-quiet', () => { if (script.audio) downloadAudio(script.audio); });
+    const removeAudio = button('Quitar audio', 'button-quiet mc-danger', () => {
+      if (!script.audio || !confirm('¿Quitar el audio de este guion? El guion se conserva.')) return;
+      script.audio = null; player.hidden = true; player.removeAttribute('src'); paintVoice(); paintBadge();
+      feedback(status, persistDraft('Audio quitado') ? 'Audio quitado y guardado.' : 'Audio quitado. Se guardará con «Guardar spot».', 'success');
+    });
+    const upload = node('label', undefined, 'button-primary mc-upload'); const uploadText = node('span');
+    const input = document.createElement('input'); input.type = 'file'; input.accept = 'audio/*,.mp3,.wav,.m4a,.aac,.ogg,.opus,.webm,.flac';
+    upload.append(uploadText, input);
+    input.addEventListener('change', async () => {
+      const file = input.files?.[0]; input.value = '';
+      if (!file) return;
+      if (file.size > 30 * 1024 * 1024) { feedback(status, 'El audio supera los 30 MB. Expórtalo en MP3 para que pese menos.', 'error'); return; }
+      feedback(status, `Subiendo ${file.name} (${fileSize(file.size)})…`); input.disabled = true;
+      try {
+        const { audio } = await client.uploadMediaPlanAudio(file);
+        script.audio = audio; player.hidden = true; player.removeAttribute('src'); paintVoice(); paintBadge();
+        feedback(status, persistDraft('Audio subido y guardado') ? 'Audio subido y guardado para todo el equipo.' : 'Audio subido. Se guardará con «Guardar spot».', 'success');
+      } catch (error) {
+        if (error.status === 401) { location.replace('/admin/'); return; }
+        feedback(status, error.status === 413 ? 'El audio supera los 30 MB.' : error.status === 422 ? 'El archivo no es un audio válido (MP3, WAV, M4A, AAC, OGG o FLAC).' : error.message, 'error');
+      } finally { input.disabled = false; }
+    });
+    function paintVoice() {
+      current.textContent = script.audio ? `${script.audio.name} · ${fileSize(script.audio.size)}` : 'Este guion todavía no tiene audio.';
+      listen.hidden = download.hidden = removeAudio.hidden = !script.audio;
+      uploadText.textContent = script.audio ? 'Reemplazar audio' : 'Subir audio';
+    }
+    paintVoice();
+    actions.append(listen, download, upload, removeAudio);
+    const voiceText = node('div'); voiceText.append(node('strong', 'Audio de este guion'), current, status);
+    voice.append(voiceText, player, actions);
+
+    const remove = button('Quitar este guion', 'button-quiet mc-small mc-danger', () => {
+      if (!confirm(`¿Quitar «${script.title || `Guion ${index + 1}`}»? Se aplica al guardar el spot.`)) return;
+      draftScripts = draftScripts.filter(item => item !== script); renderScripts();
+    });
+    const body = node('div', undefined, 'mc-script-card__body');
+    body.append(titleLabel, textLabel, voice, remove);
+    card.append(summary, body);
+    return card;
+  }
+  function renderScripts(openId = '') {
+    scriptList.replaceChildren(...draftScripts.map((script, index) => scriptCard(script, index, script.id === openId)));
+    scriptTotal.textContent = draftScripts.length ? `(${draftScripts.length})` : '';
+    scriptEmpty.hidden = draftScripts.length > 0;
+    scriptAdd.disabled = draftScripts.length >= 20;
+  }
+  scriptAdd.addEventListener('click', () => {
+    const script = { id: uid('guion'), title: '', text: '', audio: null };
+    draftScripts.push(script); renderScripts(script.id);
+    const card = scriptList.lastElementChild; card?.scrollIntoView({ block: 'nearest' }); card?.querySelector('textarea')?.focus();
   });
-  audioDownload.addEventListener('click', () => { if (pendingAudio) downloadAudio(pendingAudio); });
-  audioInput.addEventListener('change', async () => {
-    const file = audioInput.files?.[0]; audioInput.value = '';
-    if (!file) return;
-    if (file.size > 30 * 1024 * 1024) { feedback(audioStatus, 'El audio supera los 30 MB. Expórtalo en MP3 para que pese menos.', 'error'); return; }
-    feedback(audioStatus, `Subiendo ${file.name} (${fileSize(file.size)})…`); audioInput.disabled = true;
-    try {
-      const { audio } = await client.uploadMediaPlanAudio(file);
-      pendingAudio = audio; renderAudioBox();
-      const id = spotForm.dataset.id;
-      // En un spot que ya existe, el audio queda guardado en el acto; en uno nuevo, al guardar el spot.
-      if (id) { state.spots = state.spots.map(item => item.id === id ? { ...item, audio } : item); commit('Audio subido y guardado'); feedback(audioStatus, 'Audio subido y guardado para todo el equipo.', 'success'); }
-      else feedback(audioStatus, 'Audio subido. Se guardará con «Guardar spot».', 'success');
-    } catch (error) {
-      if (error.status === 401) { location.replace('/admin/'); return; }
-      feedback(audioStatus, error.status === 413 ? 'El audio supera los 30 MB.' : error.status === 422 ? 'El archivo no es un audio válido (MP3, WAV, M4A, AAC, OGG o FLAC).' : error.message, 'error');
-    } finally { audioInput.disabled = false; }
-  });
-  dialogs.spot.addEventListener('close', resetPlayer);
+  dialogs.spot.addEventListener('close', releasePlayers);
   formOf('spot').addEventListener('submit', event => {
     event.preventDefault();
     const form = event.currentTarget; const id = form.dataset.id;
     const name = form.elements.name.value.trim();
     if (!name) return toast('Escribe el nombre del spot.');
-    const data = { id: id || form.dataset.newId || uid('spot'), qty: Math.min(999, Math.max(1, Number.parseInt(form.elements.qty.value, 10) || 1)), name, desc: form.elements.desc.value.trim(), color: form.elements.color.value.toLowerCase(), national: form.elements.national.checked, regional: form.elements.regional.checked, local: form.elements.local.checked, script: form.elements.script.value.trim(), audio: pendingAudio };
+    const data = { id: id || form.dataset.newId || uid('spot'), qty: Math.min(999, Math.max(1, Number.parseInt(form.elements.qty.value, 10) || 1)), name, desc: form.elements.desc.value.trim(), color: form.elements.color.value.toLowerCase(), national: form.elements.national.checked, regional: form.elements.regional.checked, local: form.elements.local.checked, scripts: cleanScripts(draftScripts) };
     if (id) state.spots = state.spots.map(item => item.id === id ? data : item); else state.spots.push(data);
     dialogs.spot.close(); commit('Spot guardado');
   });
@@ -561,7 +640,11 @@ export async function initializeMediaPlan() {
   async function loadPlan() {
     const data = await client.mediaPlan();
     version = data.version;
-    if (data.data) { state = data.data; feedback(saveLine, `Calendario compartido del equipo · versión ${version}`); }
+    if (data.data) {
+      // Un spot guardado con un solo guion pasa a tener su lista de guiones.
+      state = { ...data.data, spots: data.data.spots.map(({ script, audio, ...spot }) => ({ ...spot, scripts: spotScripts({ ...spot, script, audio }) })) };
+      feedback(saveLine, `Calendario compartido del equipo · versión ${version}`);
+    }
     else { state = initialPlan(); feedback(saveLine, 'Estrategia sugerida de partida: se guardará para todo el equipo con tu primer cambio.'); }
     renderAll();
   }

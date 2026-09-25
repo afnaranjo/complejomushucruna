@@ -74,7 +74,7 @@ function layout(page, content, script = '/assets/admin/admin.js?v=20260925-perf-
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' blob:; media-src blob:; font-src 'self'; connect-src ${connectSources}; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="admin-api-base" content="${api}">
 <link rel="icon" href="/assets/finados/favicon-finados.png">
-<link rel="stylesheet" href="/assets/admin/admin.css?v=20260925-23">
+<link rel="stylesheet" href="/assets/admin/admin.css?v=20260925-24">
 <script type="module" src="${script}"></script>
 </head><body class="admin-page">
 <a class="skip-link" href="#contenido">Ir al contenido</a>
@@ -198,7 +198,7 @@ function mediaRecordDialog() {
 </div><button class="button-primary" type="submit">Guardar medio</button></fieldset></form></dialog>`;
 }
 
-export const ADMIN_MEDIOS_CALENDARIO_SCRIPT = '/assets/admin/admin-medios-calendario.js?v=20260925-medios-calendario-4';
+export const ADMIN_MEDIOS_CALENDARIO_SCRIPT = '/assets/admin/admin-medios-calendario.js?v=20260925-medios-calendario-5';
 const planTabs = [['spots', '1. Spots promocionales'], ['calendario', '2. Calendario semanal'], ['reportes', '3. Reportes']];
 const planField = (label, control, wide = 1) => `<label class="mc-field mc-field--${wide}">${label}${control}</label>`;
 
@@ -213,7 +213,7 @@ export function renderAdminMediosCalendarioPage(page) {
 <div class="mc-tabs" role="tablist" aria-label="Secciones del calendario">${planTabs.map(([key, label], index) => `<button type="button" role="tab" id="mc-tab-${key}" aria-controls="mc-${key}" aria-selected="${index === 0}" data-plan-tab="${key}">${label}</button>`).join('')}</div>
 <section class="mc-panel" id="mc-spots" role="tabpanel" aria-labelledby="mc-tab-spots" data-plan-panel="spots"><div class="mc-kpis" data-spot-kpis></div>
 <div class="mc-card"><div class="mc-card__head"><div><p class="mc-eyebrow">Inventario de piezas</p><h2>Spots promocionales y cobertura</h2></div><button type="button" class="button-primary" data-spot-new disabled>+ Añadir spot</button></div>
-<div class="mc-table-wrap"><table class="mc-table"><thead><tr><th scope="col">Cantidad</th><th scope="col">Promoción</th><th scope="col">Tipo / contenido</th><th scope="col">Guion y audio</th><th scope="col">Nacional</th><th scope="col">Regional</th><th scope="col">Local</th><th scope="col"><span class="sr-only">Acciones</span></th></tr></thead><tbody data-spot-rows></tbody></table></div></div></section>
+<div class="mc-table-wrap"><table class="mc-table"><thead><tr><th scope="col">Cantidad</th><th scope="col">Promoción</th><th scope="col">Tipo / contenido</th><th scope="col">Guiones y audio</th><th scope="col">Nacional</th><th scope="col">Regional</th><th scope="col">Local</th><th scope="col"><span class="sr-only">Acciones</span></th></tr></thead><tbody data-spot-rows></tbody></table></div></div></section>
 <section class="mc-panel" id="mc-calendario" role="tabpanel" aria-labelledby="mc-tab-calendario" data-plan-panel="calendario" hidden>
 <div class="mc-card"><div class="mc-card__head"><div><p class="mc-eyebrow">Arrastra y suelta</p><h2>Calendario estratégico por semanas</h2><p class="mc-subtle">Arrastra un audio desde la biblioteca hacia una semana, o usa «+ Agregar» en la semana. También puedes mover una pauta entre semanas y editar su fecha exacta.</p></div>
 <div class="mc-toolbar"><button type="button" class="button-quiet" data-plan-seed disabled>Restaurar estrategia sugerida</button><button type="button" class="button-quiet mc-danger" data-plan-clear disabled>Limpiar calendario</button></div></div>
@@ -227,10 +227,8 @@ export function renderAdminMediosCalendarioPage(page) {
 ${planField('Cantidad', '<input name="qty" type="number" min="1" max="999" value="1" required>')}${planField('Promoción', '<input name="name" maxlength="120" placeholder="Ej.: AUDIO GENERAL" required>', 2)}${planField('Color', '<input name="color" type="color" value="#94165e">')}
 ${planField('Tipo / contenido', '<input name="desc" maxlength="300" placeholder="Descripción de la pieza">', 4)}
 <label class="mc-check"><input type="checkbox" name="national"> Nacional</label><label class="mc-check"><input type="checkbox" name="regional"> Regional</label><label class="mc-check"><input type="checkbox" name="local"> Local</label>
-<label class="mc-field mc-field--4 mc-script">Guion de la voz<textarea name="script" maxlength="8000" rows="9" placeholder="Escribe aquí lo que leerá el locutor. Ejemplo:&#10;LOCUTOR: ¡Llega Finados 2026! Del 30 de octubre al 2 de noviembre…"></textarea><small data-script-count>0 / 8000</small></label>
-<section class="mc-voice mc-field--4" aria-label="Audio del spot"><div><strong>Audio del spot</strong><p data-audio-current>Todavía no hay audio.</p><p class="mc-subtle" data-audio-status>MP3, WAV, M4A, AAC, OGG o FLAC · hasta 30 MB.</p></div>
-<audio controls preload="none" data-audio-player hidden></audio>
-<div class="mc-voice__actions"><button type="button" class="button-quiet" data-audio-listen hidden>Escuchar</button><button type="button" class="button-quiet" data-audio-download hidden>Descargar audio</button><label class="button-primary mc-upload"><span data-audio-upload-label>Subir audio</span><input type="file" accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.opus,.webm,.flac" data-audio-input></label></div></section>
+<section class="mc-scripts mc-field--4" aria-labelledby="mc-scripts-title"><div class="mc-scripts__head"><div><strong id="mc-scripts-title">Guiones de la voz <span data-script-total></span></strong><p class="mc-subtle">Cada guion tiene su texto y su audio. Toca uno para verlo o editarlo.</p></div><button type="button" class="button-quiet" data-script-add>+ Agregar guion</button></div>
+<div class="mc-scripts__list" data-script-list></div><p class="mc-subtle" data-script-empty>Todavía no hay guiones. Usa «+ Agregar guion».</p></section>
 </div><footer><button type="button" class="button-quiet" data-dialog-close>Cancelar</button><button type="submit" class="button-primary" value="save">Guardar spot</button></footer></form></dialog>
 <dialog class="mc-dialog" data-dialog="assignment" aria-labelledby="mc-assign-title"><form method="dialog" data-form="assignment"><header><h2 id="mc-assign-title" data-dialog-title>Pauta del calendario</h2><button type="button" class="button-quiet" data-dialog-close aria-label="Cerrar">✕</button></header><div class="mc-form">
 ${planField('Audio', '<select name="spotId" required></select>', 2)}${planField('Inicio', '<input name="start" type="date" min="2026-09-21" max="2026-11-05" required>')}${planField('Fin', '<input name="end" type="date" min="2026-09-21" max="2026-11-05" required>')}

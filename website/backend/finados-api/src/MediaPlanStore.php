@@ -17,13 +17,14 @@ final class MediaPlanConflict extends \RuntimeException {}
  */
 final class MediaPlanStore
 {
-    public const MAX_BYTES = 512 * 1024;
+    public const MAX_BYTES = 1024 * 1024;
     public const CAMPAIGN_START = '2026-09-21';
     public const CAMPAIGN_END = '2026-11-05';
     public const WEEKS = ['w1', 'w2', 'w3', 'w4', 'w5', 'w6', 'w7'];
     public const MEDIA_TYPES = ['Radio', 'Televisión', 'Digital', 'Prensa', 'Influencer', 'Otro'];
     public const COVERAGES = ['Nacional', 'Regional', 'Local'];
     public const SCRIPT_CHARS = 8000;
+    public const SCRIPTS_PER_SPOT = 20;
     public const AUDIO_BYTES = 30 * 1024 * 1024;
     /** Formatos de audio aceptados, según el contenido real del archivo (no su nombre). */
     public const AUDIO_TYPES = [
@@ -130,8 +131,7 @@ final class MediaPlanStore
             'national' => (bool) ($item['national'] ?? false),
             'regional' => (bool) ($item['regional'] ?? false),
             'local' => (bool) ($item['local'] ?? false),
-            'script' => self::text($item['script'] ?? '', self::SCRIPT_CHARS, false, true),
-            'audio' => self::audioRef($item['audio'] ?? null),
+            'scripts' => self::scripts($item),
         ]);
         $spotIds = array_column($spots, 'id');
         $assignments = self::items($data['assignments'] ?? [], 500, static function (array $item) use ($spotIds): array {
@@ -184,7 +184,28 @@ final class MediaPlanStore
         return $value;
     }
 
-    /** El audio de un spot: solo la referencia al archivo privado ya subido. */
+    /**
+     * Los guiones de la voz de un spot, cada uno con su título, su texto y su audio.
+     * Un spot guardado con el formato anterior (un solo `script` y un solo `audio`) pasa a ser su primer guion.
+     */
+    private static function scripts(array $spot): array
+    {
+        $list = $spot['scripts'] ?? null;
+        if ($list === null) {
+            $legacyText = $spot['script'] ?? '';
+            $legacyAudio = $spot['audio'] ?? null;
+            $list = (is_string($legacyText) && trim($legacyText) !== '') || $legacyAudio !== null
+                ? [['id' => 'guion_1', 'title' => 'Guion 1', 'text' => is_string($legacyText) ? $legacyText : '', 'audio' => $legacyAudio]] : [];
+        }
+        return self::items($list, self::SCRIPTS_PER_SPOT, static fn (array $item): array => [
+            'id' => self::id($item['id'] ?? null),
+            'title' => self::text($item['title'] ?? '', 120),
+            'text' => self::text($item['text'] ?? '', self::SCRIPT_CHARS, false, true),
+            'audio' => self::audioRef($item['audio'] ?? null),
+        ]);
+    }
+
+    /** El audio de un guion: solo la referencia al archivo privado ya subido. */
     private static function audioRef(mixed $value): ?array
     {
         if ($value === null) return null;

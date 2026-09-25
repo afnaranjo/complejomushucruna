@@ -35,14 +35,14 @@ test('HTTP real: el calendario de medios guarda guiones largos y sube, descarga 
   assert.equal((await request('/auth/login', { method: 'POST', body: stack.credentials })).status, 200);
   assert.equal((await (await request('/media-plan')).json()).version, 0);
 
-  // Un calendario con guiones largos pasa de 16 KB: el punto de entrada lo lee completo.
+  // Un calendario con varios guiones largos por spot pasa de 16 KB: el punto de entrada lo lee completo.
   const script = 'LOCUTOR: ¡Llega Finados 2026, es tradición! '.repeat(170).trim();
-  const spots = ['general', 'atractivos', 'carteleras'].map((id, index) => ({ id, qty: 1, name: `AUDIO ${index + 1}`, desc: '', color: '#94165e', national: true, regional: true, local: true, script, audio: null }));
+  const spots = ['general', 'atractivos', 'carteleras'].map((id, index) => ({ id, qty: 1, name: `AUDIO ${index + 1}`, desc: '', color: '#94165e', national: true, regional: true, local: true, scripts: [{ id: `${id}_1`, title: 'Guion 1', text: script, audio: null }, { id: `${id}_2`, title: 'Guion 2', text: script, audio: null }] }));
   const plan = { spots, assignments: [{ id: 'as_1', spotId: 'general', weekId: 'w1', start: '2026-09-21', end: '2026-09-27', note: '' }], media: [], plans: [] };
   assert.ok(JSON.stringify({ data: plan, version: 0 }).length > 16384);
   const saved = await request('/media-plan', { method: 'POST', body: { data: plan, version: 0 } });
   assert.equal(saved.status, 200, await saved.clone().text());
-  assert.equal((await saved.json()).data.spots[2].script, script);
+  assert.equal((await saved.json()).data.spots[2].scripts[1].text, script);
 
   // Subida por multipart real, descarga idéntica y rechazo de lo que no es audio.
   const bytes = wav();
@@ -61,9 +61,9 @@ test('HTTP real: el calendario de medios guarda guiones largos y sube, descarga 
   assert.equal((await request('/media-plan/audio', { method: 'POST', body: notAudio })).status, 422);
 
   // El spot guarda la referencia y el guion; sin sesión nadie descarga ni sube.
-  plan.spots[0].audio = audio;
+  plan.spots[0].scripts[1].audio = audio;
   assert.equal((await request('/media-plan', { method: 'POST', body: { data: plan, version: 1 } })).status, 200);
-  assert.equal((await (await request('/media-plan')).json()).data.spots[0].audio.id, audio.id);
+  assert.equal((await (await request('/media-plan')).json()).data.spots[0].scripts[1].audio.id, audio.id);
   assert.equal((await request(`/media-plan/audio/${audio.id}`, { withCookie: false })).status, 401);
   assert.equal((await request('/media-plan/audio', { method: 'POST', body: form, withCookie: false })).status, 401);
 });
