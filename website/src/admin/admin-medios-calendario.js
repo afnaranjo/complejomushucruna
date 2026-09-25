@@ -1,6 +1,6 @@
 import { resolveRuntimeOrigins } from '../finados/runtime-origins.mjs';
 // Mismo cliente administrativo que Medios: lista de rutas permitidas, CSRF y sesión compartidos.
-import { createMediaAdminClient } from './admin-medios.js?v=20260925-admin-medios-25';
+import { createMediaAdminClient } from './admin-medios.js?v=20260925-admin-medios-26';
 
 const LOCAL_API = 'http://127.0.0.1:4174/api';
 

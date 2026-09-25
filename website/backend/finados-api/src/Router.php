@@ -277,6 +277,9 @@ final class Router
                 if ($query !== []) throw new InvalidArgumentException();
                 return $this->json(200, $this->panelSummary(), $headers);
             }
+            if ($path === '/api/media-tour' || str_starts_with($path, '/api/media-tour/')) {
+                return $this->mediaTourAdmin($method, $path, $query, $server, $rawBody, $ip, $user, $headers);
+            }
             // El calendario de medios se carga bajo demanda: sus rutas usan constantes de la clase antes de instanciarla.
             if (str_starts_with($path, '/api/media-plan')) require_once __DIR__ . '/MediaPlanStore.php';
             if ($path === '/api/media-plan/audio') {
@@ -489,6 +492,54 @@ final class Router
     {
         require_once __DIR__ . '/MfsAuth.php';
         return $this->mfsAuthInstance ??= new MfsAuth($this->pdo, $this->config);
+    }
+
+    /** Medios → Gira de medios: personas y citas en los medios de Seguimiento. */
+    private function mediaTourAdmin(string $method, string $path, array $query, array $server, string $rawBody, mixed $ip, array $user, array $headers): Response
+    {
+        require_once __DIR__ . '/MediaTourRepository.php';
+        $tour = new MediaTourRepository($this->pdo, $this->crypto, $this->audit);
+        $notAllowed = fn (): Response => $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+        $personFields = ['name', 'role', 'phone', 'note'];
+        $visitFields = ['media', 'people', 'starts_at', 'ends_at', 'kind', 'status', 'place', 'note'];
+        try {
+            if ($path === '/api/media-tour') {
+                if ($method !== 'GET') return $notAllowed();
+                if (array_diff(array_keys($query), ['from', 'to']) !== [] || !is_string($query['from'] ?? null) || !is_string($query['to'] ?? null)) throw new InvalidArgumentException();
+                return $this->json(200, $tour->calendar($query['from'], $query['to']), $headers);
+            }
+            if ($query !== []) throw new InvalidArgumentException();
+            if ($path === '/api/media-tour/people') {
+                if ($method !== 'POST') return $notAllowed();
+                return $this->json(201, ['person' => $tour->createPerson($this->body($server, $rawBody, $personFields), $user['id'], $ip)], $headers);
+            }
+            if (preg_match('~^/api/media-tour/people/([a-f0-9]{32})(/retirar)?$~D', $path, $parts)) {
+                if (($parts[2] ?? '') === '/retirar') {
+                    if ($method !== 'POST') return $notAllowed();
+                    $tour->retirePerson($parts[1], $user['id'], $ip);
+                    return $this->json(200, ['ok' => true], $headers);
+                }
+                if ($method !== 'PATCH') return $notAllowed();
+                return $this->json(200, ['person' => $tour->updatePerson($parts[1], $this->body($server, $rawBody, $personFields), $user['id'], $ip)], $headers);
+            }
+            if ($path === '/api/media-tour/visits') {
+                if ($method !== 'POST') return $notAllowed();
+                return $this->json(201, ['visit' => $tour->createVisit($this->body($server, $rawBody, $visitFields), $user['id'], $ip)], $headers);
+            }
+            if (preg_match('~^/api/media-tour/visits/([a-f0-9]{32})(/cancelar)?$~D', $path, $parts)) {
+                if (($parts[2] ?? '') === '/cancelar') {
+                    if ($method !== 'POST') return $notAllowed();
+                    $tour->cancelVisit($parts[1], $user['id'], $ip);
+                    return $this->json(200, ['ok' => true], $headers);
+                }
+                if ($method === 'GET') return $this->json(200, ['visit' => $tour->visit($parts[1])], $headers);
+                if ($method !== 'PATCH') return $notAllowed();
+                return $this->json(200, ['visit' => $tour->updateVisit($parts[1], $this->body($server, $rawBody, $visitFields), $user['id'], $ip)], $headers);
+            }
+        } catch (MediaTourConflict) {
+            return $this->error(409, 'tour_conflict', 'Esa persona ya tiene otra cita a esa hora.', $headers);
+        }
+        return $this->error(404, 'not_found', 'Recurso no encontrado.', $headers);
     }
 
     private function mediaPlan(): MediaPlanStore

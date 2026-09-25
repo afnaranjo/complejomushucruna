@@ -666,3 +666,14 @@ tr[data-origin="cuenta"] > td { background: rgba(0, 210, 214, .05); }
 .mc-script-card__body { display: grid; gap: .8rem; padding: 0 .9rem .9rem; }
 .mc-script-card__body > .mc-danger { justify-self: start; }
 @media (prefers-reduced-motion: reduce) { .mc-script-card > summary::after { transition: none; } }
+
+/* Gira de medios: el mismo calendario de Creadoras; el estado de la cita se ve en la caja. */
+.tour-totals { margin-top: 1rem; }
+.tour-box[data-status="realizada"] { border-left-style: double; }
+.tour-box[data-status="no_se_dio"] { opacity: .6; }
+.tour-box[data-status="no_se_dio"] strong { text-decoration: line-through; }
+/* Las citas duran alrededor de una hora: cada hora es más alta que en Creadoras para que se lea la caja. */
+[data-admin-medios-gira] .calendar-canvas { height: 72rem; }
+@media (max-width: 900px) { [data-admin-medios-gira] .calendar-canvas { height: 60rem; } }
+/* Casilla y nombre en la misma línea, aunque el formulario ponga cada etiqueta en bloque. */
+.record-dialog .record-grid .shift-person { display: inline-flex; align-items: center; gap: .35rem; font-weight: 500; }

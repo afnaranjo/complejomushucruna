@@ -39,7 +39,7 @@ import { renderCreadoraPortalPage } from './creadoras/portal-page.mjs';
 import { renderCreadoraLegalPage } from './creadoras/legal-page.mjs';
 import { renderAdminNoticiasPage,
   renderAdminCreadorasPage, renderAdminMfsPage,
-  renderAdminEmprendedoresPage, renderAdminLoginPage, renderAdminMediosEventosPage, renderAdminMediosCalendarioPage, renderAdminMediosPage, renderAdminPanelPage, renderAdminVocerosPage } from './admin/page.mjs';
+  renderAdminEmprendedoresPage, renderAdminLoginPage, renderAdminMediosEventosPage, renderAdminMediosCalendarioPage, renderAdminMediosGiraPage, renderAdminMediosPage, renderAdminPanelPage, renderAdminVocerosPage } from './admin/page.mjs';
 import { renderMediaLandingBody } from './medios/landing-page.mjs';
 import { renderMediaPortalPage } from './medios/portal-page.mjs';
 import { renderMediaAccreditationPage } from './medios/accreditation-page.mjs';
@@ -386,6 +386,7 @@ export const pages = Object.freeze([
   { route: '/admin/medios/', title: 'Medios · Administración', indexable: false, render: renderAdminMediosPage },
   { route: '/admin/medios/eventos/', title: 'Medios · Eventos · Administración', indexable: false, render: renderAdminMediosEventosPage },
   { route: '/admin/medios/calendario/', title: 'Medios · Calendario de medios · Administración', indexable: false, render: renderAdminMediosCalendarioPage },
+  { route: '/admin/medios/gira/', title: 'Medios · Gira de medios · Administración', indexable: false, render: renderAdminMediosGiraPage },
   { route: '/admin/emprendedores/', title: 'Emprendedores · Administración', indexable: false, render: renderAdminEmprendedoresPage },
   { route: '/admin/creadoras/', title: 'Creadoras · Administración', indexable: false, render: renderAdminCreadorasPage },
   { route: '/admin/noticias/', title: 'Noticias · Administración', indexable: false, render: renderAdminNoticiasPage },

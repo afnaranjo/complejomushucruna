@@ -11,13 +11,13 @@ const ADMIN_FORMS = Object.freeze([
   { route: '/admin/noticias/', label: 'Noticias', description: 'Tema central de la campaña', marker: 'N' },
   { route: '/admin/panel/', label: 'Panel', description: 'Resumen de todo', marker: 'P' },
   { route: '/admin/voceros/', label: 'Voceros', description: 'Registros y seguimiento', marker: 'V' },
-  { route: '/admin/medios/', label: 'Medios', description: 'Seguimiento, eventos y calendario', marker: 'M', children: [{ route: '/admin/medios/', label: 'Seguimiento de medios', description: 'Registros, estado y pauta' }, { route: '/admin/medios/eventos/', label: 'Eventos', description: 'Cobertura por evento' }, { route: '/admin/medios/calendario/', label: 'Calendario de medios', description: 'Spots, calendario y reportes' }] },
+  { route: '/admin/medios/', label: 'Medios', description: 'Seguimiento, eventos, calendario y gira', marker: 'M', children: [{ route: '/admin/medios/', label: 'Seguimiento de medios', description: 'Registros, estado y pauta' }, { route: '/admin/medios/eventos/', label: 'Eventos', description: 'Cobertura por evento' }, { route: '/admin/medios/calendario/', label: 'Calendario de medios', description: 'Spots, calendario y reportes' }, { route: '/admin/medios/gira/', label: 'Gira de medios', description: 'Personas, medios y citas' }] },
   { route: '/admin/emprendedores/', label: 'Emprendedores', description: 'De emprendedor a influencer', marker: 'E' },
   { route: '/admin/creadoras/', label: 'Creadoras', description: 'Contenido y calendario', marker: 'C' },
   { route: '/admin/mfs/', label: 'Mushuc Freestyle', description: 'Inscripciones y audiciones', marker: 'F' },
 ]);
 // Public landing that each panel returns to from its header.
-const PANEL_LANDINGS = Object.freeze({ '/admin/noticias/': ['/finados/', 'Volver a Finados'], '/admin/panel/': ['/finados/', 'Volver a Finados'], '/admin/voceros/': ['/finados/voceros/', 'Volver a Voceros'], '/admin/medios/': ['/finados/medios/', 'Volver a Medios'], '/admin/medios/eventos/': ['/finados/medios/', 'Volver a Medios'], '/admin/medios/calendario/': ['/finados/medios/', 'Volver a Medios'], '/admin/emprendedores/': ['/finados/emprendedores/', 'Volver a Emprendedores'], '/admin/creadoras/': ['/finados/creadoras/', 'Volver a Creadoras'], '/admin/mfs/': ['/finados/mfs/', 'Volver a Mushuc Freestyle'] });
+const PANEL_LANDINGS = Object.freeze({ '/admin/noticias/': ['/finados/', 'Volver a Finados'], '/admin/panel/': ['/finados/', 'Volver a Finados'], '/admin/voceros/': ['/finados/voceros/', 'Volver a Voceros'], '/admin/medios/': ['/finados/medios/', 'Volver a Medios'], '/admin/medios/eventos/': ['/finados/medios/', 'Volver a Medios'], '/admin/medios/calendario/': ['/finados/medios/', 'Volver a Medios'], '/admin/medios/gira/': ['/finados/medios/', 'Volver a Medios'], '/admin/emprendedores/': ['/finados/emprendedores/', 'Volver a Emprendedores'], '/admin/creadoras/': ['/finados/creadoras/', 'Volver a Creadoras'], '/admin/mfs/': ['/finados/mfs/', 'Volver a Mushuc Freestyle'] });
 const PROGRESS_LEVELS = ['En preparación', 'Primer paso', 'Gorra', 'Kit completo', 'Trae a los tuyos', 'Noche de concierto', 'Tope'];
 const VIDEO_SLOTS = Object.freeze([1, 2, 3, 4, 5]);
 const videoSlotControls = (prefix = 'video') => VIDEO_SLOTS.map(slot => `<label class="admin-video-control"><span class="admin-video-check"><input type="checkbox" name="${prefix}_${slot}_enabled" value="1"><strong>Video ${slot}</strong></span><span class="admin-video-date"><span>Habilitado desde</span><input type="date" name="${prefix}_${slot}_enabled_at" aria-label="Fecha de habilitación del video ${slot}"></span></label>`).join('');
@@ -74,7 +74,7 @@ function layout(page, content, script = '/assets/admin/admin.js?v=20260925-perf-
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' blob:; media-src blob:; font-src 'self'; connect-src ${connectSources}; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="admin-api-base" content="${api}">
 <link rel="icon" href="/assets/finados/favicon-finados.png">
-<link rel="stylesheet" href="/assets/admin/admin.css?v=20260925-24">
+<link rel="stylesheet" href="/assets/admin/admin.css?v=20260925-26">
 <script type="module" src="${script}"></script>
 </head><body class="admin-page">
 <a class="skip-link" href="#contenido">Ir al contenido</a>
@@ -170,7 +170,7 @@ ${select('province', 'Provincia', ecuadorProvinces)}</div>
 }
 
 const ADMIN_CREADORAS_SCRIPT = '/assets/admin/admin-creadoras.js?v=20260925-creadoras-11';
-const ADMIN_MEDIOS_SCRIPT = '/assets/admin/admin-medios.js?v=20260925-admin-medios-25';
+const ADMIN_MEDIOS_SCRIPT = '/assets/admin/admin-medios.js?v=20260925-admin-medios-26';
 const RADIO_GENRE_OPTIONS = ['Noticias e información', 'Musical variada', 'Popular y tropical', 'Folclórica y andina', 'Juvenil y pop', 'Romántica', 'Religiosa', 'Deportiva', 'Comunitaria', 'Otro'];
 const PROVINCE_OPTIONS = ['Azuay', 'Bolívar', 'Cañar', 'Carchi', 'Chimborazo', 'Cotopaxi', 'El Oro', 'Esmeraldas', 'Galápagos', 'Guayas', 'Imbabura', 'Loja', 'Los Ríos', 'Manabí', 'Morona Santiago', 'Napo', 'Orellana', 'Pastaza', 'Pichincha', 'Santa Elena', 'Santo Domingo de los Tsáchilas', 'Sucumbíos', 'Tungurahua', 'Zamora Chinchipe'];
 
@@ -198,7 +198,7 @@ function mediaRecordDialog() {
 </div><button class="button-primary" type="submit">Guardar medio</button></fieldset></form></dialog>`;
 }
 
-export const ADMIN_MEDIOS_CALENDARIO_SCRIPT = '/assets/admin/admin-medios-calendario.js?v=20260925-medios-calendario-5';
+export const ADMIN_MEDIOS_CALENDARIO_SCRIPT = '/assets/admin/admin-medios-calendario.js?v=20260925-medios-calendario-6';
 const planTabs = [['spots', '1. Spots promocionales'], ['calendario', '2. Calendario semanal'], ['reportes', '3. Reportes']];
 const planField = (label, control, wide = 1) => `<label class="mc-field mc-field--${wide}">${label}${control}</label>`;
 
@@ -236,6 +236,86 @@ ${planField('Nota / intención', '<textarea name="note" maxlength="500" rows="3"
 </div><footer><button type="button" class="button-quiet" data-dialog-close>Cancelar</button><button type="submit" class="button-primary" value="save">Guardar pauta</button></footer></form></dialog>
 <p class="mc-toast" data-plan-toast role="status" aria-live="polite"></p>
 </main></div>`, ADMIN_MEDIOS_CALENDARIO_SCRIPT);
+}
+
+export const ADMIN_MEDIOS_GIRA_SCRIPT = '/assets/admin/admin-medios-gira.js?v=20260925-medios-gira-1';
+const TOUR_KINDS = Object.freeze({ entrevista: 'Entrevista', en_vivo: 'En vivo', grabacion: 'Grabación', visita: 'Visita', rueda: 'Rueda de prensa', otro: 'Otro' });
+const TOUR_STATUSES = Object.freeze({ programada: 'Programada', confirmada: 'Confirmada', realizada: 'Realizada', no_se_dio: 'No se dio' });
+const pairs = map => Object.entries(map).map(([value, label]) => `<option value="${esc(value)}">${esc(label)}</option>`).join('');
+
+/** Medios → Gira de medios: quién va a qué medio de Seguimiento, qué día y a qué hora. */
+export function renderAdminMediosGiraPage(page) {
+  return layout(page, `<div class="admin-shell">${adminSidebar(page)}<main id="contenido" class="admin-workspace" data-admin-medios-gira>${campaignBanner}
+<div class="workspace-heading"><div><p class="eyebrow">Finados 2026 · Medios</p><h1>Gira de medios</h1><p data-admin-user>Comprobando acceso…</p></div>
+<div class="workspace-actions"><button type="button" class="button-quiet" data-person-new disabled>Agregar persona</button><button type="button" class="button-primary" data-visit-new disabled>Agendar cita</button></div></div>
+<p class="feedback" data-admin-feedback role="status" aria-live="polite" aria-atomic="true">Cargando gira…</p>
+<button type="button" class="button-quiet" data-session-retry hidden>Reintentar conexión</button>
+<section class="admin-big-numbers admin-big-numbers--static tour-totals" aria-label="Resumen de la gira" data-tour-totals></section>
+<div class="calendar-bar">
+<div class="calendar-views" role="group" aria-label="Vista del calendario">
+<button type="button" class="button-quiet" data-view="day" aria-pressed="false">Día</button>
+<button type="button" class="button-quiet" data-view="week" aria-pressed="true">Semana</button>
+<button type="button" class="button-quiet" data-view="month" aria-pressed="false">Mes</button>
+</div>
+<div class="calendar-move">
+<button type="button" class="button-quiet" data-calendar-previous aria-label="Periodo anterior">◀</button>
+<strong data-calendar-label>…</strong>
+<button type="button" class="button-quiet" data-calendar-next aria-label="Periodo siguiente">▶</button>
+<button type="button" class="button-quiet" data-calendar-today>Hoy</button>
+</div>
+</div>
+<div class="calendar-layout">
+<aside class="calendar-people" aria-labelledby="gira-personas-title">
+<h2 id="gira-personas-title">Personas de la gira</h2>
+<p>Toca un nombre para agendarle una cita, o arrástralo a una hora del calendario. «Ver ficha» abre sus datos.</p>
+<ul data-person-list></ul>
+</aside>
+<section class="calendar-board" aria-label="Calendario de la gira de medios">
+<div class="calendar-grid" data-calendar-grid></div>
+<div class="calendar-month" data-calendar-month hidden></div>
+<p class="calendar-help">Cada caja es una cita: el medio, quién va y a qué hora. Arrástrala para moverla de día u hora y su borde de abajo para cambiar la hora de fin. Tócala para editarla, cambiar su estado o quitarla.</p>
+</section>
+</div>
+<dialog class="record-dialog" data-visit-dialog aria-label="Cita en un medio">
+<form method="dialog" class="record-form">
+<div class="records-heading"><div><h2 data-visit-title>Agendar cita</h2><p>Elige el medio de Seguimiento y a quién se le asigna. Una persona no puede tener dos citas a la misma hora.</p></div></div>
+<div class="record-grid">
+<label class="record-grid__wide">Buscar medio<input type="search" data-media-search maxlength="80" placeholder="Nombre del medio o ciudad" autocomplete="off"></label>
+<label class="record-grid__wide">Medio de Seguimiento<select name="media" required data-media-select></select></label>
+<fieldset class="record-grid__wide shift-people"><legend>Quién va</legend><div class="shift-people__list" data-visit-people></div></fieldset>
+<label>Día<input name="day" type="date" required></label>
+<label>Tipo<select name="kind">${pairs(TOUR_KINDS)}</select></label>
+<label>Hora de inicio<input name="start" type="time" step="900" required></label>
+<label>Hora de fin<input name="end" type="time" step="900" required></label>
+<label>Estado<select name="status">${pairs(TOUR_STATUSES)}</select></label>
+<label>Lugar<input name="place" maxlength="160" placeholder="Ej.: Cabina principal, estudio 2"></label>
+<label class="record-grid__wide">Nota<textarea name="note" rows="3" maxlength="1000" placeholder="Tema, contacto en el medio, qué llevar…"></textarea></label>
+</div>
+<p class="calendar-duration" data-visit-duration></p>
+<p class="feedback" data-visit-feedback role="status" aria-live="polite"></p>
+<div class="record-form__actions record-form__actions--split">
+<span class="record-form__side"><button type="button" class="button-quiet" data-visit-remove hidden>Quitar cita</button></span>
+<span class="record-form__side"><button type="submit" value="cancel" class="button-quiet">Cancelar</button><button type="submit" value="save" class="button-primary">Guardar cita</button></span>
+</div>
+</form>
+</dialog>
+<dialog class="record-dialog" data-person-dialog aria-label="Ficha de la persona">
+<form method="dialog" class="record-form">
+<div class="records-heading"><div><h2 data-person-title>Agregar persona</h2><p>Quien visita los medios: vocera, artista, dirección. El teléfono se guarda cifrado.</p></div></div>
+<div class="record-grid">
+<label class="record-grid__wide">Nombre y apellido<input name="name" maxlength="160" required></label>
+<label>Rol<input name="role" maxlength="120" placeholder="Ej.: Vocera, Artista, Dirección"></label>
+<label>Teléfono<input name="phone" maxlength="32" inputmode="tel" placeholder="0990000000"></label>
+<label class="record-grid__wide">Nota<textarea name="note" rows="3" maxlength="1000"></textarea></label>
+</div>
+<p class="feedback" data-person-feedback role="status" aria-live="polite"></p>
+<div class="record-form__actions record-form__actions--split">
+<span class="record-form__side"><button type="button" class="button-quiet" data-person-retire hidden>Retirar de la gira</button></span>
+<span class="record-form__side"><button type="submit" value="cancel" class="button-quiet">Cancelar</button><button type="submit" value="save" class="button-primary">Guardar</button></span>
+</div>
+</form>
+</dialog>
+</main></div>`, ADMIN_MEDIOS_GIRA_SCRIPT);
 }
 
 export function renderAdminMediosEventosPage(page) {
@@ -477,7 +557,7 @@ ${panelFold('medios', 'Medios', 'Toca un número para ver la lista.', `<div data
 <section class="admin-panel-subsection" aria-labelledby="panel-eventos-title"><div class="records-heading"><div><h3 id="panel-eventos-title">Medios por evento</h3><p>Abre un evento para ver su cobertura.</p></div></div><div data-panel-events></div></section>`)}
 ${panelFold('creadoras', 'Creadoras de contenido', 'Horas que vinieron, lo que grabaron y sus videos. Toca a una creadora para ver su historial.', '<div data-panel-creadoras></div>')}
 ${panelFold('voceros', 'Voceros', 'Toca un número para ver la lista.', '<div data-panel-voceros></div>')}
-</main></div>`, '/assets/admin/panel.js?v=20260925-admin-panel-9');
+</main></div>`, '/assets/admin/panel.js?v=20260925-admin-panel-10');
 }
 
 // Mushuc Freestyle: los estados viven aquí para que el HTML no dependa del módulo del navegador.

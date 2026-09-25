@@ -96,7 +96,8 @@ export function createMediaAdminClient(baseUrl = API, fetchImplementation = fetc
       && !/^\/medios\/[a-f0-9]{32}(?:\/(?:delete|notes|password-reset|video-views|videos|photo|details|invite|claim\/(?:approve|reject)))?$/.test(path)
       && !/^\/media-events\/[a-f0-9]{32}(?:\/coverage\/[a-f0-9]{32})?$/.test(path)
       && !/^\/media-accounts\/[a-f0-9]{32}\/delete$/.test(path)
-      && !/^\/media-plan\/audio(?:\/[a-f0-9]{32})?$/.test(path)) throw new Error('Ruta de API no permitida.');
+      && !/^\/media-plan\/audio(?:\/[a-f0-9]{32})?$/.test(path)
+      && !/^\/media-tour(?:\?from=\d{4}-\d{2}-\d{2}&to=\d{4}-\d{2}-\d{2}|\/people(?:\/[a-f0-9]{32}(?:\/retirar)?)?|\/visits(?:\/[a-f0-9]{32}(?:\/cancelar)?)?)$/.test(path)) throw new Error('Ruta de API no permitida.');
     const method = (options.method ?? 'GET').toUpperCase();
     if (!['GET', 'POST', 'PATCH'].includes(method)) throw new Error('Método no permitido.');
     const headers = { Accept: !options.blob ? 'application/json' : path.endsWith('/photo') ? 'image/jpeg' : path.includes('/audio/') ? 'audio/*' : 'text/csv' };
@@ -150,6 +151,13 @@ export function createMediaAdminClient(baseUrl = API, fetchImplementation = fetc
     saveMediaPlan: (data, version) => request('/media-plan', { method: 'POST', body: { data, version } }),
     uploadMediaPlanAudio: file => { const form = new FormData(); form.append('audio', file, file.name); return request('/media-plan/audio', { method: 'POST', form }); },
     mediaPlanAudio: id => request(`/media-plan/audio/${id}`, { blob: true }),
+    mediaTour: (from, to) => request(`/media-tour?from=${from}&to=${to}`),
+    createTourPerson: body => request('/media-tour/people', { method: 'POST', body }),
+    updateTourPerson: (id, body) => request(`/media-tour/people/${id}`, { method: 'PATCH', body }),
+    retireTourPerson: id => request(`/media-tour/people/${id}/retirar`, { method: 'POST', body: {} }),
+    createTourVisit: body => request('/media-tour/visits', { method: 'POST', body }),
+    updateTourVisit: (id, body) => request(`/media-tour/visits/${id}`, { method: 'PATCH', body }),
+    cancelTourVisit: id => request(`/media-tour/visits/${id}/cancelar`, { method: 'POST', body: {} }),
     social: (from, to, refresh = false) => request('/redes-sociales?' + new URLSearchParams({ from, to, ...(refresh ? { refresh: '1' } : {}) })),
     events: () => request('/media-events'),
     createEvent: body => request('/media-events', { method: 'POST', body }),
