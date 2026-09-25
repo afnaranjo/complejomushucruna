@@ -70,3 +70,44 @@ test('Panel va arriba de «Panel y formularios» y el panel muestra la sección 
   assert.equal(totals['Horas asistidas'], '10 h');
   assert.equal(totals['Guiones grabados'], '2 de 10');
 });
+
+test('Redes sociales: periodo por defecto de 30 días, comparación y lectura para decidir', async () => {
+  const { lastDays, socialDelta, socialVerdict, socialInsights, formatSocial } = await import('../src/admin/panel.js');
+  const page = pages.find(item => item.route === '/admin/panel/');
+  const html = page.render(page);
+  assert.match(html, /data-panel-social/);
+  assert.match(html, /<h2 id="panel-redes-title">Redes sociales<\/h2>/);
+  assert.match(html, /data-social-preset="30" aria-pressed="true"/);
+  assert.match(html, /Finados Mushuc Runa/);
+  assert.doesNotMatch(html, /<form/);
+  assert.ok(html.indexOf('data-panel-social') < html.indexOf('data-panel-media'), 'va antes de Medios');
+  assert.deepEqual(lastDays(30, '2026-09-24'), { from: '2026-08-26', to: '2026-09-24' });
+  assert.deepEqual(lastDays(7, '2026-03-02'), { from: '2026-02-24', to: '2026-03-02' });
+  assert.deepEqual(socialDelta(150, 100), { direction: 'up', pct: 50, good: true });
+  assert.deepEqual(socialDelta(0.3, 0.2, { lowerIsBetter: true }), { direction: 'up', pct: 50, good: false });
+  assert.equal(socialDelta(10, 0).direction, 'new');
+  assert.equal(socialDelta(100.5, 100).direction, 'flat');
+  assert.equal(socialDelta(null, 3).direction, null);
+  const growing = { label: 'TikTok', followers: { end: 7716, net: 1565, previous_net: -18, growth_pct: 25.44 }, metrics: { views: { current: 900, previous: 100 }, interactions: { current: 50, previous: 10 }, engagement_rate: { current: 5.5, previous: 10 } } };
+  assert.equal(socialVerdict(growing).label, 'Mejorando');
+  assert.equal(socialVerdict({ followers: { net: -5, previous_net: 10 }, metrics: { views: { current: 1, previous: 5 }, interactions: { current: 1, previous: 5 } } }).label, 'Empeorando');
+  assert.equal(socialVerdict({}).label, 'Sin comparación');
+  const insights = socialInsights({ networks: [growing], totals: { cost_per_follower: { current: 0.24, previous: 0.5 } }, ads: { current: { ctr: 2 }, previous: { ctr: 4 } } });
+  assert.ok(insights.some(text => text.startsWith('TikTok es la red que más crece')));
+  assert.ok(insights.some(text => text.includes('menos interacción por vista')));
+  assert.ok(insights.some(text => text.includes('más barato')));
+  assert.ok(insights.some(text => text.includes('menos clics por impresión')));
+  assert.equal(formatSocial(null), '—');
+  assert.equal(formatSocial(1565, 'signed'), '+1565'.replace('1565', new Intl.NumberFormat('es-EC').format(1565)));
+});
+
+test('Redes sociales: la comparación se lee corta', async () => {
+  const { socialDelta, socialDeltaText } = await import('../src/admin/panel.js');
+  const text = (c, p, o) => socialDeltaText(socialDelta(c, p, o), c, p, o?.kind);
+  assert.equal(text(150, 100), '▲ 50 %');
+  assert.equal(text(60, 100), '▼ 40 %');
+  assert.equal(text(1300, 100), '▲ ×13');
+  assert.equal(text(2764, -22), `▲ antes -22`);
+  assert.equal(text(5, 0), '▲ Nuevo');
+  assert.equal(text(5, null), 'Sin comparación');
+});

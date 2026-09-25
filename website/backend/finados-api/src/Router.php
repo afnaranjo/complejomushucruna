@@ -277,6 +277,15 @@ final class Router
                 if ($query !== []) throw new InvalidArgumentException();
                 return $this->json(200, $this->panelSummary(), $headers);
             }
+            if ($path === '/api/redes-sociales') {
+                if ($method !== 'GET') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+                if (array_diff(array_keys($query), ['from', 'to', 'refresh']) !== [] || !is_string($query['from'] ?? null) || !is_string($query['to'] ?? null)
+                    || (isset($query['refresh']) && $query['refresh'] !== '1')) throw new InvalidArgumentException();
+                try { $report = $this->socialMetrics()->report($query['from'], $query['to'], isset($query['refresh'])); }
+                catch (InvalidArgumentException $error) { throw $error; }
+                catch (Throwable) { return $this->error(503, 'social_unavailable', 'No se pudieron leer las redes sociales en este momento.', $headers); }
+                return $this->json(200, $report, $headers);
+            }
             if ($path === '/api/noticias' || str_starts_with($path, '/api/noticias/')) {
                 return $this->news($method, $path, $query, $server, $rawBody, $ip, $user, $headers);
             }
@@ -442,6 +451,12 @@ final class Router
     {
         require_once __DIR__ . '/MfsAuth.php';
         return $this->mfsAuthInstance ??= new MfsAuth($this->pdo, $this->config);
+    }
+
+    private function socialMetrics(): SocialMetrics
+    {
+        require_once __DIR__ . '/SocialMetrics.php';
+        return new SocialMetrics($this->config->privateDirectory());
     }
 
     private function mfs(): MfsRepository

@@ -1,6 +1,6 @@
 import { resolveRuntimeOrigins } from '../finados/runtime-origins.mjs';
 // The panel reuses the administrative client: same allowlist, same CSRF handling, one bundle less.
-import { createMediaAdminClient } from './admin-medios.js';
+import { createMediaAdminClient } from './admin-medios.js?v=20260924-admin-medios-21';
 import './sidebar.js?v=20260923-admin-sidebar-1';
 import './campaign-banner.js?v=20260923-noticias-1';
 
@@ -52,6 +52,103 @@ export function creadoraTotals(data = {}) {
     ['Videos', totals.videos ?? 0],
     ['Contenido total', totals.content ?? 0],
   ];
+}
+
+
+/* ---------- Redes sociales (Metricool, solo Finados Mushuc Runa) ---------- */
+
+/** Fecha de hoy en Ecuador, AAAA-MM-DD. */
+export function ecuadorToday(now = new Date()) {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Guayaquil', year: 'numeric', month: '2-digit', day: '2-digit' }).format(now);
+}
+
+/** Los últimos `days` días hasta `today`, ambos incluidos. */
+export function lastDays(days, today = ecuadorToday()) {
+  const end = new Date(`${today}T00:00:00Z`);
+  const start = new Date(end.getTime() - (days - 1) * 86400000);
+  return { from: start.toISOString().slice(0, 10), to: today };
+}
+
+/** Compara con el periodo anterior. `good` dice si el cambio es bueno para la campaña. */
+export function socialDelta(current, previous, { lowerIsBetter = false } = {}) {
+  if (current === null || current === undefined || previous === null || previous === undefined) return { direction: null, pct: null, good: null };
+  if (previous === 0) return current === 0 ? { direction: 'flat', pct: 0, good: null } : { direction: 'new', pct: null, good: lowerIsBetter ? null : current > 0 };
+  const pct = Math.round(((current - previous) / Math.abs(previous)) * 1000) / 10;
+  if (Math.abs(pct) < 1) return { direction: 'flat', pct, good: null };
+  const up = pct > 0;
+  return { direction: up ? 'up' : 'down', pct, good: lowerIsBetter ? !up : up };
+}
+
+const number = new Intl.NumberFormat('es-EC', { maximumFractionDigits: 0 });
+const decimal = new Intl.NumberFormat('es-EC', { maximumFractionDigits: 2 });
+const money = new Intl.NumberFormat('es-EC', { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 3 });
+export function formatSocial(value, kind = 'number') {
+  if (value === null || value === undefined || Number.isNaN(Number(value))) return '—';
+  if (kind === 'money') return money.format(value);
+  if (kind === 'pct') return `${decimal.format(value)} %`;
+  if (kind === 'signed') return `${value > 0 ? '+' : ''}${number.format(value)}`;
+  return number.format(value);
+}
+
+
+/** Texto corto de la comparación: los saltos grandes se leen mejor como «×12» que como «1.100 %». */
+export function socialDeltaText(delta, current, previous, kind = 'number') {
+  if (delta.direction === null) return 'Sin comparación';
+  if (delta.direction === 'new') return '▲ Nuevo';
+  if (delta.direction === 'flat') return '＝ Igual';
+  const arrow = delta.direction === 'up' ? '▲' : '▼';
+  if (previous < 0 || current < 0) return `${arrow} antes ${formatSocial(previous, kind === 'number' ? 'signed' : kind)}`;
+  if (delta.pct >= 100) return `${arrow} ×${decimal.format(Math.round((current / previous) * 10) / 10)}`;
+  return `${arrow} ${formatSocial(Math.abs(delta.pct), 'pct')}`;
+}
+
+export const SOCIAL_METRIC_LABELS = Object.freeze({
+  gained: ['Nuevos seguidores', 'number'], lost: ['Dejaron de seguir', 'number', true], reach: ['Alcance (suma diaria)', 'number'],
+  views: ['Vistas', 'number'], profile_views: ['Visitas al perfil', 'number'], accounts_engaged: ['Cuentas que interactuaron', 'number'],
+  interactions: ['Interacciones', 'number'], posts: ['Publicaciones', 'number'], engagement_rate: ['Interacción por vista', 'pct'],
+});
+
+/** Mejorando, empeorando o mixto: seguidores netos, vistas e interacciones frente al periodo anterior. */
+export function socialVerdict(network = {}) {
+  const followers = network.followers ?? {};
+  const metrics = network.metrics ?? {};
+  const signals = [
+    socialDelta(followers.net, followers.previous_net),
+    socialDelta(metrics.views?.current, metrics.views?.previous),
+    socialDelta(metrics.interactions?.current, metrics.interactions?.previous),
+  ].map(delta => delta.good === true ? 1 : delta.good === false ? -1 : 0);
+  const score = signals.reduce((a, b) => a + b, 0);
+  if (signals.every(signal => signal === 0)) return { key: 'unknown', label: 'Sin comparación' };
+  if (score >= 2) return { key: 'up', label: 'Mejorando' };
+  if (score <= -2) return { key: 'down', label: 'Empeorando' };
+  return { key: 'mixed', label: 'Mixto' };
+}
+
+/** Frases cortas para decidir, calculadas solo con los datos del periodo. */
+export function socialInsights(report = {}) {
+  const out = [];
+  const networks = (report.networks ?? []).filter(network => network.followers?.end !== null && network.followers?.end !== undefined);
+  const growing = networks.filter(network => network.followers.growth_pct !== null).sort((a, b) => b.followers.growth_pct - a.followers.growth_pct);
+  if (growing[0] && growing[0].followers.growth_pct > 0) out.push(`${growing[0].label} es la red que más crece: ${formatSocial(growing[0].followers.net, 'signed')} seguidores (${formatSocial(growing[0].followers.growth_pct, 'pct')}).`);
+  for (const network of networks) if (network.followers.net < 0) out.push(`${network.label} perdió ${formatSocial(-network.followers.net)} seguidores en el periodo. Revisa qué se publicó ahí.`);
+  for (const network of report.networks ?? []) {
+    const rate = network.metrics?.engagement_rate, views = network.metrics?.views;
+    if (rate?.current != null && rate?.previous != null && rate.current < rate.previous && socialDelta(views?.current, views?.previous).good) {
+      out.push(`${network.label}: más vistas, pero menos interacción por vista (${formatSocial(rate.current, 'pct')} frente a ${formatSocial(rate.previous, 'pct')}). El alcance sube; el contenido engancha menos.`);
+    }
+  }
+  const cost = report.totals?.cost_per_follower;
+  if (cost?.current != null) {
+    const delta = socialDelta(cost.current, cost.previous, { lowerIsBetter: true });
+    out.push(`Cada nuevo seguidor costó en promedio ${formatSocial(cost.current, 'money')} de pauta${delta.direction === 'up' || delta.direction === 'down' ? ` (${delta.good ? 'más barato' : 'más caro'} que el periodo anterior)` : ''}. Es aproximado: incluye seguidores orgánicos.`);
+  }
+  const ctr = report.ads?.current?.ctr, previousCtr = report.ads?.previous?.ctr;
+  if (ctr != null && previousCtr != null) {
+    const delta = socialDelta(ctr, previousCtr);
+    if (delta.good === false) out.push(`La pauta recibe menos clics por impresión (CTR ${formatSocial(ctr, 'pct')} frente a ${formatSocial(previousCtr, 'pct')}). Conviene renovar las piezas.`);
+  }
+  if (report.incomplete) out.push('Algunas métricas no respondieron en Metricool; las cifras con «—» no están disponibles.');
+  return out;
 }
 
 function node(tag, text, className) {
@@ -199,6 +296,147 @@ export async function initializeAdminPanel() {
     container.append(people, drawer);
   }
 
+
+  /* Redes sociales: se carga aparte para que una demora de Metricool no frene el resto del panel. */
+  const social = query('[data-panel-social]');
+  const socialFrom = social?.querySelector('[data-social-from]');
+  const socialTo = social?.querySelector('[data-social-to]');
+  const socialFeedback = social?.querySelector('[data-social-feedback]');
+  const socialContent = social?.querySelector('[data-social-content]');
+  const shortDate = value => new Intl.DateTimeFormat('es-EC', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${value}T00:00:00Z`));
+
+  function deltaChip(current, previous, options = {}) {
+    const delta = socialDelta(current, previous, options);
+    const chip = node('span', undefined, 'admin-social__delta');
+    chip.dataset.good = String(delta.good);
+    if (delta.direction === null) { chip.textContent = 'Sin comparación'; chip.dataset.good = 'null'; return chip; }
+    chip.textContent = socialDeltaText(delta, current, previous, options.kind);
+    chip.title = `Periodo anterior: ${formatSocial(previous, options.kind)}`;
+    return chip;
+  }
+
+  function tile(label, value, current, previous, options = {}) {
+    const box = node('div', undefined, 'admin-social__tile');
+    box.append(node('span', label), node('strong', value), deltaChip(current, previous, options));
+    if (options.note) box.append(node('small', options.note));
+    return box;
+  }
+
+  /** Una sola serie: el total de seguidores día a día. Pasa el cursor por un punto para ver la cifra. */
+  function sparkline(points, label) {
+    const values = points.map(point => Number(point[1]));
+    if (values.length < 2) return node('p', 'Sin serie diaria.', 'admin-panel-empty');
+    const width = 240, height = 56, pad = 6;
+    const min = Math.min(...values), max = Math.max(...values), span = max - min || 1;
+    const x = index => pad + (index * (width - pad * 2)) / (values.length - 1);
+    const y = value => height - pad - ((value - min) * (height - pad * 2)) / span;
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', `0 0 ${width} ${height}`); svg.setAttribute('class', 'admin-social__spark');
+    svg.setAttribute('role', 'img'); svg.setAttribute('aria-label', `${label}: de ${formatSocial(values[0])} a ${formatSocial(values.at(-1))}`);
+    const line = document.createElementNS(svg.namespaceURI, 'polyline');
+    line.setAttribute('points', values.map((value, index) => `${x(index).toFixed(1)},${y(value).toFixed(1)}`).join(' '));
+    svg.append(line);
+    points.forEach(([date, value], index) => {
+      const hit = document.createElementNS(svg.namespaceURI, 'circle');
+      hit.setAttribute('cx', x(index).toFixed(1)); hit.setAttribute('cy', y(Number(value)).toFixed(1)); hit.setAttribute('r', '5');
+      const title = document.createElementNS(svg.namespaceURI, 'title'); title.textContent = `${shortDate(date)}: ${formatSocial(value)} seguidores`;
+      hit.append(title); svg.append(hit);
+    });
+    return svg;
+  }
+
+  function renderSocial(report) {
+    socialContent.replaceChildren();
+    if (!report.configured) { socialContent.append(node('p', 'Metricool todavía no está conectado en el servidor.', 'admin-panel-empty')); return; }
+    const totals = report.totals ?? {};
+    const intro = node('p', `${shortDate(report.range.from)} – ${shortDate(report.range.to)} (${report.range.days} días). Las flechas comparan con ${shortDate(report.previous.from)} – ${shortDate(report.previous.to)}: verde es bueno para la campaña, rojo es malo.`, 'admin-social__range');
+    const tiles = node('div', undefined, 'admin-social__tiles');
+    tiles.append(
+      tile('Seguidores en total', formatSocial(totals.followers), totals.followers_net?.current, totals.followers_net?.previous, { note: `${formatSocial(totals.followers_net?.current, 'signed')} en el periodo` }),
+      tile('Vistas', formatSocial(totals.views?.current), totals.views?.current, totals.views?.previous),
+      tile('Interacciones', formatSocial(totals.interactions?.current), totals.interactions?.current, totals.interactions?.previous),
+      tile('Publicaciones', formatSocial(totals.posts?.current), totals.posts?.current, totals.posts?.previous, { note: 'Facebook e Instagram' }),
+      tile('Inversión en pauta', formatSocial(totals.spend?.current, 'money'), totals.spend?.current, totals.spend?.previous, { kind: 'money', note: 'Meta Ads de Finados' }),
+      tile('Costo por nuevo seguidor', formatSocial(totals.cost_per_follower?.current, 'money'), totals.cost_per_follower?.current, totals.cost_per_follower?.previous, { lowerIsBetter: true, kind: 'money', note: 'Aproximado; menos es mejor' }),
+    );
+    const insights = socialInsights(report);
+    const reading = node('section', undefined, 'admin-social__insights');
+    if (insights.length) { reading.append(node('h3', 'Lectura rápida')); const list = node('ul'); for (const text of insights) list.append(node('li', text)); reading.append(list); }
+
+    const grid = node('div', undefined, 'admin-social__networks');
+    for (const network of report.networks ?? []) {
+      const card = node('article', undefined, 'admin-social__network');
+      card.dataset.network = network.key;
+      const verdict = socialVerdict(network);
+      const head = node('header');
+      const title = node('div'); title.append(node('h3', network.label), node('strong', formatSocial(network.followers?.end)), node('small', 'seguidores'));
+      const badge = node('span', `${{ up: '▲', down: '▼', mixed: '◆', unknown: '·' }[verdict.key]} ${verdict.label}`, 'admin-social__verdict'); badge.dataset.verdict = verdict.key;
+      head.append(title, badge);
+      card.append(head);
+      const growth = node('p', undefined, 'admin-social__growth');
+      growth.append(node('strong', `${formatSocial(network.followers?.net, 'signed')} seguidores`), node('span', network.followers?.growth_pct == null ? '' : ` (${formatSocial(network.followers.growth_pct, 'pct')})`));
+      growth.append(deltaChip(network.followers?.net, network.followers?.previous_net));
+      card.append(growth, sparkline(network.series?.followers ?? [], `Seguidores de ${network.label}`));
+      const list = node('dl', undefined, 'admin-social__metrics');
+      for (const [key, [label, kind, lowerIsBetter]] of Object.entries(SOCIAL_METRIC_LABELS)) {
+        const metric = network.metrics?.[key];
+        if (!metric || (metric.current == null && metric.previous == null)) continue;
+        const row = node('div'); const value = node('dd');
+        value.append(node('span', formatSocial(metric.current, kind)), deltaChip(metric.current, metric.previous, { lowerIsBetter: Boolean(lowerIsBetter), kind }));
+        row.append(node('dt', label), value); list.append(row);
+      }
+      card.append(list);
+      grid.append(card);
+    }
+
+    const ads = report.ads ?? {}, now = ads.current ?? {}, before = ads.previous ?? {};
+    const adsCard = node('article', undefined, 'admin-social__network admin-social__ads');
+    const adsHead = node('header'); const adsTitle = node('div'); adsTitle.append(node('h3', 'Pauta · Meta Ads'), node('strong', formatSocial(now.spend, 'money')), node('small', 'invertidos'));
+    adsHead.append(adsTitle); adsCard.append(adsHead);
+    const adsList = node('dl', undefined, 'admin-social__metrics');
+    for (const [key, label, kind, lowerIsBetter] of [['impressions', 'Impresiones', 'number'], ['reach', 'Alcance (suma diaria)', 'number'], ['clicks', 'Clics', 'number'], ['ctr', 'CTR (clics por impresión)', 'pct'], ['cpc', 'Costo por clic', 'money', true], ['cpm', 'Costo por mil impresiones', 'money', true]]) {
+      const row = node('div'); const value = node('dd');
+      value.append(node('span', formatSocial(now[key], kind)), deltaChip(now[key], before[key], { lowerIsBetter: Boolean(lowerIsBetter), kind }));
+      row.append(node('dt', label), value); adsList.append(row);
+    }
+    adsCard.append(sparklineSpend(ads.series?.spend ?? []), adsList);
+    grid.append(adsCard);
+
+    const stamp = node('p', `Datos de Metricool · ${report.cached ? 'guardados hace menos de 30 min' : 'leídos ahora'}. «Alcance (suma diaria)» suma el alcance de cada día: no es gente única.`, 'admin-social__stamp');
+    socialContent.append(intro, tiles, reading, grid, stamp);
+  }
+
+  function sparklineSpend(points) {
+    const svg = sparkline(points, 'Inversión diaria');
+    for (const title of svg.querySelectorAll?.('title') ?? []) title.textContent = title.textContent.replace(/ seguidores$/, ' USD');
+    return svg;
+  }
+
+  let socialRange = lastDays(30);
+  async function loadSocial(refresh = false) {
+    if (!social) return;
+    socialFrom.value = socialRange.from; socialTo.value = socialRange.to; socialTo.max = ecuadorToday(); socialFrom.max = socialTo.value;
+    social.setAttribute('aria-busy', 'true');
+    feedback(socialFeedback, refresh ? 'Leyendo Metricool…' : 'Cargando redes sociales…');
+    try {
+      renderSocial(await client.social(socialRange.from, socialRange.to, refresh));
+      feedback(socialFeedback, '');
+    } catch (error) {
+      if (error.status === 401) { location.replace('/admin/'); return; }
+      feedback(socialFeedback, error.status === 503 ? 'Metricool no respondió. Intenta de nuevo en unos minutos.' : error.status === 422 ? 'Revisa el periodo: hasta hoy y de máximo un año.' : error.message, 'error');
+    } finally { social.removeAttribute('aria-busy'); }
+  }
+  if (social) {
+    const presets = [...social.querySelectorAll('[data-social-preset]')];
+    const press = active => { for (const button of presets) button.setAttribute('aria-pressed', String(button === active)); };
+    for (const button of presets) button.addEventListener('click', () => { socialRange = lastDays(Number(button.dataset.socialPreset)); press(button); loadSocial(); });
+    social.querySelector('[data-social-apply]').addEventListener('click', () => {
+      if (!socialFrom.value || !socialTo.value || socialFrom.value > socialTo.value) { feedback(socialFeedback, 'Elige una fecha de inicio anterior a la de fin.', 'error'); return; }
+      socialRange = { from: socialFrom.value, to: socialTo.value }; press(null); loadSocial();
+    });
+    social.querySelector('[data-social-refresh]').addEventListener('click', () => loadSocial(true));
+  }
+
   async function load() {
     retry.hidden = true;
     feedback(status, 'Cargando panel…');
@@ -239,6 +477,7 @@ export async function initializeAdminPanel() {
     query('[data-admin-user]').textContent = `Sesión de ${session.user.username}`;
     if (sidebarUser) sidebarUser.textContent = session.user.username;
     if (logout) logout.disabled = false;
+    loadSocial();
     await load();
   } catch (error) { fail(error); retry.hidden = false; }
 }

@@ -462,3 +462,9 @@ El 28 de agosto quedó confirmado `¡LEGADO QUE NOS UNE!` como eslogan gráfico 
 - La animación deja de ser un ticker infinito: panel, palabras, sello y trama se ensamblan una sola vez al entrar en pantalla; el modo de movimiento reducido conserva la lectura inmediata.
 - QA local: 215 pruebas Node, 26 suites PHP, 10 de integración, 203 archivos y 2.012 referencias; revisión en escritorio y móvil de 390 px sin desbordamiento horizontal.
 - Alex aprobó subir la variante: commit técnico `88f670c`, GitHub y frontend publicados con respaldo. Ambos dominios respondieron 200, sirvieron la caché nueva, no contienen el ticker anterior y entregan un CSS idéntico al build. Sin backend, migraciones o cambios de base de datos. Evidencia: [[11_eventos/2026_feria-finados/10_tecnologia-datos/2026-09-24_variante-franja-manifiesto-finados-web_v01|Variante de franja manifiesto]].
+
+### 2026-09-24 — Redes sociales en el Panel desde Metricool
+
+- El Panel administrativo abre con la sección **Redes sociales**: solo la marca Metricool «Finados Mushuc Runa» (Facebook, Instagram, TikTok, YouTube y Meta Ads). El backend tiene fijo ese identificador de marca y rechaza cualquier otro, por pedido expreso de Alex.
+- Selector de periodo (7, 30, 90 días o fechas propias; por defecto los últimos 30 días en hora de Ecuador). Cada cifra se compara con el periodo anterior del mismo largo: seguidores y crecimiento por red, vistas, alcance, interacciones, interacción por vista, publicaciones, inversión, CTR, costo por clic, costo por mil y costo aproximado por nuevo seguidor, más un veredicto por red y una lectura rápida para decidir.
+- El token vive solo en `metricool-config.json` junto a la configuración privada del backend en el servidor; nunca en Git. Caché de 30 minutos. TikTok solo conserva unas semanas en Metricool: sin datos se muestra «Sin comparación», no cero.
