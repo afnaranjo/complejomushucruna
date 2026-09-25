@@ -111,3 +111,14 @@ test('Redes sociales: la comparación se lee corta', async () => {
   assert.equal(text(5, 0), '▲ Nuevo');
   assert.equal(text(5, null), 'Sin comparación');
 });
+
+test('las secciones del Panel arrancan plegadas y se abren con un clic en el título', async () => {
+  const page = pages.find(item => item.route === '/admin/panel/');
+  const html = page.render(page);
+  const folds = [...html.matchAll(/<details class="admin-panel-section admin-panel-fold[^"]*"[^>]*data-panel-fold="([a-z]+)"[^>]*>/g)];
+  assert.deepEqual(folds.map(match => match[1]), ['redes', 'medios', 'creadoras', 'voceros']);
+  for (const match of folds) assert.doesNotMatch(match[0], /\sopen/, `${match[1]} arranca cerrada`);
+  for (const key of ['redes', 'medios', 'creadoras', 'voceros']) assert.match(html, new RegExp(`<summary><div class="records-heading"><div><h2 id="panel-${key}-title">`));
+  const bundle = await readFile(new URL('../src/admin/panel.js', import.meta.url), 'utf8');
+  assert.match(bundle, /social\.addEventListener\('toggle'/, 'Metricool se consulta al abrir la sección');
+});

@@ -477,7 +477,12 @@ export async function initializeAdminPanel() {
     query('[data-admin-user]').textContent = `Sesión de ${session.user.username}`;
     if (sidebarUser) sidebarUser.textContent = session.user.username;
     if (logout) logout.disabled = false;
-    loadSocial();
+    // Redes sociales arranca plegada: Metricool solo se consulta la primera vez que se abre.
+    if (social) {
+      const openSocial = () => { if (social.open && !social.dataset.loaded) { social.dataset.loaded = 'true'; loadSocial(); } };
+      social.addEventListener('toggle', openSocial);
+      openSocial();
+    }
     await load();
   } catch (error) { fail(error); retry.hidden = false; }
 }

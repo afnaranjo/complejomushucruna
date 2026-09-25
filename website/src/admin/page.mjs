@@ -70,7 +70,7 @@ function layout(page, content, script = '/assets/admin/admin.js?v=20260923-admin
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' blob:; font-src 'self'; connect-src ${connectSources}; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="admin-api-base" content="${api}">
 <link rel="icon" href="/assets/finados/favicon-finados.png">
-<link rel="stylesheet" href="/assets/admin/admin.css?v=20260924-17">
+<link rel="stylesheet" href="/assets/admin/admin.css?v=20260924-18">
 <script type="module" src="${script}"></script>
 </head><body class="admin-page">
 <a class="skip-link" href="#contenido">Ir al contenido</a>
@@ -415,20 +415,25 @@ export function renderAdminCreadorasPage(page) {
 </main></div>`, ADMIN_CREADORAS_SCRIPT);
 }
 
+/** Sección del Panel que arranca plegada: un clic en el título la abre y otro la cierra. */
+function panelFold(key, title, description, body, extra = '') {
+  return `<details class="admin-panel-section admin-panel-fold${extra ? ' ' + extra : '"'} data-panel-fold="${key}" aria-labelledby="panel-${key}-title"><summary><div class="records-heading"><div><h2 id="panel-${key}-title">${title}</h2><p>${description}</p></div></div><span class="admin-panel-fold__toggle" aria-hidden="true"></span></summary><div class="admin-panel-fold__body">
+${body}</div></details>`;
+}
+
 export function renderAdminPanelPage(page) {
   return layout(page, `<div class="admin-shell">${adminSidebar(page)}<main id="contenido" class="admin-workspace" data-admin-panel>${campaignBanner}
 <div class="workspace-heading"><div><p class="eyebrow">Finados 2026</p><h1>Panel</h1><p data-admin-user>Comprobando acceso…</p></div></div>
 <p class="feedback" data-admin-feedback role="status" aria-live="polite" aria-atomic="true">Cargando panel…</p>
 <button type="button" class="button-quiet" data-session-retry hidden>Reintentar conexión</button>
-<section class="admin-panel-section admin-social" aria-labelledby="panel-redes-title" data-panel-social><div class="records-heading"><div><h2 id="panel-redes-title">Redes sociales</h2><p>Solo la cuenta Finados Mushuc Runa, leída de Metricool. Cada cifra se compara con el periodo anterior del mismo largo.</p></div></div>
-<div class="admin-social__controls" role="group" aria-label="Periodo de las redes sociales"><div class="admin-social__presets"><button type="button" class="button-quiet" data-social-preset="7" aria-pressed="false">7 días</button><button type="button" class="button-quiet" data-social-preset="30" aria-pressed="true">30 días</button><button type="button" class="button-quiet" data-social-preset="90" aria-pressed="false">90 días</button></div>
+${panelFold('redes', 'Redes sociales', 'Solo la cuenta Finados Mushuc Runa, leída de Metricool. Cada cifra se compara con el periodo anterior del mismo largo.', `<div class="admin-social__controls" role="group" aria-label="Periodo de las redes sociales"><div class="admin-social__presets"><button type="button" class="button-quiet" data-social-preset="7" aria-pressed="false">7 días</button><button type="button" class="button-quiet" data-social-preset="30" aria-pressed="true">30 días</button><button type="button" class="button-quiet" data-social-preset="90" aria-pressed="false">90 días</button></div>
 <label>Desde<input type="date" data-social-from></label><label>Hasta<input type="date" data-social-to></label><button type="button" class="button-primary" data-social-apply>Ver periodo</button><button type="button" class="button-quiet" data-social-refresh title="Volver a leer Metricool ahora">Actualizar datos</button></div>
-<p class="feedback" data-social-feedback role="status" aria-live="polite"></p><div data-social-content></div></section>
-<section class="admin-panel-section" aria-labelledby="panel-medios-title"><div class="records-heading"><div><h2 id="panel-medios-title">Medios</h2><p>Toca un número para ver la lista.</p></div></div><div data-panel-media></div>
-<section class="admin-panel-subsection" aria-labelledby="panel-eventos-title"><div class="records-heading"><div><h3 id="panel-eventos-title">Medios por evento</h3><p>Abre un evento para ver su cobertura.</p></div></div><div data-panel-events></div></section></section>
-<section class="admin-panel-section" aria-labelledby="panel-creadoras-title"><div class="records-heading"><div><h2 id="panel-creadoras-title">Creadoras de contenido</h2><p>Horas que vinieron, lo que grabaron y sus videos. Toca a una creadora para ver su historial.</p></div></div><div data-panel-creadoras></div></section>
-<section class="admin-panel-section" aria-labelledby="panel-voceros-title"><div class="records-heading"><div><h2 id="panel-voceros-title">Voceros</h2><p>Toca un número para ver la lista.</p></div></div><div data-panel-voceros></div></section>
-</main></div>`, '/assets/admin/panel.js?v=20260924-admin-panel-5');
+<p class="feedback" data-social-feedback role="status" aria-live="polite"></p><div data-social-content></div>`, 'admin-social" data-panel-social')}
+${panelFold('medios', 'Medios', 'Toca un número para ver la lista.', `<div data-panel-media></div>
+<section class="admin-panel-subsection" aria-labelledby="panel-eventos-title"><div class="records-heading"><div><h3 id="panel-eventos-title">Medios por evento</h3><p>Abre un evento para ver su cobertura.</p></div></div><div data-panel-events></div></section>`)}
+${panelFold('creadoras', 'Creadoras de contenido', 'Horas que vinieron, lo que grabaron y sus videos. Toca a una creadora para ver su historial.', '<div data-panel-creadoras></div>')}
+${panelFold('voceros', 'Voceros', 'Toca un número para ver la lista.', '<div data-panel-voceros></div>')}
+</main></div>`, '/assets/admin/panel.js?v=20260924-admin-panel-6');
 }
 
 // Mushuc Freestyle: los estados viven aquí para que el HTML no dependa del módulo del navegador.

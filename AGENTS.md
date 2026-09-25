@@ -1958,3 +1958,9 @@ Nota de relevo escrita a pedido de Alex para que otro agente (Codex) retome la s
 - Backend → frontend desde `main` sincronizada, con verificación completa, respaldo previo y sin migraciones. El frontend no borró archivos exclusivos del servidor.
 - Verificación: `/admin/panel/` 200 en ambos dominios con la sección nueva; `panel.js`, `admin.css`, `admin-medios.js` y `vocero-portal.js` con SHA-256 idéntico al build; `health` 200 y `/api/redes-sociales` sin sesión 401 en ambas APIs. La clase publicada, ejecutada en el servidor, leyó Metricool en 0,7 s sin métricas faltantes (Facebook 21.420, Instagram 1.603, TikTok 7.716, YouTube 57, pauta USD 1.254,05 en 30 días).
 - Pendiente: regenerar el token de Metricool porque se compartió en el chat y actualizar el archivo privado.
+
+### 2026-09-24 — Secciones plegables en el Panel
+
+- Alex pidió que las secciones del Panel aparezcan plegadas y se abran o cierren con un clic. Redes sociales, Medios, Creadoras y Voceros pasan a `<details>` cerrados por defecto, con el título y una flecha como botón; Medios por evento sigue dentro de Medios.
+- Redes sociales solo consulta Metricool la primera vez que se abre, así el Panel carga más rápido y no gasta consultas. Solo frontend: cachés `panel.js` `20260924-admin-panel-6` y `admin.css` `20260924-18`; sin cambios de backend ni datos.
+- QA: `npm run check` en verde (231 Node, PHP, 10 integración; 215 archivos) con prueba nueva de secciones plegadas; revisión visual plegado y abierto.
