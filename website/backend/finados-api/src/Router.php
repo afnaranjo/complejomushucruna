@@ -277,6 +277,18 @@ final class Router
                 if ($query !== []) throw new InvalidArgumentException();
                 return $this->json(200, $this->panelSummary(), $headers);
             }
+            if ($path === '/api/media-plan') {
+                if ($query !== []) throw new InvalidArgumentException();
+                if ($method === 'GET') return $this->json(200, $this->mediaPlan()->get(), $headers);
+                if ($method !== 'POST') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+                // El calendario completo puede superar el límite general de 16 KB: tiene su propio tope.
+                if (strlen($rawBody) > MediaPlanStore::MAX_BYTES || (int) ($server['CONTENT_LENGTH'] ?? 0) > MediaPlanStore::MAX_BYTES) throw new RequestBodyError(413, 'payload_too_large');
+                if (strtolower(trim(explode(';', $server['CONTENT_TYPE'] ?? '')[0])) !== 'application/json') throw new RequestBodyError(415, 'unsupported_media_type');
+                $body = json_decode($rawBody, true, 64, JSON_THROW_ON_ERROR);
+                if (!is_array($body) || array_is_list($body) || array_diff(array_keys($body), ['data', 'version']) !== []) throw new InvalidArgumentException();
+                try { return $this->json(200, $this->mediaPlan()->save($body['data'] ?? null, $body['version'] ?? null, $user['id'], $ip), $headers); }
+                catch (MediaPlanConflict) { return $this->error(409, 'plan_conflict', 'Alguien guardó cambios antes. Recarga para ver la versión actual.', $headers); }
+            }
             if ($path === '/api/redes-sociales') {
                 if ($method !== 'GET') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
                 if (array_diff(array_keys($query), ['from', 'to', 'refresh']) !== [] || !is_string($query['from'] ?? null) || !is_string($query['to'] ?? null)
@@ -451,6 +463,12 @@ final class Router
     {
         require_once __DIR__ . '/MfsAuth.php';
         return $this->mfsAuthInstance ??= new MfsAuth($this->pdo, $this->config);
+    }
+
+    private function mediaPlan(): MediaPlanStore
+    {
+        require_once __DIR__ . '/MediaPlanStore.php';
+        return new MediaPlanStore($this->pdo, $this->audit);
     }
 
     private function socialMetrics(): SocialMetrics

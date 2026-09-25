@@ -11,13 +11,13 @@ const ADMIN_FORMS = Object.freeze([
   { route: '/admin/noticias/', label: 'Noticias', description: 'Tema central de la campaña', marker: 'N' },
   { route: '/admin/panel/', label: 'Panel', description: 'Resumen de todo', marker: 'P' },
   { route: '/admin/voceros/', label: 'Voceros', description: 'Registros y seguimiento', marker: 'V' },
-  { route: '/admin/medios/', label: 'Medios', description: 'Acreditación de medios', marker: 'M', children: [{ route: '/admin/medios/eventos/', label: 'Eventos', description: 'Cobertura por evento' }] },
+  { route: '/admin/medios/', label: 'Medios', description: 'Acreditación de medios', marker: 'M', children: [{ route: '/admin/medios/eventos/', label: 'Eventos', description: 'Cobertura por evento' }, { route: '/admin/medios/calendario/', label: 'Calendario de medios', description: 'Spots, pautas y reportes' }] },
   { route: '/admin/emprendedores/', label: 'Emprendedores', description: 'De emprendedor a influencer', marker: 'E' },
   { route: '/admin/creadoras/', label: 'Creadoras', description: 'Contenido y calendario', marker: 'C' },
   { route: '/admin/mfs/', label: 'Mushuc Freestyle', description: 'Inscripciones y audiciones', marker: 'F' },
 ]);
 // Public landing that each panel returns to from its header.
-const PANEL_LANDINGS = Object.freeze({ '/admin/noticias/': ['/finados/', 'Volver a Finados'], '/admin/panel/': ['/finados/', 'Volver a Finados'], '/admin/voceros/': ['/finados/voceros/', 'Volver a Voceros'], '/admin/medios/': ['/finados/medios/', 'Volver a Medios'], '/admin/medios/eventos/': ['/finados/medios/', 'Volver a Medios'], '/admin/emprendedores/': ['/finados/emprendedores/', 'Volver a Emprendedores'], '/admin/creadoras/': ['/finados/creadoras/', 'Volver a Creadoras'], '/admin/mfs/': ['/finados/mfs/', 'Volver a Mushuc Freestyle'] });
+const PANEL_LANDINGS = Object.freeze({ '/admin/noticias/': ['/finados/', 'Volver a Finados'], '/admin/panel/': ['/finados/', 'Volver a Finados'], '/admin/voceros/': ['/finados/voceros/', 'Volver a Voceros'], '/admin/medios/': ['/finados/medios/', 'Volver a Medios'], '/admin/medios/eventos/': ['/finados/medios/', 'Volver a Medios'], '/admin/medios/calendario/': ['/finados/medios/', 'Volver a Medios'], '/admin/emprendedores/': ['/finados/emprendedores/', 'Volver a Emprendedores'], '/admin/creadoras/': ['/finados/creadoras/', 'Volver a Creadoras'], '/admin/mfs/': ['/finados/mfs/', 'Volver a Mushuc Freestyle'] });
 const PROGRESS_LEVELS = ['En preparación', 'Primer paso', 'Gorra', 'Kit completo', 'Trae a los tuyos', 'Noche de concierto', 'Tope'];
 const VIDEO_SLOTS = Object.freeze([1, 2, 3, 4, 5]);
 const videoSlotControls = (prefix = 'video') => VIDEO_SLOTS.map(slot => `<label class="admin-video-control"><span class="admin-video-check"><input type="checkbox" name="${prefix}_${slot}_enabled" value="1"><strong>Video ${slot}</strong></span><span class="admin-video-date"><span>Habilitado desde</span><input type="date" name="${prefix}_${slot}_enabled_at" aria-label="Fecha de habilitación del video ${slot}"></span></label>`).join('');
@@ -70,7 +70,7 @@ function layout(page, content, script = '/assets/admin/admin.js?v=20260923-admin
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' blob:; font-src 'self'; connect-src ${connectSources}; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="admin-api-base" content="${api}">
 <link rel="icon" href="/assets/finados/favicon-finados.png">
-<link rel="stylesheet" href="/assets/admin/admin.css?v=20260924-18">
+<link rel="stylesheet" href="/assets/admin/admin.css?v=20260925-19">
 <script type="module" src="${script}"></script>
 </head><body class="admin-page">
 <a class="skip-link" href="#contenido">Ir al contenido</a>
@@ -166,7 +166,7 @@ ${select('province', 'Provincia', ecuadorProvinces)}</div>
 }
 
 const ADMIN_CREADORAS_SCRIPT = '/assets/admin/admin-creadoras.js?v=20260924-creadoras-9';
-const ADMIN_MEDIOS_SCRIPT = '/assets/admin/admin-medios.js?v=20260924-admin-medios-21';
+const ADMIN_MEDIOS_SCRIPT = '/assets/admin/admin-medios.js?v=20260924-admin-medios-22';
 const RADIO_GENRE_OPTIONS = ['Noticias e información', 'Musical variada', 'Popular y tropical', 'Folclórica y andina', 'Juvenil y pop', 'Romántica', 'Religiosa', 'Deportiva', 'Comunitaria', 'Otro'];
 const PROVINCE_OPTIONS = ['Azuay', 'Bolívar', 'Cañar', 'Carchi', 'Chimborazo', 'Cotopaxi', 'El Oro', 'Esmeraldas', 'Galápagos', 'Guayas', 'Imbabura', 'Loja', 'Los Ríos', 'Manabí', 'Morona Santiago', 'Napo', 'Orellana', 'Pastaza', 'Pichincha', 'Santa Elena', 'Santo Domingo de los Tsáchilas', 'Sucumbíos', 'Tungurahua', 'Zamora Chinchipe'];
 
@@ -192,6 +192,62 @@ function mediaRecordDialog() {
 <label>Teléfono<input name="phone" maxlength="25" inputmode="tel"></label>
 <label class="record-grid__wide">Correo de contacto<input name="contact_email" type="email" maxlength="180"></label>
 </div><button class="button-primary" type="submit">Guardar medio</button></fieldset></form></dialog>`;
+}
+
+export const ADMIN_MEDIOS_CALENDARIO_SCRIPT = '/assets/admin/admin-medios-calendario.js?v=20260925-medios-calendario-1';
+const planTabs = [['spots', '1. Spots promocionales'], ['calendario', '2. Calendario semanal'], ['medios', '3. Medios de comunicación'], ['plan', '4. Plan de medios'], ['reportes', '5. Reportes']];
+const planField = (label, control, wide = 1) => `<label class="mc-field mc-field--${wide}">${label}${control}</label>`;
+
+/** Medios → Calendario de medios: spots, pautas por semana, medios de pauta, plan de medios y reportes. */
+export function renderAdminMediosCalendarioPage(page) {
+  return layout(page, `<div class="admin-shell">${adminSidebar(page)}<main id="contenido" class="admin-workspace mc" data-admin-medios-calendario>${campaignBanner}
+<div class="workspace-heading"><div><p class="eyebrow">Finados 2026 · Medios</p><h1>Calendario estratégico de comunicación</h1><p>Radio, televisión y medios digitales · 21 sep – 5 nov 2026</p><p data-admin-user>Comprobando acceso…</p></div>
+<div class="mc-top-actions"><button type="button" class="button-quiet" data-plan-backup disabled>Respaldo JSON</button><label class="button-quiet mc-import">Importar respaldo<input type="file" accept="application/json" data-plan-import hidden disabled></label><button type="button" class="button-primary" data-plan-go="reportes">Reportes</button></div></div>
+<p class="feedback" data-admin-feedback role="status" aria-live="polite" aria-atomic="true"></p>
+<button type="button" class="button-quiet" data-session-retry hidden>Reintentar conexión</button>
+<p class="mc-save" data-plan-save role="status" aria-live="polite"></p>
+<div class="mc-tabs" role="tablist" aria-label="Secciones del calendario">${planTabs.map(([key, label], index) => `<button type="button" role="tab" id="mc-tab-${key}" aria-controls="mc-${key}" aria-selected="${index === 0}" data-plan-tab="${key}">${label}</button>`).join('')}</div>
+<section class="mc-panel" id="mc-spots" role="tabpanel" aria-labelledby="mc-tab-spots" data-plan-panel="spots"><div class="mc-kpis" data-spot-kpis></div>
+<div class="mc-card"><div class="mc-card__head"><div><p class="mc-eyebrow">Inventario de piezas</p><h2>Spots promocionales y cobertura</h2></div><button type="button" class="button-primary" data-spot-new disabled>+ Añadir spot</button></div>
+<div class="mc-table-wrap"><table class="mc-table"><thead><tr><th scope="col">Cantidad</th><th scope="col">Promoción</th><th scope="col">Tipo / contenido</th><th scope="col">Nacional</th><th scope="col">Regional</th><th scope="col">Local</th><th scope="col"><span class="sr-only">Acciones</span></th></tr></thead><tbody data-spot-rows></tbody></table></div></div></section>
+<section class="mc-panel" id="mc-calendario" role="tabpanel" aria-labelledby="mc-tab-calendario" data-plan-panel="calendario" hidden>
+<div class="mc-card"><div class="mc-card__head"><div><p class="mc-eyebrow">Arrastra y suelta</p><h2>Calendario estratégico por semanas</h2><p class="mc-subtle">Arrastra un audio desde la biblioteca hacia una semana, o usa «+ Agregar» en la semana. También puedes mover una pauta entre semanas y editar su fecha exacta.</p></div>
+<div class="mc-toolbar"><button type="button" class="button-quiet" data-plan-seed disabled>Restaurar estrategia sugerida</button><button type="button" class="button-quiet mc-danger" data-plan-clear disabled>Limpiar calendario</button></div></div>
+<div class="mc-calendar"><aside class="mc-library"><h3>Biblioteca de audios</h3><div data-audio-library></div><div class="mc-strategy"><strong>Estrategia sugerida</strong><p class="mc-subtle">Mantener el audio general como paraguas de campaña; reforzar atractivos en fase de consideración; concentrar carteleras cerca del evento para mover decisión y asistencia. Todo es editable.</p><div class="mc-legend" data-plan-legend></div></div></aside>
+<div class="mc-weeks-wrap"><div class="mc-weeks" data-weeks></div></div></div></div></section>
+<section class="mc-panel" id="mc-medios" role="tabpanel" aria-labelledby="mc-tab-medios" data-plan-panel="medios" hidden>
+<div class="mc-card"><div class="mc-card__head"><div><p class="mc-eyebrow">Base de medios de pauta</p><h2>Medios de comunicación utilizados</h2><p class="mc-subtle">Registra radios, canales de TV, páginas, influencers, Meta, TikTok, YouTube u otros medios. Puedes traerlos de los medios ya registrados en Medios.</p></div><button type="button" class="button-primary" data-media-new disabled>+ Añadir medio</button></div>
+<div class="mc-table-wrap"><table class="mc-table"><thead><tr><th scope="col">Medio</th><th scope="col">Tipo</th><th scope="col">Cobertura</th><th scope="col">Ciudad / zona</th><th scope="col">Programa / espacio</th><th scope="col">Contacto</th><th scope="col">Tarifa ref.</th><th scope="col">Estado</th><th scope="col"><span class="sr-only">Acciones</span></th></tr></thead><tbody data-media-rows></tbody></table></div></div></section>
+<section class="mc-panel" id="mc-plan" role="tabpanel" aria-labelledby="mc-tab-plan" data-plan-panel="plan" hidden><div class="mc-kpis" data-plan-kpis></div>
+<div class="mc-card"><div class="mc-card__head"><div><p class="mc-eyebrow">Plan de medios</p><h2>Pautas, frecuencia e inversión</h2><p class="mc-subtle">Cruza cada medio con el audio, las fechas y la frecuencia. Se calculan los impactos planificados y la inversión.</p></div><button type="button" class="button-primary" data-plan-new disabled>+ Añadir pauta</button></div>
+<div class="mc-table-wrap"><table class="mc-table"><thead><tr><th scope="col">Medio</th><th scope="col">Tipo</th><th scope="col">Audio / pieza</th><th scope="col">Inicio</th><th scope="col">Fin</th><th scope="col">Frecuencia/día</th><th scope="col">Días</th><th scope="col">Impactos</th><th scope="col">Costo unit.</th><th scope="col">Inversión</th><th scope="col">Objetivo</th><th scope="col"><span class="sr-only">Acciones</span></th></tr></thead><tbody data-plan-rows></tbody></table></div></div></section>
+<section class="mc-panel" id="mc-reportes" role="tabpanel" aria-labelledby="mc-tab-reportes" data-plan-panel="reportes" hidden>
+<div class="mc-card mc-no-print"><div class="mc-card__head"><div><p class="mc-eyebrow">Exportación</p><h2>Generar reportes</h2><p class="mc-subtle">Elige el reporte y descárgalo como imagen PNG o PDF. El PDF sale en formato horizontal.</p></div>
+<div class="mc-toolbar"><label class="mc-inline">Reporte<select data-report-type><option value="calendar">Calendario estratégico</option><option value="media">Plan de medios</option></select></label><button type="button" class="button-quiet" data-report-png>Exportar imagen</button><button type="button" class="button-primary" data-report-pdf>Exportar PDF</button><button type="button" class="button-quiet" data-report-print>Imprimir</button></div></div></div>
+<div class="mc-report"><canvas data-report-canvas aria-label="Vista previa del reporte"></canvas></div></section>
+<dialog class="mc-dialog" data-dialog="spot" aria-labelledby="mc-spot-title"><form method="dialog" data-form="spot"><header><h2 id="mc-spot-title" data-dialog-title>Añadir spot</h2><button type="button" class="button-quiet" data-dialog-close aria-label="Cerrar">✕</button></header><div class="mc-form">
+${planField('Cantidad', '<input name="qty" type="number" min="1" max="999" value="1" required>')}${planField('Promoción', '<input name="name" maxlength="120" placeholder="Ej.: AUDIO GENERAL" required>', 2)}${planField('Color', '<input name="color" type="color" value="#94165e">')}
+${planField('Tipo / contenido', '<input name="desc" maxlength="300" placeholder="Descripción de la pieza">', 4)}
+<label class="mc-check"><input type="checkbox" name="national"> Nacional</label><label class="mc-check"><input type="checkbox" name="regional"> Regional</label><label class="mc-check"><input type="checkbox" name="local"> Local</label>
+</div><footer><button type="button" class="button-quiet" data-dialog-close>Cancelar</button><button type="submit" class="button-primary" value="save">Guardar spot</button></footer></form></dialog>
+<dialog class="mc-dialog" data-dialog="assignment" aria-labelledby="mc-assign-title"><form method="dialog" data-form="assignment"><header><h2 id="mc-assign-title" data-dialog-title>Pauta del calendario</h2><button type="button" class="button-quiet" data-dialog-close aria-label="Cerrar">✕</button></header><div class="mc-form">
+${planField('Audio', '<select name="spotId" required></select>', 2)}${planField('Inicio', '<input name="start" type="date" min="2026-09-21" max="2026-11-05" required>')}${planField('Fin', '<input name="end" type="date" min="2026-09-21" max="2026-11-05" required>')}
+${planField('Nota / intención', '<textarea name="note" maxlength="500" rows="3" placeholder="Ej.: Refuerzo regional y local, prioridad horarios de alta audiencia"></textarea>', 4)}
+</div><footer><button type="button" class="button-quiet" data-dialog-close>Cancelar</button><button type="submit" class="button-primary" value="save">Guardar pauta</button></footer></form></dialog>
+<dialog class="mc-dialog" data-dialog="media" aria-labelledby="mc-media-title"><form method="dialog" data-form="media"><header><h2 id="mc-media-title" data-dialog-title>Añadir medio</h2><button type="button" class="button-quiet" data-dialog-close aria-label="Cerrar">✕</button></header><div class="mc-form">
+${planField('Traer desde Medios registrados (opcional)', '<select data-media-source><option value="">— Escribir los datos a mano —</option></select>', 4)}
+${planField('Nombre del medio', '<input name="name" maxlength="160" placeholder="Ej.: Radio, canal o página" required>', 2)}${planField('Tipo', `<select name="type">${['Radio', 'Televisión', 'Digital', 'Prensa', 'Influencer', 'Otro'].map(value => `<option>${value}</option>`).join('')}</select>`)}${planField('Cobertura', '<select name="coverage"><option>Nacional</option><option>Regional</option><option selected>Local</option></select>')}
+${planField('Ciudad / zona', '<input name="city" maxlength="160" placeholder="Ej.: Ambato / Tungurahua">')}${planField('Programa / espacio', '<input name="program" maxlength="160" placeholder="Ej.: Rotativo, noticiero, reels">')}${planField('Contacto', '<input name="contact" maxlength="160" placeholder="Teléfono o correo">')}${planField('Tarifa referencial USD', '<input name="rate" type="number" min="0" step="0.01" value="0">')}
+${planField('Estado', '<select name="status"><option value="active">Activo</option><option value="pending">Por confirmar</option></select>')}
+${planField('Notas', '<textarea name="notes" maxlength="1000" rows="3" placeholder="Observaciones, horarios, condiciones, negociaciones…"></textarea>', 4)}
+</div><footer><button type="button" class="button-quiet" data-dialog-close>Cancelar</button><button type="submit" class="button-primary" value="save">Guardar medio</button></footer></form></dialog>
+<dialog class="mc-dialog" data-dialog="plan" aria-labelledby="mc-plan-title"><form method="dialog" data-form="plan"><header><h2 id="mc-plan-title" data-dialog-title>Añadir pauta al plan de medios</h2><button type="button" class="button-quiet" data-dialog-close aria-label="Cerrar">✕</button></header><div class="mc-form">
+${planField('Medio', '<select name="mediaId" required></select>', 2)}${planField('Audio / pieza', '<select name="spotId" required></select>', 2)}
+${planField('Inicio', '<input name="start" type="date" min="2026-09-21" max="2026-11-05" required>')}${planField('Fin', '<input name="end" type="date" min="2026-09-21" max="2026-11-05" required>')}${planField('Frecuencia por día', '<input name="freq" type="number" min="1" max="500" value="3" required>')}${planField('Costo unitario USD', '<input name="cost" type="number" min="0" step="0.01" value="0">')}
+${planField('Objetivo / observación', '<textarea name="objective" maxlength="500" rows="3" placeholder="Ej.: Alcance, frecuencia, venta anticipada, recordación de cartelera…"></textarea>', 4)}
+</div><footer><button type="button" class="button-quiet" data-dialog-close>Cancelar</button><button type="submit" class="button-primary" value="save">Guardar pauta</button></footer></form></dialog>
+<p class="mc-toast" data-plan-toast role="status" aria-live="polite"></p>
+</main></div>`, ADMIN_MEDIOS_CALENDARIO_SCRIPT);
 }
 
 export function renderAdminMediosEventosPage(page) {

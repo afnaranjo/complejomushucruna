@@ -19,7 +19,7 @@ test('el build publica el submenú Eventos de Medios, el alta desde coordinació
   // Sidebar: Eventos hangs from Medios, before Emprendedores, and is marked as the current page on its own route.
   for (const html of [admin, events]) {
     const order = [...html.matchAll(/class="admin-nav-link(?: admin-nav-link--child)?" href="([^"]+)"/g)].map(match => match[1]);
-    assert.deepEqual(order, ['/admin/panel/', '/admin/noticias/', '/admin/voceros/', '/admin/medios/', '/admin/medios/eventos/', '/admin/emprendedores/', '/admin/creadoras/', '/admin/mfs/']);
+    assert.deepEqual(order, ['/admin/panel/', '/admin/noticias/', '/admin/voceros/', '/admin/medios/', '/admin/medios/eventos/', '/admin/medios/calendario/', '/admin/emprendedores/', '/admin/creadoras/', '/admin/mfs/']);
   }
   assert.match(events, /href="\/admin\/medios\/eventos\/" aria-current="page"/);
   assert.match(events, /data-admin-medios-eventos/);
@@ -58,7 +58,7 @@ test('el build publica el submenú Eventos de Medios, el alta desde coordinació
   assert.match(admin, /<textarea name="tv_channel"/);
   assert.match(admin, /name="audience_count"/);
   assert.match(admin, /<select name="radio_genre">/);
-  assert.match(admin, /admin-medios\.js\?v=20260924-admin-medios-21/);
+  assert.match(admin, /admin-medios\.js\?v=20260924-admin-medios-22/);
   // Portal: invitation notice on access, suggestion and pending-claim notices on the profile.
   const access = await readFile(join(output, 'finados/medios/acceso/index.html'), 'utf8');
   assert.match(access, /data-media-invitation hidden/);

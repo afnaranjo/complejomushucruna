@@ -213,6 +213,11 @@ export async function buildSite(outputDirectory = join(websiteRoot, 'dist'), { a
     "const LOCAL_API = 'http://127.0.0.1:4174/api';",
     adminEnvironment === 'production' ? 'const LOCAL_API = null;' : `const LOCAL_API = '${developmentApi}';`), 'utf8');
 
+  const adminMediaPlanScript = await readFile(join(websiteRoot, 'src', 'admin', 'admin-medios-calendario.js'), 'utf8');
+  await writeFile(join(adminAssets, 'admin-medios-calendario.js'), adminMediaPlanScript.replace(
+    "const LOCAL_API = 'http://127.0.0.1:4174/api';",
+    adminEnvironment === 'production' ? 'const LOCAL_API = null;' : `const LOCAL_API = '${developmentApi}';`), 'utf8');
+
   const adminMediaScript = await readFile(join(websiteRoot, 'src', 'admin', 'admin-medios.js'), 'utf8');
   await writeFile(join(adminAssets, 'admin-medios.js'), adminMediaScript.replace(
     "const LOCAL_API = 'http://127.0.0.1:4174/api';",
