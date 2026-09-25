@@ -12,12 +12,13 @@ const ADMIN_FORMS = Object.freeze([
   { route: '/admin/panel/', label: 'Panel', description: 'Resumen de todo', marker: 'P' },
   { route: '/admin/voceros/', label: 'Voceros', description: 'Registros y seguimiento', marker: 'V' },
   { route: '/admin/medios/', label: 'Medios', description: 'Seguimiento, eventos, calendario y gira', marker: 'M', children: [{ route: '/admin/medios/', label: 'Seguimiento de medios', description: 'Registros, estado y pauta' }, { route: '/admin/medios/eventos/', label: 'Eventos', description: 'Cobertura por evento' }, { route: '/admin/medios/calendario/', label: 'Calendario de medios', description: 'Spots, calendario y reportes' }, { route: '/admin/medios/gira/', label: 'Gira de medios', description: 'Personas, medios y citas' }] },
+  { route: '/admin/produccion/', label: 'Producción', description: 'Activaciones y cronogramas', marker: 'Pr', children: [{ route: '/admin/produccion/activaciones/', label: 'Activaciones', description: 'Calendario de activaciones' }, { route: '/admin/produccion/sol/', label: 'Cronograma Sol', description: 'Calendario del escenario Sol' }, { route: '/admin/produccion/luna/', label: 'Cronograma Luna', description: 'Calendario del escenario Luna' }] },
   { route: '/admin/emprendedores/', label: 'Emprendedores', description: 'De emprendedor a influencer', marker: 'E' },
   { route: '/admin/creadoras/', label: 'Creadoras', description: 'Contenido y calendario', marker: 'C' },
   { route: '/admin/mfs/', label: 'Mushuc Freestyle', description: 'Inscripciones y audiciones', marker: 'F' },
 ]);
 // Public landing that each panel returns to from its header.
-const PANEL_LANDINGS = Object.freeze({ '/admin/noticias/': ['/finados/', 'Volver a Finados'], '/admin/panel/': ['/finados/', 'Volver a Finados'], '/admin/voceros/': ['/finados/voceros/', 'Volver a Voceros'], '/admin/medios/': ['/finados/medios/', 'Volver a Medios'], '/admin/medios/eventos/': ['/finados/medios/', 'Volver a Medios'], '/admin/medios/calendario/': ['/finados/medios/', 'Volver a Medios'], '/admin/medios/gira/': ['/finados/medios/', 'Volver a Medios'], '/admin/emprendedores/': ['/finados/emprendedores/', 'Volver a Emprendedores'], '/admin/creadoras/': ['/finados/creadoras/', 'Volver a Creadoras'], '/admin/mfs/': ['/finados/mfs/', 'Volver a Mushuc Freestyle'] });
+const PANEL_LANDINGS = Object.freeze({ '/admin/noticias/': ['/finados/', 'Volver a Finados'], '/admin/panel/': ['/finados/', 'Volver a Finados'], '/admin/voceros/': ['/finados/voceros/', 'Volver a Voceros'], '/admin/medios/': ['/finados/medios/', 'Volver a Medios'], '/admin/medios/eventos/': ['/finados/medios/', 'Volver a Medios'], '/admin/medios/calendario/': ['/finados/medios/', 'Volver a Medios'], '/admin/medios/gira/': ['/finados/medios/', 'Volver a Medios'], '/admin/produccion/activaciones/': ['/finados/', 'Volver a Finados'], '/admin/produccion/sol/': ['/finados/', 'Volver a Finados'], '/admin/produccion/luna/': ['/finados/', 'Volver a Finados'], '/admin/emprendedores/': ['/finados/emprendedores/', 'Volver a Emprendedores'], '/admin/creadoras/': ['/finados/creadoras/', 'Volver a Creadoras'], '/admin/mfs/': ['/finados/mfs/', 'Volver a Mushuc Freestyle'] });
 const PROGRESS_LEVELS = ['En preparación', 'Primer paso', 'Gorra', 'Kit completo', 'Trae a los tuyos', 'Noche de concierto', 'Tope'];
 const VIDEO_SLOTS = Object.freeze([1, 2, 3, 4, 5]);
 const videoSlotControls = (prefix = 'video') => VIDEO_SLOTS.map(slot => `<label class="admin-video-control"><span class="admin-video-check"><input type="checkbox" name="${prefix}_${slot}_enabled" value="1"><strong>Video ${slot}</strong></span><span class="admin-video-date"><span>Habilitado desde</span><input type="date" name="${prefix}_${slot}_enabled_at" aria-label="Fecha de habilitación del video ${slot}"></span></label>`).join('');
@@ -74,7 +75,7 @@ function layout(page, content, script = '/assets/admin/admin.js?v=20260925-perf-
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' blob:; media-src blob:; font-src 'self'; connect-src ${connectSources}; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="admin-api-base" content="${api}">
 <link rel="icon" href="/assets/finados/favicon-finados.png">
-<link rel="stylesheet" href="/assets/admin/admin.css?v=20260925-27">
+<link rel="stylesheet" href="/assets/admin/admin.css?v=20260925-28">
 <script type="module" src="${script}"></script>
 </head><body class="admin-page">
 <a class="skip-link" href="#contenido">Ir al contenido</a>
@@ -170,7 +171,7 @@ ${select('province', 'Provincia', ecuadorProvinces)}</div>
 }
 
 const ADMIN_CREADORAS_SCRIPT = '/assets/admin/admin-creadoras.js?v=20260925-creadoras-11';
-const ADMIN_MEDIOS_SCRIPT = '/assets/admin/admin-medios.js?v=20260925-admin-medios-26';
+const ADMIN_MEDIOS_SCRIPT = '/assets/admin/admin-medios.js?v=20260925-admin-medios-27';
 const RADIO_GENRE_OPTIONS = ['Noticias e información', 'Musical variada', 'Popular y tropical', 'Folclórica y andina', 'Juvenil y pop', 'Romántica', 'Religiosa', 'Deportiva', 'Comunitaria', 'Otro'];
 const PROVINCE_OPTIONS = ['Azuay', 'Bolívar', 'Cañar', 'Carchi', 'Chimborazo', 'Cotopaxi', 'El Oro', 'Esmeraldas', 'Galápagos', 'Guayas', 'Imbabura', 'Loja', 'Los Ríos', 'Manabí', 'Morona Santiago', 'Napo', 'Orellana', 'Pastaza', 'Pichincha', 'Santa Elena', 'Santo Domingo de los Tsáchilas', 'Sucumbíos', 'Tungurahua', 'Zamora Chinchipe'];
 
@@ -198,7 +199,7 @@ function mediaRecordDialog() {
 </div><button class="button-primary" type="submit">Guardar medio</button></fieldset></form></dialog>`;
 }
 
-export const ADMIN_MEDIOS_CALENDARIO_SCRIPT = '/assets/admin/admin-medios-calendario.js?v=20260925-medios-calendario-6';
+export const ADMIN_MEDIOS_CALENDARIO_SCRIPT = '/assets/admin/admin-medios-calendario.js?v=20260925-medios-calendario-7';
 const planTabs = [['spots', '1. Spots promocionales'], ['calendario', '2. Calendario semanal'], ['reportes', '3. Reportes']];
 const planField = (label, control, wide = 1) => `<label class="mc-field mc-field--${wide}">${label}${control}</label>`;
 
@@ -238,7 +239,7 @@ ${planField('Nota / intención', '<textarea name="note" maxlength="500" rows="3"
 </main></div>`, ADMIN_MEDIOS_CALENDARIO_SCRIPT);
 }
 
-export const ADMIN_MEDIOS_GIRA_SCRIPT = '/assets/admin/admin-medios-gira.js?v=20260925-medios-gira-2';
+export const ADMIN_MEDIOS_GIRA_SCRIPT = '/assets/admin/admin-medios-gira.js?v=20260925-medios-gira-3';
 const TOUR_KINDS = Object.freeze({ entrevista: 'Entrevista', en_vivo: 'En vivo', grabacion: 'Grabación', visita: 'Visita', rueda: 'Rueda de prensa', otro: 'Otro' });
 const TOUR_STATUSES = Object.freeze({ programada: 'Programada', confirmada: 'Confirmada', realizada: 'Realizada', no_se_dio: 'No se dio' });
 const pairs = map => Object.entries(map).map(([value, label]) => `<option value="${esc(value)}">${esc(label)}</option>`).join('');
@@ -318,6 +319,91 @@ export function renderAdminMediosGiraPage(page) {
 </form>
 </dialog>
 </main></div>`, ADMIN_MEDIOS_GIRA_SCRIPT);
+}
+
+export const ADMIN_PRODUCCION_SCRIPT = '/assets/admin/admin-produccion.js?v=20260925-produccion-1';
+export const PRODUCTION_BOARDS = Object.freeze({
+  activaciones: { title: 'Activaciones', eyebrow: 'Finados 2026 · Producción', lead: 'Arrastra una activación de la biblioteca a una hora del calendario.' },
+  sol: { title: 'Cronograma Sol', eyebrow: 'Finados 2026 · Producción', lead: 'Arrastra un show o actividad de la biblioteca a una hora del calendario.' },
+  luna: { title: 'Cronograma Luna', eyebrow: 'Finados 2026 · Producción', lead: 'Arrastra un show o actividad de la biblioteca a una hora del calendario.' },
+});
+const productionStatuses = Object.entries({ planificado: 'Planificado', confirmado: 'Confirmado', realizado: 'Realizado', no_se_hizo: 'No se hizo' }).map(([value, label]) => `<option value="${esc(value)}">${esc(label)}</option>`).join('');
+const productionDurations = [15, 30, 45, 60, 90, 120, 150, 180, 240, 300, 360].map(minutes => `<option value="${minutes}">${minutes < 60 ? `${minutes} minutos` : minutes % 60 ? `${Math.floor(minutes / 60)} h ${minutes % 60} min` : minutes === 60 ? '1 hora' : `${minutes / 60} horas`}</option>`).join('');
+
+/** Producción: tres tableros independientes con biblioteca de piezas y calendario por horas. */
+export function renderAdminProduccionPage(page) {
+  const board = page.route.split('/').filter(Boolean).pop();
+  const info = PRODUCTION_BOARDS[board];
+  return layout(page, `<div class="admin-shell">${adminSidebar(page)}<main id="contenido" class="admin-workspace production" data-admin-produccion data-board="${esc(board)}">${campaignBanner}
+<div class="workspace-heading"><div><p class="eyebrow">${esc(info.eyebrow)}</p><h1>${esc(info.title)}</h1><p data-admin-user>Comprobando acceso…</p></div>
+<div class="workspace-actions"><button type="button" class="button-quiet" data-item-new disabled>+ Nueva pieza</button><button type="button" class="button-primary" data-entry-new disabled>Agendar bloque</button></div></div>
+<p class="feedback" data-admin-feedback role="status" aria-live="polite" aria-atomic="true">Cargando calendario…</p>
+<button type="button" class="button-quiet" data-session-retry hidden>Reintentar conexión</button>
+<section class="admin-big-numbers admin-big-numbers--static tour-totals" aria-label="Resumen" data-production-totals></section>
+<div class="calendar-bar">
+<div class="calendar-views" role="group" aria-label="Vista del calendario">
+<button type="button" class="button-quiet" data-view="day" aria-pressed="false">Día</button>
+<button type="button" class="button-quiet" data-view="week" aria-pressed="true">Semana</button>
+<button type="button" class="button-quiet" data-view="month" aria-pressed="false">Mes</button>
+</div>
+<div class="calendar-move">
+<button type="button" class="button-quiet" data-calendar-previous aria-label="Periodo anterior">◀</button>
+<strong data-calendar-label>…</strong>
+<button type="button" class="button-quiet" data-calendar-next aria-label="Periodo siguiente">▶</button>
+<button type="button" class="button-quiet" data-calendar-today>Hoy</button>
+</div>
+</div>
+<div class="calendar-layout">
+<aside class="calendar-people production-library" aria-labelledby="biblioteca-title">
+<h2 id="biblioteca-title">Biblioteca</h2>
+<p>${esc(info.lead)} También puedes tocar una pieza para agendarla. «Editar» cambia su nombre, color o duración.</p>
+<div class="production-library__list" data-item-list></div>
+</aside>
+<section class="calendar-board" aria-label="Calendario de ${esc(info.title)}">
+<div class="calendar-grid" data-calendar-grid></div>
+<div class="calendar-month" data-calendar-month hidden></div>
+<p class="calendar-help">Arrastra una pieza de la biblioteca a una hora. Luego arrastra la caja para moverla de día u hora y su borde de abajo para cambiar la hora de fin. Tócala para editarla o quitarla.</p>
+</section>
+</div>
+<dialog class="record-dialog" data-entry-dialog aria-label="Bloque del calendario">
+<form method="dialog" class="record-form">
+<div class="records-heading"><div><h2 data-entry-title>Agendar bloque</h2><p>Qué pasa, cuándo y quién se encarga.</p></div></div>
+<div class="record-grid">
+<label class="record-grid__wide">Título<input name="title" maxlength="160" required placeholder="Ej.: Show principal, prueba de sonido"></label>
+<label>Día<input name="day" type="date" required></label>
+<label>Color<input name="color" type="color" value="#94165e"></label>
+<label>Hora de inicio<input name="start" type="time" step="900" required></label>
+<label>Hora de fin<input name="end" type="time" step="900" required></label>
+<label>Estado<select name="status">${productionStatuses}</select></label>
+<label>Responsable<input name="owner" maxlength="160" placeholder="Quién se encarga"></label>
+<label class="record-grid__wide">Lugar<input name="place" maxlength="160" placeholder="Opcional"></label>
+<label class="record-grid__wide">Nota<textarea name="note" rows="3" maxlength="1000" placeholder="Requerimientos técnicos, contactos, detalles…"></textarea></label>
+</div>
+<p class="calendar-duration" data-entry-duration></p>
+<p class="feedback" data-entry-feedback role="status" aria-live="polite"></p>
+<div class="record-form__actions record-form__actions--split">
+<span class="record-form__side"><button type="button" class="button-quiet" data-entry-remove hidden>Quitar bloque</button></span>
+<span class="record-form__side"><button type="submit" value="cancel" class="button-quiet">Cancelar</button><button type="submit" value="save" class="button-primary">Guardar</button></span>
+</div>
+</form>
+</dialog>
+<dialog class="record-dialog" data-item-dialog aria-label="Pieza de la biblioteca">
+<form method="dialog" class="record-form">
+<div class="records-heading"><div><h2 data-item-title>Nueva pieza</h2><p>Lo que luego arrastras al calendario: un show, una activación, una actividad.</p></div></div>
+<div class="record-grid">
+<label class="record-grid__wide">Nombre<input name="name" maxlength="160" required></label>
+<label>Color<input name="color" type="color" value="#94165e"></label>
+<label>Duración por defecto<select name="duration_minutes">${productionDurations}</select></label>
+<label class="record-grid__wide">Descripción<textarea name="description" rows="3" maxlength="1000"></textarea></label>
+</div>
+<p class="feedback" data-item-feedback role="status" aria-live="polite"></p>
+<div class="record-form__actions record-form__actions--split">
+<span class="record-form__side"><button type="button" class="button-quiet" data-item-archive hidden>Sacar de la biblioteca</button></span>
+<span class="record-form__side"><button type="submit" value="cancel" class="button-quiet">Cancelar</button><button type="submit" value="save" class="button-primary">Guardar</button></span>
+</div>
+</form>
+</dialog>
+</main></div>`, ADMIN_PRODUCCION_SCRIPT);
 }
 
 export function renderAdminMediosEventosPage(page) {
@@ -559,7 +645,7 @@ ${panelFold('medios', 'Medios', 'Toca un número para ver la lista.', `<div data
 <section class="admin-panel-subsection" aria-labelledby="panel-eventos-title"><div class="records-heading"><div><h3 id="panel-eventos-title">Medios por evento</h3><p>Abre un evento para ver su cobertura.</p></div></div><div data-panel-events></div></section>`)}
 ${panelFold('creadoras', 'Creadoras de contenido', 'Horas que vinieron, lo que grabaron y sus videos. Toca a una creadora para ver su historial.', '<div data-panel-creadoras></div>')}
 ${panelFold('voceros', 'Voceros', 'Toca un número para ver la lista.', '<div data-panel-voceros></div>')}
-</main></div>`, '/assets/admin/panel.js?v=20260925-admin-panel-10');
+</main></div>`, '/assets/admin/panel.js?v=20260925-admin-panel-11');
 }
 
 // Mushuc Freestyle: los estados viven aquí para que el HTML no dependa del módulo del navegador.

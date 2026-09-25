@@ -691,3 +691,17 @@ tr[data-origin="cuenta"] > td { background: rgba(0, 210, 214, .05); }
 .tour-media__empty { padding: .6rem .7rem; color: #665771; font-size: .8rem; }
 .tour-media__chosen { margin: 0; color: #665771; font-size: .8rem; }
 .tour-media__chosen[data-chosen="true"] { color: #1c6854; font-weight: 700; }
+
+/* Producción: biblioteca de piezas a la izquierda (como Calendario de medios) y calendario por horas. */
+.production-library__list { display: grid; gap: .55rem; }
+.production-piece { position: relative; }
+.production-piece:focus-visible { outline: 3px solid #94165e; outline-offset: 2px; }
+.production-piece__meta { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .35rem; margin-top: .2rem; }
+.production-piece__uses { color: #665771; font-size: .7rem; }
+.production-piece .creadora-chip__edit { margin-top: .15rem; }
+[data-admin-produccion] .calendar-canvas { height: 72rem; }
+[data-admin-produccion] .calendar-canvas[data-over="true"] { background: #fdf0f6; box-shadow: inset 0 0 0 2px #94165e55; }
+@media (max-width: 900px) { [data-admin-produccion] .calendar-canvas { height: 60rem; } }
+.production-box[data-status="realizado"] { border-left-style: double; }
+.production-box[data-status="no_se_hizo"] { opacity: .6; }
+.production-box[data-status="no_se_hizo"] strong { text-decoration: line-through; }

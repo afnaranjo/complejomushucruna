@@ -1,7 +1,7 @@
 import { resolveRuntimeOrigins } from '../finados/runtime-origins.mjs';
 // Mismo cliente administrativo que Medios (sesión, CSRF y rutas permitidas) y las mismas piezas
 // del calendario de Creadoras, para que ambos se usen igual.
-import { createMediaAdminClient } from './admin-medios.js?v=20260925-admin-medios-26';
+import { createMediaAdminClient } from './admin-medios.js?v=20260925-admin-medios-27';
 import {
   creadoraColor, dateFromKey, dayKey, dayLabel, defaultShift, durationLabel, hourRows, layoutDay, minutesFromOffset, minutesFromTime,
   minutesOf, monthStart, movedShift, rangeLabel, resizedShift, shiftGeometry, shiftLabel, shiftView, viewRange,

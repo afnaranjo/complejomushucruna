@@ -277,6 +277,9 @@ final class Router
                 if ($query !== []) throw new InvalidArgumentException();
                 return $this->json(200, $this->panelSummary(), $headers);
             }
+            if (str_starts_with($path, '/api/produccion/')) {
+                return $this->productionAdmin($method, $path, $query, $server, $rawBody, $ip, $user, $headers);
+            }
             if ($path === '/api/media-tour' || str_starts_with($path, '/api/media-tour/')) {
                 return $this->mediaTourAdmin($method, $path, $query, $server, $rawBody, $ip, $user, $headers);
             }
@@ -492,6 +495,35 @@ final class Router
     {
         require_once __DIR__ . '/MfsAuth.php';
         return $this->mfsAuthInstance ??= new MfsAuth($this->pdo, $this->config);
+    }
+
+    /** Producción → Activaciones, Cronograma Sol y Cronograma Luna: biblioteca de piezas y bloques en el calendario. */
+    private function productionAdmin(string $method, string $path, array $query, array $server, string $rawBody, mixed $ip, array $user, array $headers): Response
+    {
+        require_once __DIR__ . '/ProductionRepository.php';
+        $production = new ProductionRepository($this->pdo, $this->audit);
+        $notAllowed = fn (): Response => $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+        if (!preg_match('~^/api/produccion/([a-z]+)(?:/(items|entries)(?:/([a-f0-9]{32})(/archivar|/cancelar)?)?)?$~D', $path, $parts)) return $this->error(404, 'not_found', 'Recurso no encontrado.', $headers);
+        $board = ProductionRepository::board($parts[1]);
+        $kind = $parts[2] ?? ''; $id = $parts[3] ?? ''; $action = $parts[4] ?? '';
+        $itemFields = ['name', 'description', 'color', 'duration_minutes'];
+        $entryFields = ['item', 'title', 'color', 'starts_at', 'ends_at', 'status', 'owner', 'place', 'note'];
+        if ($kind === '') {
+            if ($method !== 'GET') return $notAllowed();
+            if (array_diff(array_keys($query), ['from', 'to']) !== [] || !is_string($query['from'] ?? null) || !is_string($query['to'] ?? null)) throw new InvalidArgumentException();
+            return $this->json(200, $production->calendar($board, $query['from'], $query['to']), $headers);
+        }
+        if ($query !== []) throw new InvalidArgumentException();
+        if ($kind === 'items') {
+            if ($id === '') { if ($method !== 'POST') return $notAllowed(); return $this->json(201, ['item' => $production->createItem($board, $this->body($server, $rawBody, $itemFields), $user['id'], $ip)], $headers); }
+            if ($action === '/archivar') { if ($method !== 'POST') return $notAllowed(); $production->archiveItem($board, $id, $user['id'], $ip); return $this->json(200, ['ok' => true], $headers); }
+            if ($action !== '' || $method !== 'PATCH') return $notAllowed();
+            return $this->json(200, ['item' => $production->updateItem($board, $id, $this->body($server, $rawBody, $itemFields), $user['id'], $ip)], $headers);
+        }
+        if ($id === '') { if ($method !== 'POST') return $notAllowed(); return $this->json(201, ['entry' => $production->createEntry($board, $this->body($server, $rawBody, $entryFields), $user['id'], $ip)], $headers); }
+        if ($action === '/cancelar') { if ($method !== 'POST') return $notAllowed(); $production->cancelEntry($board, $id, $user['id'], $ip); return $this->json(200, ['ok' => true], $headers); }
+        if ($action !== '' || $method !== 'PATCH') return $notAllowed();
+        return $this->json(200, ['entry' => $production->updateEntry($board, $id, $this->body($server, $rawBody, $entryFields), $user['id'], $ip)], $headers);
     }
 
     /** Medios → Gira de medios: personas y citas en los medios de Seguimiento. */
