@@ -699,9 +699,13 @@ tr[data-origin="cuenta"] > td { background: rgba(0, 210, 214, .05); }
 .production-piece__meta { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .35rem; margin-top: .2rem; }
 .production-piece__uses { color: #665771; font-size: .7rem; }
 .production-piece .creadora-chip__edit { margin-top: .15rem; }
-[data-admin-produccion] .calendar-canvas { height: 72rem; }
+/* La jornada va de 06:00 a 03:00: 21 horas en vez de 18. */
+[data-admin-produccion] .calendar-canvas { height: 84rem; }
+[data-admin-produccion] .calendar-hours { grid-template-rows: repeat(21, 1fr); }
+[data-admin-produccion] .calendar-line { height: calc(100% / 21); }
+[data-admin-produccion] .calendar-hours span:nth-last-child(-n + 3) { color: #94165e; font-weight: 700; }
 [data-admin-produccion] .calendar-canvas[data-over="true"] { background: #fdf0f6; box-shadow: inset 0 0 0 2px #94165e55; }
-@media (max-width: 900px) { [data-admin-produccion] .calendar-canvas { height: 60rem; } }
+@media (max-width: 900px) { [data-admin-produccion] .calendar-canvas { height: 70rem; } }
 .production-box[data-status="realizado"] { border-left-style: double; }
 .production-box[data-status="no_se_hizo"] { opacity: .6; }
 .production-box[data-status="no_se_hizo"] strong { text-decoration: line-through; }

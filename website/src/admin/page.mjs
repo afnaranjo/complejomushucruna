@@ -75,7 +75,7 @@ function layout(page, content, script = '/assets/admin/admin.js?v=20260925-perf-
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' blob:; media-src blob:; font-src 'self'; connect-src ${connectSources}; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="admin-api-base" content="${api}">
 <link rel="icon" href="/assets/finados/favicon-finados.png">
-<link rel="stylesheet" href="/assets/admin/admin.css?v=20260925-28">
+<link rel="stylesheet" href="/assets/admin/admin.css?v=20260925-29">
 <script type="module" src="${script}"></script>
 </head><body class="admin-page">
 <a class="skip-link" href="#contenido">Ir al contenido</a>
@@ -321,7 +321,7 @@ export function renderAdminMediosGiraPage(page) {
 </main></div>`, ADMIN_MEDIOS_GIRA_SCRIPT);
 }
 
-export const ADMIN_PRODUCCION_SCRIPT = '/assets/admin/admin-produccion.js?v=20260925-produccion-1';
+export const ADMIN_PRODUCCION_SCRIPT = '/assets/admin/admin-produccion.js?v=20260925-produccion-2';
 export const PRODUCTION_BOARDS = Object.freeze({
   activaciones: { title: 'Activaciones', eyebrow: 'Finados 2026 · Producción', lead: 'Arrastra una activación de la biblioteca a una hora del calendario.' },
   sol: { title: 'Cronograma Sol', eyebrow: 'Finados 2026 · Producción', lead: 'Arrastra un show o actividad de la biblioteca a una hora del calendario.' },
@@ -362,15 +362,15 @@ export function renderAdminProduccionPage(page) {
 <section class="calendar-board" aria-label="Calendario de ${esc(info.title)}">
 <div class="calendar-grid" data-calendar-grid></div>
 <div class="calendar-month" data-calendar-month hidden></div>
-<p class="calendar-help">Arrastra una pieza de la biblioteca a una hora. Luego arrastra la caja para moverla de día u hora y su borde de abajo para cambiar la hora de fin. Tócala para editarla o quitarla.</p>
+<p class="calendar-help">Cada día va de 06:00 a 03:00 del día siguiente, para los shows que terminan de madrugada. Arrastra una pieza de la biblioteca a una hora. Luego arrastra la caja para moverla de día u hora y su borde de abajo para cambiar la hora de fin. Tócala para editarla o quitarla.</p>
 </section>
 </div>
 <dialog class="record-dialog" data-entry-dialog aria-label="Bloque del calendario">
 <form method="dialog" class="record-form">
-<div class="records-heading"><div><h2 data-entry-title>Agendar bloque</h2><p>Qué pasa, cuándo y quién se encarga.</p></div></div>
+<div class="records-heading"><div><h2 data-entry-title>Agendar bloque</h2><p>Qué pasa, cuándo y quién se encarga. Si termina después de medianoche, escribe la hora de fin tal cual (por ejemplo, 01:30): cuenta como la misma noche.</p></div></div>
 <div class="record-grid">
 <label class="record-grid__wide">Título<input name="title" maxlength="160" required placeholder="Ej.: Show principal, prueba de sonido"></label>
-<label>Día<input name="day" type="date" required></label>
+<label>Día (la noche en que empieza)<input name="day" type="date" required></label>
 <label>Color<input name="color" type="color" value="#94165e"></label>
 <label>Hora de inicio<input name="start" type="time" step="900" required></label>
 <label>Hora de fin<input name="end" type="time" step="900" required></label>

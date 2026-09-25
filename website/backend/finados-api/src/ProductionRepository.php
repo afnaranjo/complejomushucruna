@@ -32,7 +32,8 @@ final class ProductionRepository
         $board = self::board($board);
         [$from, $to] = self::range($from, $to);
         $entries = $this->pdo->prepare('SELECT e.*, i.public_id AS item_public_id FROM production_entries e LEFT JOIN production_items i ON i.id = e.item_id WHERE e.board = ? AND e.canceled_at IS NULL AND e.starts_at >= ? AND e.starts_at < ? ORDER BY e.starts_at, e.id');
-        $entries->execute([$board, $from . ' 00:00:00', $to . ' 00:00:00']);
+        // Cada día es una jornada de 06:00 a 06:00: lo que empieza de madrugada pertenece a la noche anterior.
+        $entries->execute([$board, $from . ' 06:00:00', $to . ' 06:00:00']);
         $count = function (string $where) use ($board): int {
             $query = $this->pdo->prepare('SELECT COUNT(*) FROM production_entries WHERE board = ? AND canceled_at IS NULL' . $where);
             $query->execute([$board]);
@@ -192,7 +193,9 @@ final class ProductionRepository
         if ($title === '') throw new InvalidArgumentException();
         $starts = self::moment($input['starts_at'] ?? null);
         $ends = self::moment($input['ends_at'] ?? null);
-        if (substr($starts, 0, 10) !== substr($ends, 0, 10) || $ends <= $starts || (strtotime($ends) - strtotime($starts)) < 15 * 60) throw new InvalidArgumentException();
+        // Un show puede terminar después de medianoche: se admite que acabe al día siguiente, hasta 12 horas.
+        $length = strtotime($ends) - strtotime($starts);
+        if ($length < 15 * 60 || $length > 12 * 3600) throw new InvalidArgumentException();
         $status = $input['status'] ?? 'planificado';
         if (!is_string($status) || !isset(self::STATUSES[$status])) throw new InvalidArgumentException();
         return ['title' => $title, 'color' => self::color($input['color'] ?? '#94165e'), 'starts_at' => $starts, 'ends_at' => $ends, 'status' => $status,

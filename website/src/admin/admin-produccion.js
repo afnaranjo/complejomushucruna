@@ -3,8 +3,7 @@ import { resolveRuntimeOrigins } from '../finados/runtime-origins.mjs';
 // que Creadoras y Gira de medios, para que todos los calendarios se usen igual.
 import { createMediaAdminClient } from './admin-medios.js?v=20260925-admin-medios-27';
 import {
-  dateFromKey, dayKey, dayLabel, defaultShift, durationLabel, hourRows, layoutDay, minutesFromOffset, minutesFromTime,
-  minutesOf, monthStart, movedShift, rangeLabel, resizedShift, shiftGeometry, shiftLabel, shiftView, viewRange,
+  dateFromKey, dayKey, dayLabel, durationLabel, minutesFromTime, monthStart, rangeLabel, shiftView, viewRange,
 } from './admin-creadoras.js?v=20260925-creadoras-11';
 
 const LOCAL_API = 'http://127.0.0.1:4174/api';
@@ -14,6 +13,123 @@ export const PRODUCTION_STATUSES = Object.freeze({ planificado: 'Planificado', c
 const STATUS_MARKS = Object.freeze({ planificado: '', confirmado: '✓ confirmado', realizado: '★ realizado', no_se_hizo: '✗ no se hizo' });
 
 /* ---------- Funciones puras (probadas) ---------- */
+
+/*
+ * La jornada de un escenario no termina a medianoche: cada día del calendario va de 06:00 hasta
+ * las 03:00 del día siguiente. Un show de 23:00 a 01:30 es una sola caja en la noche en que empieza,
+ * y lo que empieza de madrugada pertenece a la noche anterior. Los minutos se cuentan desde las 00:00
+ * del día de la jornada, así que 01:30 del día siguiente son 1530.
+ */
+export const JORNADA_START = 6 * 60;
+export const JORNADA_END = 27 * 60;
+export const MAX_LENGTH = 12 * 60;
+const STEP = 15;
+const pad = value => String(value).padStart(2, '0');
+function addDaysKey(key, amount) { const date = dateFromKey(key); date.setDate(date.getDate() + amount); return dayKey(date); }
+const MOMENT = /^(\d{4}-\d{2}-\d{2})[ T](\d{2}):(\d{2})/;
+
+/** En qué jornada cae un momento y en qué minuto de esa jornada. */
+export function toJornada(value) {
+  const match = MOMENT.exec(String(value ?? ''));
+  if (!match) return null;
+  let key = match[1]; let minutes = Number(match[2]) * 60 + Number(match[3]);
+  if (minutes < JORNADA_START) { key = addDaysKey(key, -1); minutes += 1440; }
+  return { key, minutes };
+}
+
+/** El momento real («2026-10-31 01:30») de un minuto de la jornada. */
+export function fromJornada(key, minutes) {
+  const extra = Math.floor(minutes / 1440);
+  const rest = minutes - extra * 1440;
+  return `${addDaysKey(key, extra)} ${pad(Math.floor(rest / 60))}:${pad(rest % 60)}`;
+}
+
+/** La jornada del bloque y sus minutos de inicio y fin dentro de ella. */
+export function entrySpan(entry = {}) {
+  const start = toJornada(entry.starts_at);
+  const end = MOMENT.exec(String(entry.ends_at ?? ''));
+  if (!start || !end) return null;
+  const days = Math.round((dateFromKey(end[1]) - dateFromKey(start.key)) / 86400000);
+  return { key: start.key, start: start.minutes, end: days * 1440 + Number(end[2]) * 60 + Number(end[3]) };
+}
+
+export function jornadaHours() {
+  return Array.from({ length: (JORNADA_END - JORNADA_START) / 60 }, (_, index) => (JORNADA_START / 60 + index) % 24);
+}
+
+export function entryGeometry(entry, key) {
+  const span = entrySpan(entry);
+  if (!span || span.key !== key) return null;
+  const from = Math.max(span.start, JORNADA_START); const to = Math.min(span.end, JORNADA_END);
+  if (to <= from) return null;
+  const total = JORNADA_END - JORNADA_START;
+  return { top: ((from - JORNADA_START) / total) * 100, height: ((to - from) / total) * 100 };
+}
+
+/** Las cajas que coinciden en la hora se reparten el ancho de la columna, como en Creadoras. */
+export function layoutJornada(entries, key) {
+  const boxes = entries.map(entry => ({ entry, geometry: entryGeometry(entry, key) })).filter(item => item.geometry !== null)
+    .sort((a, b) => a.geometry.top - b.geometry.top || a.geometry.height - b.geometry.height);
+  const placed = []; let group = []; let groupEnd = -1;
+  const close = () => {
+    if (!group.length) return;
+    const columns = [];
+    for (const item of group) {
+      let index = columns.findIndex(end => end <= item.geometry.top + 0.0001);
+      if (index === -1) { index = columns.length; columns.push(0); }
+      columns[index] = item.geometry.top + item.geometry.height;
+      item.column = index;
+    }
+    for (const item of group) placed.push({ ...item.geometry, shift: item.entry, column: item.column, columns: columns.length });
+    group = []; groupEnd = -1;
+  };
+  for (const item of boxes) {
+    if (group.length && item.geometry.top >= groupEnd - 0.0001) close();
+    group.push(item); groupEnd = Math.max(groupEnd, item.geometry.top + item.geometry.height);
+  }
+  close();
+  return placed;
+}
+
+/** La posición del puntero en la columna, en minutos de la jornada, de cuarto en cuarto. */
+export function jornadaMinutes(ratio) {
+  const raw = JORNADA_START + Math.max(0, Math.min(1, ratio)) * (JORNADA_END - JORNADA_START);
+  return Math.max(JORNADA_START, Math.min(JORNADA_END - STEP, Math.round(raw / STEP) * STEP));
+}
+
+/** Mover: mismo largo, nueva jornada y nueva hora, sin pasar de las 03:00. */
+export function movedEntry(entry, key, startMinutes) {
+  const span = entrySpan(entry);
+  if (!span) throw new TypeError('Bloque sin horas válidas.');
+  const length = span.end - span.start;
+  const start = Math.max(JORNADA_START, Math.min(startMinutes, JORNADA_END - length));
+  return { starts_at: fromJornada(key, start), ends_at: fromJornada(key, start + length) };
+}
+
+/** Estirar el borde: solo cambia el final, al menos un cuarto de hora y como mucho 12 horas. */
+export function resizedEntry(entry, endMinutes) {
+  const span = entrySpan(entry);
+  if (!span) throw new TypeError('Bloque sin horas válidas.');
+  const end = Math.max(span.start + STEP, Math.min(endMinutes, JORNADA_END, span.start + MAX_LENGTH));
+  return { starts_at: fromJornada(span.key, span.start), ends_at: fromJornada(span.key, end) };
+}
+
+export function entryLabel(entry = {}) {
+  const span = entrySpan(entry);
+  if (!span) return '';
+  return `${String(entry.starts_at).slice(11, 16)}–${String(entry.ends_at).slice(11, 16)}${span.end > 1440 ? ' (+1)' : ''}`;
+}
+
+/** Del día de la jornada y las horas del formulario: el fin que queda «antes» del inicio es de madrugada. */
+export function jornadaRange(start, end) {
+  let from = minutesFromTime(start); let to = minutesFromTime(end);
+  if (from === null || to === null) return null;
+  // Antes de las 06:00 es madrugada de esa misma noche.
+  if (from < JORNADA_START) from += 1440;
+  if (to < JORNADA_START) to += 1440;
+  if (to <= from) to += 1440;
+  return { from, to };
+}
 
 /** El tinte, el filete y la tinta de una caja salen del color de la pieza. */
 export function boxColors(hex) {
@@ -32,17 +148,19 @@ export function durationText(minutes) {
 
 /** Soltar una pieza a una hora: el bloque dura lo que la pieza, sin pasar de la medianoche. */
 export function slotFor(key, startMinutes, durationMinutes) {
-  return defaultShift(key, startMinutes, Math.max(15, Number(durationMinutes) || 60) / 60);
+  const length = Math.min(MAX_LENGTH, Math.max(STEP, Number(durationMinutes) || 60));
+  const start = Math.max(JORNADA_START, Math.min(startMinutes, JORNADA_END - length));
+  return { starts_at: fromJornada(key, start), ends_at: fromJornada(key, start + length) };
 }
 
 export function entryPayload({ title, day, start, end, color, status, owner, place, note }) {
   if (!String(title ?? '').trim()) throw new Error('Escribe el título.');
   if (!/^\d{4}-\d{2}-\d{2}$/.test(day ?? '')) throw new Error('Elige el día.');
-  const from = minutesFromTime(start); const to = minutesFromTime(end);
-  if (from === null || to === null) throw new Error('Escribe la hora de inicio y de fin.');
-  if (to <= from) throw new Error('La hora de fin debe ser posterior a la de inicio. Revisa si elegiste a. m. en lugar de p. m.');
-  if (to - from < 15) throw new Error('El bloque debe durar al menos 15 minutos.');
-  return { title: String(title).trim(), starts_at: `${day} ${start}`, ends_at: `${day} ${end}`, color, status, owner: String(owner ?? '').trim(), place: String(place ?? '').trim(), note: String(note ?? '').trim() };
+  const range = jornadaRange(start, end);
+  if (!range) throw new Error('Escribe la hora de inicio y de fin.');
+  if (range.to - range.from < STEP) throw new Error('El bloque debe durar al menos 15 minutos.');
+  if (range.to - range.from > MAX_LENGTH) throw new Error('Un bloque dura como máximo 12 horas. Revisa si elegiste a. m. en lugar de p. m.');
+  return { title: String(title).trim(), starts_at: fromJornada(day, range.from), ends_at: fromJornada(day, range.to), color, status, owner: String(owner ?? '').trim(), place: String(place ?? '').trim(), note: String(note ?? '').trim() };
 }
 
 /* ---------- Interfaz ---------- */
@@ -135,17 +253,17 @@ export async function initializeProduction() {
   const showGhost = (text, x, y) => { ghost.textContent = text; ghost.style.transform = `translate(${x + 14}px, ${y - 12}px)`; ghost.hidden = false; };
   const hideGhost = () => { ghost.hidden = true; };
   const canvasAt = (x, y) => document.elementFromPoint(x, y)?.closest?.('[data-day]') ?? null;
-  const minutesIn = (canvas, y) => { const rect = canvas.getBoundingClientRect(); return minutesFromOffset((y - rect.top) / rect.height); };
+  const minutesIn = (canvas, y) => { const rect = canvas.getBoundingClientRect(); return jornadaMinutes((y - rect.top) / rect.height); };
 
   function entryBox(entry, key, { absolute, placement = null }) {
     const box = node('article', undefined, 'shift-box production-box');
     box.dataset.status = entry.status; box.tabIndex = 0;
     paint(box, entry.color);
-    box.append(node('strong', entry.title), node('span', shiftLabel(entry)));
+    box.append(node('strong', entry.title), node('span', entryLabel(entry)));
     const marks = entryMarks(entry); if (marks) box.append(node('small', marks, 'shift-box__marks'));
-    box.title = `${entry.title} · ${shiftLabel(entry)}${marks ? `\n${marks}` : ''}\nArrastra para mover o el borde de abajo para cambiar la hora de fin. Tócala para editarla.`;
+    box.title = `${entry.title} · ${entryLabel(entry)}${marks ? `\n${marks}` : ''}\nArrastra para mover o el borde de abajo para cambiar la hora de fin. Tócala para editarla.`;
     if (absolute) {
-      const geometry = placement ?? shiftGeometry(entry, key);
+      const geometry = placement ?? entryGeometry(entry, key);
       if (geometry === null) return null;
       box.style.top = `${geometry.top}%`; box.style.height = `${geometry.height}%`;
       const columns = geometry.columns ?? 1; const column = geometry.column ?? 0;
@@ -163,14 +281,14 @@ export async function initializeProduction() {
           const canvas = canvasAt(moved.clientX, moved.clientY);
           if (!canvas) { showGhost('Suelta dentro del calendario', moved.clientX, moved.clientY); target = null; return; }
           target = { key: canvas.dataset.day, minutes: minutesIn(canvas, moved.clientY) };
-          showGhost(`${entry.title} · ${dayLabel(target.key, true)} · ${shiftLabel(movedShift(entry, target.key, target.minutes))}`, moved.clientX, moved.clientY);
+          showGhost(`${entry.title} · ${dayLabel(target.key, true)} · ${entryLabel(movedEntry(entry, target.key, target.minutes))}`, moved.clientX, moved.clientY);
         };
         const cleanup = () => { box.removeEventListener('pointermove', move); box.removeEventListener('pointerup', end); box.removeEventListener('pointercancel', stop); delete box.dataset.dragging; hideGhost(); };
         const end = async () => {
           cleanup();
           if (!dragging) { openEntry(entry); return; }
           if (!target) { renderGrid(); return; }
-          await save(() => client.updateProductionEntry(board, entry.public_id, movedShift(entry, target.key, target.minutes)), 'Bloque movido.');
+          await save(() => client.updateProductionEntry(board, entry.public_id, movedEntry(entry, target.key, target.minutes)), 'Bloque movido.');
         };
         const stop = () => { cleanup(); renderGrid(); };
         box.addEventListener('pointermove', move); box.addEventListener('pointerup', end); box.addEventListener('pointercancel', stop);
@@ -181,17 +299,17 @@ export async function initializeProduction() {
         event.preventDefault(); event.stopPropagation();
         const canvas = box.parentElement; if (!canvas) return;
         handle.setPointerCapture(event.pointerId);
-        let minutes = minutesOf(entry.ends_at);
+        let minutes = entrySpan(entry)?.end ?? JORNADA_END;
         const preview = moved => {
           minutes = minutesIn(canvas, moved.clientY);
-          const next = resizedShift(entry, minutes);
-          const geometry = shiftGeometry({ ...entry, ends_at: next.ends_at }, key);
+          const next = resizedEntry(entry, minutes);
+          const geometry = entryGeometry({ ...entry, ends_at: next.ends_at }, key);
           if (geometry) box.style.height = `${geometry.height}%`;
-          box.querySelector('span').textContent = shiftLabel(next);
-          showGhost(`${entry.title} · ${shiftLabel(next)}`, moved.clientX, moved.clientY);
+          box.querySelector('span').textContent = entryLabel(next);
+          showGhost(`${entry.title} · ${entryLabel(next)}`, moved.clientX, moved.clientY);
         };
         const cleanup = () => { handle.removeEventListener('pointermove', preview); handle.removeEventListener('pointerup', finish); handle.removeEventListener('pointercancel', cancel); hideGhost(); };
-        const finish = async () => { cleanup(); await save(() => client.updateProductionEntry(board, entry.public_id, resizedShift(entry, minutes)), 'Horario actualizado.'); };
+        const finish = async () => { cleanup(); await save(() => client.updateProductionEntry(board, entry.public_id, resizedEntry(entry, minutes)), 'Horario actualizado.'); };
         const cancel = () => { cleanup(); renderGrid(); };
         handle.addEventListener('pointermove', preview); handle.addEventListener('pointerup', finish); handle.addEventListener('pointercancel', cancel);
       });
@@ -222,24 +340,24 @@ export async function initializeProduction() {
     grid.replaceChildren();
     grid.style.setProperty('--calendar-days', String(days.length));
     const hours = node('div', undefined, 'calendar-hours');
-    for (const hour of hourRows()) hours.append(node('span', `${String(hour).padStart(2, '0')}:00`));
+    for (const hour of jornadaHours()) hours.append(node('span', `${String(hour).padStart(2, '0')}:00`));
     grid.append(hours);
     for (const key of days) {
       const column = node('div', undefined, 'calendar-day');
       column.append(node('h3', dayLabel(key, days.length > 1)));
       const canvas = node('div', undefined, 'calendar-canvas');
       canvas.dataset.day = key;
-      for (const hour of hourRows()) canvas.append(node('span', undefined, 'calendar-line'));
-      const minutesAt = event => minutesFromOffset((event.clientY - canvas.getBoundingClientRect().top) / canvas.getBoundingClientRect().height);
+      for (const hour of jornadaHours()) canvas.append(node('span', undefined, 'calendar-line'));
+      const minutesAt = event => jornadaMinutes((event.clientY - canvas.getBoundingClientRect().top) / canvas.getBoundingClientRect().height);
       canvas.addEventListener('dragover', event => { event.preventDefault(); event.dataTransfer.dropEffect = 'copy'; canvas.dataset.over = 'true'; });
       canvas.addEventListener('dragleave', () => { delete canvas.dataset.over; });
       canvas.addEventListener('drop', event => { delete canvas.dataset.over; dropItem(event, key, minutesAt(event)); });
       canvas.addEventListener('click', event => {
         if (event.target !== canvas && !event.target.classList.contains('calendar-line')) return;
-        const slot = defaultShift(key, minutesAt(event), 1);
+        const slot = slotFor(key, minutesAt(event), 60);
         openEntry(null, { day: key, start: slot.starts_at.slice(11, 16), end: slot.ends_at.slice(11, 16) });
       });
-      for (const placement of layoutDay(state.entries, key)) {
+      for (const placement of layoutJornada(state.entries, key)) {
         const box = entryBox(placement.shift, key, { absolute: true, placement });
         if (box) canvas.append(box);
       }
@@ -264,7 +382,7 @@ export async function initializeProduction() {
       cell.addEventListener('drop', event => dropItem(event, key, 9 * 60));
       cell.addEventListener('click', event => { if (event.target === cell) openEntry(null, { day: key }); });
       for (const entry of state.entries) {
-        if (String(entry.starts_at).slice(0, 10) !== key) continue;
+        if (entrySpan(entry)?.key !== key) continue;
         const box = entryBox(entry, key, { absolute: false });
         if (box) cell.append(box);
       }
@@ -304,8 +422,9 @@ export async function initializeProduction() {
   const entryDuration = entryDialog.querySelector('[data-entry-duration]');
   let editingEntry = null; let fromItem = null;
   function updateDuration() {
-    const text = durationLabel(minutesFromTime(entryForm.elements.start.value), minutesFromTime(entryForm.elements.end.value));
-    entryDuration.textContent = text ? `Dura ${text}` : '';
+    const range = jornadaRange(entryForm.elements.start.value, entryForm.elements.end.value);
+    const text = range ? durationLabel(range.from, range.to) : '';
+    entryDuration.textContent = text ? `Dura ${text}${range.to > 1440 ? ' · termina de madrugada, al día siguiente' : ''}` : '';
   }
   entryForm.elements.start.addEventListener('input', updateDuration);
   entryForm.elements.end.addEventListener('input', updateDuration);
@@ -315,7 +434,7 @@ export async function initializeProduction() {
     say(entryFeedback, '');
     entryForm.elements.title.value = entry?.title ?? item?.name ?? '';
     entryForm.elements.color.value = entry?.color ?? item?.color ?? '#94165e';
-    entryForm.elements.day.value = entry ? entry.starts_at.slice(0, 10) : day;
+    entryForm.elements.day.value = entry ? (entrySpan(entry)?.key ?? entry.starts_at.slice(0, 10)) : day;
     entryForm.elements.start.value = entry ? entry.starts_at.slice(11, 16) : start;
     entryForm.elements.end.value = entry ? entry.ends_at.slice(11, 16) : end;
     entryForm.elements.status.value = entry?.status ?? 'planificado';

@@ -57,10 +57,18 @@ same(['Show principal', '#6e2ce0', '2026-10-30 19:00', '2026-10-30 20:30', 'plan
 same(201, $send('POST', '/api/produccion/sol/entries', ['title' => 'Prueba de sonido', 'starts_at' => '2026-10-30 15:00', 'ends_at' => '2026-10-30 16:00', 'owner' => 'Iván', 'place' => 'Tarima'])->status);
 foreach ([
     ['title' => '', 'starts_at' => '2026-10-30 15:00', 'ends_at' => '2026-10-30 16:00'],
-    ['title' => 'X', 'starts_at' => '2026-10-30 23:00', 'ends_at' => '2026-10-31 01:00'],
+    ['title' => 'X', 'starts_at' => '2026-10-30 15:00', 'ends_at' => '2026-10-30 14:00'],
+    ['title' => 'X', 'starts_at' => '2026-10-30 18:00', 'ends_at' => '2026-10-31 07:00'],
     ['title' => 'X', 'starts_at' => '2026-10-30 15:00', 'ends_at' => '2026-10-30 15:10'],
     ['title' => 'X', 'starts_at' => '2026-10-30 15:00', 'ends_at' => '2026-10-30 16:00', 'status' => 'quizás'],
 ] as $invalid) same(422, $send('POST', '/api/produccion/sol/entries', $invalid)->status);
+// Un show puede terminar después de medianoche y cuenta en la jornada de esa noche.
+$late = $decode($send('POST', '/api/produccion/sol/entries', ['title' => 'Cierre de la noche', 'starts_at' => '2026-10-31 23:30', 'ends_at' => '2026-11-01 01:30']))['entry'];
+same(['2026-10-31 23:30', '2026-11-01 01:30'], [$late['starts_at'], $late['ends_at']]);
+$afterMidnight = $decode($send('POST', '/api/produccion/sol/entries', ['title' => 'After', 'starts_at' => '2026-11-02 01:00', 'ends_at' => '2026-11-02 02:00']))['entry'];
+same(true, in_array($afterMidnight['public_id'], array_column($calendar('sol')['entries'], 'public_id'), true), 'la madrugada del lunes pertenece a la jornada del domingo');
+same(200, $send('POST', '/api/produccion/sol/entries/' . $late['public_id'] . '/cancelar')->status);
+same(200, $send('POST', '/api/produccion/sol/entries/' . $afterMidnight['public_id'] . '/cancelar')->status);
 // Una pieza de otro tablero no se puede usar aquí.
 same(404, $send('POST', '/api/produccion/luna/entries', ['item' => $show['public_id'], 'starts_at' => '2026-10-30 19:00', 'ends_at' => '2026-10-30 20:00'])->status);
 
@@ -84,7 +92,7 @@ same([], $calendar('sol')['items']);
 same(2, count($calendar('sol')['entries']));
 same(200, $send('POST', '/api/produccion/sol/entries/' . $entry['public_id'] . '/cancelar')->status);
 same(1, count($calendar('sol')['entries']));
-same(2, (int) $pdo->query('SELECT COUNT(*) FROM production_entries')->fetchColumn());
+same(4, (int) $pdo->query('SELECT COUNT(*) FROM production_entries')->fetchColumn());
 same(422, $router->handle('GET', '/api/produccion/sol?from=2026-10-26&to=2027-06-01', $origin)->status);
 same(true, (int) $pdo->query("SELECT COUNT(*) FROM audit_log WHERE event_type LIKE 'production.%'")->fetchColumn() >= 6);
 

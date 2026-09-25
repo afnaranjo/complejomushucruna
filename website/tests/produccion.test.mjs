@@ -6,7 +6,7 @@ import { join } from 'node:path';
 
 import { buildSite } from '../scripts/build.mjs';
 import { pages } from '../src/pages.mjs';
-import { boxColors, durationText, entryMarks, entryPayload, slotFor } from '../src/admin/admin-produccion.js';
+import { boxColors, durationText, entryGeometry, entryLabel, entryMarks, entryPayload, entrySpan, fromJornada, jornadaHours, jornadaMinutes, movedEntry, resizedEntry, slotFor, toJornada } from '../src/admin/admin-produccion.js';
 
 test('Producción: grupo en el menú con Activaciones, Cronograma Sol y Cronograma Luna, cada uno su tablero', async () => {
   const output = await mkdtemp(join(tmpdir(), 'mushuc-produccion-'));
@@ -39,11 +39,35 @@ test('Producción: colores de la caja, duración de la pieza y bloque que se env
   assert.equal(durationText(60), '1 hora');
   assert.equal(entryMarks({ owner: 'Iván', place: 'Tarima', status: 'confirmado' }), '👤 Iván · Tarima · ✓ confirmado');
   assert.deepEqual(slotFor('2026-10-30', 19 * 60, 90), { starts_at: '2026-10-30 19:00', ends_at: '2026-10-30 20:30' });
-  // Cerca de la medianoche el bloque se corre para caber en el día.
-  assert.deepEqual(slotFor('2026-10-30', 23 * 60, 120), { starts_at: '2026-10-30 21:59', ends_at: '2026-10-30 23:59' });
+  // Un show que empieza a las 23:00 termina de madrugada, en la misma caja.
+  assert.deepEqual(slotFor('2026-10-30', 23 * 60, 120), { starts_at: '2026-10-30 23:00', ends_at: '2026-10-31 01:00' });
+  // La jornada llega hasta las 03:00: un bloque muy tarde se corre para caber.
+  assert.deepEqual(slotFor('2026-10-30', 26 * 60 + 30, 120), { starts_at: '2026-10-31 01:00', ends_at: '2026-10-31 03:00' });
   const base = { title: ' Show principal ', day: '2026-10-30', start: '19:00', end: '20:30', color: '#6e2ce0', status: 'planificado', owner: '', place: '', note: '' };
   assert.equal(entryPayload(base).title, 'Show principal');
   assert.equal(entryPayload(base).starts_at, '2026-10-30 19:00');
   assert.throws(() => entryPayload({ ...base, title: ' ' }), /título/);
-  assert.throws(() => entryPayload({ ...base, end: '18:00' }), /posterior/);
+  assert.throws(() => entryPayload({ ...base, end: '18:00' }), /12 horas/);
+  // Si la hora de fin es de madrugada, termina al día siguiente.
+  assert.deepEqual([entryPayload({ ...base, start: '23:30', end: '01:30' }).starts_at, entryPayload({ ...base, start: '23:30', end: '01:30' }).ends_at], ['2026-10-30 23:30', '2026-10-31 01:30']);
+  // Si empieza de madrugada, es de esa misma noche.
+  assert.deepEqual([entryPayload({ ...base, start: '01:00', end: '02:00' }).starts_at, entryPayload({ ...base, start: '01:00', end: '02:00' }).ends_at], ['2026-10-31 01:00', '2026-10-31 02:00']);
+});
+
+test('Producción: la jornada va de 06:00 a 03:00 y lo de madrugada es de la noche anterior', () => {
+  assert.deepEqual(toJornada('2026-10-31 01:30'), { key: '2026-10-30', minutes: 1530 });
+  assert.deepEqual(toJornada('2026-10-30 19:00'), { key: '2026-10-30', minutes: 1140 });
+  assert.equal(fromJornada('2026-10-30', 1530), '2026-10-31 01:30');
+  const late = { starts_at: '2026-10-30 23:00', ends_at: '2026-10-31 01:30' };
+  assert.deepEqual(entrySpan(late), { key: '2026-10-30', start: 1380, end: 1530 });
+  assert.equal(entryLabel(late), '23:00–01:30 (+1)');
+  assert.equal(entryGeometry(late, '2026-10-31'), null);
+  const geometry = entryGeometry(late, '2026-10-30');
+  assert.ok(Math.abs(geometry.top - ((1380 - 360) / 1260) * 100) < 1e-9 && Math.abs(geometry.height - (150 / 1260) * 100) < 1e-9);
+  assert.equal(jornadaHours().length, 21);
+  assert.deepEqual(jornadaHours().slice(-3), [0, 1, 2]);
+  assert.equal(jornadaMinutes(1), 26 * 60 + 45);
+  assert.deepEqual(movedEntry(late, '2026-10-31', 22 * 60), { starts_at: '2026-10-31 22:00', ends_at: '2026-11-01 00:30' });
+  assert.deepEqual(resizedEntry(late, 26 * 60), { starts_at: '2026-10-30 23:00', ends_at: '2026-10-31 02:00' });
+  assert.deepEqual(resizedEntry(late, 40 * 60), { starts_at: '2026-10-30 23:00', ends_at: '2026-10-31 03:00' });
 });
