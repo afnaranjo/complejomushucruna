@@ -621,3 +621,10 @@ tr[data-origin="cuenta"] > td { background: rgba(0, 210, 214, .05); }
   .campaign-banner[data-loading] { animation: none; }
   @view-transition { navigation: none; }
 }
+
+/* Menú lateral en escritorio: dentro de <details> la altura del 100 % no se aplica, así que el contenido
+   se salía del fondo morado cuando el menú era más alto que la ventana. Altura máxima propia y
+   desplazamiento interno; en tableta y celular vuelve a su altura natural. */
+.admin-sidebar__navigation { background: #2e194f; }
+.admin-sidebar__content { max-height: calc(100dvh - 88px); overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: #ffffff38 transparent; }
+@media (max-width: 1120px) { .admin-sidebar__content { max-height: none; } }
