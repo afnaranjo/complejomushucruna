@@ -1951,3 +1951,10 @@ Nota de relevo escrita a pedido de Alex para que otro agente (Codex) retome la s
 - QA: `npm run check` en verde (230 Node, suites PHP con `social_metrics_test.php`, 10 integración; 215 archivos, 73 HTML, 2207 referencias). Prueba real contra Metricool (3,6 s) y revisión visual en escritorio y a 390 px con los datos reales.
 - Seguridad: el token no se versionó; vivirá en `metricool-config.json` fuera del docroot. Como se compartió en el chat, conviene regenerarlo después de publicar.
 - Publicación externa: solo GitHub. **No está desplegado**; requiere autorización de Alex para backend → frontend e instalar el archivo privado del token.
+
+### 2026-09-24 — Publicación de Redes sociales en el Panel
+
+- Alex autorizó con «sube a produccion». Se instaló `metricool-config.json` (permisos 600, fuera del docroot, sin sobrescribir) junto a la configuración privada del backend; el token viajó por stdin y no quedó en Git ni en la línea de comandos.
+- Backend → frontend desde `main` sincronizada, con verificación completa, respaldo previo y sin migraciones. El frontend no borró archivos exclusivos del servidor.
+- Verificación: `/admin/panel/` 200 en ambos dominios con la sección nueva; `panel.js`, `admin.css`, `admin-medios.js` y `vocero-portal.js` con SHA-256 idéntico al build; `health` 200 y `/api/redes-sociales` sin sesión 401 en ambas APIs. La clase publicada, ejecutada en el servidor, leyó Metricool en 0,7 s sin métricas faltantes (Facebook 21.420, Instagram 1.603, TikTok 7.716, YouTube 57, pauta USD 1.254,05 en 30 días).
+- Pendiente: regenerar el token de Metricool porque se compartió en el chat y actualizar el archivo privado.
