@@ -1,7 +1,7 @@
 import { isAllowedSiteOrigin, MIRROR_API_BASE, PRIMARY_API_BASE, resolveRuntimeOrigins } from '../finados/runtime-origins.mjs';
 import { qrcode } from '../finados/qrcode-generator.mjs';
 import './sidebar.js?v=20260925-admin-sidebar-2';
-import './campaign-banner.js?v=20260923-noticias-1';
+import './campaign-banner.js?v=20260925-banner-2';
 
 export const TRAFFIC_LIGHT_LABELS = Object.freeze({ red: 'Rojo · En preparación', yellow: 'Amarillo · En avance', green: 'Verde · Listo' });
 export const MEDIA_STATUSES = Object.freeze(['Nuevo', 'En revisión', 'Aprobado', 'Rechazado']);
@@ -831,6 +831,8 @@ export async function initializeMediaAdmin() {
     retry.hidden = true;
     feedback(status, 'Comprobando acceso…');
     try {
+      // La sesión y los datos salen a la vez: no hay que esperar una respuesta para pedir la otra.
+      const loads = Promise.all([list(), pending(), claims()]);
       const data = await client.session();
       if (!data.authenticated) { location.replace('/admin/'); return; }
       feedback(status, '');
@@ -839,7 +841,7 @@ export async function initializeMediaAdmin() {
       logout.disabled = false; exportButton.disabled = false;
       form.querySelector('fieldset').disabled = false;
       query('[data-admin-add]').disabled = false;
-      await Promise.all([list(), pending(), claims()]);
+      await loads;
     } catch (error) { fail(error); retry.hidden = false; }
   }
   retry.addEventListener('click', session);

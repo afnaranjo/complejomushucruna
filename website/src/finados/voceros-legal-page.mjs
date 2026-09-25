@@ -10,7 +10,7 @@ const legalVersions = { privacy: consents.data.version, image: consents.image.ve
 const campaignAssetVersion = '20260914-1';
 const campaignRuntimeVersion = '20260916-7';
 const campaignScriptVersion = '20260918-navigation-progress-1';
-const navigationAssetVersion = '20260918-navigation-progress-1';
+const navigationAssetVersion = '20260925-navigation-fluid-1';
 
 const controller = Object.freeze({
   name: 'Eventos Finados 2026',

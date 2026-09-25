@@ -1,6 +1,6 @@
 import { resolveRuntimeOrigins } from '../finados/runtime-origins.mjs';
 // Mismo cliente administrativo que Medios: lista de rutas permitidas, CSRF y sesión compartidos.
-import { createMediaAdminClient } from './admin-medios.js?v=20260925-admin-medios-23';
+import { createMediaAdminClient } from './admin-medios.js?v=20260925-admin-medios-24';
 
 const LOCAL_API = 'http://127.0.0.1:4174/api';
 
@@ -30,8 +30,6 @@ const SUGGESTED = Object.freeze({
 });
 const MEDIA_TYPES = Object.freeze(['Radio', 'Televisión', 'Digital', 'Prensa', 'Influencer', 'Otro']);
 const COVERAGES = Object.freeze(['Nacional', 'Regional', 'Local']);
-/** Tipos del registro de Medios → tipo de pauta. */
-const SOURCE_TYPES = Object.freeze({ radio: 'Radio', tv: 'Televisión', prensa: 'Prensa', digital: 'Digital', redes: 'Digital' });
 
 /* ---------- Funciones puras (probadas) ---------- */
 
@@ -74,20 +72,6 @@ export function moveToWeek(assignment, weekId) {
   return { ...assignment, weekId, start: week.start, end };
 }
 
-export function planRows(state) {
-  let total = 0; let impacts = 0;
-  const rows = state.plans.map(plan => {
-    const media = state.media.find(item => item.id === plan.mediaId) ?? null;
-    const spot = state.spots.find(item => item.id === plan.spotId) ?? null;
-    const days = daysInclusive(plan.start, plan.end);
-    const hits = days * Number(plan.freq || 0);
-    const investment = Math.round(hits * Number(plan.cost || 0) * 100) / 100;
-    total += investment; impacts += hits;
-    return { plan, media, spot, days, impacts: hits, investment };
-  });
-  return { rows, total: Math.round(total * 100) / 100, impacts };
-}
-
 export function spotKpis(state) {
   return [
     ['Piezas totales', state.spots.reduce((sum, spot) => sum + Number(spot.qty || 0), 0)],
@@ -105,19 +89,8 @@ export function textColorFor(hex) {
   return 0.2126 * r + 0.7152 * g + 0.0722 * b > 0.4 ? '#241146' : '#ffffff';
 }
 
-/** Un medio del registro de Medios convertido en medio de pauta. */
-export function mediaFromSource(item = {}) {
-  const types = Array.isArray(item.media_types) ? item.media_types : [];
-  return {
-    name: String(item.media_name ?? '').slice(0, 160),
-    type: SOURCE_TYPES[types[0]] ?? 'Otro',
-    city: [item.city, item.province].filter(Boolean).join(' / ').slice(0, 160),
-    program: String(item.program_name || item.frequency_channel || '').slice(0, 160),
-    sourceId: /^[a-f0-9]{32}$/.test(item.public_id ?? '') ? item.public_id : '',
-  };
-}
-
-/** Un respaldo importado solo se acepta si trae las cuatro listas; el servidor valida el detalle. */
+/** Un respaldo importado solo se acepta si trae las cuatro listas; el servidor valida el detalle.
+ * Medios y plan de medios ya no se muestran aquí (viven en Seguimiento de medios), pero se conservan tal cual. */
 export function importedPlan(value) {
   if (!value || typeof value !== 'object' || !['spots', 'assignments', 'media', 'plans'].every(key => Array.isArray(value[key]))) throw new Error('El archivo no es un respaldo del calendario.');
   return {
@@ -128,15 +101,9 @@ export function importedPlan(value) {
   };
 }
 
-const moneyFormat = new Intl.NumberFormat('es-EC', { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 });
-const numberFormat = new Intl.NumberFormat('es-EC');
-export const money = value => moneyFormat.format(Number(value || 0));
 export function shortDate(value) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value ?? '')) return '';
   return new Intl.DateTimeFormat('es-EC', { day: '2-digit', month: 'short', timeZone: 'UTC' }).format(new Date(`${value}T00:00:00Z`));
-}
-function longDate(value) {
-  return new Intl.DateTimeFormat('es-EC', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${value}T00:00:00Z`));
 }
 
 /** Un PDF de una página con la imagen JPEG del reporte centrada. Sin librerías externas. */
@@ -245,47 +212,6 @@ export function drawCalendarReport(canvas, state) {
   ctx.fillStyle = MUTED; ctx.font = `500 20px ${FONT}`;
   ctx.fillText('audio general como paraguas; atractivos para consideración y venta; carteleras concentradas en la fase final para impulsar asistencia.', 270, height - 86);
   drawFooter(ctx, width, height, `Periodo total: ${daysInclusive(CAMPAIGN_START, CAMPAIGN_END)} días`);
-}
-
-export function drawMediaReport(canvas, state) {
-  const width = 2400; const { rows, total, impacts } = planRows(state);
-  const columns = [['Medio', 300], ['Tipo', 150], ['Cobertura', 150], ['Pieza', 280], ['Inicio', 120], ['Fin', 120], ['Frec./día', 120], ['Impactos', 130], ['Costo', 150], ['Inversión', 170], ['Objetivo', 590]];
-  const measure = canvas.getContext('2d'); measure.font = `500 18px ${FONT}`;
-  const rowHeights = rows.map(row => Math.max(56, 20 + Math.max(wrap(measure, row.plan.objective || '—', 560).length, wrap(measure, row.media?.name ?? '—', 270).length) * 24));
-  const tableTop = 330;
-  const height = tableTop + 60 + (rows.length ? rowHeights.reduce((a, b) => a + b, 0) : 80) + 130;
-  canvas.width = width; canvas.height = height;
-  const ctx = canvas.getContext('2d');
-  ctx.fillStyle = PAPER; ctx.fillRect(0, 0, width, height);
-  drawHeader(ctx, width, 'Plan de medios', 'Finados 2026 · Radio, televisión y medios digitales · 21 sep – 5 nov 2026', 'PLAN DE MEDIOS');
-  const chips = [['Medios', numberFormat.format(state.media.length)], ['Pautas', numberFormat.format(state.plans.length)], ['Impactos / inserciones', numberFormat.format(impacts)], ['Inversión', money(total)]];
-  chips.forEach(([label, value], index) => {
-    const x = 60 + index * 330;
-    ctx.strokeStyle = LINE; ctx.lineWidth = 2; ctx.fillStyle = '#faf6fb'; roundRect(ctx, x, 190, 310, 100, 12); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = MUTED; ctx.textBaseline = 'top'; ctx.font = `600 18px ${FONT}`; ctx.fillText(label, x + 20, 206);
-    ctx.fillStyle = INK; ctx.font = `800 34px ${FONT}`; ctx.fillText(value, x + 20, 236);
-  });
-  let x = 60;
-  ctx.fillStyle = INK; ctx.fillRect(60, tableTop, width - 120, 56);
-  ctx.fillStyle = '#ffffff'; ctx.font = `800 17px ${FONT}`; ctx.textBaseline = 'middle';
-  for (const [label, w] of columns) { ctx.fillText(label.toUpperCase(), x + 12, tableTop + 28); x += w; }
-  let y = tableTop + 56;
-  if (!rows.length) { ctx.fillStyle = MUTED; ctx.font = `500 20px ${FONT}`; ctx.fillText('No hay pautas registradas.', 72, y + 40); }
-  rows.forEach((row, index) => {
-    const rh = rowHeights[index];
-    if (index % 2) { ctx.fillStyle = '#faf6fb'; ctx.fillRect(60, y, width - 120, rh); }
-    ctx.strokeStyle = LINE; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(60, y + rh); ctx.lineTo(width - 60, y + rh); ctx.stroke();
-    const values = [row.media?.name ?? '—', row.media?.type ?? '—', row.media?.coverage ?? '—', row.spot?.name ?? '—', shortDate(row.plan.start), shortDate(row.plan.end), String(row.plan.freq), numberFormat.format(row.impacts), money(row.plan.cost), money(row.investment), row.plan.objective || '—'];
-    let cx = 60; ctx.textBaseline = 'top';
-    values.forEach((value, column) => {
-      const w = columns[column][1];
-      ctx.fillStyle = INK; ctx.font = `${column === 9 ? 800 : 500} 18px ${FONT}`;
-      wrap(ctx, value, w - 24).forEach((line, i) => ctx.fillText(line, cx + 12, y + 16 + i * 24));
-      cx += w;
-    });
-    y += rh;
-  });
-  drawFooter(ctx, width, height, `Periodo: ${longDate(CAMPAIGN_START)} – ${longDate(CAMPAIGN_END)}`);
 }
 
 /* ---------- Interfaz ---------- */
@@ -518,133 +444,22 @@ export async function initializeMediaPlan() {
     state.assignments = []; commit('Calendario limpio');
   });
 
-  /* 3. Medios de pauta */
-  const coverageClass = { Nacional: 'national', Regional: 'regional', Local: 'local' };
-  function renderMedia() {
-    const body = $('[data-media-rows]'); body.replaceChildren();
-    if (!state.media.length) { const row = node('tr'); const cell = node('td', 'Aún no hay medios registrados. Usa «+ Añadir medio» para crear tu base.', 'mc-empty'); cell.colSpan = 9; row.append(cell); body.append(row); return; }
-    for (const media of state.media) {
-      const row = node('tr');
-      const name = node('td'); name.append(node('strong', media.name)); if (media.notes) name.append(node('small', media.notes)); if (media.sourceId) name.append(node('small', 'Vinculado a Medios registrados', 'mc-linked'));
-      const coverage = node('td'); coverage.append(node('span', media.coverage, `mc-pill mc-pill--${coverageClass[media.coverage] ?? 'local'}`));
-      const state_ = node('td'); state_.append(node('span', media.status === 'active' ? 'Activo' : 'Por confirmar', `mc-status mc-status--${media.status}`));
-      const actions = node('td', undefined, 'mc-actions');
-      actions.append(button('Editar', 'button-quiet mc-small', () => openMedia(media.id)), button('Eliminar', 'button-quiet mc-small mc-danger', () => deleteMedia(media.id)));
-      row.append(name, node('td', media.type), coverage, node('td', media.city || '—'), node('td', media.program || '—'), node('td', media.contact || '—'), node('td', money(media.rate), 'mc-num'), state_, actions);
-      body.append(row);
-    }
-  }
-  let sources = null;
-  async function loadSources(select) {
-    if (sources) return;
-    sources = [];
-    try {
-      for (let page = 1; page <= 20; page++) {
-        const data = await client.list({ page, pageSize: 100 });
-        sources.push(...data.items);
-        if (page >= (data.pagination?.pages ?? 1)) break;
-      }
-      sources.sort((a, b) => String(a.media_name).localeCompare(String(b.media_name), 'es'));
-      for (const item of sources) { const option = node('option', [item.media_name, item.city].filter(Boolean).join(' · ')); option.value = item.public_id; select.append(option); }
-    } catch (error) { sources = null; if (error.status === 401) location.replace('/admin/'); else toast('No se pudo cargar la lista de Medios registrados.'); }
-  }
-  function openMedia(id = '') {
-    const media = state.media.find(item => item.id === id) ?? null;
-    const form = formOf('media'); const source = dialogs.media.querySelector('[data-media-source]');
-    form.dataset.id = id; form.dataset.source = media?.sourceId ?? '';
-    dialogs.media.querySelector('[data-dialog-title]').textContent = media ? 'Editar medio' : 'Añadir medio';
-    for (const key of ['name', 'city', 'program', 'contact', 'notes']) form.elements[key].value = media?.[key] ?? '';
-    form.elements.type.value = media?.type ?? 'Radio'; form.elements.coverage.value = media?.coverage ?? 'Local'; form.elements.rate.value = media?.rate ?? 0; form.elements.status.value = media?.status ?? 'active';
-    source.value = media?.sourceId ?? '';
-    dialogs.media.showModal();
-    loadSources(source).then(() => { source.value = media?.sourceId ?? ''; });
-  }
-  dialogs.media.querySelector('[data-media-source]').addEventListener('change', event => {
-    const form = formOf('media');
-    const item = sources?.find(source => source.public_id === event.target.value);
-    form.dataset.source = item?.public_id ?? '';
-    if (!item) return;
-    const data = mediaFromSource(item);
-    form.elements.name.value = data.name; form.elements.type.value = data.type; form.elements.city.value = data.city; form.elements.program.value = data.program;
-  });
-  formOf('media').addEventListener('submit', event => {
-    event.preventDefault();
-    const form = event.currentTarget; const id = form.dataset.id;
-    const name = form.elements.name.value.trim();
-    if (!name) return toast('Escribe el nombre del medio.');
-    const data = { id: id || uid('media'), name, type: form.elements.type.value, coverage: form.elements.coverage.value, city: form.elements.city.value.trim(), program: form.elements.program.value.trim(), contact: form.elements.contact.value.trim(), rate: Math.max(0, Number(form.elements.rate.value) || 0), status: form.elements.status.value, notes: form.elements.notes.value.trim(), sourceId: form.dataset.source || '' };
-    if (id) state.media = state.media.map(item => item.id === id ? data : item); else state.media.push(data);
-    dialogs.media.close(); commit('Medio guardado');
-  });
-  function deleteMedia(id) {
-    if (!confirm('¿Eliminar este medio? También se eliminarán sus pautas del plan de medios.')) return;
-    state.media = state.media.filter(item => item.id !== id);
-    state.plans = state.plans.filter(item => item.mediaId !== id);
-    commit('Medio eliminado');
-  }
-  $('[data-media-new]').addEventListener('click', () => openMedia());
-
-  /* 4. Plan de medios */
-  function renderPlan() {
-    const { rows, total, impacts } = planRows(state);
-    const kpis = $('[data-plan-kpis]'); kpis.replaceChildren();
-    for (const [label, value] of [['Medios registrados', state.media.length], ['Pautas planificadas', state.plans.length], ['Impactos / inserciones', numberFormat.format(impacts)], ['Inversión total', money(total)]]) { const box = node('div', undefined, 'mc-kpi'); box.append(node('span', label), node('strong', value)); kpis.append(box); }
-    const body = $('[data-plan-rows]'); body.replaceChildren();
-    if (!rows.length) { const row = node('tr'); const cell = node('td', 'Aún no hay pautas. Primero registra medios y luego crea el plan.', 'mc-empty'); cell.colSpan = 12; row.append(cell); body.append(row); return; }
-    for (const row of rows) {
-      const tr = node('tr'); const name = node('td'); name.append(node('strong', row.media?.name ?? 'Medio eliminado'));
-      const investment = node('td', undefined, 'mc-num'); investment.append(node('strong', money(row.investment)));
-      const actions = node('td', undefined, 'mc-actions');
-      actions.append(button('Editar', 'button-quiet mc-small', () => openPlan(row.plan.id)), button('Eliminar', 'button-quiet mc-small mc-danger', () => { state.plans = state.plans.filter(item => item.id !== row.plan.id); commit('Pauta eliminada'); }));
-      tr.append(name, node('td', row.media?.type ?? '—'), node('td', row.spot?.name ?? 'Spot eliminado'), node('td', shortDate(row.plan.start)), node('td', shortDate(row.plan.end)), node('td', row.plan.freq, 'mc-num'), node('td', row.days, 'mc-num'), node('td', numberFormat.format(row.impacts), 'mc-num'), node('td', money(row.plan.cost), 'mc-num'), investment, node('td', row.plan.objective || '—'), actions);
-      body.append(tr);
-    }
-  }
-  function openPlan(id = '') {
-    if (!state.media.length) return toast('Primero añade al menos un medio de comunicación.');
-    if (!state.spots.length) return toast('Primero añade al menos un spot.');
-    const plan = state.plans.find(item => item.id === id) ?? null;
-    const form = formOf('plan');
-    form.dataset.id = id; dialogs.plan.querySelector('[data-dialog-title]').textContent = plan ? 'Editar pauta' : 'Añadir pauta al plan de medios';
-    fill(form.elements.mediaId, state.media, media => `${media.name} — ${media.type}`, plan?.mediaId ?? state.media[0].id);
-    fill(form.elements.spotId, state.spots, spot => spot.name, plan?.spotId ?? state.spots[0].id);
-    form.elements.start.value = plan?.start ?? CAMPAIGN_START; form.elements.end.value = plan?.end ?? CAMPAIGN_END;
-    form.elements.freq.value = plan?.freq ?? 3;
-    form.elements.cost.value = plan?.cost ?? state.media.find(media => media.id === form.elements.mediaId.value)?.rate ?? 0;
-    form.elements.objective.value = plan?.objective ?? '';
-    dialogs.plan.showModal();
-  }
-  formOf('plan').elements.mediaId.addEventListener('change', event => { const media = state.media.find(item => item.id === event.target.value); if (media) formOf('plan').elements.cost.value = media.rate || 0; });
-  formOf('plan').addEventListener('submit', event => {
-    event.preventDefault();
-    const form = event.currentTarget; const id = form.dataset.id;
-    const start = form.elements.start.value; const end = form.elements.end.value;
-    if (!datesOk(start, end)) return;
-    const data = { id: id || uid('plan'), mediaId: form.elements.mediaId.value, spotId: form.elements.spotId.value, start, end, freq: Math.min(500, Math.max(1, Number.parseInt(form.elements.freq.value, 10) || 1)), cost: Math.max(0, Number(form.elements.cost.value) || 0), objective: form.elements.objective.value.trim() };
-    if (id) state.plans = state.plans.map(item => item.id === id ? data : item); else state.plans.push(data);
-    dialogs.plan.close(); commit('Pauta añadida al plan de medios');
-  });
-  $('[data-plan-new]').addEventListener('click', () => openPlan());
-
-  /* 5. Reportes */
+  /* 3. Reportes */
   const canvas = $('[data-report-canvas]');
-  const reportType = $('[data-report-type]');
-  const reportName = () => reportType.value === 'calendar' ? 'calendario_estrategico_finados_2026' : 'plan_de_medios_finados_2026';
+  const reportName = 'calendario_estrategico_finados_2026';
   async function renderReport() {
     try { await document.fonts?.load(`800 20px Inter`); } catch { /* sin la fuente, usa la del sistema */ }
-    if (reportType.value === 'calendar') drawCalendarReport(canvas, state); else drawMediaReport(canvas, state);
+    drawCalendarReport(canvas, state);
   }
   const download = (blob, name) => { const link = node('a'); link.href = URL.createObjectURL(blob); link.download = name; document.body.append(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(link.href), 4000); };
-  reportType.addEventListener('change', renderReport);
-  $('[data-report-png]').addEventListener('click', async () => { await renderReport(); canvas.toBlob(blob => { if (blob) { download(blob, `${reportName()}.png`); toast('Imagen generada'); } }, 'image/png'); });
+  $('[data-report-png]').addEventListener('click', async () => { await renderReport(); canvas.toBlob(blob => { if (blob) { download(blob, `${reportName}.png`); toast('Imagen generada'); } }, 'image/png'); });
   $('[data-report-pdf]').addEventListener('click', async () => {
     await renderReport();
     canvas.toBlob(async blob => {
       if (!blob) return;
       const jpeg = new Uint8Array(await blob.arrayBuffer());
-      // A3 horizontal para el calendario, A4 horizontal para el plan de medios, como el original.
-      const [pageWidth, pageHeight] = reportType.value === 'calendar' ? [1190.55, 841.89] : [841.89, 595.28];
-      download(new Blob([pdfFromJpeg(jpeg, canvas.width, canvas.height, pageWidth, pageHeight)], { type: 'application/pdf' }), `${reportName()}.pdf`);
+      // A3 horizontal, como el calendario del archivo original.
+      download(new Blob([pdfFromJpeg(jpeg, canvas.width, canvas.height, 1190.55, 841.89)], { type: 'application/pdf' }), `${reportName}.pdf`);
       toast('PDF generado');
     }, 'image/jpeg', 0.95);
   });
@@ -659,13 +474,13 @@ export async function initializeMediaPlan() {
     if (!file) return;
     try {
       const data = importedPlan(JSON.parse(await file.text()));
-      if (!confirm(`¿Reemplazar el calendario actual por el del respaldo? Trae ${data.spots.length} spots, ${data.assignments.length} pautas, ${data.media.length} medios y ${data.plans.length} pautas del plan.`)) return;
+      if (!confirm(`¿Reemplazar el calendario actual por el del respaldo? Trae ${data.spots.length} spots y ${data.assignments.length} pautas.`)) return;
       state = data; commit('Respaldo importado');
     } catch (error) { toast(error instanceof SyntaxError ? 'El archivo no es un JSON válido.' : error.message); }
   });
 
   function renderAll() {
-    renderSpots(); renderCalendar(); renderMedia(); renderPlan();
+    renderSpots(); renderCalendar();
     if (!root.querySelector('[data-plan-panel="reportes"]').hidden) renderReport();
   }
 
@@ -690,7 +505,7 @@ export async function initializeMediaPlan() {
       if (sidebarUser) sidebarUser.textContent = session.user.username;
       if (logout) logout.disabled = false;
       await loadPlan();
-      for (const control of root.querySelectorAll('[data-spot-new], [data-media-new], [data-plan-new], [data-plan-seed], [data-plan-clear], [data-plan-backup], [data-plan-import]')) control.disabled = false;
+      for (const control of root.querySelectorAll('[data-spot-new], [data-plan-seed], [data-plan-clear], [data-plan-backup], [data-plan-import]')) control.disabled = false;
       feedback(status, '');
       goTab(location.hash.slice(1));
     } catch (error) { fail(error); retry.hidden = false; }

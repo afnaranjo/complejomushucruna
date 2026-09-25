@@ -55,7 +55,7 @@ export function renderLayout(page) {
     ? '<link rel="stylesheet" href="/assets/finados/finados.css?v=20260916-7">'
     : `<link rel="stylesheet" href="/assets/styles.css?v=${stylesVersion}">`}
   ${page.stylesheet ? `<link rel="stylesheet" href="${page.stylesheet}">` : ''}
-  ${hasFinadosHeader ? '<link rel="stylesheet" href="/assets/finados/navigation.css?v=20260918-navigation-progress-1">' : ''}
+  ${hasFinadosHeader ? '<link rel="stylesheet" href="/assets/finados/navigation.css?v=20260925-navigation-fluid-1">' : ''}
   ${isHome || isMedia ? renderOpeningAssets() : ''}
   <script type="module" src="/assets/site.js?v=${siteRuntimeVersion}"></script>
 </head>

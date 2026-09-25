@@ -10,7 +10,7 @@ const legalVersion = '2026-09-22';
 const campaignAssetVersion = '20260914-1';
 const campaignRuntimeVersion = '20260916-7';
 const campaignScriptVersion = '20260918-navigation-progress-1';
-const navigationAssetVersion = '20260918-navigation-progress-1';
+const navigationAssetVersion = '20260925-navigation-fluid-1';
 
 // Same controller already published in the Voceros and Medios legal documents.
 const controller = Object.freeze({

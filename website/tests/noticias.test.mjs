@@ -85,7 +85,8 @@ test('la banda del tema central sale en todos los paneles y Noticias tiene su se
   // La banda va arriba de cada panel del equipo.
   for (const route of ['admin/panel', 'admin/voceros', 'admin/medios', 'admin/medios/eventos', 'admin/emprendedores', 'admin/creadoras']) {
     const html = await readFile(join(output, route, 'index.html'), 'utf8');
-    assert.match(html, /<section class="campaign-banner" data-campaign-banner hidden/, route);
+    // Llega con su espacio reservado, no oculta: la página no se corre hacia abajo al cargarla.
+    assert.match(html, /<section class="campaign-banner" data-campaign-banner data-loading/, route);
     const bundle = /<script type="module" src="\/assets\/(admin\/[^?"]+)/.exec(html)?.[1];
     assert.ok(bundle, `${route} carga un bundle`);
     assert.match(await readFile(join(output, 'assets', bundle), 'utf8'), /campaign-banner\.js\?v=/, `${route} carga la banda`);

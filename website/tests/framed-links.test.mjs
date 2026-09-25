@@ -59,7 +59,8 @@ test('el build inyecta el script en las páginas públicas y no en las privadas'
   assert.ok(files.includes('assets/framed-links.js'));
   for (const page of ['index.html', 'finados/index.html', 'finados/mfs/index.html', 'granja/index.html', 'acreditacion-de-medios/index.html']) {
     const html = await readFile(join(output, page), 'utf8');
-    assert.equal((html.match(/\/assets\/framed-links\.js/g) ?? []).length, 1, page);
+    // Una sola vez como script; la precarga del <head> es la misma URL anunciada antes.
+    assert.equal((html.match(/<script type="module" src="\/assets\/framed-links\.js/g) ?? []).length, 1, page);
   }
   for (const page of ['admin/index.html', 'finados/voceros/mi-registro/index.html', 'finados/mfs/acceso/index.html']) {
     assert.doesNotMatch(await readFile(join(output, page), 'utf8'), /framed-links/, page);

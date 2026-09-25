@@ -1,6 +1,6 @@
 import { isAllowedSiteOrigin, MIRROR_API_BASE, PRIMARY_API_BASE, PRIMARY_SITE_ORIGIN, resolveRuntimeOrigins } from '../finados/runtime-origins.mjs';
 import './sidebar.js?v=20260925-admin-sidebar-2';
-import './campaign-banner.js?v=20260923-noticias-1';
+import './campaign-banner.js?v=20260925-banner-2';
 
 export const STATUSES = Object.freeze(['Nuevo', 'En revisión', 'Aprobado', 'Rechazado', 'Pendiente de autorización']);
 export const PREVIOUS_PARTICIPATION = Object.freeze(['No, es mi primera vez', 'Sí, en Finados 2025', 'Sí, en Carnaval 2026', 'Sí, en otra edición']);

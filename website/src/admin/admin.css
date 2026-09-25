@@ -608,3 +608,16 @@ tr[data-origin="cuenta"] > td { background: rgba(0, 210, 214, .05); }
   .mc-report { position: absolute; inset: 0 auto auto 0; width: 100%; padding: 0; border: 0; }
   .mc-report canvas { min-width: 0; }
 }
+
+/* Fluidez: la banda del tema central reserva su lugar mientras carga, para que nada se corra hacia abajo. */
+.campaign-banner[data-loading] { min-height: 132px; background: linear-gradient(100deg, #fffaf2 30%, #f3e9ef 50%, #fffaf2 70%) 0 0 / 300% 100%; animation: admin-skeleton 1.4s ease-in-out infinite; }
+@keyframes admin-skeleton { to { background-position: -150% 0; } }
+/* Navegar entre pantallas se siente como una sola aplicación: encabezado y menú quedan fijos y el contenido cambia con un fundido corto. */
+@view-transition { navigation: auto; }
+.admin-header { view-transition-name: admin-header; }
+.admin-sidebar { view-transition-name: admin-sidebar; }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: .18s; }
+@media (prefers-reduced-motion: reduce) {
+  .campaign-banner[data-loading] { animation: none; }
+  @view-transition { navigation: none; }
+}

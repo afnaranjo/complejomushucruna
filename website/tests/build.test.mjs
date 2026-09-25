@@ -157,7 +157,7 @@ test('la portada adopta la cabecera de venta de Finados y simplifica la navegaci
   assert.match(home, /class="site-header site-header--finados"/);
   assert.match(home, /\/assets\/icons\/logo-complejo\.svg\?v=20260909/);
   assert.match(home, /\/assets\/styles\.css\?v=20260916-3/);
-  assert.match(home, /\/assets\/finados\/navigation\.css\?v=20260918-navigation-progress-1/);
+  assert.match(home, /\/assets\/finados\/navigation\.css\?v=20260925-navigation-fluid-1/);
   assert.match(home, /\/assets\/site\.js\?v=20260918-navigation-progress-1/);
   assert.match(home, /Finados 2026 · Venta de stands/);
   assert.match(home, /14 de septiembre/);

@@ -268,11 +268,12 @@ test('admin orienta cada formulario desde una navegación lateral accesible', as
   // Eventos vive dentro de Medios: el enlace de la sección manda sobre su panel de opciones.
   const group = html.slice(html.indexOf('<div class="admin-nav-group"'), html.indexOf('</div>', html.indexOf('data-nav-children')) + 6);
   // Medios es un botón que despliega; «Seguimiento de medios» es la opción que lleva a /admin/medios/.
-  assert.match(group, /<button type="button" class="admin-nav-link admin-nav-toggle" data-nav-parent aria-expanded="true" aria-controls="admin-nav-medios">/);
+  // Fuera de Medios llega ya plegado desde el servidor: el menú no salta cuando carga el JavaScript.
+  assert.match(group, /<button type="button" class="admin-nav-link admin-nav-toggle" data-nav-parent aria-expanded="false" aria-controls="admin-nav-medios">/);
+  assert.match(group, /<div class="admin-nav-children" id="admin-nav-medios" data-nav-children hidden>/);
   assert.doesNotMatch(group.slice(0, group.indexOf('data-nav-children')), /href=/);
   assert.match(group, /href="\/admin\/medios\/"><span class="admin-nav-marker" aria-hidden="true">›<\/span><span><strong>Seguimiento de medios<\/strong>/);
   assert.ok(group.indexOf('Seguimiento de medios') < group.indexOf('href="/admin/medios/eventos/"'));
-  assert.match(group, /<div class="admin-nav-children" id="admin-nav-medios" data-nav-children>/);
   assert.match(group, /href="\/admin\/medios\/eventos\/"/);
   assert.ok(!html.includes('href="/admin/medios/eventos/"', html.indexOf('data-nav-children') + group.length),
     'Eventos aparece una sola vez y siempre dentro de Medios');

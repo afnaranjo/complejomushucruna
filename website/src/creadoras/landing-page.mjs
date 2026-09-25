@@ -4,7 +4,7 @@ import { renderFinadosFooter } from '../finados/footer.mjs';
 import { renderFinadosNavigation } from '../finados/navigation.mjs';
 
 const BASE = '/finados/creadoras';
-const navigationAssetVersion = '20260918-navigation-progress-1';
+const navigationAssetVersion = '20260925-navigation-fluid-1';
 const consents = JSON.parse(readFileSync(new URL('../../backend/finados-api/resources/creadora-consents.json', import.meta.url), 'utf8'));
 
 const steps = Object.freeze([
@@ -34,7 +34,7 @@ export function renderCreadorasLandingPage(page) {
 <link rel="canonical" href="https://complejomushucruna.com${esc(page.route)}">
 <link rel="icon" href="/assets/finados/favicon-finados.png"><meta name="theme-color" content="#241146">
 <link rel="stylesheet" href="/assets/finados/finados.css?v=20260916-7">
-<link rel="stylesheet" href="/assets/finados/navigation.css?v=20260918-navigation-progress-1">
+<link rel="stylesheet" href="/assets/finados/navigation.css?v=20260925-navigation-fluid-1">
 <link rel="stylesheet" href="/assets/finados/voceros.css?v=20260915-1">
 <link rel="stylesheet" href="/assets/finados/creadoras.css?v=20260923-creadoras-1">
 <script type="module" src="/assets/finados/voceros.js?v=20260915-1"></script>

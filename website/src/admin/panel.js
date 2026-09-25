@@ -1,8 +1,8 @@
 import { resolveRuntimeOrigins } from '../finados/runtime-origins.mjs';
 // The panel reuses the administrative client: same allowlist, same CSRF handling, one bundle less.
-import { createMediaAdminClient } from './admin-medios.js?v=20260925-admin-medios-23';
+import { createMediaAdminClient } from './admin-medios.js?v=20260925-admin-medios-24';
 import './sidebar.js?v=20260925-admin-sidebar-2';
-import './campaign-banner.js?v=20260923-noticias-1';
+import './campaign-banner.js?v=20260925-banner-2';
 
 const LOCAL_API = 'http://127.0.0.1:4174/api';
 
@@ -472,6 +472,8 @@ export async function initializeAdminPanel() {
   });
 
   try {
+    // El resumen se pide a la vez que la sesión: no hay que esperar una respuesta para pedir la otra.
+    const loading = load();
     const session = await client.session();
     if (!session.authenticated) { location.replace('/admin/'); return; }
     query('[data-admin-user]').textContent = `Sesión de ${session.user.username}`;
@@ -483,7 +485,7 @@ export async function initializeAdminPanel() {
       social.addEventListener('toggle', openSocial);
       openSocial();
     }
-    await load();
+    await loading;
   } catch (error) { fail(error); retry.hidden = false; }
 }
 

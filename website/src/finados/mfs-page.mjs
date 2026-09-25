@@ -67,7 +67,7 @@ export function renderMfsPage(page) {
   <link rel="apple-touch-icon" href="/assets/finados/favicon-finados.png">
   <link rel="preload" href="/assets/finados/mfs/fonts/badeen-display-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/assets/finados/finados.css?v=20260916-7">
-  <link rel="stylesheet" href="/assets/finados/navigation.css?v=20260918-navigation-progress-1">
+  <link rel="stylesheet" href="/assets/finados/navigation.css?v=20260925-navigation-fluid-1">
   <link rel="stylesheet" href="/assets/finados/mfs.css?v=${mfsAssetVersion}">
   <script type="module" src="/assets/finados/finados.js?v=20260918-navigation-progress-1"></script>
 </head>

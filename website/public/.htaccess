@@ -30,3 +30,34 @@ ErrorDocument 404 /404.html
   RewriteRule ^ - [L]
 </IfModule>
 # END Complejo Mushuc Runa static site
+
+# BEGIN Complejo Mushuc Runa rendimiento
+# Comprime texto antes de enviarlo: HTML, CSS, JavaScript, JSON y SVG pesan varias veces menos.
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css text/plain text/javascript application/javascript application/json image/svg+xml application/speculationrules+json
+</IfModule>
+# Precarga al pasar el cursor por un enlace interno (Chrome y Edge), para que la página siguiente ya esté lista.
+<Files "speculation-rules.json">
+  ForceType application/speculationrules+json
+</Files>
+<IfModule mod_headers.c>
+  <If "%{QUERY_STRING} =~ /(^|&)v=/">
+    # Archivo con versión (?v=): el navegador lo usa sin volver a preguntar durante un día y lo
+    # renueva en segundo plano. Si alguna vez se olvida cambiar la versión, se corrige solo en un día.
+    Header set Cache-Control "public, max-age=86400, stale-while-revalidate=604800"
+  </If>
+  <ElseIf "%{REQUEST_URI} =~ m#\.(woff2?|ttf|otf)$#">
+    Header set Cache-Control "public, max-age=2592000, stale-while-revalidate=604800"
+  </ElseIf>
+  <ElseIf "%{REQUEST_URI} =~ m#\.(webp|avif|png|jpe?g|gif|svg|ico)$#">
+    Header set Cache-Control "public, max-age=86400, stale-while-revalidate=604800"
+  </ElseIf>
+  <Else>
+    # HTML y archivos sin versión: siempre se confirma con el servidor, para ver lo último publicado.
+    Header set Cache-Control "no-cache"
+  </Else>
+  <If "%{REQUEST_URI} =~ m#(/|\.html)$#">
+    Header set Speculation-Rules "\"/speculation-rules.json\""
+  </If>
+</IfModule>
+# END Complejo Mushuc Runa rendimiento

@@ -16,7 +16,7 @@ test('Finados y sus registros no cargan el CSS institucional del Complejo', () =
       && !/^\/finados\/(nombre|pantalla)\/(?:escribe\/)?$/.test(page.route)) {
       const cssVersion = page.route === '/finados/' ? '20260924-manifesto-1' : '20260916-7';
       assert.match(html, new RegExp(`/assets/finados/finados\\.css\\?v=${cssVersion}`), page.route);
-      assert.match(html, /\/assets\/finados\/navigation\.css\?v=20260918-navigation-progress-1/, page.route);
+      assert.match(html, /\/assets\/finados\/navigation\.css\?v=20260925-navigation-fluid-1/, page.route);
       assert.match(html, /id="navegacion-principal"/, page.route);
     }
     if (page.route === '/acreditacion-de-medios/') {
@@ -32,7 +32,7 @@ test('la identidad institucional permanece independiente de la campaña', () => 
     assert.match(html, /href="\/assets\/styles\.css\?v=20260916-3"/);
     assert.doesNotMatch(html, /href="\/assets\/finados\/finados\.css/);
     if (route === '/') {
-      assert.match(html, /href="\/assets\/finados\/navigation\.css\?v=20260918-navigation-progress-1"/);
+      assert.match(html, /href="\/assets\/finados\/navigation\.css\?v=20260925-navigation-fluid-1"/);
     } else {
       assert.doesNotMatch(html, /href="\/assets\/finados\/navigation\.css/);
     }

@@ -16,7 +16,7 @@ const purchaseUrl = 'https://mushucticket.com/';
 const campaignAssetVersion = '20260903';
 const campaignRuntimeVersion = '20260924-manifesto-1';
 const campaignScriptVersion = '20260918-navigation-progress-1';
-const navigationAssetVersion = '20260918-navigation-progress-1';
+const navigationAssetVersion = '20260925-navigation-fluid-1';
 
 const axes = [
   {

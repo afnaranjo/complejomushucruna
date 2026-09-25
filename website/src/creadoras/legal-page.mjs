@@ -74,7 +74,7 @@ ${paragraphs.map(text => `<p>${esc(text)}</p>`).join('\n')}
 <link rel="canonical" href="https://complejomushucruna.com${esc(page.route)}">
 <link rel="icon" href="/assets/finados/favicon-finados.png"><meta name="theme-color" content="#241146">
 <link rel="stylesheet" href="/assets/finados/finados.css?v=20260916-7">
-<link rel="stylesheet" href="/assets/finados/navigation.css?v=20260918-navigation-progress-1">
+<link rel="stylesheet" href="/assets/finados/navigation.css?v=20260925-navigation-fluid-1">
 <link rel="stylesheet" href="/assets/finados/vocero-portal.css?v=20260915-1">
 <link rel="stylesheet" href="/assets/finados/creadoras.css?v=20260923-creadoras-1">
 </head><body class="vocero-portal vocero-legal">

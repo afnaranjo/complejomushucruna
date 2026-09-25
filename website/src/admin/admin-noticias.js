@@ -1,6 +1,6 @@
 import { isAllowedSiteOrigin, MIRROR_API_BASE, PRIMARY_API_BASE, resolveRuntimeOrigins } from '../finados/runtime-origins.mjs';
 import './sidebar.js?v=20260925-admin-sidebar-2';
-import { rangeLabel, phaseLabel, todayLabel } from './campaign-banner.js?v=20260923-noticias-1';
+import { rangeLabel, phaseLabel, todayLabel } from './campaign-banner.js?v=20260925-banner-2';
 
 const API = PRIMARY_API_BASE;
 const LOCAL_API = 'http://127.0.0.1:4174/api';

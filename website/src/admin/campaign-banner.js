@@ -85,6 +85,17 @@ export function renderBanner(banner, data) {
     banner.append(notices);
   }
   banner.hidden = false;
+  banner.removeAttribute('data-loading');
+  banner.removeAttribute('aria-busy');
+}
+
+const CACHE_KEY = 'finados-campaign-banner-v1';
+/** Lo último que se vio de la banda (tramos y avisos de campaña, sin datos personales). Si falla, no pasa nada. */
+function readCache() {
+  try { const value = JSON.parse(sessionStorage.getItem(CACHE_KEY) ?? 'null'); return value && typeof value === 'object' ? value : null; } catch { return null; }
+}
+function writeCache(data) {
+  try { sessionStorage.setItem(CACHE_KEY, JSON.stringify(data)); } catch { /* sin almacenamiento: se pinta igual */ }
 }
 
 export async function initializeCampaignBanner(fetchImplementation = fetch) {
@@ -93,15 +104,22 @@ export async function initializeCampaignBanner(fetchImplementation = fetch) {
   const configured = document.querySelector('meta[name="admin-api-base"]')?.content;
   const runtime = resolveRuntimeOrigins(location);
   const base = location.hostname === 'finados.expoferiamushucruna.com' ? runtime.apiBase : configured || runtime.apiBase;
-  if (![API, MIRROR_API_BASE, LOCAL_API].filter(Boolean).includes(base)) return;
-  if (!isAllowedSiteOrigin(location.origin) && location.hostname !== new URL(LOCAL_API ?? API).hostname) return;
+  if (![API, MIRROR_API_BASE, LOCAL_API].filter(Boolean).includes(base)) { banner.hidden = true; return; }
+  if (!isAllowedSiteOrigin(location.origin) && location.hostname !== new URL(LOCAL_API ?? API).hostname) { banner.hidden = true; return; }
+  const cached = readCache();
+  if (cached) renderBanner(banner, cached);
   try {
     const response = await fetchImplementation(`${base}/noticias`, {
       credentials: 'include', cache: 'no-store', redirect: 'error', referrerPolicy: 'no-referrer', headers: { Accept: 'application/json' },
     });
-    if (!response.ok) return;
-    renderBanner(banner, await response.json());
-  } catch { /* La banda es informativa: si no carga, el panel sigue funcionando. */ }
+    if (!response.ok) throw new Error();
+    const data = await response.json();
+    renderBanner(banner, data);
+    writeCache(data);
+  } catch {
+    // La banda es informativa: si no carga y no hay nada guardado, se retira sin frenar el panel.
+    if (!cached) banner.hidden = true;
+  }
 }
 
 if (typeof document !== 'undefined') initializeCampaignBanner();

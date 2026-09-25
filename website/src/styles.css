@@ -2052,3 +2052,9 @@ a {
     transform: none;
   }
 }
+
+/* Fluidez: al pasar de una página a otra el encabezado queda fijo y el resto cambia con un fundido corto. */
+@view-transition { navigation: auto; }
+.site-header { view-transition-name: site-header; }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: .18s; }
+@media (prefers-reduced-motion: reduce) { @view-transition { navigation: none; } }

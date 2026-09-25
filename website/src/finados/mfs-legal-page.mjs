@@ -75,7 +75,7 @@ export function renderMfsLegalPage(page) {
   <link rel="icon" href="/assets/finados/mfs/mfs-icono.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/assets/finados/finados.css?v=20260916-7">
   <link rel="stylesheet" href="/assets/finados/voceros.css?v=20260916-7">
-  <link rel="stylesheet" href="/assets/finados/navigation.css?v=20260918-navigation-progress-1">
+  <link rel="stylesheet" href="/assets/finados/navigation.css?v=20260925-navigation-fluid-1">
   <script type="module" src="/assets/finados/finados.js?v=20260918-navigation-progress-1"></script>
 </head>
 <body class="voceros-page voceros-legal-page">
