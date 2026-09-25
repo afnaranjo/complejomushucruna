@@ -1,7 +1,7 @@
 import { resolveRuntimeOrigins } from '../finados/runtime-origins.mjs';
 // The panel reuses the administrative client: same allowlist, same CSRF handling, one bundle less.
-import { createMediaAdminClient } from './admin-medios.js?v=20260924-admin-medios-22';
-import './sidebar.js?v=20260923-admin-sidebar-1';
+import { createMediaAdminClient } from './admin-medios.js?v=20260925-admin-medios-23';
+import './sidebar.js?v=20260925-admin-sidebar-2';
 import './campaign-banner.js?v=20260923-noticias-1';
 
 const LOCAL_API = 'http://127.0.0.1:4174/api';

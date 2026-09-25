@@ -1975,3 +1975,10 @@ Nota de relevo escrita a pedido de Alex para que otro agente (Codex) retome la s
 - QA: `npm run check` en verde (235 Node, suites PHP con `media_plan_test.php`, 10 integración; 217 archivos, 74 HTML, 2231 referencias). En navegador: cinco pestañas, traer medio desde el registro, plan calculado, autoguardado, PDF y PNG descargados sin errores, vista móvil.
 - Publicado con autorización de Alex («sube a produccion»): backend con verificación completa, respaldo y migración 030 aplicada; después frontend con respaldo y sin borrar archivos exclusivos.
 - Verificación: `/admin/medios/calendario/` 200 en ambos dominios, enlace dentro de Medios, cinco archivos con SHA-256 idéntico al build (incluido `vocero-portal.js` sin cambios), `health` 200 y `/api/media-plan` sin sesión 401 en ambas APIs. En la base real: migración registrada, tabla vacía, lectura correcta y una escritura de prueba del documento dentro de una transacción deshecha (0 filas al final). El calendario arranca con la estrategia sugerida y se guarda con el primer cambio del equipo.
+
+### 2026-09-25 — Medios como botón que despliega en el menú
+
+- Alex pidió que «Medios» en el menú lateral solo despliegue sus opciones y que la página de registros aparezca como «Seguimiento de medios».
+- `Medios` pasa de enlace a botón (`admin-nav-toggle`): cada clic abre o cierra el grupo y nunca navega. Dentro quedan `Seguimiento de medios` (`/admin/medios/`), `Eventos` y `Calendario de medios`. La descripción del grupo cambia a «Seguimiento, eventos y calendario». Sin JavaScript el grupo se ve desplegado y los enlaces funcionan.
+- Solo frontend: `sidebar.js` `20260925-admin-sidebar-2` y renovación de caché de todas las pantallas administrativas y de `admin.css` `20260925-20`. Sin cambios de backend ni datos.
+- QA: `npm run check` en verde (235 Node, PHP, 10 integración; 217 archivos) con pruebas del botón que abre y cierra sin navegar; revisión visual en el Panel (plegado) y en Seguimiento de medios (abierto).

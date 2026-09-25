@@ -267,7 +267,11 @@ test('admin orienta cada formulario desde una navegación lateral accesible', as
 
   // Eventos vive dentro de Medios: el enlace de la sección manda sobre su panel de opciones.
   const group = html.slice(html.indexOf('<div class="admin-nav-group"'), html.indexOf('</div>', html.indexOf('data-nav-children')) + 6);
-  assert.match(group, /href="\/admin\/medios\/" data-nav-parent aria-expanded="true" aria-controls="admin-nav-medios"/);
+  // Medios es un botón que despliega; «Seguimiento de medios» es la opción que lleva a /admin/medios/.
+  assert.match(group, /<button type="button" class="admin-nav-link admin-nav-toggle" data-nav-parent aria-expanded="true" aria-controls="admin-nav-medios">/);
+  assert.doesNotMatch(group.slice(0, group.indexOf('data-nav-children')), /href=/);
+  assert.match(group, /href="\/admin\/medios\/"><span class="admin-nav-marker" aria-hidden="true">›<\/span><span><strong>Seguimiento de medios<\/strong>/);
+  assert.ok(group.indexOf('Seguimiento de medios') < group.indexOf('href="/admin/medios/eventos/"'));
   assert.match(group, /<div class="admin-nav-children" id="admin-nav-medios" data-nav-children>/);
   assert.match(group, /href="\/admin\/medios\/eventos\/"/);
   assert.ok(!html.includes('href="/admin/medios/eventos/"', html.indexOf('data-nav-children') + group.length),
@@ -309,10 +313,12 @@ test('el submenú de Medios se pliega salvo en su propia sección', async () => 
   away.parent.handler({ preventDefault: () => { prevented = true; } });
   assert.equal(prevented, true);
   assert.equal(away.children.hidden, false);
-  // Ya abierto, el siguiente clic deja navegar.
+  // Medios es solo un botón: el siguiente clic tampoco navega, cierra el grupo.
   prevented = false;
   away.parent.handler({ preventDefault: () => { prevented = true; } });
-  assert.equal(prevented, false);
+  assert.equal(prevented, true);
+  assert.equal(away.children.hidden, true);
+  assert.equal(away.parent.getAttribute('aria-expanded'), 'false');
 
   // Dentro de Medios o de Eventos se ve desplegado desde el inicio.
   const inside = build(true);

@@ -11,7 +11,7 @@ const ADMIN_FORMS = Object.freeze([
   { route: '/admin/noticias/', label: 'Noticias', description: 'Tema central de la campaña', marker: 'N' },
   { route: '/admin/panel/', label: 'Panel', description: 'Resumen de todo', marker: 'P' },
   { route: '/admin/voceros/', label: 'Voceros', description: 'Registros y seguimiento', marker: 'V' },
-  { route: '/admin/medios/', label: 'Medios', description: 'Acreditación de medios', marker: 'M', children: [{ route: '/admin/medios/eventos/', label: 'Eventos', description: 'Cobertura por evento' }, { route: '/admin/medios/calendario/', label: 'Calendario de medios', description: 'Spots, pautas y reportes' }] },
+  { route: '/admin/medios/', label: 'Medios', description: 'Seguimiento, eventos y calendario', marker: 'M', children: [{ route: '/admin/medios/', label: 'Seguimiento de medios', description: 'Registros, estado y pauta' }, { route: '/admin/medios/eventos/', label: 'Eventos', description: 'Cobertura por evento' }, { route: '/admin/medios/calendario/', label: 'Calendario de medios', description: 'Spots, pautas y reportes' }] },
   { route: '/admin/emprendedores/', label: 'Emprendedores', description: 'De emprendedor a influencer', marker: 'E' },
   { route: '/admin/creadoras/', label: 'Creadoras', description: 'Contenido y calendario', marker: 'C' },
   { route: '/admin/mfs/', label: 'Mushuc Freestyle', description: 'Inscripciones y audiciones', marker: 'F' },
@@ -29,12 +29,14 @@ function adminSidebar(page) {
   const homeLink = home ? `<a class="admin-nav-link" href="${esc(home.route)}"${home.route === page.route ? ' aria-current="page"' : ''} data-nav-home><span class="admin-nav-marker" aria-hidden="true">${esc(home.marker)}</span><span><strong>${esc(home.label)}</strong><small>${esc(home.description)}</small></span></a>` : '';
   const links = ADMIN_FORMS.filter(item => item !== home).map((item) => {
     const current = item.route === page.route ? ' aria-current="page"' : '';
-    // A submenu (e.g. Medios → Eventos) stays inside its section and opens on the first click.
+    // A submenu (e.g. Medios → Seguimiento, Eventos y Calendario) opens and closes from its section button.
     const children = item.children ?? [];
     const panel = `admin-nav-${esc(item.route.replace(/\/+$/, '').split('/').pop())}`;
     const body = `<span class="admin-nav-marker" aria-hidden="true">${esc(item.marker)}</span><span><strong>${esc(item.label)}</strong><small>${esc(item.description)}</small></span>${children.length ? '<span class="admin-nav-chevron" aria-hidden="true">⌄</span>' : ''}`;
-    const link = `<a class="admin-nav-link" href="${esc(item.route)}"${current}${children.length ? ` data-nav-parent aria-expanded="true" aria-controls="${panel}"` : ''}>${body}</a>`;
-    if (!children.length) return link;
+    if (!children.length) return `<a class="admin-nav-link" href="${esc(item.route)}"${current}>${body}</a>`;
+    // Una sección con opciones es solo un botón: despliega o pliega sus opciones y no navega.
+    const inside = children.some(child => child.route === page.route);
+    const link = `<button type="button" class="admin-nav-link admin-nav-toggle" data-nav-parent aria-expanded="true" aria-controls="${panel}"${inside ? ' data-nav-current' : ''}>${body}</button>`;
     const options = children.map(child => `<a class="admin-nav-link admin-nav-link--child" href="${esc(child.route)}"${child.route === page.route ? ' aria-current="page"' : ''}><span class="admin-nav-marker" aria-hidden="true">›</span><span><strong>${esc(child.label)}</strong><small>${esc(child.description)}</small></span></a>`).join('');
     return `<div class="admin-nav-group" data-nav-group>${link}<div class="admin-nav-children" id="${panel}" data-nav-children>${options}</div></div>`;
   }).join('');
@@ -56,7 +58,7 @@ ${homeLink ? `<nav class="admin-sidebar__home" aria-label="Resumen general">${ho
 /** La banda del tema central: el mismo bloque arriba de cada panel. */
 const campaignBanner = '<section class="campaign-banner" data-campaign-banner hidden aria-label="Tema central de la campaña"></section>';
 
-function layout(page, content, script = '/assets/admin/admin.js?v=20260923-admin-sidebar-1') {
+function layout(page, content, script = '/assets/admin/admin.js?v=20260925-admin-sidebar-2') {
   const api = page.adminEnvironment === 'development' ? (page.adminApiBase ?? LOCAL_API_BASE) : PRIMARY_API_BASE;
   const connectSources = apiBasesForCsp(api);
   return `<!doctype html>
@@ -70,7 +72,7 @@ function layout(page, content, script = '/assets/admin/admin.js?v=20260923-admin
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' blob:; font-src 'self'; connect-src ${connectSources}; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="admin-api-base" content="${api}">
 <link rel="icon" href="/assets/finados/favicon-finados.png">
-<link rel="stylesheet" href="/assets/admin/admin.css?v=20260925-19">
+<link rel="stylesheet" href="/assets/admin/admin.css?v=20260925-20">
 <script type="module" src="${script}"></script>
 </head><body class="admin-page">
 <a class="skip-link" href="#contenido">Ir al contenido</a>
@@ -165,8 +167,8 @@ ${select('province', 'Provincia', ecuadorProvinces)}</div>
 </dialog>${mediaRecordDialog()}</main></div>`, ADMIN_MEDIOS_SCRIPT);
 }
 
-const ADMIN_CREADORAS_SCRIPT = '/assets/admin/admin-creadoras.js?v=20260924-creadoras-9';
-const ADMIN_MEDIOS_SCRIPT = '/assets/admin/admin-medios.js?v=20260924-admin-medios-22';
+const ADMIN_CREADORAS_SCRIPT = '/assets/admin/admin-creadoras.js?v=20260925-creadoras-10';
+const ADMIN_MEDIOS_SCRIPT = '/assets/admin/admin-medios.js?v=20260925-admin-medios-23';
 const RADIO_GENRE_OPTIONS = ['Noticias e información', 'Musical variada', 'Popular y tropical', 'Folclórica y andina', 'Juvenil y pop', 'Romántica', 'Religiosa', 'Deportiva', 'Comunitaria', 'Otro'];
 const PROVINCE_OPTIONS = ['Azuay', 'Bolívar', 'Cañar', 'Carchi', 'Chimborazo', 'Cotopaxi', 'El Oro', 'Esmeraldas', 'Galápagos', 'Guayas', 'Imbabura', 'Loja', 'Los Ríos', 'Manabí', 'Morona Santiago', 'Napo', 'Orellana', 'Pastaza', 'Pichincha', 'Santa Elena', 'Santo Domingo de los Tsáchilas', 'Sucumbíos', 'Tungurahua', 'Zamora Chinchipe'];
 
@@ -194,7 +196,7 @@ function mediaRecordDialog() {
 </div><button class="button-primary" type="submit">Guardar medio</button></fieldset></form></dialog>`;
 }
 
-export const ADMIN_MEDIOS_CALENDARIO_SCRIPT = '/assets/admin/admin-medios-calendario.js?v=20260925-medios-calendario-1';
+export const ADMIN_MEDIOS_CALENDARIO_SCRIPT = '/assets/admin/admin-medios-calendario.js?v=20260925-medios-calendario-2';
 const planTabs = [['spots', '1. Spots promocionales'], ['calendario', '2. Calendario semanal'], ['medios', '3. Medios de comunicación'], ['plan', '4. Plan de medios'], ['reportes', '5. Reportes']];
 const planField = (label, control, wide = 1) => `<label class="mc-field mc-field--${wide}">${label}${control}</label>`;
 
@@ -306,7 +308,7 @@ ${select('main_network', 'Red principal', ['TikTok', 'Instagram', 'Facebook'])}<
 <form data-status-form><fieldset disabled><label>Estado del registro<select name="status" required>${options(EMPRENDEDOR_STATUSES)}</select></label><button class="button-primary" type="submit">Guardar estado</button></fieldset></form>
 <section class="admin-progress" aria-labelledby="admin-progress-title"><div class="admin-progress-heading"><div><h3 id="admin-progress-title">Progreso del emprendedor</h3><p>Registra los seguidores validados, el nivel, el semáforo y las views validadas de cada video. Las fechas se configuran una sola vez en la sección global.</p></div><span data-admin-progress-summary>Sin actualizar</span></div><form data-progress-form><fieldset disabled><div class="admin-progress-grid"><label>Seguidores validados<input type="number" name="followers_count" min="0" max="1000000000" step="1" required></label><label>Nivel<select name="level" required>${EMPRENDEDOR_LEVELS.map((label, index) => `<option value="${index}">${index} · ${esc(label)}</option>`).join('')}</select></label><label>Semáforo<select name="traffic_light" required><option value="red">Rojo · En preparación</option><option value="yellow">Amarillo · En avance</option><option value="green">Verde · Listo</option></select></label></div><div class="admin-videos" data-admin-videos></div><button class="button-primary" type="submit">Guardar progreso</button></fieldset></form><p class="feedback" data-progress-feedback role="status" aria-live="polite"></p></section>
 <section class="notes-section"><h3>Notas internas</h3><ol data-notes></ol><form data-note-form><fieldset disabled><label>Añadir nota<textarea name="body" rows="3" maxlength="2000" required></textarea></label><button class="button-primary" type="submit">Guardar nota</button></fieldset></form></section>
-</dialog></main></div>`, '/assets/admin/admin-emprendedores.js?v=20260923-admin-sidebar-1');
+</dialog></main></div>`, '/assets/admin/admin-emprendedores.js?v=20260925-admin-sidebar-2');
 }
 
 export function renderAdminNoticiasPage(page) {
@@ -351,7 +353,7 @@ export function renderAdminNoticiasPage(page) {
 <div class="record-form__actions"><button type="submit" value="cancel" class="button-quiet">Cancelar</button><button type="submit" value="save" class="button-primary">Publicar</button></div>
 </form>
 </dialog>
-</main></div>`, '/assets/admin/admin-noticias.js?v=20260923-noticias-1');
+</main></div>`, '/assets/admin/admin-noticias.js?v=20260925-noticias-2');
 }
 
 export function renderAdminCreadorasPage(page) {
@@ -489,12 +491,12 @@ ${panelFold('medios', 'Medios', 'Toca un número para ver la lista.', `<div data
 <section class="admin-panel-subsection" aria-labelledby="panel-eventos-title"><div class="records-heading"><div><h3 id="panel-eventos-title">Medios por evento</h3><p>Abre un evento para ver su cobertura.</p></div></div><div data-panel-events></div></section>`)}
 ${panelFold('creadoras', 'Creadoras de contenido', 'Horas que vinieron, lo que grabaron y sus videos. Toca a una creadora para ver su historial.', '<div data-panel-creadoras></div>')}
 ${panelFold('voceros', 'Voceros', 'Toca un número para ver la lista.', '<div data-panel-voceros></div>')}
-</main></div>`, '/assets/admin/panel.js?v=20260924-admin-panel-6');
+</main></div>`, '/assets/admin/panel.js?v=20260925-admin-panel-7');
 }
 
 // Mushuc Freestyle: los estados viven aquí para que el HTML no dependa del módulo del navegador.
 const MFS_STATUS_OPTIONS = Object.freeze(['Nuevo', 'En revisión', 'Aprobado', 'Rechazado', 'Seleccionado']);
-export const ADMIN_MFS_SCRIPT = '/assets/admin/admin-mfs.js?v=20260924-admin-mfs-2';
+export const ADMIN_MFS_SCRIPT = '/assets/admin/admin-mfs.js?v=20260925-admin-mfs-3';
 
 export function renderAdminMfsPage(page) {
   return layout(page, `<div class="admin-shell">${adminSidebar(page)}<main id="contenido" class="admin-workspace" data-admin-mfs>${campaignBanner}

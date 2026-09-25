@@ -108,7 +108,9 @@ test('el build publica la landing, el portal, la validación, los cinco document
   const voceros = await readFile(join(output, 'admin/voceros/index.html'), 'utf8');
   for (const html of [admin, voceros]) {
     const order = [...html.matchAll(/class="admin-nav-link" href="([^"]+)"/g)].map(match => match[1]);
-    assert.deepEqual(order, ['/admin/panel/', '/admin/noticias/', '/admin/voceros/', '/admin/medios/', '/admin/emprendedores/', '/admin/creadoras/', '/admin/mfs/']);
+    // Medios es un botón que despliega: su seguimiento vive dentro del grupo, no en el primer nivel.
+    assert.deepEqual(order, ['/admin/panel/', '/admin/noticias/', '/admin/voceros/', '/admin/emprendedores/', '/admin/creadoras/', '/admin/mfs/']);
+    assert.match(html, /class="admin-nav-link admin-nav-link--child" href="\/admin\/medios\/"[^>]*><span class="admin-nav-marker" aria-hidden="true">›<\/span><span><strong>Seguimiento de medios<\/strong>/);
   }
   assert.match(voceros, /name="kit_status"/, 'el panel de Voceros conserva su kit');
 });

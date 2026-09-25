@@ -1,8 +1,8 @@
-// Los grupos del menú administrativo (hoy Medios → Eventos) llegan desplegados en el HTML para que
-// funcionen sin JavaScript. Aquí se pliegan salvo el grupo de la página actual: el primer clic en la
-// sección abre sus opciones y el siguiente ya navega a la sección.
+// Los grupos del menú administrativo (hoy Medios → Seguimiento, Eventos y Calendario) llegan
+// desplegados en el HTML para que funcionen sin JavaScript. Aquí se pliegan salvo el grupo de la
+// página actual. La sección es solo un botón: cada clic abre o cierra sus opciones y nunca navega.
 
-/** Un grupo está abierto cuando la página actual es la sección o una de sus opciones. */
+/** Un grupo está abierto cuando la página actual es una de sus opciones. */
 export function groupIsCurrent(group) {
   return Boolean(group?.querySelector?.('[aria-current="page"]'));
 }
@@ -21,11 +21,10 @@ export function initializeAdminSidebar(root = typeof document === 'undefined' ? 
     if (!parent || !children) continue;
     apply(parent, children, groupIsCurrent(group));
     parent.addEventListener('click', event => {
-      // Ya desplegado: el enlace hace lo suyo y lleva a la sección.
-      if (parent.getAttribute('aria-expanded') === 'true') return;
       event.preventDefault();
-      apply(parent, children, true);
-      children.querySelector('a')?.focus();
+      const open = parent.getAttribute('aria-expanded') !== 'true';
+      apply(parent, children, open);
+      if (open) children.querySelector('a')?.focus();
     });
   }
 }
