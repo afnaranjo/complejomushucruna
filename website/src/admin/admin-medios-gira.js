@@ -37,7 +37,7 @@ export function filterMedia(media, search) {
 
 /** El cuerpo que se envía al guardar una cita desde el formulario. */
 export function visitPayload({ media, people, day, start, end, kind, status, place, note }) {
-  if (!media) throw new Error('Elige el medio de Seguimiento.');
+  if (!media) throw new Error('Escribe el medio y elígelo de la lista.');
   if (!people?.length) throw new Error('Elige al menos una persona.');
   if (!/^\d{4}-\d{2}-\d{2}$/.test(day ?? '')) throw new Error('Elige el día.');
   const from = minutesFromTime(start); const to = minutesFromTime(end);
@@ -294,25 +294,65 @@ export async function initializeMediaTour() {
   const visitTitleText = visitDialog.querySelector('[data-visit-title]');
   const visitFeedback = visitDialog.querySelector('[data-visit-feedback]');
   const mediaSearch = visitDialog.querySelector('[data-media-search]');
-  const mediaSelect = visitDialog.querySelector('[data-media-select]');
+  const mediaOptions = visitDialog.querySelector('[data-media-options]');
+  const mediaChosen = visitDialog.querySelector('[data-media-chosen]');
   const peopleBox = visitDialog.querySelector('[data-visit-people]');
   const removeVisit = visitDialog.querySelector('[data-visit-remove]');
   const duration = visitDialog.querySelector('[data-visit-duration]');
   let editing = null;
+  let chosenMedia = null; let matches = []; let active = -1;
 
-  function fillMedia(selected = '') {
-    const options = filterMedia(state.media, mediaSearch.value);
-    const chosen = state.media.find(item => item.public_id === selected);
-    const shown = chosen && !options.includes(chosen) ? [chosen, ...options] : options;
-    mediaSelect.replaceChildren(node('option', shown.length ? '— Elige el medio —' : 'Ningún medio coincide con la búsqueda'));
-    mediaSelect.firstChild.value = '';
-    for (const item of shown) {
-      const option = node('option', [item.name, item.city, item.frequency].filter(Boolean).join(' · '));
-      option.value = item.public_id; option.selected = item.public_id === selected;
-      mediaSelect.append(option);
-    }
+  /* Un solo campo: se escribe el medio y se elige de la lista de Seguimiento que aparece debajo. */
+  const mediaLabel = item => [item.name, item.city, item.frequency].filter(Boolean).join(' · ');
+  function paintChosen() {
+    mediaChosen.textContent = chosenMedia ? `✓ ${mediaLabel(chosenMedia)}` : 'Todavía no eliges el medio.';
+    mediaChosen.dataset.chosen = String(Boolean(chosenMedia));
   }
-  mediaSearch.addEventListener('input', () => fillMedia(mediaSelect.value));
+  function closeOptions() { mediaOptions.hidden = true; mediaSearch.setAttribute('aria-expanded', 'false'); mediaSearch.removeAttribute('aria-activedescendant'); active = -1; }
+  function choose(item) {
+    chosenMedia = item; mediaSearch.value = item.name; paintChosen(); closeOptions();
+    say(visitFeedback, '');
+  }
+  function showOptions() {
+    matches = filterMedia(state.media, mediaSearch.value).slice(0, 8);
+    mediaOptions.replaceChildren();
+    if (!matches.length) {
+      mediaOptions.append(node('li', state.media.length ? 'Ningún medio de Seguimiento coincide. Revisa el nombre o créalo primero en Seguimiento de medios.' : 'Todavía no hay medios en Seguimiento de medios.', 'tour-media__empty'));
+    }
+    matches.forEach((item, index) => {
+      const option = node('li', undefined, 'tour-media__option');
+      option.id = `tour-media-option-${index}`; option.setAttribute('role', 'option');
+      option.setAttribute('aria-selected', String(index === active));
+      option.append(node('strong', item.name), node('small', [item.city, item.frequency].filter(Boolean).join(' · ')));
+      // mousedown para que el campo no pierda el foco antes de elegir.
+      option.addEventListener('mousedown', event => { event.preventDefault(); choose(item); });
+      mediaOptions.append(option);
+    });
+    mediaOptions.hidden = false; mediaSearch.setAttribute('aria-expanded', 'true');
+    if (active >= 0) mediaSearch.setAttribute('aria-activedescendant', `tour-media-option-${active}`); else mediaSearch.removeAttribute('aria-activedescendant');
+  }
+  mediaSearch.addEventListener('input', () => {
+    // Si cambia lo escrito, hay que volver a elegir de la lista.
+    if (chosenMedia && mediaSearch.value !== chosenMedia.name) { chosenMedia = null; paintChosen(); }
+    active = -1; showOptions();
+  });
+  mediaSearch.addEventListener('focus', showOptions);
+  mediaSearch.addEventListener('blur', () => setTimeout(closeOptions, 120));
+  mediaSearch.addEventListener('keydown', event => {
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault();
+      if (mediaOptions.hidden) showOptions();
+      if (!matches.length) return;
+      active = event.key === 'ArrowDown' ? (active + 1) % matches.length : (active <= 0 ? matches.length - 1 : active - 1);
+      showOptions();
+    } else if (event.key === 'Enter' && !mediaOptions.hidden) {
+      event.preventDefault();
+      const item = matches[active >= 0 ? active : 0];
+      if (item) choose(item);
+    } else if (event.key === 'Escape' && !mediaOptions.hidden) {
+      event.preventDefault(); event.stopPropagation(); closeOptions();
+    }
+  });
 
   function fillPeople(selected = []) {
     peopleBox.replaceChildren();
@@ -336,8 +376,8 @@ export async function initializeMediaTour() {
     editing = visit;
     visitTitleText.textContent = visit ? 'Editar cita' : 'Agendar cita';
     say(visitFeedback, '');
-    mediaSearch.value = '';
-    fillMedia(visit?.media?.public_id ?? '');
+    chosenMedia = visit ? (state.media.find(item => item.public_id === visit.media?.public_id) ?? visit.media) : null;
+    mediaSearch.value = chosenMedia?.name ?? ''; paintChosen(); closeOptions();
     fillPeople(visit ? visit.people.map(person => person.public_id) : people);
     visitForm.elements.day.value = visit ? visit.starts_at.slice(0, 10) : day;
     visitForm.elements.start.value = visit ? visit.starts_at.slice(11, 16) : start;
@@ -357,7 +397,7 @@ export async function initializeMediaTour() {
     let body;
     try {
       body = visitPayload({
-        media: mediaSelect.value, people: [...peopleBox.querySelectorAll('input:checked')].map(input => input.value),
+        media: chosenMedia?.public_id ?? '', people: [...peopleBox.querySelectorAll('input:checked')].map(input => input.value),
         day: visitForm.elements.day.value, start: visitForm.elements.start.value, end: visitForm.elements.end.value,
         kind: visitForm.elements.kind.value, status: visitForm.elements.status.value, place: visitForm.elements.place.value, note: visitForm.elements.note.value,
       });

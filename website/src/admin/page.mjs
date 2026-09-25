@@ -74,7 +74,7 @@ function layout(page, content, script = '/assets/admin/admin.js?v=20260925-perf-
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' blob:; media-src blob:; font-src 'self'; connect-src ${connectSources}; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="admin-api-base" content="${api}">
 <link rel="icon" href="/assets/finados/favicon-finados.png">
-<link rel="stylesheet" href="/assets/admin/admin.css?v=20260925-26">
+<link rel="stylesheet" href="/assets/admin/admin.css?v=20260925-27">
 <script type="module" src="${script}"></script>
 </head><body class="admin-page">
 <a class="skip-link" href="#contenido">Ir al contenido</a>
@@ -238,7 +238,7 @@ ${planField('Nota / intención', '<textarea name="note" maxlength="500" rows="3"
 </main></div>`, ADMIN_MEDIOS_CALENDARIO_SCRIPT);
 }
 
-export const ADMIN_MEDIOS_GIRA_SCRIPT = '/assets/admin/admin-medios-gira.js?v=20260925-medios-gira-1';
+export const ADMIN_MEDIOS_GIRA_SCRIPT = '/assets/admin/admin-medios-gira.js?v=20260925-medios-gira-2';
 const TOUR_KINDS = Object.freeze({ entrevista: 'Entrevista', en_vivo: 'En vivo', grabacion: 'Grabación', visita: 'Visita', rueda: 'Rueda de prensa', otro: 'Otro' });
 const TOUR_STATUSES = Object.freeze({ programada: 'Programada', confirmada: 'Confirmada', realizada: 'Realizada', no_se_dio: 'No se dio' });
 const pairs = map => Object.entries(map).map(([value, label]) => `<option value="${esc(value)}">${esc(label)}</option>`).join('');
@@ -278,10 +278,12 @@ export function renderAdminMediosGiraPage(page) {
 </div>
 <dialog class="record-dialog" data-visit-dialog aria-label="Cita en un medio">
 <form method="dialog" class="record-form">
-<div class="records-heading"><div><h2 data-visit-title>Agendar cita</h2><p>Elige el medio de Seguimiento y a quién se le asigna. Una persona no puede tener dos citas a la misma hora.</p></div></div>
+<div class="records-heading"><div><h2 data-visit-title>Agendar cita</h2><p>Escribe el medio y elígelo de la lista (son los medios de Seguimiento). Luego marca quién va. Una persona no puede tener dos citas a la misma hora.</p></div></div>
 <div class="record-grid">
-<label class="record-grid__wide">Buscar medio<input type="search" data-media-search maxlength="80" placeholder="Nombre del medio o ciudad" autocomplete="off"></label>
-<label class="record-grid__wide">Medio de Seguimiento<select name="media" required data-media-select></select></label>
+<div class="record-grid__wide tour-media"><label for="tour-media-input">Medio</label>
+<div class="tour-media__field"><input id="tour-media-input" type="text" data-media-search maxlength="80" placeholder="Escribe el nombre del medio, la ciudad o la frecuencia" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="tour-media-options">
+<ul id="tour-media-options" class="tour-media__options" role="listbox" aria-label="Medios de Seguimiento que coinciden" data-media-options hidden></ul></div>
+<p class="tour-media__chosen" data-media-chosen>Todavía no eliges el medio.</p></div>
 <fieldset class="record-grid__wide shift-people"><legend>Quién va</legend><div class="shift-people__list" data-visit-people></div></fieldset>
 <label>Día<input name="day" type="date" required></label>
 <label>Tipo<select name="kind">${pairs(TOUR_KINDS)}</select></label>

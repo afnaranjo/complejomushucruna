@@ -16,8 +16,12 @@ test('Gira de medios: página propia dentro de Medios con el mismo calendario de
   const html = await readFile(join(output, 'admin/medios/gira/index.html'), 'utf8');
   assert.match(html, /data-admin-medios-gira/);
   assert.match(html, /<h1>Gira de medios<\/h1>/);
-  for (const marker of ['data-person-list', 'data-calendar-grid', 'data-calendar-month', 'data-visit-dialog', 'data-person-dialog', 'data-media-select', 'data-media-search', 'data-visit-people', 'data-view="day"', 'data-view="week"', 'data-view="month"']) assert.ok(html.includes(marker), marker);
+  for (const marker of ['data-person-list', 'data-calendar-grid', 'data-calendar-month', 'data-visit-dialog', 'data-person-dialog', 'data-media-search', 'data-visit-people', 'data-view="day"', 'data-view="week"', 'data-view="month"']) assert.ok(html.includes(marker), marker);
   assert.doesNotMatch(html, /\sstyle="/);
+  // Un solo campo para el medio, con la lista de Seguimiento debajo (no un buscador y un selector aparte).
+  assert.match(html, /<input id="tour-media-input"[^>]*role="combobox"/);
+  assert.match(html, /data-media-options/);
+  assert.doesNotMatch(html, /data-media-select|Buscar medio/);
   // En el menú: dentro de Medios, después del Calendario de medios, y es la página actual.
   const group = html.slice(html.indexOf('<div class="admin-nav-group"'), html.indexOf('</div></div>', html.indexOf('data-nav-children')));
   assert.ok(group.indexOf('/admin/medios/calendario/') < group.indexOf('/admin/medios/gira/'));
@@ -42,7 +46,7 @@ test('Gira de medios: caja de la cita, búsqueda de medios y datos que se envía
   assert.equal(filterMedia(media, '  ').length, 2);
   const base = { media: 'a'.repeat(32), people: ['b'.repeat(32)], day: '2026-10-28', start: '09:00', end: '10:00', kind: 'entrevista', status: 'programada', place: ' Cabina ', note: '' };
   assert.deepEqual(visitPayload(base), { media: 'a'.repeat(32), people: ['b'.repeat(32)], starts_at: '2026-10-28 09:00', ends_at: '2026-10-28 10:00', kind: 'entrevista', status: 'programada', place: 'Cabina', note: '' });
-  assert.throws(() => visitPayload({ ...base, media: '' }), /Elige el medio/);
+  assert.throws(() => visitPayload({ ...base, media: '' }), /elígelo de la lista/);
   assert.throws(() => visitPayload({ ...base, people: [] }), /al menos una persona/);
   assert.throws(() => visitPayload({ ...base, end: '08:00' }), /posterior/);
   assert.throws(() => visitPayload({ ...base, end: '09:10' }), /15 minutos/);

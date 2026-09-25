@@ -677,3 +677,17 @@ tr[data-origin="cuenta"] > td { background: rgba(0, 210, 214, .05); }
 @media (max-width: 900px) { [data-admin-medios-gira] .calendar-canvas { height: 60rem; } }
 /* Casilla y nombre en la misma línea, aunque el formulario ponga cada etiqueta en bloque. */
 .record-dialog .record-grid .shift-person { display: inline-flex; align-items: center; gap: .35rem; font-weight: 500; }
+
+/* Gira: un solo campo para el medio; las coincidencias de Seguimiento aparecen debajo. */
+.tour-media { display: grid; gap: .25rem; }
+.tour-media__field { position: relative; }
+.tour-media > label { font-size: .8rem; font-weight: 600; }
+.tour-media input { margin-top: 0; }
+.tour-media__options { position: absolute; z-index: 5; top: calc(100% + .25rem); left: 0; right: 0; max-height: 18rem; overflow: auto; margin: 0; padding: .3rem; list-style: none; border: 1px solid #c3b6c7; border-radius: .6rem; background: #fff; box-shadow: 0 14px 34px rgba(36, 17, 70, .18); }
+.tour-media__option { display: grid; gap: .1rem; padding: .55rem .7rem; border-radius: .45rem; cursor: pointer; }
+.tour-media__option strong { font-size: .88rem; }
+.tour-media__option small { color: #665771; font-size: .74rem; }
+.tour-media__option:hover, .tour-media__option[aria-selected="true"] { background: #f6eff8; box-shadow: inset 3px 0 0 #94165e; }
+.tour-media__empty { padding: .6rem .7rem; color: #665771; font-size: .8rem; }
+.tour-media__chosen { margin: 0; color: #665771; font-size: .8rem; }
+.tour-media__chosen[data-chosen="true"] { color: #1c6854; font-weight: 700; }
