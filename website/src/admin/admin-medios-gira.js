@@ -5,7 +5,7 @@ import { createMediaAdminClient } from './admin-medios.js?v=20260925-admin-medio
 import {
   creadoraColor, dateFromKey, dayKey, dayLabel, defaultShift, durationLabel, hourRows, layoutDay, minutesFromOffset, minutesFromTime,
   minutesOf, monthStart, movedShift, rangeLabel, resizedShift, shiftGeometry, shiftLabel, shiftView, viewRange,
-} from './admin-creadoras.js?v=20260925-creadoras-11';
+} from './admin-creadoras.js?v=20260926-creadoras-12';
 
 const LOCAL_API = 'http://127.0.0.1:4174/api';
 const DAY_NAMES = ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo'];

@@ -436,9 +436,11 @@ final class CreadoraRepository
         $count = $this->pdo->prepare('SELECT COUNT(*) FROM creadora_shift_content WHERE shift_id = ?');
         $count->execute([$shift['id']]);
         if ((int) $count->fetchColumn() >= self::MAX_CONTENT) throw new InvalidArgumentException('Este turno ya tiene demasiado contenido registrado.');
+        // Si salió de un guion del cuaderno, queda ligado a él; sin guion, es contenido creado nuevo.
+        $scriptId = $this->contentScriptId($input['script'] ?? '', (int) $shift['id']);
         $publicId = bin2hex(random_bytes(16));
-        $this->pdo->prepare('INSERT INTO creadora_shift_content (public_id, shift_id, creadora_id, kind, title, url, note, created_by_admin_id, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)')
-            ->execute([$publicId, $shift['id'], $creadora['id'], $kind, $title, $url, $this->text($input['note'] ?? '', 400), $adminId, gmdate('Y-m-d H:i:s')]);
+        $this->pdo->prepare('INSERT INTO creadora_shift_content (public_id, shift_id, creadora_id, kind, title, url, note, script_id, created_by_admin_id, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
+            ->execute([$publicId, $shift['id'], $creadora['id'], $kind, $title, $url, $this->text($input['note'] ?? '', 400), $scriptId, $adminId, gmdate('Y-m-d H:i:s')]);
         $this->log('content', $shift, $creadora, $actorName, ['detail' => self::CONTENT_KINDS[$kind] . ': ' . $title]);
         $this->audit->log('creadora.content_added', $adminId, 'creadora_shift', $shift['public_id'], [], $ip);
         return $this->shiftByPublicId($shiftPublicId);
@@ -501,6 +503,8 @@ final class CreadoraRepository
     {
         $shift = $this->shiftRow($shiftPublicId);
         $current = $this->scriptRow($scriptPublicId, (int) $shift['id']);
+        // El video que salió de este guion se conserva: solo pierde el enlace al guion.
+        $this->pdo->prepare('UPDATE creadora_shift_content SET script_id = NULL WHERE script_id = ?')->execute([$current['id']]);
         $this->pdo->prepare('DELETE FROM creadora_shift_script WHERE id = ?')->execute([$current['id']]);
         $owner = $this->scriptOwner($shift, $current['creadora_id'] === null ? null : (int) $current['creadora_id']);
         $this->log('edited', $shift, $owner, $actorName, ['detail' => 'Quitó el guion: ' . $current['title']]);
@@ -566,8 +570,8 @@ final class CreadoraRepository
 
     private function contentFor(int $shiftId): array
     {
-        $statement = $this->pdo->prepare('SELECT k.public_id, k.kind, k.title, k.url, k.note, k.created_at, c.public_id AS creadora, c.full_name AS creadora_name'
-            . ' FROM creadora_shift_content k LEFT JOIN creadoras c ON c.id = k.creadora_id WHERE k.shift_id = ? ORDER BY k.created_at, k.id');
+        $statement = $this->pdo->prepare('SELECT k.public_id, k.kind, k.title, k.url, k.note, k.created_at, k.edited_at, c.public_id AS creadora, c.full_name AS creadora_name, g.public_id AS script, g.title AS script_title'
+            . ' FROM creadora_shift_content k LEFT JOIN creadoras c ON c.id = k.creadora_id LEFT JOIN creadora_shift_script g ON g.id = k.script_id WHERE k.shift_id = ? ORDER BY k.created_at, k.id');
         $statement->execute([$shiftId]);
         return array_map(static fn (array $row): array => [
             'public_id' => $row['public_id'],
@@ -579,7 +583,147 @@ final class CreadoraRepository
             'creadora' => $row['creadora'] ?? '',
             'creadora_name' => $row['creadora_name'] ?? '',
             'created_at' => $row['created_at'],
+            'script' => $row['script'] ?? '',
+            'script_title' => $row['script_title'] ?? '',
+            'edited' => $row['edited_at'] !== null,
         ], $statement->fetchAll(PDO::FETCH_ASSOC));
+    }
+
+    /** El guion al que se liga un contenido: debe ser del mismo turno. Vacío = creado nuevo, sin guion. */
+    private function contentScriptId(mixed $publicId, int $shiftId): ?int
+    {
+        $wanted = is_string($publicId) ? trim($publicId) : '';
+        if ($wanted === '') return null;
+        return (int) $this->scriptRow($wanted, $shiftId)['id'];
+    }
+
+    // --- Edición -----------------------------------------------------------------------------
+
+    /**
+     * Lo que le toca al editor: cada contenido registrado en un turno (con su guion, si salió de
+     * uno) y cada guion marcado como grabado que todavía no tiene un contenido ligado. Así ningún
+     * video grabado se queda fuera, tenga o no enlace. Los turnos quitados no cuentan.
+     */
+    public function editingQueue(): array
+    {
+        $content = $this->pdo->query('SELECT k.public_id, k.shift_id, k.kind, k.title, k.url, k.note, k.created_at, k.edited_at, k.edited_by, k.edited_url, k.edit_note,'
+            . ' s.public_id AS shift, s.starts_at, s.ends_at, s.place, c.public_id AS creadora, c.full_name AS creadora_name,'
+            . ' g.public_id AS script, g.title AS script_title, g.body AS script_body, g.reference_url AS script_reference'
+            . ' FROM creadora_shift_content k JOIN creadora_shifts s ON s.id = k.shift_id LEFT JOIN creadoras c ON c.id = k.creadora_id'
+            . ' LEFT JOIN creadora_shift_script g ON g.id = k.script_id WHERE s.canceled_at IS NULL ORDER BY s.starts_at DESC, k.id DESC')->fetchAll(PDO::FETCH_ASSOC);
+        $scripts = $this->pdo->query('SELECT g.public_id, g.shift_id, g.title, g.body, g.reference_url, g.recorded_at, g.edited_at, g.edited_by, g.edited_url, g.edit_note,'
+            . ' s.public_id AS shift, s.starts_at, s.ends_at, s.place, c.public_id AS creadora, c.full_name AS creadora_name'
+            . ' FROM creadora_shift_script g JOIN creadora_shifts s ON s.id = g.shift_id LEFT JOIN creadoras c ON c.id = g.creadora_id'
+            . ' WHERE s.canceled_at IS NULL AND g.recorded_at IS NOT NULL AND NOT EXISTS (SELECT 1 FROM creadora_shift_content k WHERE k.script_id = g.id)'
+            . ' ORDER BY s.starts_at DESC, g.id DESC')->fetchAll(PDO::FETCH_ASSOC);
+        $shiftIds = array_values(array_unique(array_merge(array_map('intval', array_column($content, 'shift_id')), array_map('intval', array_column($scripts, 'shift_id')))));
+        $members = $this->membersFor($shiftIds);
+        $options = $this->scriptOptionsFor($shiftIds);
+        $teamName = static fn (int $shiftId): string => implode(', ', array_column($members[$shiftId] ?? [], 'full_name'));
+        $shared = static fn (array $row): array => [
+            'shift' => $row['shift'],
+            'starts_at' => $row['starts_at'],
+            'ends_at' => $row['ends_at'],
+            'place' => $row['place'],
+            'edited' => $row['edited_at'] !== null,
+            'edited_at' => $row['edited_at'],
+            'edited_by' => $row['edited_by'] ?? '',
+            'edited_url' => $row['edited_url'] ?? '',
+            'edit_note' => $row['edit_note'] ?? '',
+        ];
+        $items = [];
+        foreach ($content as $row) {
+            $items[] = ['type' => 'content', 'public_id' => $row['public_id'], 'kind' => $row['kind'], 'kind_label' => self::CONTENT_KINDS[$row['kind']] ?? $row['kind'],
+                'title' => $row['title'], 'url' => $row['url'], 'note' => $row['note'], 'created_at' => $row['created_at'],
+                'creadora' => $row['creadora'] ?? '', 'creadora_name' => $row['creadora_name'] ?? $teamName((int) $row['shift_id']),
+                'has_script' => $row['script'] !== null,
+                'script' => $row['script'] === null ? null : ['public_id' => $row['script'], 'title' => $row['script_title'], 'body' => $row['script_body'], 'reference_url' => $row['script_reference']],
+                'script_options' => $options[(int) $row['shift_id']] ?? [],
+            ] + $shared($row);
+        }
+        foreach ($scripts as $row) {
+            $items[] = ['type' => 'script', 'public_id' => $row['public_id'], 'kind' => 'video', 'kind_label' => 'Guion grabado',
+                'title' => $row['title'], 'url' => '', 'note' => '', 'created_at' => $row['recorded_at'],
+                'creadora' => $row['creadora'] ?? '', 'creadora_name' => $row['creadora_name'] ?? ('Para todas: ' . $teamName((int) $row['shift_id'])),
+                'has_script' => true,
+                'script' => ['public_id' => $row['public_id'], 'title' => $row['title'], 'body' => $row['body'], 'reference_url' => $row['reference_url']],
+                'script_options' => [],
+            ] + $shared($row);
+        }
+        usort($items, static fn (array $a, array $b): int => [$b['starts_at'], $b['created_at']] <=> [$a['starts_at'], $a['created_at']]);
+        $done = count(array_filter($items, static fn (array $item): bool => $item['edited']));
+        $withScript = count(array_filter($items, static fn (array $item): bool => $item['has_script']));
+        return [
+            'items' => $items,
+            'totals' => ['total' => count($items), 'pending' => count($items) - $done, 'edited' => $done, 'with_script' => $withScript, 'new' => count($items) - $withScript],
+            'creadoras' => array_map(static fn (array $row): array => ['public_id' => $row['public_id'], 'full_name' => $row['full_name']], $this->list()['items']),
+            'content_kinds' => self::CONTENT_KINDS,
+        ];
+    }
+
+    /**
+     * El editor marca un video como editado (o lo devuelve a pendiente), deja el enlace del video
+     * editado y una nota. En un contenido también puede corregir de qué guion salió.
+     */
+    public function updateEditing(string $type, string $publicId, array $input, ?int $adminId, string $actorName, mixed $ip): array
+    {
+        if (!in_array($type, ['contenido', 'guion'], true) || !preg_match('~^[a-f0-9]{32}$~D', $publicId)) throw new InvalidArgumentException('Video no encontrado.');
+        $table = $type === 'contenido' ? 'creadora_shift_content' : 'creadora_shift_script';
+        $statement = $this->pdo->prepare("SELECT * FROM $table WHERE public_id = ?");
+        $statement->execute([$publicId]);
+        $row = $statement->fetch(PDO::FETCH_ASSOC);
+        if ($row === false) throw new InvalidArgumentException('Video no encontrado.');
+        $shift = $this->rowShift((int) $row['shift_id']);
+        $owner = $row['creadora_id'] === null ? $this->shiftGroup($shift) : $this->rowById((int) $row['creadora_id']);
+        $editedAt = $row['edited_at'];
+        $editedBy = $row['edited_by'];
+        if (array_key_exists('edited', $input)) {
+            $edited = $this->flag($input['edited']);
+            if ($edited && $editedAt === null) {
+                $editedAt = gmdate('Y-m-d H:i:s');
+                $editedBy = $this->text($actorName, 120) ?: 'coordinación';
+                $this->log('edited', $shift, $owner, $actorName, ['detail' => 'Marcó como editado: ' . $row['title']]);
+            } elseif (!$edited && $editedAt !== null) {
+                $editedAt = null;
+                $editedBy = null;
+                $this->log('edited', $shift, $owner, $actorName, ['detail' => 'Devolvió a pendiente de edición: ' . $row['title']]);
+            }
+        }
+        $url = array_key_exists('edited_url', $input) ? $this->text($input['edited_url'], 500) : (string) $row['edited_url'];
+        if ($url !== '' && !preg_match('~^https://[^\s]+$~D', $url)) throw new InvalidArgumentException('El enlace del video editado debe empezar con https://');
+        $note = array_key_exists('edit_note', $input) ? (is_string($input['edit_note']) ? trim($input['edit_note']) : '') : (string) $row['edit_note'];
+        if (mb_strlen($note) > 1000) throw new InvalidArgumentException('La nota de edición es demasiado larga.');
+        if ($type === 'contenido' && array_key_exists('script', $input)) {
+            $scriptId = $this->contentScriptId($input['script'], (int) $row['shift_id']);
+            if ((string) ($scriptId ?? '') !== (string) ($row['script_id'] ?? '')) {
+                $this->pdo->prepare('UPDATE creadora_shift_content SET script_id = ? WHERE id = ?')->execute([$scriptId, $row['id']]);
+                $this->log('edited', $shift, $owner, $actorName, ['detail' => ($scriptId === null ? 'Marcó como creado nuevo, sin guion: ' : 'Ligó al guion: ') . $row['title']]);
+            }
+        }
+        $this->pdo->prepare("UPDATE $table SET edited_at = ?, edited_by = ?, edited_url = ?, edit_note = ? WHERE id = ?")->execute([$editedAt, $editedBy, $url, $note, $row['id']]);
+        $this->audit->log('creadora.editing_updated', $adminId, 'creadora_shift', $shift['public_id'], [], $ip);
+        return $this->editingQueue();
+    }
+
+    /** Los guiones de cada turno, para elegir de cuál salió un video. */
+    private function scriptOptionsFor(array $shiftIds): array
+    {
+        if ($shiftIds === []) return [];
+        $marks = implode(', ', array_fill(0, count($shiftIds), '?'));
+        $statement = $this->pdo->prepare("SELECT shift_id, public_id, title FROM creadora_shift_script WHERE shift_id IN ($marks) ORDER BY shift_id, position, id");
+        $statement->execute($shiftIds);
+        $grouped = [];
+        foreach ($statement->fetchAll(PDO::FETCH_ASSOC) as $row) $grouped[(int) $row['shift_id']][] = ['public_id' => $row['public_id'], 'title' => $row['title']];
+        return $grouped;
+    }
+
+    private function rowShift(int $id): array
+    {
+        $statement = $this->pdo->prepare('SELECT * FROM creadora_shifts WHERE id = ?');
+        $statement->execute([$id]);
+        $row = $statement->fetch(PDO::FETCH_ASSOC);
+        if ($row === false) throw new InvalidArgumentException('Turno no encontrado.');
+        return $row;
     }
 
     /** Los turnos de la creadora autenticada, de hoy en adelante, incluidos los que comparte. */

@@ -38,7 +38,7 @@ import { renderCreadorasLandingPage } from './creadoras/landing-page.mjs';
 import { renderCreadoraPortalPage } from './creadoras/portal-page.mjs';
 import { renderCreadoraLegalPage } from './creadoras/legal-page.mjs';
 import { renderAdminNoticiasPage,
-  renderAdminCreadorasPage, renderAdminMfsPage,
+  renderAdminCreadorasPage, renderAdminCreadorasEdicionPage, renderAdminMfsPage,
   renderAdminEmprendedoresPage, renderAdminLoginPage, renderAdminMediosEventosPage, renderAdminMediosCalendarioPage, renderAdminMediosGiraPage, renderAdminProduccionPage, renderAdminMediosPage, renderAdminPanelPage, renderAdminVocerosPage } from './admin/page.mjs';
 import { renderMediaLandingBody } from './medios/landing-page.mjs';
 import { renderMediaPortalPage } from './medios/portal-page.mjs';
@@ -392,6 +392,7 @@ export const pages = Object.freeze([
   { route: '/admin/produccion/luna/', title: 'Producción · Cronograma Luna · Administración', indexable: false, render: renderAdminProduccionPage },
   { route: '/admin/emprendedores/', title: 'Emprendedores · Administración', indexable: false, render: renderAdminEmprendedoresPage },
   { route: '/admin/creadoras/', title: 'Creadoras · Administración', indexable: false, render: renderAdminCreadorasPage },
+  { route: '/admin/creadoras/edicion/', title: 'Creadoras · Edición · Administración', indexable: false, render: renderAdminCreadorasEdicionPage },
   { route: '/admin/noticias/', title: 'Noticias · Administración', indexable: false, render: renderAdminNoticiasPage },
   { route: '/admin/mfs/', title: 'Mushuc Freestyle · Administración', indexable: false, render: renderAdminMfsPage },
   { route: '/finados/creadoras/', title: 'Creadoras de contenido · Finados 2026', indexable: false, render: renderCreadorasLandingPage },

@@ -1161,6 +1161,18 @@ final class Router
             if ($query !== []) throw new InvalidArgumentException();
             return $this->json(200, $repository->logEntries(), $headers);
         }
+        if ($path === '/api/creadoras/edicion') {
+            if ($method !== 'GET') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+            if ($query !== []) throw new InvalidArgumentException();
+            return $this->json(200, $repository->editingQueue(), $headers);
+        }
+        if (preg_match('~^/api/creadoras/edicion/(contenido|guion)/([a-f0-9]{32})$~D', $path, $parts)) {
+            if ($method !== 'PATCH') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+            if ($query !== []) throw new InvalidArgumentException();
+            $body = $this->body($server, $rawBody, ['edited', 'edited_url', 'edit_note', 'script']);
+            if ($parts[1] === 'guion' && array_key_exists('script', $body)) throw new InvalidArgumentException();
+            return $this->json(200, ['ok' => true, ...$repository->updateEditing($parts[1], $parts[2], $body, $user['id'], $actor, $ip)], $headers);
+        }
         if ($path === '/api/creadoras/turnos') {
             if ($method !== 'POST') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
             if ($query !== []) throw new InvalidArgumentException();
@@ -1185,7 +1197,7 @@ final class Router
         if (preg_match('~^/api/creadoras/turnos/([a-f0-9]{32})/contenido$~D', $path, $parts)) {
             if ($query !== []) throw new InvalidArgumentException();
             if ($method === 'POST') {
-                $body = $this->body($server, $rawBody, ['kind', 'title', 'url', 'note', 'creadora']);
+                $body = $this->body($server, $rawBody, ['kind', 'title', 'url', 'note', 'creadora', 'script']);
                 return $this->json(201, ['ok' => true, ...$repository->addContent($parts[1], $body, $user['id'], $actor, $ip)], $headers);
             }
             if ($method === 'PATCH') {

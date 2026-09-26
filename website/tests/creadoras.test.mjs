@@ -226,11 +226,15 @@ test('la sección de creadoras se publica con su calendario, su bitácora y su e
   assert.match(page, /Cambios del calendario/);
   assert.match(page, /noindex, nofollow, noarchive/);
   // La semana viene marcada de entrada.
-  assert.match(page, /data-view="week" aria-pressed="true"/);
+  // Se abre por semanas, como el Calendario de medios; las vistas por horas siguen disponibles.
+  assert.match(page, /data-view="weeks" aria-pressed="true"/);
+  for (const view of ['day', 'week', 'month']) assert.match(page, new RegExp(`data-view="${view}" aria-pressed="false"`));
+  assert.match(page, /data-calendar-weeks/);
+  assert.match(page, /data-content-script/);
 
   // Aparece en el menú administrativo, después de Emprendedores.
   const order = [...page.matchAll(/class="admin-nav-link(?: admin-nav-link--child)?" href="([^"]+)"/g)].map(match => match[1]);
-  assert.deepEqual(order, ['/admin/panel/', '/admin/noticias/', '/admin/voceros/', '/admin/medios/', '/admin/medios/eventos/', '/admin/medios/calendario/', '/admin/medios/gira/', '/admin/produccion/activaciones/', '/admin/produccion/sol/', '/admin/produccion/luna/', '/admin/emprendedores/', '/admin/creadoras/', '/admin/mfs/']);
+  assert.deepEqual(order, ['/admin/panel/', '/admin/noticias/', '/admin/voceros/', '/admin/medios/', '/admin/medios/eventos/', '/admin/medios/calendario/', '/admin/medios/gira/', '/admin/produccion/activaciones/', '/admin/produccion/sol/', '/admin/produccion/luna/', '/admin/emprendedores/', '/admin/creadoras/', '/admin/creadoras/edicion/', '/admin/mfs/']);
 
   // El bundle no lleva la API local a producción y conserva el menú plegable compartido.
   const bundle = await readFile(join(output, 'assets/admin/admin-creadoras.js'), 'utf8');

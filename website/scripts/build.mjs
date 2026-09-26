@@ -215,6 +215,11 @@ export async function buildSite(outputDirectory = join(websiteRoot, 'dist'), { a
     "const LOCAL_API = 'http://127.0.0.1:4174/api';",
     adminEnvironment === 'production' ? 'const LOCAL_API = null;' : `const LOCAL_API = '${developmentApi}';`), 'utf8');
 
+  const adminCreadorasEdicionScript = await readFile(join(websiteRoot, 'src', 'admin', 'admin-creadoras-edicion.js'), 'utf8');
+  await writeFile(join(adminAssets, 'admin-creadoras-edicion.js'), adminCreadorasEdicionScript.replace(
+    "const LOCAL_API = 'http://127.0.0.1:4174/api';",
+    adminEnvironment === 'production' ? 'const LOCAL_API = null;' : `const LOCAL_API = '${developmentApi}';`), 'utf8');
+
   const adminProductionScript = await readFile(join(websiteRoot, 'src', 'admin', 'admin-produccion.js'), 'utf8');
   await writeFile(join(adminAssets, 'admin-produccion.js'), adminProductionScript.replace(
     "const LOCAL_API = 'http://127.0.0.1:4174/api';",

@@ -14,11 +14,11 @@ const ADMIN_FORMS = Object.freeze([
   { route: '/admin/medios/', label: 'Medios', description: 'Seguimiento, eventos, calendario y gira', marker: 'M', children: [{ route: '/admin/medios/', label: 'Seguimiento de medios', description: 'Registros, estado y pauta' }, { route: '/admin/medios/eventos/', label: 'Eventos', description: 'Cobertura por evento' }, { route: '/admin/medios/calendario/', label: 'Calendario de medios', description: 'Spots, calendario y reportes' }, { route: '/admin/medios/gira/', label: 'Gira de medios', description: 'Personas, medios y citas' }] },
   { route: '/admin/produccion/', label: 'Producción', description: 'Activaciones y cronogramas', marker: 'Pr', children: [{ route: '/admin/produccion/activaciones/', label: 'Activaciones', description: 'Calendario de activaciones' }, { route: '/admin/produccion/sol/', label: 'Cronograma Sol', description: 'Calendario del escenario Sol' }, { route: '/admin/produccion/luna/', label: 'Cronograma Luna', description: 'Calendario del escenario Luna' }] },
   { route: '/admin/emprendedores/', label: 'Emprendedores', description: 'De emprendedor a influencer', marker: 'E' },
-  { route: '/admin/creadoras/', label: 'Creadoras', description: 'Contenido y calendario', marker: 'C' },
+  { route: '/admin/creadoras/', label: 'Creadoras', description: 'Calendario y edición', marker: 'C', children: [{ route: '/admin/creadoras/', label: 'Creadoras', description: 'Calendario por semanas y turnos' }, { route: '/admin/creadoras/edicion/', label: 'Edición', description: 'Videos grabados por editar' }] },
   { route: '/admin/mfs/', label: 'Mushuc Freestyle', description: 'Inscripciones y audiciones', marker: 'F' },
 ]);
 // Public landing that each panel returns to from its header.
-const PANEL_LANDINGS = Object.freeze({ '/admin/noticias/': ['/finados/', 'Volver a Finados'], '/admin/panel/': ['/finados/', 'Volver a Finados'], '/admin/voceros/': ['/finados/voceros/', 'Volver a Voceros'], '/admin/medios/': ['/finados/medios/', 'Volver a Medios'], '/admin/medios/eventos/': ['/finados/medios/', 'Volver a Medios'], '/admin/medios/calendario/': ['/finados/medios/', 'Volver a Medios'], '/admin/medios/gira/': ['/finados/medios/', 'Volver a Medios'], '/admin/produccion/activaciones/': ['/finados/', 'Volver a Finados'], '/admin/produccion/sol/': ['/finados/', 'Volver a Finados'], '/admin/produccion/luna/': ['/finados/', 'Volver a Finados'], '/admin/emprendedores/': ['/finados/emprendedores/', 'Volver a Emprendedores'], '/admin/creadoras/': ['/finados/creadoras/', 'Volver a Creadoras'], '/admin/mfs/': ['/finados/mfs/', 'Volver a Mushuc Freestyle'] });
+const PANEL_LANDINGS = Object.freeze({ '/admin/noticias/': ['/finados/', 'Volver a Finados'], '/admin/panel/': ['/finados/', 'Volver a Finados'], '/admin/voceros/': ['/finados/voceros/', 'Volver a Voceros'], '/admin/medios/': ['/finados/medios/', 'Volver a Medios'], '/admin/medios/eventos/': ['/finados/medios/', 'Volver a Medios'], '/admin/medios/calendario/': ['/finados/medios/', 'Volver a Medios'], '/admin/medios/gira/': ['/finados/medios/', 'Volver a Medios'], '/admin/produccion/activaciones/': ['/finados/', 'Volver a Finados'], '/admin/produccion/sol/': ['/finados/', 'Volver a Finados'], '/admin/produccion/luna/': ['/finados/', 'Volver a Finados'], '/admin/emprendedores/': ['/finados/emprendedores/', 'Volver a Emprendedores'], '/admin/creadoras/': ['/finados/creadoras/', 'Volver a Creadoras'], '/admin/creadoras/edicion/': ['/finados/creadoras/', 'Volver a Creadoras'], '/admin/mfs/': ['/finados/mfs/', 'Volver a Mushuc Freestyle'] });
 const PROGRESS_LEVELS = ['En preparación', 'Primer paso', 'Gorra', 'Kit completo', 'Trae a los tuyos', 'Noche de concierto', 'Tope'];
 const VIDEO_SLOTS = Object.freeze([1, 2, 3, 4, 5]);
 const videoSlotControls = (prefix = 'video') => VIDEO_SLOTS.map(slot => `<label class="admin-video-control"><span class="admin-video-check"><input type="checkbox" name="${prefix}_${slot}_enabled" value="1"><strong>Video ${slot}</strong></span><span class="admin-video-date"><span>Habilitado desde</span><input type="date" name="${prefix}_${slot}_enabled_at" aria-label="Fecha de habilitación del video ${slot}"></span></label>`).join('');
@@ -75,7 +75,7 @@ function layout(page, content, script = '/assets/admin/admin.js?v=20260925-perf-
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' blob:; media-src blob:; font-src 'self'; connect-src ${connectSources}; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="admin-api-base" content="${api}">
 <link rel="icon" href="/assets/finados/favicon-finados.png">
-<link rel="stylesheet" href="/assets/admin/admin.css?v=20260925-29">
+<link rel="stylesheet" href="/assets/admin/admin.css?v=20260926-30">
 <script type="module" src="${script}"></script>
 </head><body class="admin-page">
 <a class="skip-link" href="#contenido">Ir al contenido</a>
@@ -170,7 +170,8 @@ ${select('province', 'Provincia', ecuadorProvinces)}</div>
 </dialog>${mediaRecordDialog()}</main></div>`, ADMIN_MEDIOS_SCRIPT);
 }
 
-const ADMIN_CREADORAS_SCRIPT = '/assets/admin/admin-creadoras.js?v=20260925-creadoras-11';
+const ADMIN_CREADORAS_SCRIPT = '/assets/admin/admin-creadoras.js?v=20260926-creadoras-12';
+export const ADMIN_CREADORAS_EDICION_SCRIPT = '/assets/admin/admin-creadoras-edicion.js?v=20260926-creadoras-edicion-1';
 const ADMIN_MEDIOS_SCRIPT = '/assets/admin/admin-medios.js?v=20260925-admin-medios-27';
 const RADIO_GENRE_OPTIONS = ['Noticias e información', 'Musical variada', 'Popular y tropical', 'Folclórica y andina', 'Juvenil y pop', 'Romántica', 'Religiosa', 'Deportiva', 'Comunitaria', 'Otro'];
 const PROVINCE_OPTIONS = ['Azuay', 'Bolívar', 'Cañar', 'Carchi', 'Chimborazo', 'Cotopaxi', 'El Oro', 'Esmeraldas', 'Galápagos', 'Guayas', 'Imbabura', 'Loja', 'Los Ríos', 'Manabí', 'Morona Santiago', 'Napo', 'Orellana', 'Pastaza', 'Pichincha', 'Santa Elena', 'Santo Domingo de los Tsáchilas', 'Sucumbíos', 'Tungurahua', 'Zamora Chinchipe'];
@@ -520,8 +521,9 @@ export function renderAdminCreadorasPage(page) {
 <p class="feedback" data-admin-feedback role="status" aria-live="polite" aria-atomic="true">Cargando calendario…</p>
 <div class="calendar-bar">
 <div class="calendar-views" role="group" aria-label="Vista del calendario">
+<button type="button" class="button-quiet" data-view="weeks" aria-pressed="true">Semanas</button>
 <button type="button" class="button-quiet" data-view="day" aria-pressed="false">Día</button>
-<button type="button" class="button-quiet" data-view="week" aria-pressed="true">Semana</button>
+<button type="button" class="button-quiet" data-view="week" aria-pressed="false">Horario semanal</button>
 <button type="button" class="button-quiet" data-view="month" aria-pressed="false">Mes</button>
 </div>
 <div class="calendar-move">
@@ -531,24 +533,26 @@ export function renderAdminCreadorasPage(page) {
 <button type="button" class="button-quiet" data-calendar-today>Hoy</button>
 </div>
 </div>
-<section class="creadora-indicators" aria-labelledby="indicadores-title">
-<div class="records-heading"><div><h2 id="indicadores-title">Indicadores por creadora</h2><p>Turnos, asistencias, guiones, cuántos ya se grabaron y el contenido registrado en toda la campaña.</p></div></div>
-<div class="creadora-totals" data-creadora-totals></div>
-<ul class="creadora-indicators__list" data-creadora-indicators></ul>
-</section>
+<div class="creadora-totals" data-creadora-totals aria-label="Totales de la campaña"></div>
 <div class="calendar-layout">
 <aside class="calendar-people" aria-labelledby="creadoras-title">
 <h2 id="creadoras-title">Creadoras</h2>
-<p>Toca un nombre para agendarle un turno, o arrástralo al calendario. Suéltalo sobre una caja para sumarlo a ese turno. «Ver ficha» abre sus datos.</p>
+<p>Arrastra un nombre a una semana para agendarle un turno, o tócalo. Suéltalo sobre un turno para sumarlo a esa misma caja. «Ver ficha» abre sus datos.</p>
 <ul data-creadora-list></ul>
 </aside>
 <section class="calendar-board" aria-label="Calendario de turnos">
-<div class="calendar-grid" data-calendar-grid></div>
+<p class="calendar-help" data-weeks-help>Como el Calendario de medios: cada columna es una semana. Arrastra un turno a otra semana (conserva el día y la hora) o usa «+ Agregar a esta semana». Toca un turno para abrirlo, cambiar el día o la hora, duplicarlo o copiarlo.</p>
+<div class="mc-weeks-wrap" data-calendar-weeks></div>
+<div class="calendar-grid" data-calendar-grid hidden></div>
 <div class="calendar-month" data-calendar-month hidden></div>
-<p class="calendar-help">Arrastra una caja para moverla de día u hora y su borde de abajo para cambiar la hora de fin. Tócala para abrirla, duplicarla o copiarla. Un mismo turno puede reunir a varias creadoras en una sola caja.</p>
-<p class="calendar-clipboard" data-clipboard hidden>Copiaste <strong data-clipboard-label></strong>. Toca una hora del calendario para pegarlo. <button type="button" class="button-quiet" data-clipboard-cancel>Cancelar</button></p>
+<p class="calendar-help" data-hour-help hidden>Arrastra una caja para moverla de día u hora y su borde de abajo para cambiar la hora de fin. Tócala para abrirla, duplicarla o copiarla. Un mismo turno puede reunir a varias creadoras en una sola caja.</p>
+<p class="calendar-clipboard" data-clipboard hidden>Copiaste <strong data-clipboard-label></strong>. <span data-clipboard-hint>Toca una hora del calendario para pegarlo.</span> <button type="button" class="button-quiet" data-clipboard-cancel>Cancelar</button></p>
 </section>
 </div>
+<details class="admin-panel-section creadora-indicators" aria-labelledby="indicadores-title">
+<summary><div class="records-heading"><div><h2 id="indicadores-title">Indicadores por creadora</h2><p>Turnos, asistencias, guiones, cuántos ya se grabaron y el contenido registrado en toda la campaña. Tócalo para verlo.</p></div></div></summary>
+<ul class="creadora-indicators__list" data-creadora-indicators></ul>
+</details>
 <section class="admin-panel-section" aria-labelledby="bitacora-title">
 <div class="records-heading"><div><h2 id="bitacora-title">Cambios del calendario</h2><p>Quién cambió qué y cómo quedó. Lo más reciente primero.</p></div></div>
 <ol class="calendar-log" data-calendar-log></ol>
@@ -575,6 +579,7 @@ export function renderAdminCreadorasPage(page) {
 <ol class="shift-content__list" data-content-list></ol>
 <div class="shift-content__form" data-content-form hidden>
 <label data-content-creadora-field hidden>Creadora<select data-content-creadora></select></label>
+<label>¿Salió de un guion?<select data-content-script><option value="">Sin guion · creado nuevo</option></select></label>
 <label>Tipo<select data-content-kind><option value="video">Video</option><option value="live">En vivo</option><option value="historia">Historia</option><option value="foto">Fotografía</option><option value="otro">Otro</option></select></label>
 <label>Nombre del contenido<input data-content-title maxlength="200" placeholder="Ej.: Recorrido por la feria"></label>
 <label>Enlace<input data-content-url type="url" maxlength="500" placeholder="https:// (opcional)"></label>
@@ -625,6 +630,27 @@ export function renderAdminCreadorasPage(page) {
 </form>
 </dialog>
 </main></div>`, ADMIN_CREADORAS_SCRIPT);
+}
+
+/** Creadoras → Edición: los videos grabados, con su guion si lo tuvo, y la marca de «ya editado». */
+export function renderAdminCreadorasEdicionPage(page) {
+  return layout(page, `<div class="admin-shell">${adminSidebar(page)}<main id="contenido" class="admin-workspace ed" data-admin-creadoras-edicion>${campaignBanner}
+<div class="workspace-heading"><div><p class="eyebrow">Finados 2026 · Creadoras</p><h1>Edición</h1><p>Los videos que grabaron las chicas. Si el video salió de un guion, aquí lo ves completo; si no, está marcado como creado nuevo. Cuando lo termines, márcalo como editado.</p><p data-admin-user>Comprobando acceso…</p></div></div>
+<p class="feedback" data-admin-feedback role="status" aria-live="polite" aria-atomic="true">Cargando videos…</p>
+<button type="button" class="button-quiet" data-session-retry hidden>Reintentar conexión</button>
+<section class="admin-big-numbers ed-totals" aria-label="Resumen de edición" data-edit-totals></section>
+<form class="filters ed-filters" data-edit-filters><fieldset>
+<legend>Filtrar videos</legend>
+<div class="filter-grid">
+<label class="search-field">Buscar<input type="search" name="search" maxlength="120" placeholder="Nombre del video, guion o creadora"></label>
+<label>Estado<select name="state"><option value="pending">Por editar</option><option value="edited">Ya editados</option><option value="">Todos</option></select></label>
+<label>Creadora<select name="creadora" data-edit-creadora><option value="">Todas</option></select></label>
+<label>Guion<select name="script"><option value="">Con y sin guion</option><option value="with">Con guion</option><option value="new">Creado nuevo (sin guion)</option></select></label>
+</div>
+</fieldset></form>
+<p class="ed-count" data-edit-count role="status" aria-live="polite"></p>
+<ol class="ed-list" data-edit-list aria-label="Videos grabados"></ol>
+</main></div>`, ADMIN_CREADORAS_EDICION_SCRIPT);
 }
 
 /** Sección del Panel que arranca plegada: un clic en el título la abre y otro la cierra. */

@@ -100,8 +100,8 @@ test('el build publica la landing, las cuentas de medios y su panel sin tocar la
   const voceros = await readFile(join(output, 'admin/voceros/index.html'), 'utf8');
   for (const html of [admin, voceros]) {
     const order = [...html.matchAll(/class="admin-nav-link" href="([^"]+)"/g)].map(match => match[1]);
-    // Medios es un botón que despliega: su seguimiento vive dentro del grupo, no en el primer nivel.
-    assert.deepEqual(order, ['/admin/panel/', '/admin/noticias/', '/admin/voceros/', '/admin/emprendedores/', '/admin/creadoras/', '/admin/mfs/']);
+    // Medios y Creadoras son botones que despliegan: sus opciones viven dentro del grupo, no en el primer nivel.
+    assert.deepEqual(order, ['/admin/panel/', '/admin/noticias/', '/admin/voceros/', '/admin/emprendedores/', '/admin/mfs/']);
     assert.match(html, /class="admin-nav-link admin-nav-link--child" href="\/admin\/medios\/"[^>]*><span class="admin-nav-marker" aria-hidden="true">›<\/span><span><strong>Seguimiento de medios<\/strong>/);
   }
   assert.match(admin, /href="\/admin\/medios\/" aria-current="page"/);

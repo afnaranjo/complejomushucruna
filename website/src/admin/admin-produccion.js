@@ -4,7 +4,7 @@ import { resolveRuntimeOrigins } from '../finados/runtime-origins.mjs';
 import { createMediaAdminClient } from './admin-medios.js?v=20260925-admin-medios-27';
 import {
   dateFromKey, dayKey, dayLabel, durationLabel, minutesFromTime, monthStart, rangeLabel, shiftView, viewRange,
-} from './admin-creadoras.js?v=20260925-creadoras-11';
+} from './admin-creadoras.js?v=20260926-creadoras-12';
 
 const LOCAL_API = 'http://127.0.0.1:4174/api';
 const DAY_NAMES = ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo'];

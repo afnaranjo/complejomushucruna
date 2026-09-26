@@ -47,7 +47,7 @@ $config = creadora_config();
 $pdo = Database::connect($config);
 foreach (['001_initial', '002_sheets_outbox', '003_vocero_accounts', '008_media_accounts', '009_media_videos', '010_media_video_views', '011_media_contact_channels',
     '012_media_consents', '013_media_types_radio', '014_media_channels_photo', '015_media_traffic_light', '016_media_paid', '017_emprendedor_accounts',
-    '018_media_coverage', '019_media_event_attendance', '020_media_event_checkin', '021_creadora_accounts', '022_creadora_identity', '023_creadora_shift_content', '025_creadora_shift_script', '026_creadora_shift_members'] as $migration) {
+    '018_media_coverage', '019_media_event_attendance', '020_media_event_checkin', '021_creadora_accounts', '022_creadora_identity', '023_creadora_shift_content', '025_creadora_shift_script', '026_creadora_shift_members', '033_creadora_editing'] as $migration) {
     $pdo->exec(file_get_contents(__DIR__ . '/../migrations/' . $migration . '_sqlite.sql'));
 }
 same('021_creadora_accounts', $pdo->query("SELECT version FROM schema_migrations WHERE version = '021_creadora_accounts'")->fetchColumn());
