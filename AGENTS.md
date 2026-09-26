@@ -2070,3 +2070,12 @@ Nota de relevo escrita a pedido de Alex para que otro agente (Codex) retome la s
 - Verificación: una fila actualizada, hash comprobado en el servidor e inicio de sesión real correcto por API (rol Administración, módulos `*`, portada `/admin/panel/`); la sesión de prueba se cerró. Las sesiones abiertas con la contraseña anterior quedaron cerradas.
 - Riesgo: la contraseña quedó escrita en el chat y es predecible. Se recomienda cambiarla desde Usuarios con «Enlace para cambiar contraseña» por una que solo conozca Alex, y dejar de compartir la cuenta `admin` cuando el equipo tenga cuentas propias.
 - Actualización del mismo día: Alex pidió otro valor para la contraseña de `admin`. Se reemplazó por la misma vía, sin escribirla en archivos, Git ni en la bitácora. El inicio de sesión con la nueva funciona y la anterior queda rechazada (401). Siguen vigentes el riesgo y la recomendación anteriores.
+
+### 2026-09-26 — Menú lateral vacío por caché y cuentas MFS sin ficha arriba
+
+- Alex reportó que en `/admin/mfs/` el menú lateral salía vacío y pidió ver arriba las cuentas que todavía no tienen ficha, para saber que están incompletas.
+- Causa: al publicar Usuarios y roles (`1c352ab`) cambió `sidebar.js` y la importación en cada script del panel, pero no se renovó la versión de esos scripts. El navegador siguió usando la copia vieja, que importaba un menú sin la carga del rol, y los enlaces se quedaban ocultos. Afectaba también a Medios, Creadoras, Emprendedores, Noticias, el Panel y Producción.
+- Se renovó la versión de todos los scripts administrativos afectados (`20260926-cache-1`; MFS `20260926-admin-mfs-5`). Una prueba nueva (`admin-cache-versions.test.mjs`) falla si un script que importa el menú tiene una versión más antigua que la del menú.
+- Mushuc Freestyle: «Cuentas pendientes de ficha» pasó debajo del resumen, antes de los filtros. Se abre sola cuando hay cuentas y cada fila muestra «Incompleta».
+- QA: `npm run check` en verde (253 Node, PHP, 11 integración; 230 archivos, 81 HTML, 2794 referencias).
+- Commit `5ddf1c6`. Publicación externa: frontend autorizado por Alex («sube»), con respaldo y sin borrar archivos exclusivos. En los dos dominios `/admin/mfs/` entrega la versión nueva con la sección arriba, y `admin-mfs.js`, `admin-medios.js` y `panel.js` coinciden por SHA-256 con el build. Backend y datos sin cambios.
