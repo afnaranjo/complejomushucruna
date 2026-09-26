@@ -1,10 +1,10 @@
 import { resolveRuntimeOrigins } from '../finados/runtime-origins.mjs';
 // Mismo cliente administrativo (sesión, CSRF y rutas permitidas) y las mismas piezas de calendario
 // que Creadoras y Gira de medios, para que todos los calendarios se usen igual.
-import { createMediaAdminClient } from './admin-medios.js?v=20260925-admin-medios-27';
+import { createMediaAdminClient } from './admin-medios.js?v=20260926-cache-1';
 import {
   dateFromKey, dayKey, dayLabel, durationLabel, minutesFromTime, monthStart, rangeLabel, shiftView, viewRange,
-} from './admin-creadoras.js?v=20260926-creadoras-13';
+} from './admin-creadoras.js?v=20260926-cache-1';
 
 const LOCAL_API = 'http://127.0.0.1:4174/api';
 const DAY_NAMES = ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo'];

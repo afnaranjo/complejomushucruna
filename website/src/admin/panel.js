@@ -1,6 +1,6 @@
 import { resolveRuntimeOrigins } from '../finados/runtime-origins.mjs';
 // The panel reuses the administrative client: same allowlist, same CSRF handling, one bundle less.
-import { createMediaAdminClient } from './admin-medios.js?v=20260925-admin-medios-27';
+import { createMediaAdminClient } from './admin-medios.js?v=20260926-cache-1';
 import './sidebar.js?v=20260926-admin-sidebar-3';
 import './campaign-banner.js?v=20260925-banner-2';
 

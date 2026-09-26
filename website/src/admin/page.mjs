@@ -63,7 +63,7 @@ ${homeLink ? `<nav class="admin-sidebar__home" aria-label="Resumen general">${ho
 // Llega con su espacio reservado (y se pinta al instante con lo último visto): la página no se corre hacia abajo.
 const campaignBanner = '<section class="campaign-banner" data-campaign-banner data-loading aria-label="Tema central de la campaña" aria-busy="true"></section>';
 
-function layout(page, content, script = '/assets/admin/admin.js?v=20260925-perf-1') {
+function layout(page, content, script = '/assets/admin/admin.js?v=20260926-cache-1') {
   const api = page.adminEnvironment === 'development' ? (page.adminApiBase ?? LOCAL_API_BASE) : PRIMARY_API_BASE;
   const connectSources = apiBasesForCsp(api);
   return `<!doctype html>
@@ -172,9 +172,9 @@ ${select('province', 'Provincia', ecuadorProvinces)}</div>
 </dialog>${mediaRecordDialog()}</main></div>`, ADMIN_MEDIOS_SCRIPT);
 }
 
-const ADMIN_CREADORAS_SCRIPT = '/assets/admin/admin-creadoras.js?v=20260926-creadoras-13';
-export const ADMIN_CREADORAS_EDICION_SCRIPT = '/assets/admin/admin-creadoras-edicion.js?v=20260926-creadoras-edicion-2';
-const ADMIN_MEDIOS_SCRIPT = '/assets/admin/admin-medios.js?v=20260925-admin-medios-27';
+const ADMIN_CREADORAS_SCRIPT = '/assets/admin/admin-creadoras.js?v=20260926-cache-1';
+export const ADMIN_CREADORAS_EDICION_SCRIPT = '/assets/admin/admin-creadoras-edicion.js?v=20260926-cache-1';
+const ADMIN_MEDIOS_SCRIPT = '/assets/admin/admin-medios.js?v=20260926-cache-1';
 const RADIO_GENRE_OPTIONS = ['Noticias e información', 'Musical variada', 'Popular y tropical', 'Folclórica y andina', 'Juvenil y pop', 'Romántica', 'Religiosa', 'Deportiva', 'Comunitaria', 'Otro'];
 const PROVINCE_OPTIONS = ['Azuay', 'Bolívar', 'Cañar', 'Carchi', 'Chimborazo', 'Cotopaxi', 'El Oro', 'Esmeraldas', 'Galápagos', 'Guayas', 'Imbabura', 'Loja', 'Los Ríos', 'Manabí', 'Morona Santiago', 'Napo', 'Orellana', 'Pastaza', 'Pichincha', 'Santa Elena', 'Santo Domingo de los Tsáchilas', 'Sucumbíos', 'Tungurahua', 'Zamora Chinchipe'];
 
@@ -202,7 +202,7 @@ function mediaRecordDialog() {
 </div><button class="button-primary" type="submit">Guardar medio</button></fieldset></form></dialog>`;
 }
 
-export const ADMIN_MEDIOS_CALENDARIO_SCRIPT = '/assets/admin/admin-medios-calendario.js?v=20260925-medios-calendario-7';
+export const ADMIN_MEDIOS_CALENDARIO_SCRIPT = '/assets/admin/admin-medios-calendario.js?v=20260926-cache-1';
 const planTabs = [['spots', '1. Spots promocionales'], ['calendario', '2. Calendario semanal'], ['reportes', '3. Reportes']];
 const planField = (label, control, wide = 1) => `<label class="mc-field mc-field--${wide}">${label}${control}</label>`;
 
@@ -242,7 +242,7 @@ ${planField('Nota / intención', '<textarea name="note" maxlength="500" rows="3"
 </main></div>`, ADMIN_MEDIOS_CALENDARIO_SCRIPT);
 }
 
-export const ADMIN_MEDIOS_GIRA_SCRIPT = '/assets/admin/admin-medios-gira.js?v=20260925-medios-gira-3';
+export const ADMIN_MEDIOS_GIRA_SCRIPT = '/assets/admin/admin-medios-gira.js?v=20260926-cache-1';
 const TOUR_KINDS = Object.freeze({ entrevista: 'Entrevista', en_vivo: 'En vivo', grabacion: 'Grabación', visita: 'Visita', rueda: 'Rueda de prensa', otro: 'Otro' });
 const TOUR_STATUSES = Object.freeze({ programada: 'Programada', confirmada: 'Confirmada', realizada: 'Realizada', no_se_dio: 'No se dio' });
 const pairs = map => Object.entries(map).map(([value, label]) => `<option value="${esc(value)}">${esc(label)}</option>`).join('');
@@ -324,7 +324,7 @@ export function renderAdminMediosGiraPage(page) {
 </main></div>`, ADMIN_MEDIOS_GIRA_SCRIPT);
 }
 
-export const ADMIN_PRODUCCION_SCRIPT = '/assets/admin/admin-produccion.js?v=20260925-produccion-2';
+export const ADMIN_PRODUCCION_SCRIPT = '/assets/admin/admin-produccion.js?v=20260926-cache-1';
 export const PRODUCTION_BOARDS = Object.freeze({
   activaciones: { title: 'Activaciones', eyebrow: 'Finados 2026 · Producción', lead: 'Arrastra una activación de la biblioteca a una hora del calendario.' },
   sol: { title: 'Cronograma Sol', eyebrow: 'Finados 2026 · Producción', lead: 'Arrastra un show o actividad de la biblioteca a una hora del calendario.' },
@@ -465,7 +465,7 @@ ${select('main_network', 'Red principal', ['TikTok', 'Instagram', 'Facebook'])}<
 <form data-status-form><fieldset disabled><label>Estado del registro<select name="status" required>${options(EMPRENDEDOR_STATUSES)}</select></label><button class="button-primary" type="submit">Guardar estado</button></fieldset></form>
 <section class="admin-progress" aria-labelledby="admin-progress-title"><div class="admin-progress-heading"><div><h3 id="admin-progress-title">Progreso del emprendedor</h3><p>Registra los seguidores validados, el nivel, el semáforo y las views validadas de cada video. Las fechas se configuran una sola vez en la sección global.</p></div><span data-admin-progress-summary>Sin actualizar</span></div><form data-progress-form><fieldset disabled><div class="admin-progress-grid"><label>Seguidores validados<input type="number" name="followers_count" min="0" max="1000000000" step="1" required></label><label>Nivel<select name="level" required>${EMPRENDEDOR_LEVELS.map((label, index) => `<option value="${index}">${index} · ${esc(label)}</option>`).join('')}</select></label><label>Semáforo<select name="traffic_light" required><option value="red">Rojo · En preparación</option><option value="yellow">Amarillo · En avance</option><option value="green">Verde · Listo</option></select></label></div><div class="admin-videos" data-admin-videos></div><button class="button-primary" type="submit">Guardar progreso</button></fieldset></form><p class="feedback" data-progress-feedback role="status" aria-live="polite"></p></section>
 <section class="notes-section"><h3>Notas internas</h3><ol data-notes></ol><form data-note-form><fieldset disabled><label>Añadir nota<textarea name="body" rows="3" maxlength="2000" required></textarea></label><button class="button-primary" type="submit">Guardar nota</button></fieldset></form></section>
-</dialog></main></div>`, '/assets/admin/admin-emprendedores.js?v=20260925-perf-1');
+</dialog></main></div>`, '/assets/admin/admin-emprendedores.js?v=20260926-cache-1');
 }
 
 export function renderAdminNoticiasPage(page) {
@@ -510,7 +510,7 @@ export function renderAdminNoticiasPage(page) {
 <div class="record-form__actions"><button type="submit" value="cancel" class="button-quiet">Cancelar</button><button type="submit" value="save" class="button-primary">Publicar</button></div>
 </form>
 </dialog>
-</main></div>`, '/assets/admin/admin-noticias.js?v=20260925-noticias-3');
+</main></div>`, '/assets/admin/admin-noticias.js?v=20260926-cache-1');
 }
 
 export function renderAdminCreadorasPage(page) {
@@ -729,12 +729,12 @@ ${panelFold('medios', 'Medios', 'Toca un número para ver la lista.', `<div data
 <section class="admin-panel-subsection" aria-labelledby="panel-eventos-title"><div class="records-heading"><div><h3 id="panel-eventos-title">Medios por evento</h3><p>Abre un evento para ver su cobertura.</p></div></div><div data-panel-events></div></section>`)}
 ${panelFold('creadoras', 'Creadoras de contenido', 'Horas que vinieron, lo que grabaron y sus videos. Toca a una creadora para ver su historial.', '<div data-panel-creadoras></div>')}
 ${panelFold('voceros', 'Voceros', 'Toca un número para ver la lista.', '<div data-panel-voceros></div>')}
-</main></div>`, '/assets/admin/panel.js?v=20260925-admin-panel-11');
+</main></div>`, '/assets/admin/panel.js?v=20260926-cache-1');
 }
 
 // Mushuc Freestyle: los estados viven aquí para que el HTML no dependa del módulo del navegador.
 const MFS_STATUS_OPTIONS = Object.freeze(['Nuevo', 'En revisión', 'Aprobado', 'Rechazado', 'Seleccionado']);
-export const ADMIN_MFS_SCRIPT = '/assets/admin/admin-mfs.js?v=20260925-admin-mfs-4';
+export const ADMIN_MFS_SCRIPT = '/assets/admin/admin-mfs.js?v=20260926-admin-mfs-5';
 
 export function renderAdminMfsPage(page) {
   return layout(page, `<div class="admin-shell">${adminSidebar(page)}<main id="contenido" class="admin-workspace" data-admin-mfs>${campaignBanner}
@@ -742,6 +742,7 @@ export function renderAdminMfsPage(page) {
 <p class="feedback" data-admin-feedback role="status" aria-live="polite" aria-atomic="true"></p>
 <button type="button" class="button-quiet" data-session-retry hidden>Reintentar conexión</button>
 <section aria-label="Resumen de inscripciones" class="summary" data-admin-dashboard aria-busy="true"></section>
+<details class="pending-accounts" data-pending-panel><summary><span><strong id="pending-accounts-title">Cuentas pendientes de ficha</strong><small>Ficha incompleta: crearon su cuenta pero todavía no envían su inscripción. Pasarán a la tabla de inscripciones cuando la envíen.</small></span><span data-pending-count>—</span></summary><div class="pending-accounts-body" aria-labelledby="pending-accounts-title"><p class="feedback" data-pending-message role="status" aria-live="polite">Cargando cuentas…</p><div class="pending-accounts-table"><table><caption class="sr-only">Cuentas creadas que todavía no envían su inscripción</caption><thead><tr><th scope="col">Correo</th><th scope="col">Creada</th><th scope="col">Ficha</th><th scope="col"><span class="sr-only">Acciones</span></th></tr></thead><tbody data-pending-accounts></tbody></table></div></div></details>
 <form class="filters" data-admin-filters><fieldset disabled data-panel-fields>
 <legend>Filtrar inscripciones</legend>
 <div class="filter-grid"><label class="search-field">Buscar<input type="search" name="search" maxlength="180" placeholder="Nombre, nombre artístico, cédula, correo o WhatsApp"></label>
@@ -752,7 +753,7 @@ export function renderAdminMfsPage(page) {
 <p data-list-message role="status">Cargando inscripciones…</p>
 <table><caption class="sr-only">Participantes inscritos en Mushuc Freestyle. Abre una inscripción para revisar su audición, foto y notas.</caption><thead><tr><th scope="col">Participante</th><th scope="col">Contacto</th><th scope="col">Audición</th><th scope="col">Foto</th><th scope="col">Inscripción</th><th scope="col">Estado</th><th scope="col"><span class="sr-only">Acciones</span></th></tr></thead><tbody data-records></tbody></table>
 <nav class="pagination" aria-label="Paginación de inscripciones"><button class="button-quiet" data-previous disabled>← Anterior</button><span data-page-label>Página —</span><button class="button-quiet" data-next disabled>Siguiente →</button></nav></section>
-<details class="pending-accounts" data-pending-panel><summary><span><strong id="pending-accounts-title">Cuentas pendientes de ficha</strong><small>Personas que crearon su cuenta pero todavía no envían su inscripción.</small></span><span data-pending-count>—</span></summary><div class="pending-accounts-body" aria-labelledby="pending-accounts-title"><p class="feedback" data-pending-message role="status" aria-live="polite">Cargando cuentas…</p><div class="pending-accounts-table"><table><caption class="sr-only">Cuentas creadas que todavía no envían su inscripción</caption><thead><tr><th scope="col">Correo</th><th scope="col">Creada</th><th scope="col"><span class="sr-only">Acciones</span></th></tr></thead><tbody data-pending-accounts></tbody></table></div></div></details>
+
 <dialog class="detail-dialog" aria-labelledby="detail-title" data-detail><div class="detail-heading"><h2 id="detail-title" tabindex="-1">Detalle del participante</h2><button type="button" class="button-quiet" data-detail-close aria-label="Cerrar detalle">Cerrar ×</button></div>
 <p class="feedback" data-detail-feedback role="status" aria-live="polite" aria-atomic="true"></p><div data-detail-content></div>
 <section class="admin-photo" aria-label="Fotografía privada"><h3>Fotografía tipo retrato</h3><p data-admin-photo-message role="status">Sin fotografía</p><img data-admin-photo-image alt="Fotografía privada del participante" hidden></section>

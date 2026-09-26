@@ -158,6 +158,7 @@ export async function initializeMfsAdmin() {
   const pendingAccounts = query('[data-pending-accounts]');
   const pendingCount = query('[data-pending-count]');
   const pendingMessage = query('[data-pending-message]');
+  const pendingPanel = query('[data-pending-panel]');
   const dialog = query('[data-detail]');
   const detailFeedback = query('[data-detail-feedback]');
   const statusForm = query('[data-status-form]');
@@ -222,6 +223,7 @@ export async function initializeMfsAdmin() {
         const row = node('tr');
         const email = node('td', account.email); email.dataset.label = 'Correo';
         const created = node('td', dateTime(account.created_at)); created.dataset.label = 'Creada';
+        const state = node('td'); state.dataset.label = 'Ficha'; state.append(node('span', 'Incompleta', 'ed-badge ed-badge--new'));
         const action = node('td'); action.dataset.label = 'Acciones';
         const button = node('button', 'Retirar cuenta', 'button-danger'); button.type = 'button';
         button.addEventListener('click', async () => {
@@ -230,8 +232,9 @@ export async function initializeMfsAdmin() {
           try { await client.deletePendingAccount(account.public_id); await Promise.all([summary(), loadPendingAccounts()]); feedback(pendingMessage, 'Cuenta retirada.', 'success'); }
           catch (error) { button.disabled = false; fail(error, pendingMessage); }
         });
-        action.append(button); row.append(email, created, action); pendingAccounts.append(row);
+        action.append(button); row.append(email, created, state, action); pendingAccounts.append(row);
       }
+      if (pendingPanel && items.length) pendingPanel.open = true;
       feedback(pendingMessage, items.length ? '' : 'No hay cuentas pendientes de ficha.');
     } catch (error) { pendingAccounts.replaceChildren(); pendingCount.textContent = 'No disponible'; fail(error, pendingMessage); }
   }
