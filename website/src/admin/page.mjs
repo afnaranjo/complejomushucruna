@@ -75,7 +75,7 @@ function layout(page, content, script = '/assets/admin/admin.js?v=20260925-perf-
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' blob:; media-src blob:; font-src 'self'; connect-src ${connectSources}; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="admin-api-base" content="${api}">
 <link rel="icon" href="/assets/finados/favicon-finados.png">
-<link rel="stylesheet" href="/assets/admin/admin.css?v=20260926-30">
+<link rel="stylesheet" href="/assets/admin/admin.css?v=20260926-31">
 <script type="module" src="${script}"></script>
 </head><body class="admin-page">
 <a class="skip-link" href="#contenido">Ir al contenido</a>
@@ -170,8 +170,8 @@ ${select('province', 'Provincia', ecuadorProvinces)}</div>
 </dialog>${mediaRecordDialog()}</main></div>`, ADMIN_MEDIOS_SCRIPT);
 }
 
-const ADMIN_CREADORAS_SCRIPT = '/assets/admin/admin-creadoras.js?v=20260926-creadoras-12';
-export const ADMIN_CREADORAS_EDICION_SCRIPT = '/assets/admin/admin-creadoras-edicion.js?v=20260926-creadoras-edicion-1';
+const ADMIN_CREADORAS_SCRIPT = '/assets/admin/admin-creadoras.js?v=20260926-creadoras-13';
+export const ADMIN_CREADORAS_EDICION_SCRIPT = '/assets/admin/admin-creadoras-edicion.js?v=20260926-creadoras-edicion-2';
 const ADMIN_MEDIOS_SCRIPT = '/assets/admin/admin-medios.js?v=20260925-admin-medios-27';
 const RADIO_GENRE_OPTIONS = ['Noticias e información', 'Musical variada', 'Popular y tropical', 'Folclórica y andina', 'Juvenil y pop', 'Romántica', 'Religiosa', 'Deportiva', 'Comunitaria', 'Otro'];
 const PROVINCE_OPTIONS = ['Azuay', 'Bolívar', 'Cañar', 'Carchi', 'Chimborazo', 'Cotopaxi', 'El Oro', 'Esmeraldas', 'Galápagos', 'Guayas', 'Imbabura', 'Loja', 'Los Ríos', 'Manabí', 'Morona Santiago', 'Napo', 'Orellana', 'Pastaza', 'Pichincha', 'Santa Elena', 'Santo Domingo de los Tsáchilas', 'Sucumbíos', 'Tungurahua', 'Zamora Chinchipe'];
@@ -521,9 +521,8 @@ export function renderAdminCreadorasPage(page) {
 <p class="feedback" data-admin-feedback role="status" aria-live="polite" aria-atomic="true">Cargando calendario…</p>
 <div class="calendar-bar">
 <div class="calendar-views" role="group" aria-label="Vista del calendario">
-<button type="button" class="button-quiet" data-view="weeks" aria-pressed="true">Semanas</button>
 <button type="button" class="button-quiet" data-view="day" aria-pressed="false">Día</button>
-<button type="button" class="button-quiet" data-view="week" aria-pressed="false">Horario semanal</button>
+<button type="button" class="button-quiet" data-view="week" aria-pressed="true">Horario semanal</button>
 <button type="button" class="button-quiet" data-view="month" aria-pressed="false">Mes</button>
 </div>
 <div class="calendar-move">
@@ -537,16 +536,14 @@ export function renderAdminCreadorasPage(page) {
 <div class="calendar-layout">
 <aside class="calendar-people" aria-labelledby="creadoras-title">
 <h2 id="creadoras-title">Creadoras</h2>
-<p>Arrastra un nombre a una semana para agendarle un turno, o tócalo. Suéltalo sobre un turno para sumarlo a esa misma caja. «Ver ficha» abre sus datos.</p>
+<p>Arrastra un nombre a una hora del calendario para agendarle un turno, o tócalo. Suéltalo sobre una caja para sumarlo a ese mismo turno. «Ver ficha» abre sus datos.</p>
 <ul data-creadora-list></ul>
 </aside>
 <section class="calendar-board" aria-label="Calendario de turnos">
-<p class="calendar-help" data-weeks-help>Como el Calendario de medios: cada columna es una semana. Arrastra un turno a otra semana (conserva el día y la hora) o usa «+ Agregar a esta semana». Toca un turno para abrirlo, cambiar el día o la hora, duplicarlo o copiarlo.</p>
-<div class="mc-weeks-wrap" data-calendar-weeks></div>
-<div class="calendar-grid" data-calendar-grid hidden></div>
+<div class="calendar-grid" data-calendar-grid></div>
 <div class="calendar-month" data-calendar-month hidden></div>
-<p class="calendar-help" data-hour-help hidden>Arrastra una caja para moverla de día u hora y su borde de abajo para cambiar la hora de fin. Tócala para abrirla, duplicarla o copiarla. Un mismo turno puede reunir a varias creadoras en una sola caja.</p>
-<p class="calendar-clipboard" data-clipboard hidden>Copiaste <strong data-clipboard-label></strong>. <span data-clipboard-hint>Toca una hora del calendario para pegarlo.</span> <button type="button" class="button-quiet" data-clipboard-cancel>Cancelar</button></p>
+<p class="calendar-help">Arrastra una caja: viaja con el puntero y la sombra punteada marca el día y la hora donde va a caer. Arrastra su borde de abajo para cambiar la hora de fin. Tócala para abrirla, duplicarla o copiarla. Un mismo turno puede reunir a varias creadoras en una sola caja.</p>
+<p class="calendar-clipboard" data-clipboard hidden>Copiaste <strong data-clipboard-label></strong>. Toca una hora del calendario para pegarlo. <button type="button" class="button-quiet" data-clipboard-cancel>Cancelar</button></p>
 </section>
 </div>
 <details class="admin-panel-section creadora-indicators" aria-labelledby="indicadores-title">

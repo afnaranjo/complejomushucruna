@@ -6,36 +6,12 @@ import { join } from 'node:path';
 
 import { buildSite } from '../scripts/build.mjs';
 import { pages } from '../src/pages.mjs';
-import { campaignWeeks, CAMPAIGN_START, contentPayload, createCreadoraAdminClient, rangeLabel, shiftToWeek, shiftView, shiftsInWeek, viewRange, WEEKS_SHOWN } from '../src/admin/admin-creadoras.js';
+import { contentPayload, createCreadoraAdminClient, VIEWS } from '../src/admin/admin-creadoras.js';
 import { ecuadorStamp, EDIT_TOTALS, filterEditing, itemWhen } from '../src/admin/admin-creadoras-edicion.js';
 
-test('Creadoras se ve por semanas, como el Calendario de medios', () => {
-  // Siete semanas desde la primera de campaña, de lunes a domingo.
-  const range = viewRange('weeks', CAMPAIGN_START);
-  assert.equal(range.days.length, WEEKS_SHOWN * 7);
-  assert.deepEqual([range.from, range.to], ['2026-09-21', '2026-11-09']);
-  assert.equal(viewRange('weeks', '2026-09-24').from, '2026-09-21', 'cualquier día arranca en el lunes de su semana');
-  assert.equal(shiftView('weeks', '2026-09-21', 1), '2026-09-28');
-  assert.equal(shiftView('weeks', '2026-09-21', -1), '2026-09-14');
-  assert.match(rangeLabel('weeks', CAMPAIGN_START), /^21 de septiembre al 8 de noviembre de 2026$/);
-
-  const weeks = campaignWeeks(CAMPAIGN_START);
-  assert.deepEqual(weeks.map(week => week.name), ['Semana 1', 'Semana 2', 'Semana 3', 'Semana 4', 'Semana 5', 'Semana 6', 'Semana 7']);
-  assert.deepEqual([weeks[5].start, weeks[5].end], ['2026-10-26', '2026-11-01']);
-  assert.equal(campaignWeeks('2026-09-14', 1)[0].name, 'Antes de la campaña');
-
-  // Cada semana muestra sus turnos en orden de día y hora; el domingo es de su semana.
-  const shifts = [
-    { public_id: 'b', starts_at: '2026-09-27 18:00', ends_at: '2026-09-27 20:00' },
-    { public_id: 'a', starts_at: '2026-09-22 09:00', ends_at: '2026-09-22 12:00' },
-    { public_id: 'c', starts_at: '2026-09-28 09:00', ends_at: '2026-09-28 10:00' },
-  ];
-  assert.deepEqual(shiftsInWeek(shifts, '2026-09-21').map(shift => shift.public_id), ['a', 'b']);
-  assert.deepEqual(shiftsInWeek(shifts, '2026-09-28').map(shift => shift.public_id), ['c']);
-
-  // Arrastrar a otra semana conserva el día de la semana, la hora y la duración.
-  assert.deepEqual(shiftToWeek(shifts[0], '2026-10-12'), { starts_at: '2026-10-18 18:00', ends_at: '2026-10-18 20:00' });
-  assert.deepEqual(shiftToWeek(shifts[1], '2026-09-14'), { starts_at: '2026-09-15 09:00', ends_at: '2026-09-15 12:00' });
+test('Creadoras se queda con el horario por horas, sin la vista por semanas', () => {
+  assert.deepEqual(Object.keys(VIEWS), ['day', 'week', 'month']);
+  assert.equal(VIEWS.week, 'Horario semanal');
 });
 
 test('el contenido del turno dice de qué guion salió, o que es creado nuevo', () => {
@@ -97,6 +73,6 @@ test('Creadoras despliega Creadoras y Edición en el menú, y Edición se public
   const panel = await readFile(join(output, 'admin/panel/index.html'), 'utf8');
   assert.match(panel, /aria-controls="admin-nav-creadoras">[\s\S]*?<div class="admin-nav-children" id="admin-nav-creadoras" data-nav-children hidden>/);
   const bundle = await readFile(join(output, 'assets/admin/admin-creadoras-edicion.js'), 'utf8');
-  assert.match(bundle, /from '\.\/admin-creadoras\.js\?v=20260926-creadoras-12'/);
+  assert.match(bundle, /from '\.\/admin-creadoras\.js\?v=20260926-creadoras-13'/);
   assert.match(bundle, /const LOCAL_API = null;/);
 });

@@ -226,11 +226,16 @@ test('la sección de creadoras se publica con su calendario, su bitácora y su e
   assert.match(page, /Cambios del calendario/);
   assert.match(page, /noindex, nofollow, noarchive/);
   // La semana viene marcada de entrada.
-  // Se abre por semanas, como el Calendario de medios; las vistas por horas siguen disponibles.
-  assert.match(page, /data-view="weeks" aria-pressed="true"/);
-  for (const view of ['day', 'week', 'month']) assert.match(page, new RegExp(`data-view="${view}" aria-pressed="false"`));
-  assert.match(page, /data-calendar-weeks/);
+  // Se abre en el horario semanal: es la vista que usa coordinación.
+  assert.match(page, /data-view="week" aria-pressed="true"/);
+  assert.doesNotMatch(page, /data-view="weeks"|data-calendar-weeks/);
   assert.match(page, /data-content-script/);
+  // Las cajas no llevan el cuadro de ayuda del navegador, que tapaba el arrastre.
+  const script = await readFile(new URL('../src/admin/admin-creadoras.js', import.meta.url), 'utf8');
+  assert.doesNotMatch(script, /box\.title\s*=/);
+  for (const marker of ['shift-box--floating', "'shift-slot'", 'showSlot(canvas']) assert.ok(script.includes(marker), marker);
+  const css = await readFile(join(output, 'assets/admin/admin.css'), 'utf8');
+  for (const marker of ['.shift-slot', '.shift-box--floating', '[data-admin-creadoras] .calendar-canvas[data-over=true]']) assert.ok(css.includes(marker), marker);
 
   // Aparece en el menú administrativo, después de Emprendedores.
   const order = [...page.matchAll(/class="admin-nav-link(?: admin-nav-link--child)?" href="([^"]+)"/g)].map(match => match[1]);

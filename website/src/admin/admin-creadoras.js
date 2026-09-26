@@ -8,10 +8,7 @@ const LOCAL_API = 'http://127.0.0.1:4174/api';
 export const CREADORA_STATUSES = Object.freeze(['Nuevo', 'Activa', 'En pausa', 'Retirada']);
 export const NETWORK_LABELS = Object.freeze({ tiktok: 'TikTok', instagram: 'Instagram', facebook: 'Facebook', youtube: 'YouTube', otro: 'Otra red' });
 export const ORIGIN_LABELS = Object.freeze({ coordinacion: 'Coordinación', cuenta: 'Cuenta propia' });
-export const VIEWS = Object.freeze({ weeks: 'Semanas', day: 'Día', week: 'Horario semanal', month: 'Mes' });
-/** La vista por semanas, como el Calendario de medios: arranca en la primera semana de campaña. */
-export const CAMPAIGN_START = '2026-09-21';
-export const WEEKS_SHOWN = 7;
+export const VIEWS = Object.freeze({ day: 'Día', week: 'Horario semanal', month: 'Mes' });
 export const CONTENT_KINDS = Object.freeze({ video: 'Video', live: 'En vivo', historia: 'Historia', foto: 'Fotografía', otro: 'Otro' });
 export const ATTENDANCE_LABELS = Object.freeze({ yes: 'Asistió', no: 'No asistió' });
 /** El calendario muestra de 6:00 a 24:00 y las cajas se acomodan de cuarto en cuarto de hora. */
@@ -133,11 +130,6 @@ export function monthStart(key) {
 
 /** Los días que dibuja cada vista y el rango que hay que pedirle al servidor. */
 export function viewRange(view, anchor) {
-  if (view === 'weeks') {
-    const start = weekStart(anchor);
-    const days = Array.from({ length: WEEKS_SHOWN * 7 }, (_, index) => addDays(start, index));
-    return { days, from: start, to: addDays(start, WEEKS_SHOWN * 7) };
-  }
   if (view === 'day') return { days: [anchor], from: anchor, to: addDays(anchor, 1) };
   if (view === 'week') {
     const start = weekStart(anchor);
@@ -156,7 +148,6 @@ export function viewRange(view, anchor) {
 }
 
 export function shiftView(view, anchor, direction) {
-  if (view === 'weeks') return addDays(weekStart(anchor), direction * 7);
   if (view === 'day') return addDays(anchor, direction);
   if (view === 'week') return addDays(weekStart(anchor), direction * 7);
   const date = dateFromKey(monthStart(anchor));
@@ -165,11 +156,6 @@ export function shiftView(view, anchor, direction) {
 
 export function rangeLabel(view, anchor) {
   const { days } = viewRange(view, anchor);
-  if (view === 'weeks') {
-    const first = dateFromKey(days[0]);
-    const last = dateFromKey(days[days.length - 1]);
-    return `${first.getDate()} de ${MONTH_NAMES[first.getMonth()]} al ${last.getDate()} de ${MONTH_NAMES[last.getMonth()]} de ${last.getFullYear()}`;
-  }
   if (view === 'day') {
     const date = dateFromKey(anchor);
     return `${DAY_NAMES[(date.getDay() + 6) % 7]} ${date.getDate()} de ${MONTH_NAMES[date.getMonth()]} de ${date.getFullYear()}`;
@@ -190,30 +176,6 @@ export function dayLabel(key, short = false) {
   const date = dateFromKey(key);
   const name = DAY_NAMES[(date.getDay() + 6) % 7];
   return short ? `${name.slice(0, 3)} ${date.getDate()}` : `${name} ${date.getDate()}`;
-}
-
-/** Las columnas de la vista por semanas: nombre, lunes y domingo de cada una. */
-export function campaignWeeks(anchor, count = WEEKS_SHOWN) {
-  const first = weekStart(anchor);
-  return Array.from({ length: count }, (_, index) => {
-    const start = addDays(first, index * 7);
-    const number = Math.round((dateFromKey(start) - dateFromKey(CAMPAIGN_START)) / 86400000 / 7) + 1;
-    return { start, end: addDays(start, 6), name: number >= 1 ? `Semana ${number}` : 'Antes de la campaña' };
-  });
-}
-
-/** Los turnos que caen en una semana, en orden de día y hora. */
-export function shiftsInWeek(shifts, start) {
-  const end = addDays(start, 7);
-  return shifts.filter(shift => { const day = String(shift.starts_at).slice(0, 10); return day >= start && day < end; })
-    .sort((a, b) => String(a.starts_at).localeCompare(String(b.starts_at)));
-}
-
-/** Llevar un turno a otra semana conserva el día de la semana y la hora. */
-export function shiftToWeek(shift, weekStartKey) {
-  const day = String(shift.starts_at).slice(0, 10);
-  const offset = Math.round((dateFromKey(day) - dateFromKey(weekStart(day))) / 86400000);
-  return movedShift(shift, addDays(weekStartKey, offset), minutesOf(shift.starts_at));
 }
 
 export function hourRows() {
@@ -547,14 +509,9 @@ export async function initializeAdminCreadoras() {
   const feedback = (message, kind = '') => { status.textContent = message; status.dataset.error = String(kind === 'error'); status.dataset.success = String(kind === 'success'); };
   const fail = error => { if (error.status === 401) { location.replace('/admin/'); return; } feedback(error.message, 'error'); };
 
-  const today = dayKey(new Date());
-  // Como el Calendario de medios: se abre por semanas desde la primera semana de campaña.
-  const state = { view: 'weeks', anchor: today >= addDays(CAMPAIGN_START, WEEKS_SHOWN * 7) ? today : CAMPAIGN_START, shifts: [], creadoras: [], log: [], indicators: { items: [], totals: {} }, selected: '', clipboard: null };
+  const state = { view: 'week', anchor: dayKey(new Date()), shifts: [], creadoras: [], log: [], indicators: { items: [], totals: {} }, selected: '', clipboard: null };
   const grid = query('[data-calendar-grid]');
   const monthGrid = query('[data-calendar-month]');
-  const weeksBoard = query('[data-calendar-weeks]');
-  const hourHelp = query('[data-hour-help]');
-  const weeksHelp = query('[data-weeks-help]');
   const list = query('[data-creadora-list]');
   const logList = query('[data-calendar-log]');
   const label = query('[data-calendar-label]');
@@ -631,7 +588,8 @@ export async function initializeAdminCreadoras() {
         openShiftDialog(null, { creadora: creadora.public_id });
       });
       item.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); item.click(); } });
-      item.addEventListener('dragstart', event => { event.dataTransfer.setData('text/plain', `creadora:${creadora.public_id}`); event.dataTransfer.effectAllowed = 'copy'; });
+      item.addEventListener('dragstart', event => { draggingName = color.edge; event.dataTransfer.setData('text/plain', `creadora:${creadora.public_id}`); event.dataTransfer.effectAllowed = 'copy'; });
+      item.addEventListener('dragend', () => { draggingName = false; hideSlot(); });
       list.append(item);
     }
   }
@@ -666,6 +624,31 @@ export async function initializeAdminCreadoras() {
   };
   const hideGhost = () => { ghost.hidden = true; };
 
+  // Como en el Calendario de medios: mientras se arrastra, la caja viaja con el puntero y una sombra
+  // punteada marca en la columna exacta dónde va a caer, con su horario.
+  const slot = node('div', '', 'shift-slot');
+  let overCanvas = null;
+  let draggingName = false;
+  function showSlot(canvas, shift, edge = '') {
+    const geometry = shiftGeometry(shift, canvas.dataset.day);
+    if (geometry === null) { hideSlot(); return; }
+    if (slot.parentElement !== canvas) canvas.append(slot);
+    slot.style.top = `${geometry.top}%`;
+    slot.style.height = `${geometry.height}%`;
+    if (edge) slot.style.setProperty('--shift-edge', edge);
+    slot.textContent = shiftLabel(shift);
+    if (overCanvas !== canvas) {
+      if (overCanvas) delete overCanvas.dataset.over;
+      overCanvas = canvas;
+      canvas.dataset.over = 'true';
+    }
+  }
+  function hideSlot() {
+    slot.remove();
+    if (overCanvas) delete overCanvas.dataset.over;
+    overCanvas = null;
+  }
+
   function canvasAt(x, y) {
     const element = document.elementFromPoint(x, y);
     return element?.closest?.('[data-day]') ?? null;
@@ -698,7 +681,7 @@ export async function initializeAdminCreadoras() {
       dots.append(node('b', `${members.length} creadoras`));
       box.append(dots);
     }
-    box.append(node('strong', shift.name), node('span', shiftLabel(shift)));
+    box.append(node('strong', shift.name), node('span', shiftLabel(shift), 'shift-box__time'));
     if (shift.place) box.append(node('small', shift.place));
     const marks = [attendanceMark(shift)];
     if (shift.content_count) marks.push(`${shift.content_count} ${shift.content_count === 1 ? 'pieza' : 'piezas'}`);
@@ -735,41 +718,64 @@ export async function initializeAdminCreadoras() {
       box.style.width = `calc(${(1 / columns) * 100}% - .4rem)`;
       if (columns > 1) box.dataset.shared = 'true';
 
-      // Mover: la caja sigue al puntero y la etiqueta canta la hora hasta que se suelta.
+      // Mover: la caja viaja con el puntero y la sombra marca dónde cae, con su nuevo horario.
       box.addEventListener('pointerdown', event => {
         if (event.button !== 0 || event.target.classList.contains('shift-box__handle')) return;
         const origin = { x: event.clientX, y: event.clientY };
         let dragging = false;
         let target = null;
+        let floating = null;
+        let grab = { x: 0, y: 0 };
         box.setPointerCapture(event.pointerId);
-        const move = moved => {
-          if (!dragging && Math.hypot(moved.clientX - origin.x, moved.clientY - origin.y) < 5) return;
+        const start = () => {
           dragging = true;
           box.dataset.dragging = 'true';
+          const rect = box.getBoundingClientRect();
+          grab = { x: origin.x - rect.left, y: origin.y - rect.top };
+          floating = box.cloneNode(true);
+          floating.removeAttribute('data-shift');
+          floating.removeAttribute('data-dragging');
+          floating.classList.add('shift-box--floating');
+          floating.style.left = '0';
+          floating.style.top = '0';
+          floating.style.width = `${rect.width}px`;
+          floating.style.height = `${rect.height}px`;
+          document.body.append(floating);
+          document.body.dataset.shiftDragging = 'true';
+        };
+        const move = moved => {
+          if (!dragging && Math.hypot(moved.clientX - origin.x, moved.clientY - origin.y) < 5) return;
+          if (!dragging) start();
+          floating.style.transform = `translate(${moved.clientX - grab.x}px, ${moved.clientY - grab.y}px)`;
+          const time = floating.querySelector('.shift-box__time');
           const canvas = canvasAt(moved.clientX, moved.clientY);
-          if (!canvas) { showGhost('Suelta dentro del calendario', moved.clientX, moved.clientY); target = null; return; }
-          const minutes = minutesIn(canvas, moved.clientY);
+          if (!canvas) { hideSlot(); target = null; if (time) time.textContent = 'Suelta dentro del calendario'; return; }
+          // La hora sale del borde de arriba de la caja, no del puntero: cae donde se ve.
+          const minutes = minutesIn(canvas, moved.clientY - grab.y);
           target = { key: canvas.dataset.day, minutes };
-          showGhost(dragPreview(shift, target.key, minutes), moved.clientX, moved.clientY);
+          const next = movedShift(shift, target.key, minutes);
+          showSlot(canvas, next, color.edge);
+          if (time) time.textContent = `${dayLabel(target.key, true)} · ${shiftLabel(next)}`;
+        };
+        const cleanup = () => {
+          box.removeEventListener('pointermove', move);
+          box.removeEventListener('pointerup', end);
+          box.removeEventListener('pointercancel', stop);
+          delete box.dataset.dragging;
+          delete document.body.dataset.shiftDragging;
+          floating?.remove();
+          hideSlot();
+          hideGhost();
         };
         const end = async () => {
-          box.removeEventListener('pointermove', move);
-          box.removeEventListener('pointerup', end);
-          box.removeEventListener('pointercancel', stop);
-          delete box.dataset.dragging;
-          hideGhost();
+          cleanup();
           if (!dragging) { editShift(shift); return; }
           if (!target) { renderGrid(); return; }
-          await save(() => client.updateShift(shift.public_id, movedShift(shift, target.key, target.minutes)));
+          const next = movedShift(shift, target.key, target.minutes);
+          if (next.starts_at === shift.starts_at && next.ends_at === shift.ends_at) { renderGrid(); return; }
+          await save(() => client.updateShift(shift.public_id, next));
         };
-        const stop = () => {
-          box.removeEventListener('pointermove', move);
-          box.removeEventListener('pointerup', end);
-          box.removeEventListener('pointercancel', stop);
-          delete box.dataset.dragging;
-          hideGhost();
-          renderGrid();
-        };
+        const stop = () => { cleanup(); renderGrid(); };
         box.addEventListener('pointermove', move);
         box.addEventListener('pointerup', end);
         box.addEventListener('pointercancel', stop);
@@ -791,7 +797,8 @@ export async function initializeAdminCreadoras() {
           const next = resizedShift(shift, minutes);
           const geometry = shiftGeometry({ ...shift, ends_at: next.ends_at }, key);
           if (geometry) box.style.height = `${geometry.height}%`;
-          box.querySelector('span').textContent = shiftLabel(next);
+          const time = box.querySelector('.shift-box__time');
+          if (time) time.textContent = shiftLabel(next);
           showGhost(`${shift.name} · ${shiftLabel(next)}`, moved.clientX, moved.clientY);
         };
         const finish = async () => {
@@ -817,7 +824,8 @@ export async function initializeAdminCreadoras() {
       box.addEventListener('click', event => { event.stopPropagation(); editShift(shift); });
     }
     box.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); editShift(shift); } });
-    box.title = `${shift.name} · ${shiftLabel(shift)}${shift.place ? ` · ${shift.place}` : ''}\nArrastra para mover, o el borde de abajo para cambiar la hora de fin. Suelta aquí un nombre de la lista para sumarlo al turno.`;
+    // Sin «title»: el cuadro del navegador tapaba la caja mientras se arrastraba.
+    box.setAttribute('aria-label', `${shift.name}, ${dayLabel(String(shift.starts_at).slice(0, 10))}, ${shiftLabel(shift)}${shift.place ? `, ${shift.place}` : ''}. Enter para abrir.`);
     return box;
   }
 
@@ -836,13 +844,9 @@ export async function initializeAdminCreadoras() {
 
   function renderGrid() {
     const { days } = viewRange(state.view, state.anchor);
-    grid.hidden = state.view === 'month' || state.view === 'weeks';
+    grid.hidden = state.view === 'month';
     monthGrid.hidden = state.view !== 'month';
-    if (weeksBoard) weeksBoard.hidden = state.view !== 'weeks';
-    if (hourHelp) hourHelp.hidden = state.view === 'weeks';
-    if (weeksHelp) weeksHelp.hidden = state.view !== 'weeks';
     label.textContent = rangeLabel(state.view, state.anchor);
-    if (state.view === 'weeks') { renderWeeks(); return; }
     if (state.view === 'month') { renderMonth(days); return; }
     grid.replaceChildren();
     grid.style.setProperty('--calendar-days', String(days.length));
@@ -855,9 +859,15 @@ export async function initializeAdminCreadoras() {
       const canvas = node('div', undefined, 'calendar-canvas');
       canvas.dataset.day = key;
       for (const hour of hourRows()) canvas.append(node('span', undefined, 'calendar-line'));
-      canvas.addEventListener('dragover', event => { event.preventDefault(); event.dataTransfer.dropEffect = 'move'; });
       const minutesAt = event => minutesFromOffset((event.clientY - canvas.getBoundingClientRect().top) / canvas.getBoundingClientRect().height);
-      canvas.addEventListener('drop', event => drop(event, key, minutesAt(event)));
+      canvas.addEventListener('dragover', event => {
+        event.preventDefault();
+        event.dataTransfer.dropEffect = 'move';
+        // Al arrastrar un nombre de la lista, la sombra muestra el turno de 3 horas que se va a crear.
+        if (draggingName) showSlot(canvas, defaultShift(key, minutesAt(event)), draggingName);
+      });
+      canvas.addEventListener('dragleave', event => { if (!canvas.contains(event.relatedTarget)) hideSlot(); });
+      canvas.addEventListener('drop', event => { hideSlot(); return drop(event, key, minutesAt(event)); });
       canvas.addEventListener('click', async event => {
         if (event.target !== canvas && !event.target.classList.contains('calendar-line')) return;
         if (!state.creadoras.length) { feedback('Primero agrega una creadora.', 'error'); return; }
@@ -878,112 +888,6 @@ export async function initializeAdminCreadoras() {
       column.append(canvas);
       grid.append(column);
     }
-  }
-
-  /**
-   * La vista por semanas, igual que el Calendario de medios: una columna por semana, los nombres a
-   * la izquierda para arrastrarlos y «+ Agregar» en cada semana. Cada tarjeta es un turno con su día
-   * y su hora; se arrastra a otra semana (conserva el día y la hora) o se toca para abrirlo.
-   */
-  function renderWeeks() {
-    if (!weeksBoard) return;
-    weeksBoard.replaceChildren();
-    const board = node('div', undefined, 'mc-weeks cw-weeks');
-    const weeks = campaignWeeks(state.anchor);
-    board.style.setProperty('--cw-weeks', String(weeks.length));
-    for (const week of weeks) {
-      const column = node('div', undefined, 'mc-week');
-      if (today >= week.start && today <= week.end) column.dataset.current = 'true';
-      const head = node('div', undefined, 'mc-week__head');
-      const items = shiftsInWeek(state.shifts, week.start);
-      head.append(node('span', week.name), node('strong', `${dayLabel(week.start, true)} – ${dayLabel(week.end, true)}`),
-        node('small', items.length ? `${items.length} ${items.length === 1 ? 'turno' : 'turnos'}` : 'Sin turnos todavía'));
-      const body = node('div', undefined, 'mc-week__body');
-      let lastDay = '';
-      for (const shift of items) {
-        const day = String(shift.starts_at).slice(0, 10);
-        if (day !== lastDay) { body.append(node('p', dayLabel(day), 'cw-day')); lastDay = day; }
-        body.append(weekCard(shift));
-      }
-      body.append(node('div', 'Suelta aquí un nombre o un turno', 'mc-drop'));
-      const add = node('button', state.clipboard ? 'Pegar aquí' : '+ Agregar a esta semana', 'button-quiet mc-small mc-week__add');
-      add.type = 'button';
-      add.addEventListener('click', async () => {
-        if (!state.creadoras.length) { feedback('Primero agrega una creadora.', 'error'); return; }
-        if (state.clipboard) {
-          const copy = state.clipboard;
-          state.clipboard = null;
-          showClipboard();
-          const moved = shiftToWeek(copy, week.start);
-          await save(() => client.createShift(pastedShift(copy, moved.starts_at.slice(0, 10), minutesOf(copy.starts_at))));
-          return;
-        }
-        openShiftDialog(null, { day: today >= week.start && today <= week.end ? today : week.start });
-      });
-      body.append(add);
-      column.addEventListener('dragover', event => { event.preventDefault(); column.dataset.over = 'true'; });
-      column.addEventListener('dragleave', event => { if (!column.contains(event.relatedTarget)) column.dataset.over = 'false'; });
-      column.addEventListener('drop', async event => {
-        event.preventDefault();
-        column.dataset.over = 'false';
-        const payload = String(event.dataTransfer?.getData('text/plain') ?? '');
-        if (payload.startsWith('creadora:')) {
-          // Soltar un nombre abre el turno ya con esa creadora y esa semana: solo falta el día y la hora.
-          openShiftDialog(null, { creadora: payload.slice(9), day: today >= week.start && today <= week.end ? today : week.start });
-          return;
-        }
-        if (!payload.startsWith('shift:')) return;
-        const shift = state.shifts.find(item => item.public_id === payload.slice(6));
-        if (!shift || String(shift.starts_at).slice(0, 10) >= week.start && String(shift.starts_at).slice(0, 10) <= week.end) return;
-        await save(() => client.updateShift(shift.public_id, shiftToWeek(shift, week.start)));
-      });
-      column.append(head, body);
-      board.append(column);
-    }
-    weeksBoard.append(board);
-  }
-
-  /** La tarjeta de un turno en la vista por semanas: color de la creadora, día, hora y lo que va hecho. */
-  function weekCard(shift) {
-    const members = shiftMembers(shift);
-    const color = creadoraColor(members[0]?.public_id ?? shift.creadora);
-    const card = node('article', undefined, 'cw-shift');
-    card.dataset.shift = shift.public_id;
-    card.tabIndex = 0;
-    card.draggable = true;
-    card.style.setProperty('--shift-soft', color.soft);
-    card.style.setProperty('--shift-edge', color.edge);
-    card.style.setProperty('--shift-ink', color.ink);
-    const time = node('span', `${dayLabel(String(shift.starts_at).slice(0, 10), true)} · ${shiftLabel(shift)}`, 'cw-shift__time');
-    card.append(time);
-    if (members.length > 1) {
-      const dots = node('span', undefined, 'shift-box__people');
-      for (const member of members) { const dot = node('i'); dot.style.background = creadoraColor(member.public_id).edge; dot.title = member.name; dots.append(dot); }
-      card.append(dots);
-    }
-    card.append(node('strong', shift.name));
-    if (shift.place) card.append(node('small', shift.place));
-    const marks = [attendanceMark(shift), shift.content_count ? `${shift.content_count} ${shift.content_count === 1 ? 'pieza' : 'piezas'}` : '', scriptsMark(shift)].filter(Boolean);
-    if (marks.length) card.append(node('small', marks.join(' · '), 'shift-box__marks'));
-    card.title = `${shift.name} · ${shiftLabel(shift)}\nTócalo para abrirlo o arrástralo a otra semana. Suelta aquí un nombre para sumarlo al turno.`;
-    card.addEventListener('click', () => editShift(shift));
-    card.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); editShift(shift); } });
-    card.addEventListener('dragstart', event => { event.dataTransfer.setData('text/plain', `shift:${shift.public_id}`); event.dataTransfer.effectAllowed = 'move'; card.dataset.dragging = 'true'; });
-    card.addEventListener('dragend', () => { delete card.dataset.dragging; });
-    // Soltar un nombre de la lista sobre la tarjeta la suma a ese mismo turno.
-    card.addEventListener('dragover', event => { event.preventDefault(); event.stopPropagation(); card.dataset.dropping = 'true'; });
-    card.addEventListener('dragleave', () => { delete card.dataset.dropping; });
-    card.addEventListener('drop', async event => {
-      const payload = String(event.dataTransfer?.getData('text/plain') ?? '');
-      delete card.dataset.dropping;
-      if (!payload.startsWith('creadora:')) return;
-      event.preventDefault();
-      event.stopPropagation();
-      const joining = payload.slice(9);
-      if (members.some(member => member.public_id === joining)) { feedback('Esa creadora ya está en este turno.', 'error'); return; }
-      await save(() => client.updateShift(shift.public_id, { creadoras: [...members.map(member => member.public_id), joining] }));
-    });
-    return card;
   }
 
   function renderMonth(days) {
@@ -1041,7 +945,7 @@ export async function initializeAdminCreadoras() {
   }
   query('[data-calendar-previous]')?.addEventListener('click', async () => { state.anchor = shiftView(state.view, state.anchor, -1); await load(); });
   query('[data-calendar-next]')?.addEventListener('click', async () => { state.anchor = shiftView(state.view, state.anchor, 1); await load(); });
-  query('[data-calendar-today]')?.addEventListener('click', async () => { state.anchor = today; await load(); });
+  query('[data-calendar-today]')?.addEventListener('click', async () => { state.anchor = dayKey(new Date()); await load(); });
 
   const shiftDialog = query('[data-shift-dialog]');
   const shiftForm = shiftDialog?.querySelector('form');
@@ -1060,7 +964,6 @@ export async function initializeAdminCreadoras() {
   const contentForm = shiftDialog?.querySelector('[data-content-form]');
   const clipboardBar = query('[data-clipboard]');
   const clipboardLabel = query('[data-clipboard-label]');
-  const clipboardHint = query('[data-clipboard-hint]');
   const peopleList = shiftDialog?.querySelector('[data-shift-people-list]');
   const attendanceList = shiftDialog?.querySelector('[data-shift-attendance]');
   let editingShift = '';
@@ -1274,13 +1177,11 @@ export async function initializeAdminCreadoras() {
     if (!clipboardBar) return;
     clipboardBar.hidden = state.clipboard === null;
     if (state.clipboard && clipboardLabel) clipboardLabel.textContent = `${state.clipboard.name} · ${shiftLabel(state.clipboard)}`;
-    if (clipboardHint) clipboardHint.textContent = state.view === 'weeks' ? 'Toca «Pegar aquí» en la semana que quieras: queda el mismo día de la semana y la misma hora.' : 'Toca una hora del calendario para pegarlo.';
-    if (state.view === 'weeks') renderWeeks();
   }
 
   query('[data-clipboard-cancel]')?.addEventListener('click', () => { state.clipboard = null; showClipboard(); feedback(''); });
 
-  function openShiftDialog(shift, { creadora = '', creadoras = null, day = state.view === 'weeks' ? today : state.anchor, start = '09:00', end = '12:00', place = '', note = '' } = {}) {
+  function openShiftDialog(shift, { creadora = '', creadoras = null, day = state.anchor, start = '09:00', end = '12:00', place = '', note = '' } = {}) {
     if (!shiftForm) return;
     editingShift = shift?.public_id ?? '';
     openMembers = shift ? shiftMembers(shift) : [];
@@ -1407,7 +1308,7 @@ export async function initializeAdminCreadoras() {
     state.clipboard = { ...shift };
     shiftDialog.close();
     showClipboard();
-    feedback(state.view === 'weeks' ? 'Turno copiado. Toca «Pegar aquí» en otra semana.' : 'Turno copiado. Toca una hora del calendario para pegarlo.', 'success');
+    feedback('Turno copiado. Toca una hora del calendario para pegarlo.', 'success');
   });
 
   removeButton?.addEventListener('click', async () => {
