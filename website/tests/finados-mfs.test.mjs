@@ -118,7 +118,7 @@ test('Mushuc Freestyle aparece en el panel debajo de Creadoras', () => {
   const markup = admin.render(admin);
   const order = [...markup.matchAll(/class="admin-nav-link(?: admin-nav-link--child)?" href="([^"]+)"/g)].map(match => match[1]);
   assert.equal(order.indexOf('/admin/mfs/'), order.indexOf('/admin/creadoras/edicion/') + 1);
-  assert.equal(order.at(-1), '/admin/mfs/');
+  assert.equal(order.at(-1), '/admin/usuarios/', 'Usuarios cierra el menú, debajo de Mushuc Freestyle');
   assert.match(markup, /href="\/admin\/mfs\/" aria-current="page"/);
   assert.match(markup, /admin-mfs\.js\?v=/);
   assert.match(markup, /data-admin-restore/);

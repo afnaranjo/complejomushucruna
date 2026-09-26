@@ -42,7 +42,7 @@ $oldId = session_id();
 $result = $auth->login('admin', $secret, '192.0.2.1');
 same($adminId, $result['user']['id']);
 same('admin', $result['user']['username']);
-same('administrador', $result['user']['role']);
+same('Administración', $result['user']['role']);
 same(false, $oldId === session_id());
 same(false, $preLoginToken === $result['csrf']);
 same(true, strlen($result['csrf']) >= 64);

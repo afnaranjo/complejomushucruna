@@ -1,5 +1,5 @@
 import { isAllowedSiteOrigin, MIRROR_API_BASE, PRIMARY_API_BASE, resolveRuntimeOrigins } from '../finados/runtime-origins.mjs';
-import './sidebar.js?v=20260925-admin-sidebar-2';
+import './sidebar.js?v=20260926-admin-sidebar-3';
 import './campaign-banner.js?v=20260925-banner-2';
 
 const API = PRIMARY_API_BASE;

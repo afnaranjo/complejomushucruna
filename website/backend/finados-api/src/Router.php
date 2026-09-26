@@ -151,6 +151,22 @@ final class Router
                 }
                 return $this->json(200, ['authenticated' => true, ...$result], $headers);
             }
+            // El enlace con el que cada persona del panel elige su contraseña: no requiere sesión.
+            if ($path === '/api/admin-setup') {
+                if (!$this->config->isAllowedOrigin($origin) && $origin !== null) throw new Forbidden();
+                if ($method === 'GET') {
+                    if (array_diff(array_keys($query), ['token']) !== [] || !is_string($query['token'] ?? null)) throw new InvalidArgumentException();
+                    return $this->json(200, ['ok' => true, 'account' => $this->adminUsers()->setupPreview($query['token'])], $headers);
+                }
+                if ($method !== 'POST') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+                if ($origin === null || !is_string($ip) || inet_pton($ip) === false) throw new Forbidden();
+                $this->auth->verifyCsrf($token);
+                if ($query !== []) throw new InvalidArgumentException();
+                $body = $this->body($server, $rawBody, ['token', 'password']);
+                if (!is_string($body['token'] ?? null) || !is_string($body['password'] ?? null)) throw new InvalidArgumentException();
+                $this->adminUsers()->completeSetup($body['token'], $body['password'], $ip);
+                return $this->json(200, ['ok' => true], $headers);
+            }
             // Vocero authentication is deliberately isolated from the administrative guard and session.
             if ($path === '/api/vocero/auth/reset' && $method === 'POST') {
                 if (!$this->config->isAllowedOrigin($origin) || !is_string($ip) || inet_pton($ip) === false) throw new Forbidden();
@@ -272,6 +288,13 @@ final class Router
             if ($path === '/api/auth/logout' && $method === 'POST') {
                 $this->auth->logout();
                 return $this->json(200, ['ok' => true], $headers);
+            }
+            // Cada rol solo entra a sus módulos: el servidor lo exige en cada petición, no solo el menú.
+            if (!AdminUsers::allows($user, AdminUsers::moduleFor($path, $method))) {
+                return $this->error(403, 'forbidden_module', 'Tu rol no tiene acceso a esta sección.', $headers);
+            }
+            if (in_array($path, ['/api/admin-users', '/api/admin-roles', '/api/admin-activity'], true) || str_starts_with($path, '/api/admin-users/') || str_starts_with($path, '/api/admin-roles/')) {
+                return $this->adminAccess($method, $path, $query, $server, $rawBody, $ip, $user, $headers);
             }
             if ($path === '/api/panel' && $method === 'GET') {
                 if ($query !== []) throw new InvalidArgumentException();
@@ -487,6 +510,61 @@ final class Router
             error_log('Finados API request failed.');
             return $this->error(500, 'internal_error', 'No se pudo completar la solicitud.', $headers);
         }
+    }
+
+    private ?AdminUsers $adminUsersInstance = null;
+
+    private function adminUsers(): AdminUsers
+    {
+        return $this->adminUsersInstance ??= new AdminUsers($this->pdo, $this->audit);
+    }
+
+    /** Usuarios del panel, roles y actividad: solo quien tiene el módulo Usuarios llega aquí. */
+    private function adminAccess(string $method, string $path, array $query, array $server, string $rawBody, mixed $ip, array $user, array $headers): Response
+    {
+        $users = $this->adminUsers();
+        $ip = (string) $ip;
+        $modules = array_map(static fn (string $key, array $module): array => ['key' => $key, 'label' => $module['label'], 'description' => $module['description']], array_keys(AdminUsers::MODULES), AdminUsers::MODULES);
+        if ($path === '/api/admin-users') {
+            if ($method === 'GET') {
+                if ($query !== []) throw new InvalidArgumentException();
+                return $this->json(200, ['users' => $users->users(), 'roles' => $users->roles(), 'modules' => $modules, 'me' => $user['public_id']], $headers);
+            }
+            if ($method !== 'POST') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+            if ($query !== []) throw new InvalidArgumentException();
+            $body = $this->body($server, $rawBody, ['username', 'full_name', 'role']);
+            return $this->json(201, ['ok' => true, ...$users->createUser($body, $user['id'], $ip)], $headers);
+        }
+        if (preg_match('~^/api/admin-users/([a-f0-9]{32})$~D', $path, $parts)) {
+            if ($method !== 'PATCH') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+            if ($query !== []) throw new InvalidArgumentException();
+            $body = $this->body($server, $rawBody, ['full_name', 'role', 'active']);
+            return $this->json(200, ['ok' => true, 'user' => $users->updateUser($parts[1], $body, $user['id'], $ip)], $headers);
+        }
+        if (preg_match('~^/api/admin-users/([a-f0-9]{32})/enlace$~D', $path, $parts)) {
+            if ($method !== 'POST') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+            if ($query !== []) throw new InvalidArgumentException();
+            $this->body($server, $rawBody, []);
+            return $this->json(201, ['ok' => true, 'link' => $users->createSetupLink($parts[1], $user['id'], $ip)], $headers);
+        }
+        if ($path === '/api/admin-roles') {
+            if ($method !== 'POST') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+            if ($query !== []) throw new InvalidArgumentException();
+            $body = $this->body($server, $rawBody, ['name', 'description', 'modules']);
+            return $this->json(201, ['ok' => true, 'role' => $users->saveRole(null, $body, $user['id'], $ip)], $headers);
+        }
+        if (preg_match('~^/api/admin-roles/([a-f0-9]{32})$~D', $path, $parts)) {
+            if ($method !== 'PATCH') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+            if ($query !== []) throw new InvalidArgumentException();
+            $body = $this->body($server, $rawBody, ['name', 'description', 'modules']);
+            return $this->json(200, ['ok' => true, 'role' => $users->saveRole($parts[1], $body, $user['id'], $ip)], $headers);
+        }
+        if ($path === '/api/admin-activity') {
+            if ($method !== 'GET') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+            if (array_diff(array_keys($query), ['user']) !== [] || (isset($query['user']) && !is_string($query['user']))) throw new InvalidArgumentException();
+            return $this->json(200, ['activity' => $users->activity(150, (string) ($query['user'] ?? ''))], $headers);
+        }
+        return $this->error(404, 'not_found', 'Recurso no encontrado.', $headers);
     }
 
     // Mushuc Freestyle loads its classes only when one of its routes is used, so a fault there

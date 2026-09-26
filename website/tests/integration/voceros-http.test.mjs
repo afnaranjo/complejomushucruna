@@ -168,7 +168,7 @@ test('real HTTP isolates Voceros and admin, stores multipart photos, resets acce
   assert.equal((await request('/auth/login', { method: 'POST', body: stack.credentials, token: '' })).status, 403);
   assert.equal((await request('/auth/login', { method: 'POST', body: { username: 'admin', password: 'invalid' } })).status, 401);
   const login = await json(await request('/auth/login', { method: 'POST', body: stack.credentials }), 200);
-  assert.equal(login.user.role, 'administrador'); assert.notEqual(admin.cookie, anonymousCookie); assert.notEqual(login.csrf, oldCsrf);
+  assert.equal(login.user.role, 'Administración'); assert.notEqual(admin.cookie, anonymousCookie); assert.notEqual(login.csrf, oldCsrf);
   // Send admin cookie without capturing the separate anonymous vocero cookie.
   assert.equal((await fetch(stack.apiOrigin + '/api/vocero/profile', { headers: { Cookie: admin.cookie, Origin: stack.publicOrigin } })).status, 401);
   const list = await json(await request('/voceros'), 200);

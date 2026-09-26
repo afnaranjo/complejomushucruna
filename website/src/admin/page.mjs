@@ -8,17 +8,18 @@ import { apiBasesForCsp, LOCAL_API_BASE, PRIMARY_API_BASE } from '../finados/run
 const options = values => values.map(value => `<option value="${esc(value)}">${esc(value)}</option>`).join('');
 const select = (name, label, values) => `<label>${label}<select name="${name}"><option value="">Todos</option>${options(values)}</select></label>`;
 const ADMIN_FORMS = Object.freeze([
-  { route: '/admin/noticias/', label: 'Noticias', description: 'Tema central de la campaña', marker: 'N' },
-  { route: '/admin/panel/', label: 'Panel', description: 'Resumen de todo', marker: 'P' },
-  { route: '/admin/voceros/', label: 'Voceros', description: 'Registros y seguimiento', marker: 'V' },
-  { route: '/admin/medios/', label: 'Medios', description: 'Seguimiento, eventos, calendario y gira', marker: 'M', children: [{ route: '/admin/medios/', label: 'Seguimiento de medios', description: 'Registros, estado y pauta' }, { route: '/admin/medios/eventos/', label: 'Eventos', description: 'Cobertura por evento' }, { route: '/admin/medios/calendario/', label: 'Calendario de medios', description: 'Spots, calendario y reportes' }, { route: '/admin/medios/gira/', label: 'Gira de medios', description: 'Personas, medios y citas' }] },
-  { route: '/admin/produccion/', label: 'Producción', description: 'Activaciones y cronogramas', marker: 'Pr', children: [{ route: '/admin/produccion/activaciones/', label: 'Activaciones', description: 'Calendario de activaciones' }, { route: '/admin/produccion/sol/', label: 'Cronograma Sol', description: 'Calendario del escenario Sol' }, { route: '/admin/produccion/luna/', label: 'Cronograma Luna', description: 'Calendario del escenario Luna' }] },
-  { route: '/admin/emprendedores/', label: 'Emprendedores', description: 'De emprendedor a influencer', marker: 'E' },
-  { route: '/admin/creadoras/', label: 'Creadoras', description: 'Calendario y edición', marker: 'C', children: [{ route: '/admin/creadoras/', label: 'Creadoras', description: 'Calendario por semanas y turnos' }, { route: '/admin/creadoras/edicion/', label: 'Edición', description: 'Videos grabados por editar' }] },
-  { route: '/admin/mfs/', label: 'Mushuc Freestyle', description: 'Inscripciones y audiciones', marker: 'F' },
+  { module: 'noticias', route: '/admin/noticias/', label: 'Noticias', description: 'Tema central de la campaña', marker: 'N' },
+  { module: 'panel', route: '/admin/panel/', label: 'Panel', description: 'Resumen de todo', marker: 'P' },
+  { module: 'voceros', route: '/admin/voceros/', label: 'Voceros', description: 'Registros y seguimiento', marker: 'V' },
+  { module: 'medios', route: '/admin/medios/', label: 'Medios', description: 'Seguimiento, eventos, calendario y gira', marker: 'M', children: [{ route: '/admin/medios/', label: 'Seguimiento de medios', description: 'Registros, estado y pauta' }, { route: '/admin/medios/eventos/', label: 'Eventos', description: 'Cobertura por evento' }, { route: '/admin/medios/calendario/', label: 'Calendario de medios', description: 'Spots, calendario y reportes' }, { route: '/admin/medios/gira/', label: 'Gira de medios', description: 'Personas, medios y citas' }] },
+  { module: 'produccion', route: '/admin/produccion/', label: 'Producción', description: 'Activaciones y cronogramas', marker: 'Pr', children: [{ route: '/admin/produccion/activaciones/', label: 'Activaciones', description: 'Calendario de activaciones' }, { route: '/admin/produccion/sol/', label: 'Cronograma Sol', description: 'Calendario del escenario Sol' }, { route: '/admin/produccion/luna/', label: 'Cronograma Luna', description: 'Calendario del escenario Luna' }] },
+  { module: 'emprendedores', route: '/admin/emprendedores/', label: 'Emprendedores', description: 'De emprendedor a influencer', marker: 'E' },
+  { module: 'creadoras', route: '/admin/creadoras/', label: 'Creadoras', description: 'Calendario y edición', marker: 'C', children: [{ route: '/admin/creadoras/', label: 'Creadoras', description: 'Calendario por semanas y turnos' }, { route: '/admin/creadoras/edicion/', label: 'Edición', description: 'Videos grabados por editar' }] },
+  { module: 'mfs', route: '/admin/mfs/', label: 'Mushuc Freestyle', description: 'Inscripciones y audiciones', marker: 'F' },
+  { module: 'usuarios', route: '/admin/usuarios/', label: 'Usuarios', description: 'Cuentas, roles y actividad', marker: 'U' },
 ]);
 // Public landing that each panel returns to from its header.
-const PANEL_LANDINGS = Object.freeze({ '/admin/noticias/': ['/finados/', 'Volver a Finados'], '/admin/panel/': ['/finados/', 'Volver a Finados'], '/admin/voceros/': ['/finados/voceros/', 'Volver a Voceros'], '/admin/medios/': ['/finados/medios/', 'Volver a Medios'], '/admin/medios/eventos/': ['/finados/medios/', 'Volver a Medios'], '/admin/medios/calendario/': ['/finados/medios/', 'Volver a Medios'], '/admin/medios/gira/': ['/finados/medios/', 'Volver a Medios'], '/admin/produccion/activaciones/': ['/finados/', 'Volver a Finados'], '/admin/produccion/sol/': ['/finados/', 'Volver a Finados'], '/admin/produccion/luna/': ['/finados/', 'Volver a Finados'], '/admin/emprendedores/': ['/finados/emprendedores/', 'Volver a Emprendedores'], '/admin/creadoras/': ['/finados/creadoras/', 'Volver a Creadoras'], '/admin/creadoras/edicion/': ['/finados/creadoras/', 'Volver a Creadoras'], '/admin/mfs/': ['/finados/mfs/', 'Volver a Mushuc Freestyle'] });
+const PANEL_LANDINGS = Object.freeze({ '/admin/noticias/': ['/finados/', 'Volver a Finados'], '/admin/panel/': ['/finados/', 'Volver a Finados'], '/admin/voceros/': ['/finados/voceros/', 'Volver a Voceros'], '/admin/medios/': ['/finados/medios/', 'Volver a Medios'], '/admin/medios/eventos/': ['/finados/medios/', 'Volver a Medios'], '/admin/medios/calendario/': ['/finados/medios/', 'Volver a Medios'], '/admin/medios/gira/': ['/finados/medios/', 'Volver a Medios'], '/admin/produccion/activaciones/': ['/finados/', 'Volver a Finados'], '/admin/produccion/sol/': ['/finados/', 'Volver a Finados'], '/admin/produccion/luna/': ['/finados/', 'Volver a Finados'], '/admin/emprendedores/': ['/finados/emprendedores/', 'Volver a Emprendedores'], '/admin/creadoras/': ['/finados/creadoras/', 'Volver a Creadoras'], '/admin/creadoras/edicion/': ['/finados/creadoras/', 'Volver a Creadoras'], '/admin/mfs/': ['/finados/mfs/', 'Volver a Mushuc Freestyle'], '/admin/usuarios/': ['/finados/', 'Volver a Finados'] });
 const PROGRESS_LEVELS = ['En preparación', 'Primer paso', 'Gorra', 'Kit completo', 'Trae a los tuyos', 'Noche de concierto', 'Tope'];
 const VIDEO_SLOTS = Object.freeze([1, 2, 3, 4, 5]);
 const videoSlotControls = (prefix = 'video') => VIDEO_SLOTS.map(slot => `<label class="admin-video-control"><span class="admin-video-check"><input type="checkbox" name="${prefix}_${slot}_enabled" value="1"><strong>Video ${slot}</strong></span><span class="admin-video-date"><span>Habilitado desde</span><input type="date" name="${prefix}_${slot}_enabled_at" aria-label="Fecha de habilitación del video ${slot}"></span></label>`).join('');
@@ -27,23 +28,24 @@ function adminSidebar(page) {
   const currentForm = ADMIN_FORMS.find(item => item.route === page.route || (item.children ?? []).some(child => child.route === page.route));
   // «Panel» es la portada de la administración: va sola, arriba de la lista de formularios.
   const home = ADMIN_FORMS.find(item => item.route === '/admin/panel/');
-  const homeLink = home ? `<a class="admin-nav-link" href="${esc(home.route)}"${home.route === page.route ? ' aria-current="page"' : ''} data-nav-home><span class="admin-nav-marker" aria-hidden="true">${esc(home.marker)}</span><span><strong>${esc(home.label)}</strong><small>${esc(home.description)}</small></span></a>` : '';
+  const homeLink = home ? `<a class="admin-nav-link" href="${esc(home.route)}"${home.route === page.route ? ' aria-current="page"' : ''} data-nav-home data-module="${esc(home.module)}"><span class="admin-nav-marker" aria-hidden="true">${esc(home.marker)}</span><span><strong>${esc(home.label)}</strong><small>${esc(home.description)}</small></span></a>` : '';
   const links = ADMIN_FORMS.filter(item => item !== home).map((item) => {
     const current = item.route === page.route ? ' aria-current="page"' : '';
     // A submenu (e.g. Medios → Seguimiento, Eventos y Calendario) opens and closes from its section button.
     const children = item.children ?? [];
     const panel = `admin-nav-${esc(item.route.replace(/\/+$/, '').split('/').pop())}`;
     const body = `<span class="admin-nav-marker" aria-hidden="true">${esc(item.marker)}</span><span><strong>${esc(item.label)}</strong><small>${esc(item.description)}</small></span>${children.length ? '<span class="admin-nav-chevron" aria-hidden="true">⌄</span>' : ''}`;
-    if (!children.length) return `<a class="admin-nav-link" href="${esc(item.route)}"${current}>${body}</a>`;
+    if (!children.length) return `<a class="admin-nav-link" href="${esc(item.route)}"${current} data-module="${esc(item.module)}">${body}</a>`;
     // Una sección con opciones es solo un botón: despliega o pliega sus opciones y no navega.
     const inside = children.some(child => child.route === page.route);
     // Llega ya plegado (o abierto si es su sección): el menú no salta cuando carga el JavaScript.
     const link = `<button type="button" class="admin-nav-link admin-nav-toggle" data-nav-parent aria-expanded="${inside}" aria-controls="${panel}"${inside ? ' data-nav-current' : ''}>${body}</button>`;
     const options = children.map(child => `<a class="admin-nav-link admin-nav-link--child" href="${esc(child.route)}"${child.route === page.route ? ' aria-current="page"' : ''}><span class="admin-nav-marker" aria-hidden="true">›</span><span><strong>${esc(child.label)}</strong><small>${esc(child.description)}</small></span></a>`).join('');
-    return `<div class="admin-nav-group" data-nav-group>${link}<div class="admin-nav-children" id="${panel}" data-nav-children${inside ? '' : ' hidden'}>${options}</div></div>`;
+    return `<div class="admin-nav-group" data-nav-group data-module="${esc(item.module)}">${link}<div class="admin-nav-children" id="${panel}" data-nav-children${inside ? '' : ' hidden'}>${options}</div></div>`;
   }).join('');
 
-  return `<aside class="admin-sidebar" aria-label="Navegación administrativa">
+  // Cada rol ve solo sus módulos: el menú espera a saber el rol antes de mostrarse (ver sidebar.js).
+  return `<aside class="admin-sidebar" aria-label="Navegación administrativa" data-access="pending" data-current-module="${esc(currentForm?.module ?? '')}">
 <details class="admin-sidebar__navigation" data-admin-navigation open>
 <summary><span>Menú administrativo</span><span class="admin-sidebar__current">${esc(currentForm?.label ?? 'Formularios')}</span><span class="admin-sidebar__chevron" aria-hidden="true">⌄</span></summary>
 <div class="admin-sidebar__content">
@@ -51,7 +53,7 @@ function adminSidebar(page) {
 ${homeLink ? `<nav class="admin-sidebar__home" aria-label="Resumen general">${homeLink}</nav>` : ''}
 <nav aria-labelledby="admin-forms-title"><p id="admin-forms-title" class="admin-nav-title">Panel y formularios</p>${links}</nav>
 <p class="admin-sidebar__future">Los próximos formularios aparecerán aquí cuando estén habilitados.</p>
-<div class="admin-sidebar__account"><p><span>Sesión activa</span><strong data-admin-sidebar-user>Comprobando…</strong></p><button type="button" class="button-quiet" data-admin-logout disabled>Cerrar sesión</button></div>
+<div class="admin-sidebar__account"><p><span>Sesión activa</span><strong data-admin-sidebar-user>Comprobando…</strong><small data-admin-sidebar-role></small></p><button type="button" class="button-quiet" data-admin-logout disabled>Cerrar sesión</button></div>
 </div>
 </details>
 </aside>`;
@@ -75,7 +77,7 @@ function layout(page, content, script = '/assets/admin/admin.js?v=20260925-perf-
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' blob:; media-src blob:; font-src 'self'; connect-src ${connectSources}; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="admin-api-base" content="${api}">
 <link rel="icon" href="/assets/finados/favicon-finados.png">
-<link rel="stylesheet" href="/assets/admin/admin.css?v=20260926-31">
+<link rel="stylesheet" href="/assets/admin/admin.css?v=20260926-32">
 <script type="module" src="${script}"></script>
 </head><body class="admin-page">
 <a class="skip-link" href="#contenido">Ir al contenido</a>
@@ -87,7 +89,7 @@ ${content}
 
 export function renderAdminLoginPage(page) {
   return layout(page, `<main id="contenido" class="login-workspace">
-<div class="login-intro"><p class="eyebrow">Finados 2026</p><h1>Iniciar sesión</h1><p>Acceso del equipo de Voceros.</p></div>
+<div class="login-intro"><p class="eyebrow">Finados 2026</p><h1>Iniciar sesión</h1><p>Acceso del equipo de Finados 2026. Entra con tu propio usuario.</p></div>
 <form data-admin-login class="login-form">
 <fieldset disabled data-login-fields>
 <label for="username">Usuario</label><input id="username" name="username" autocomplete="username" maxlength="100" required autocapitalize="none" spellcheck="false">
@@ -97,7 +99,7 @@ export function renderAdminLoginPage(page) {
 <p class="feedback" data-admin-feedback role="status" aria-live="polite" aria-atomic="true">Comprobando acceso…</p>
 <button type="button" class="button-quiet" data-session-retry hidden>Reintentar conexión</button>
 </form>
-<details class="access-help"><summary>¿Necesitas restablecer tu acceso?</summary><p>Solicita al responsable técnico restablecer la contraseña mediante SSH. No compartas tu contraseña por mensajes.</p></details>
+<details class="access-help"><summary>¿Olvidaste tu contraseña?</summary><p>Pide a quien administra los usuarios un enlace nuevo para elegirla. No compartas tu contraseña por mensajes.</p></details>
 <a class="return-link" href="/finados/voceros/">← Volver a Voceros</a>
 </main>`);
 }
@@ -649,6 +651,65 @@ export function renderAdminCreadorasEdicionPage(page) {
 <ol class="ed-list" data-edit-list aria-label="Videos grabados"></ol>
 </main></div>`, ADMIN_CREADORAS_EDICION_SCRIPT);
 }
+
+export const ADMIN_USUARIOS_SCRIPT = '/assets/admin/admin-usuarios.js?v=20260926-usuarios-1';
+
+/** Usuarios: cada persona con su cuenta y su rol, los roles con sus módulos y quién hizo qué. */
+export function renderAdminUsuariosPage(page) {
+  return layout(page, `<div class="admin-shell">${adminSidebar(page)}<main id="contenido" class="admin-workspace us" data-admin-usuarios>${campaignBanner}
+<div class="workspace-heading"><div><p class="eyebrow">Finados 2026 · Administración</p><h1>Usuarios y roles</h1><p>Cada persona entra con su propia cuenta y solo ve los módulos de su rol. Así sabes quién hizo cada cambio.</p><p data-admin-user>Comprobando acceso…</p></div>
+<div class="workspace-actions"><button type="button" class="button-quiet" data-role-new disabled>Agregar rol</button><button type="button" class="button-primary" data-user-new disabled>Agregar usuario</button></div></div>
+<p class="feedback" data-admin-feedback role="status" aria-live="polite" aria-atomic="true">Cargando usuarios…</p>
+<button type="button" class="button-quiet" data-session-retry hidden>Reintentar conexión</button>
+<section class="us-link" data-link-box hidden aria-labelledby="us-link-title">
+<h2 id="us-link-title">Enlace para <span data-link-name></span></h2>
+<p>Envíaselo a esa persona (por ejemplo, por WhatsApp). Con él elige su propia contraseña. Sirve una sola vez y vence en 72 horas; si generas otro, este deja de servir.</p>
+<div class="us-link__row"><input type="text" readonly data-link-url aria-label="Enlace para elegir contraseña" spellcheck="false"><button type="button" class="button-primary" data-link-copy>Copiar enlace</button><button type="button" class="button-quiet" data-link-close>Listo</button></div>
+</section>
+<section class="admin-panel-section" aria-labelledby="us-users-title">
+<div class="records-heading"><div><h2 id="us-users-title">Usuarios</h2><p>Cambia el rol en la lista: rige de inmediato. Desactivar corta el acceso sin borrar lo que esa persona hizo.</p></div><p data-user-count>—</p></div>
+<div class="us-table"><table><caption class="sr-only">Cuentas del panel administrativo</caption><thead><tr><th scope="col">Persona</th><th scope="col">Rol</th><th scope="col">Estado</th><th scope="col">Último ingreso</th><th scope="col"><span class="sr-only">Acciones</span></th></tr></thead><tbody data-user-rows></tbody></table></div>
+</section>
+<section class="admin-panel-section" aria-labelledby="us-roles-title">
+<div class="records-heading"><div><h2 id="us-roles-title">Roles</h2><p>Marca los módulos que ve cada rol. Cuando se cree un módulo nuevo aparecerá aquí como una casilla más para activarlo.</p></div></div>
+<div class="us-roles" data-role-list></div>
+</section>
+<section class="admin-panel-section" aria-labelledby="us-activity-title">
+<div class="records-heading"><div><h2 id="us-activity-title">Actividad</h2><p>Quién hizo qué y cuándo, en hora de Ecuador. Lo más reciente primero.</p></div><label class="us-activity-filter">Persona<select data-activity-user><option value="">Todas</option></select></label></div>
+<ol class="us-activity" data-activity-list></ol>
+</section>
+<dialog class="record-dialog record-dialog--compact" data-user-dialog aria-label="Agregar usuario">
+<form method="dialog" class="record-form">
+<div class="records-heading"><div><h2>Agregar usuario</h2><p>Al guardar se genera el enlace para que la persona elija su contraseña. Tú no la escribes ni la conoces.</p></div></div>
+<div class="record-grid">
+<label class="record-grid__wide">Nombre y apellido<input name="full_name" maxlength="160" required placeholder="Ej.: Andrés Flores"></label>
+<label>Usuario<input name="username" maxlength="40" required autocapitalize="none" spellcheck="false" placeholder="Ej.: andres.flores"></label>
+<label>Rol<select name="role" required data-user-role></select></label>
+</div>
+<p class="feedback" data-user-feedback role="status" aria-live="polite"></p>
+<div class="record-form__actions"><button type="submit" value="cancel" class="button-quiet">Cancelar</button><button type="submit" value="save" class="button-primary">Crear y generar enlace</button></div>
+</form>
+</dialog>
+</main></div>`, ADMIN_USUARIOS_SCRIPT);
+}
+
+/** La página del enlace: la persona elige su contraseña sin haber iniciado sesión. */
+export function renderAdminActivarPage(page) {
+  return layout(page, `<main id="contenido" class="login-workspace" data-admin-activar>
+<div class="login-intro"><p class="eyebrow">Finados 2026</p><h1>Elige tu contraseña</h1><p data-setup-intro>Comprobando el enlace…</p></div>
+<form class="login-form" data-setup-form>
+<fieldset disabled data-setup-fields>
+<label for="setup-password">Nueva contraseña</label><input id="setup-password" type="password" name="password" autocomplete="new-password" minlength="10" maxlength="1024" required>
+<label for="setup-confirm">Repítela</label><input id="setup-confirm" type="password" name="confirm" autocomplete="new-password" minlength="10" maxlength="1024" required>
+<p class="us-hint">Al menos 10 caracteres. Mejor una frase que puedas recordar.</p>
+<button class="button-primary login-submit" type="submit">Guardar contraseña</button>
+</fieldset>
+<p class="feedback" data-setup-feedback role="status" aria-live="polite" aria-atomic="true"></p>
+</form>
+<a class="return-link" href="/admin/">Ir a iniciar sesión →</a>
+</main>`, ADMIN_ACTIVAR_SCRIPT);
+}
+export const ADMIN_ACTIVAR_SCRIPT = '/assets/admin/admin-activar.js?v=20260926-activar-1';
 
 /** Sección del Panel que arranca plegada: un clic en el título la abre y otro la cierra. */
 function panelFold(key, title, description, body, extra = '') {

@@ -280,7 +280,8 @@ test('admin orienta cada formulario desde una navegación lateral accesible', as
 
   // El módulo compartido se publica y lo carga cada pantalla administrativa.
   const sidebar = await readFile(join(out, 'assets/admin/sidebar.js'), 'utf8');
-  assert.equal(sidebar, await readFile(new URL('../src/admin/sidebar.js', import.meta.url), 'utf8'));
+  // El build solo le agrega la versión al import de runtime-origins; el resto se publica tal cual.
+  assert.equal(sidebar.replace(/runtime-origins\.mjs\?v=[a-f0-9]+/, 'runtime-origins.mjs'), await readFile(new URL('../src/admin/sidebar.js', import.meta.url), 'utf8'));
   for (const bundle of ['admin.js', 'panel.js', 'admin-medios.js', 'admin-emprendedores.js']) {
     assert.match(await readFile(join(out, 'assets/admin', bundle), 'utf8'), /import '\.\/sidebar\.js\?v=/, bundle);
   }

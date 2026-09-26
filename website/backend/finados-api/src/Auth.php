@@ -10,6 +10,7 @@ use RuntimeException;
 use Throwable;
 
 require_once __DIR__ . '/Http.php';
+require_once __DIR__ . '/AdminUsers.php';
 
 final class Auth
 {
@@ -27,7 +28,7 @@ final class Auth
     {
         Http::startSession($this->config, 'admin');
         $now = ($this->clock)();
-        // All supported login names resolve to this single account. Canonicalize also for throttling.
+        // Cada persona entra con su propia cuenta. Se canonicaliza también para el control de intentos.
         $username = strtolower(trim($username));
         $usernameHash = hash_hmac('sha256', $username, $this->config->hmacKey());
         $packedIp = inet_pton($ip);
@@ -38,11 +39,12 @@ final class Auth
         $sqlite = $this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite';
         $transactionStarted = false;
         try {
-            // Serialize authentication attempts, including missing-user attempts. The sole admin row
-            // is the MySQL lock; with no admin row there is no account that can be authenticated.
+            // Serialize authentication attempts for the account being tried. A name that does not
+            // exist locks nothing and can never authenticate.
             if ($sqlite) { $this->pdo->exec('BEGIN IMMEDIATE'); } else { $this->pdo->beginTransaction(); }
             $transactionStarted = true;
-            $statement = $this->pdo->query("SELECT * FROM admin_users WHERE username = 'admin'" . ($sqlite ? '' : ' FOR UPDATE'));
+            $statement = $this->pdo->prepare('SELECT * FROM admin_users WHERE username = ?' . ($sqlite ? '' : ' FOR UPDATE'));
+            $statement->execute([$username]);
             $admin = $statement->fetch();
             $attempts = $this->pdo->prepare('SELECT succeeded, attempted_at FROM login_attempts WHERE username_hash = ? AND ip_hash = ? AND attempted_at >= ? ORDER BY attempted_at, id');
             $attempts->execute([$usernameHash, $ipHash, gmdate('Y-m-d H:i:s', $now - 1800)]);
@@ -52,7 +54,7 @@ final class Auth
                 // Use the real hash for absent usernames too, avoiding a fast missing-user branch.
                 $hash = $admin ? $admin['password_hash'] : self::dummyPasswordHash();
                 $verified = self::verifyPassword($password, $hash);
-                $valid = $verified && $username === 'admin' && $admin && (int) $admin['active'] === 1;
+                $valid = $verified && $admin && $admin['username'] === $username && (int) $admin['active'] === 1;
                 $record = $this->pdo->prepare('INSERT INTO login_attempts (username_hash, ip_hash, succeeded, attempted_at) VALUES (?, ?, ?, ?)');
                 $record->execute([$usernameHash, $ipHash, (int) $valid, gmdate('Y-m-d H:i:s', $now)]);
                 if ($valid) {
@@ -97,10 +99,11 @@ final class Auth
             $this->logout();
             throw new Unauthorized('Sesión no disponible');
         }
-        $statement = $this->pdo->prepare('SELECT id, public_id, username, active, password_hash FROM admin_users WHERE id = ?');
+        $statement = $this->pdo->prepare('SELECT * FROM admin_users WHERE id = ?');
         $statement->execute([$_SESSION['admin_id']]);
         $admin = $statement->fetch();
-        if (!$admin || $admin['username'] !== 'admin' || (int) $admin['active'] !== 1
+        // Desactivar la cuenta o cambiar su contraseña corta la sesión en la siguiente petición.
+        if (!$admin || (int) $admin['active'] !== 1
             || !hash_equals($this->credentialVersion($admin['password_hash']), $_SESSION['credential_version'])) {
             $this->logout();
             throw new Unauthorized('Sesión no disponible');
@@ -217,9 +220,16 @@ final class Auth
         return hash_hmac('sha256', $hash, $this->config->hmacKey());
     }
 
+    /** La persona en sesión con su rol y sus módulos; el rol se lee en cada petición, así un cambio rige de inmediato. */
     private function user(array $admin): array
     {
-        return ['id' => (int) $admin['id'], 'public_id' => $admin['public_id'], 'username' => $admin['username'], 'role' => 'administrador'];
+        $role = null;
+        if (($admin['role_id'] ?? null) !== null) {
+            $statement = $this->pdo->prepare('SELECT name, modules FROM admin_roles WHERE id = ?');
+            $statement->execute([$admin['role_id']]);
+            $role = $statement->fetch(PDO::FETCH_ASSOC) ?: null;
+        }
+        return AdminUsers::describe($admin, $role);
     }
 
     private function isBlocked(array $attempts, int $now): bool

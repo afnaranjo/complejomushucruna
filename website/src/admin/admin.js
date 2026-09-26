@@ -1,5 +1,5 @@
 import { isAllowedSiteOrigin, MIRROR_API_BASE, PRIMARY_API_BASE, PRIMARY_SITE_ORIGIN, resolveRuntimeOrigins } from '../finados/runtime-origins.mjs';
-import './sidebar.js?v=20260925-admin-sidebar-2';
+import './sidebar.js?v=20260926-admin-sidebar-3';
 import './campaign-banner.js?v=20260925-banner-2';
 
 export const STATUSES = Object.freeze(['Nuevo', 'En revisión', 'Aprobado', 'Rechazado', 'Pendiente de autorización']);
@@ -256,12 +256,14 @@ export async function initializeAdmin() {
     feedback(target, error.message, 'error');
   };
   let startPanel;
+  // Cada rol entra primero a su portada: Comunicación a Medios, Community a Creadoras, etc.
+  const homeOf = user => (typeof user?.home === 'string' && /^\/admin\/[a-z/]*$/.test(user.home) ? user.home : '/admin/panel/');
   async function session() {
     retry.hidden = true;
     feedback(status, 'Comprobando acceso…');
     try {
       const data = await client.session();
-      if (login && data.authenticated) { redirect('/admin/panel/'); return; }
+      if (login && data.authenticated) { redirect(homeOf(data.user)); return; }
       if (panel && !data.authenticated) { redirect('/admin/'); return; }
       feedback(status, '');
       if (login) login.querySelector('fieldset').disabled = false;
@@ -284,9 +286,9 @@ export async function initializeAdmin() {
       login.querySelector('fieldset').disabled = true;
       feedback(status, 'Iniciando sesión…');
       try {
-        await client.login(username, secret);
+        const data = await client.login(username, secret);
         password.value = '';
-        redirect('/admin/panel/');
+        redirect(homeOf(data?.user));
       } catch (error) {
         password.value = '';
         fail(error.status === 401 ? new Error('Usuario o contraseña incorrectos.') : error);
