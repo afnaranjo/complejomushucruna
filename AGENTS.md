@@ -2079,3 +2079,9 @@ Nota de relevo escrita a pedido de Alex para que otro agente (Codex) retome la s
 - Mushuc Freestyle: «Cuentas pendientes de ficha» pasó debajo del resumen, antes de los filtros. Se abre sola cuando hay cuentas y cada fila muestra «Incompleta».
 - QA: `npm run check` en verde (253 Node, PHP, 11 integración; 230 archivos, 81 HTML, 2794 referencias).
 - Commit `5ddf1c6`. Publicación externa: frontend autorizado por Alex («sube»), con respaldo y sin borrar archivos exclusivos. En los dos dominios `/admin/mfs/` entrega la versión nueva con la sección arriba, y `admin-mfs.js`, `admin-medios.js` y `panel.js` coinciden por SHA-256 con el build. Backend y datos sin cambios.
+
+### 2026-09-27 — Botón «Comprar entradas» en la portada
+
+- Alex pidió un botón «Comprar entradas» en la portada que lleve a SHOWS. Se agregó en la cabecera de la portada, antes de «Mapa de ubicación» y «Comprar un stand», con enlace relativo `/finados/shows/` en la misma pestaña, para que cada dominio lleve a su propia página de SHOWS. Estilo amarillo con sombra turquesa; la cabecera de las demás páginas no cambia. Caché `20260927-fair-start-3`.
+- QA: `npm run check` en verde (254 Node, PHP, 11 integración; 230 archivos, 81 HTML, 2795 referencias), con prueba nueva del botón.
+- Commit `bc13e43`. Publicación externa: frontend autorizado por Alex, con respaldo y sin borrar archivos exclusivos. En los dos dominios la portada entrega el botón, `presentation.css` coincide por SHA-256 con el build y `/finados/shows/` responde 200. Backend y datos sin cambios.
