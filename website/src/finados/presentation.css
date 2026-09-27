@@ -28,6 +28,10 @@
 .presentation-map--stand:hover { background: #ffc42e; color: #241146; box-shadow: 8px 8px 0 #f4eada; }
 .presentation-map--stand:active { box-shadow: 2px 2px 0 #f4eada; }
 .presentation-map--stand:hover .presentation-arrow { transform: translateX(5px); }
+.presentation-map--tickets { background: #ffc42e; color: #241146; box-shadow: 5px 5px 0 #00d2d6; }
+.presentation-map--tickets:hover { background: #f4eada; box-shadow: 8px 8px 0 #00d2d6; }
+.presentation-map--tickets:active { box-shadow: 2px 2px 0 #00d2d6; }
+.presentation-map--tickets:hover .presentation-arrow { transform: translateX(5px); }
 @media (prefers-reduced-motion: reduce) { .presentation-map, .presentation-arrow { transition: none; } .presentation-map:hover, .presentation-map:active, .presentation-map:hover .presentation-arrow { transform: none; } }
 .presentation-timer-wrap { position: relative; min-width: 0; }
 .presentation-symbol { display: block; width: clamp(6rem, 10vw, 10rem); height: auto; margin: 0 0 1.75rem auto; padding: 1rem; border-radius: 50%; background: #f4eada; }

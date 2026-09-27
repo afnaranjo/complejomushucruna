@@ -45,7 +45,7 @@ test('Invitaciones preserva el RSVP y traslada la cabecera al documento desempaq
   const result = injectInvitationOpeningHeader(original, '/invitaciones/');
   assert.equal(injectInvitationOpeningHeader(result, '/invitaciones/'), result);
   assert.match(result, /doc\.body\.prepend\(fairHeader\.cloneNode\(true\)\)/);
-  assert.match(result, /fairRuntime\.src = '\/assets\/finados\/presentation\.js\?v=20260924-fair-start-2'/);
+  assert.match(result, /fairRuntime\.src = '\/assets\/finados\/presentation\.js\?v=20260927-fair-start-3'/);
   assert.ok(result.indexOf('doc.body.prepend') < result.indexOf('document.documentElement.replaceWith'));
   const encodedApp = original.split(/\r?\n/).find(line => line.startsWith('"<!DOCTYPE html>'));
   assert.ok(encodedApp, 'La aplicación congelada debe existir');
@@ -79,4 +79,15 @@ test('solo la portada ofrece «Comprar un stand» junto al mapa, en otra pestañ
   assert.ok(actions.indexOf('Mapa de ubicación') < actions.indexOf('Comprar un stand'), 'el stand va al lado del mapa');
   const finados = pages.find(page => page.route === '/finados/');
   assert.doesNotMatch(finados.render(finados), /Comprar un stand/);
+});
+
+test('la portada ofrece «Comprar entradas» hacia SHOWS en la misma pestaña', async () => {
+  const { pages } = await import('../src/pages.mjs');
+  const { renderLayout } = await import('../src/render/layout.mjs');
+  const home = renderLayout(pages.find(page => page.route === '/'));
+  const actions = home.slice(home.indexOf('class="presentation-actions"'), home.indexOf('class="presentation-timer-wrap"'));
+  assert.match(actions, /<a class="presentation-map presentation-map--tickets" href="\/finados\/shows\/">Comprar entradas/);
+  assert.ok(actions.indexOf('Comprar entradas') < actions.indexOf('Mapa de ubicación'), 'las entradas van primero');
+  const finados = pages.find(page => page.route === '/finados/');
+  assert.doesNotMatch(finados.render(finados), /Comprar entradas/);
 });

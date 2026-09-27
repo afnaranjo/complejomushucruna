@@ -2,8 +2,9 @@ import { routeOptions } from '../data/site.mjs';
 import { escapeHtml, externalAttributes } from '../render/html.mjs';
 import { PRESENTATION_AT, PRESENTATION_WELCOME } from './presentation.js';
 
-export const openingAssetVersion = '20260924-fair-start-2';
+export const openingAssetVersion = '20260927-fair-start-3';
 export const STAND_PURCHASE_URL = 'https://reserva.mushucticket.com/customers';
+export const TICKETS_URL = '/finados/shows/';
 
 export function renderOpeningAssets() {
   return `<link rel="stylesheet" href="/assets/finados/presentation.css?v=${openingAssetVersion}">
@@ -22,6 +23,7 @@ export function renderFairOpeningHeader({ compact = false, standalone = false, i
           <p class="presentation-date"><time datetime="${PRESENTATION_AT}">Viernes 30 de octubre de 2026</time><strong>10:30 <span>AM</span></strong><span class="presentation-timezone">Hora de Ecuador</span></p>
           ${compact ? '' : '<p class="presentation-location">Complejo Intercultural y Deportivo <strong>MUSHUC RUNA</strong></p>'}
           <div class="presentation-actions">
+            ${standCta ? `<a class="presentation-map presentation-map--tickets" href="${escapeHtml(TICKETS_URL)}">Comprar entradas <span class="presentation-arrow" aria-hidden="true">→</span></a>` : ''}
             <a class="presentation-map" href="${escapeHtml(map)}"${externalAttributes(map)}>Mapa de ubicación <span class="presentation-arrow" aria-hidden="true">↗</span><span class="presentation-sr-only"> (se abre en otra pestaña)</span></a>
             ${standCta ? `<a class="presentation-map presentation-map--stand" href="${escapeHtml(STAND_PURCHASE_URL)}"${externalAttributes(STAND_PURCHASE_URL)}>Comprar un stand <span class="presentation-arrow" aria-hidden="true">→</span><span class="presentation-sr-only"> (se abre en otra pestaña)</span></a>` : ''}
           </div>
