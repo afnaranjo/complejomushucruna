@@ -5,7 +5,7 @@ import { createMediaAdminClient } from './admin-medios.js?v=20260926-cache-1';
 import {
   creadoraColor, dateFromKey, dayKey, dayLabel, defaultShift, durationLabel, hourRows, layoutDay, minutesFromOffset, minutesFromTime,
   minutesOf, monthStart, movedShift, rangeLabel, resizedShift, shiftGeometry, shiftLabel, shiftView, viewRange,
-} from './admin-creadoras.js?v=20260926-cache-1';
+} from './admin-creadoras.js?v=20260928-responsive-1';
 
 const LOCAL_API = 'http://127.0.0.1:4174/api';
 const DAY_NAMES = ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo'];
@@ -80,6 +80,11 @@ export async function initializeMediaTour() {
   const fail = error => { if (error.status === 401) { location.replace('/admin/'); return; } feedback(message(error), 'error'); };
 
   const state = { view: 'week', anchor: dayKey(new Date()), visits: [], people: [], media: [], totals: {} };
+  // En el celular la semana no cabe: el calendario abre en el día y la semana queda a un toque.
+  if (globalThis.matchMedia?.('(max-width: 700px)').matches) {
+    state.view = 'day';
+    for (const button of panel.querySelectorAll('[data-view]')) button.setAttribute('aria-pressed', String(button.dataset.view === 'day'));
+  }
   const grid = query('[data-calendar-grid]');
   const monthGrid = query('[data-calendar-month]');
   const label = query('[data-calendar-label]');

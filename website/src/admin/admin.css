@@ -218,11 +218,17 @@ tr[data-origin="cuenta"] > td { background: rgba(0, 210, 214, .05); }
 .calendar-views, .calendar-move { display: flex; gap: .4rem; align-items: center; }
 .calendar-move strong { min-width: 15rem; text-align: center; font-size: .95rem; }
 .calendar-views button[aria-pressed="true"] { background: #241146; color: #f4eada; border-color: #241146; }
-.calendar-layout { display: grid; grid-template-columns: minmax(0, 15rem) minmax(0, 1fr); gap: 1rem; align-items: start; }
-.calendar-people { position: sticky; top: 1rem; border: 1px solid #c3b6c7; border-radius: .9rem; padding: .9rem; background: #fffaf2; }
+/* La lista va al lado del calendario solo cuando cabe la semana completa; si no, va arriba y los 7 días entran enteros. */
+.calendar-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem; align-items: start; }
+.calendar-people { position: static; border: 1px solid #c3b6c7; border-radius: .9rem; padding: .9rem; background: #fffaf2; }
 .calendar-people h2 { font-size: 1rem; }
 .calendar-people > p { color: #665771; font-size: .76rem; margin: .35rem 0 .75rem; }
-.calendar-people ul { list-style: none; margin: 0; padding: 0; display: grid; gap: .4rem; max-height: 32rem; overflow: auto; }
+.calendar-people ul { list-style: none; margin: 0; padding: 0; display: grid; gap: .4rem; grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr)); max-height: 16rem; overflow: auto; }
+@media (min-width: 1540px) {
+  .calendar-layout { grid-template-columns: minmax(0, 15rem) minmax(0, 1fr); }
+  .calendar-people { position: sticky; top: 1rem; }
+  .calendar-people ul { grid-template-columns: minmax(0, 1fr); max-height: 32rem; }
+}
 .creadora-chip { display: flex; gap: .5rem; align-items: center; justify-content: space-between; padding: .5rem .6rem; border: 1px solid #d9ced6; border-radius: .6rem; background: #fff; cursor: grab; }
 .creadora-chip:hover { border-color: #94165e; }
 .creadora-chip[aria-pressed="true"] { border-color: #94165e; background: rgba(148, 22, 94, .08); box-shadow: inset 3px 0 0 #94165e; }
@@ -232,7 +238,7 @@ tr[data-origin="cuenta"] > td { background: rgba(0, 210, 214, .05); }
 .calendar-board { border: 1px solid #c3b6c7; border-radius: .9rem; padding: .75rem; background: #fffaf2; overflow: auto; }
 .calendar-help { color: #665771; font-size: .74rem; margin-top: .6rem; }
 .calendar-grid { display: grid; grid-template-columns: 3.5rem repeat(var(--calendar-days, 7), minmax(6.5rem, 1fr)); gap: .3rem; }
-.calendar-hours { display: grid; grid-template-rows: repeat(18, 1fr); padding-top: 1.9rem; color: #665771; font-size: .68rem; font-variant-numeric: tabular-nums; }
+.calendar-hours { position: sticky; left: 0; z-index: 3; background: #fffaf2; display: grid; grid-template-rows: repeat(18, 1fr); padding-top: 1.9rem; color: #665771; font-size: .68rem; font-variant-numeric: tabular-nums; }
 .calendar-hours span { transform: translateY(-.45em); }
 .calendar-day h3 { font-size: .74rem; text-transform: capitalize; text-align: center; padding-bottom: .35rem; color: #241146; }
 .calendar-canvas { position: relative; height: 36rem; border: 1px solid #ddd2de; border-radius: .5rem; background: #fff; overflow: hidden; }
@@ -261,7 +267,7 @@ tr[data-origin="cuenta"] > td { background: rgba(0, 210, 214, .05); }
 @media (max-width: 900px) {
   .calendar-layout { grid-template-columns: minmax(0, 1fr); }
   .calendar-people { position: static; }
-  .calendar-people ul { grid-auto-flow: column; grid-auto-columns: minmax(10rem, 1fr); overflow-x: auto; max-height: none; }
+  .calendar-people ul { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(10rem, 1fr); overflow-x: auto; max-height: none; }
   .calendar-move strong { min-width: 0; flex: 1 1 100%; order: -1; }
   .calendar-grid { grid-template-columns: 2.8rem repeat(var(--calendar-days, 7), minmax(5.5rem, 1fr)); }
   .calendar-canvas { height: 28rem; }
@@ -524,7 +530,7 @@ tr[data-origin="cuenta"] > td { background: rgba(0, 210, 214, .05); }
 .mc-kpi { display: grid; gap: .2rem; padding: .9rem 1rem; border: 2px solid rgba(36, 17, 70, .12); border-radius: .9rem; background: #fff; }
 .mc-kpi span { color: #4a4363; font-size: .75rem; font-weight: 650; }
 .mc-kpi strong { color: #241146; font-size: 1.7rem; font-weight: 800; line-height: 1.1; font-variant-numeric: tabular-nums; }
-.mc-table-wrap { overflow-x: auto; }
+.mc-table-wrap { position: relative; overflow-x: auto; }
 .mc-table { min-width: 860px; }
 .mc-table th { background: #241146; color: #fff; }
 .mc-table td strong { font-weight: 700; }
@@ -693,7 +699,9 @@ tr[data-origin="cuenta"] > td { background: rgba(0, 210, 214, .05); }
 .tour-media__chosen[data-chosen="true"] { color: #1c6854; font-weight: 700; }
 
 /* Producción: biblioteca de piezas a la izquierda (como Calendario de medios) y calendario por horas. */
-.production-library__list { display: grid; gap: .55rem; }
+.production-library__list { display: grid; gap: .55rem; grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr)); max-height: 20rem; overflow: auto; }
+@media (min-width: 1540px) { .production-library__list { grid-template-columns: minmax(0, 1fr); max-height: none; overflow: visible; } }
+@media (max-width: 900px) { .production-library__list { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(12rem, 1fr); overflow-x: auto; max-height: none; } }
 .production-piece { position: relative; }
 .production-piece:focus-visible { outline: 3px solid #94165e; outline-offset: 2px; }
 .production-piece__meta { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .35rem; margin-top: .2rem; }
@@ -805,3 +813,5 @@ body[data-shift-dragging="true"], body[data-shift-dragging="true"] * { cursor: g
 .us-activity strong { color: #241146; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .us-hint { margin: .1rem 0 .4rem; font-size: .76rem; color: #665771; }
 @media (max-width: 760px) { .us-activity li { grid-template-columns: 1fr; gap: .05rem; } }
+/* Entre tablet y laptop, una tabla ancha se desliza dentro de su sección en vez de empujar la página. */
+@media (min-width: 701px) and (max-width: 1119px) { .records { position: relative; overflow-x: auto; } }

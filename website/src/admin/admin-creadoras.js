@@ -510,6 +510,11 @@ export async function initializeAdminCreadoras() {
   const fail = error => { if (error.status === 401) { location.replace('/admin/'); return; } feedback(error.message, 'error'); };
 
   const state = { view: 'week', anchor: dayKey(new Date()), shifts: [], creadoras: [], log: [], indicators: { items: [], totals: {} }, selected: '', clipboard: null };
+  // En el celular la semana no cabe: el calendario abre en el día y la semana queda a un toque.
+  if (globalThis.matchMedia?.('(max-width: 700px)').matches) {
+    state.view = 'day';
+    for (const button of panel.querySelectorAll('[data-view]')) button.setAttribute('aria-pressed', String(button.dataset.view === 'day'));
+  }
   const grid = query('[data-calendar-grid]');
   const monthGrid = query('[data-calendar-month]');
   const list = query('[data-creadora-list]');

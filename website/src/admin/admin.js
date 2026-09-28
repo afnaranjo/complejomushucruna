@@ -286,7 +286,15 @@ export async function initializeAdmin() {
       login.querySelector('fieldset').disabled = true;
       feedback(status, 'Iniciando sesión…');
       try {
-        const data = await client.login(username, secret);
+        let data;
+        try { data = await client.login(username, secret); }
+        catch (error) {
+          // Si la página quedó abierta mucho tiempo, su sesión en el servidor ya no existe y el primer
+          // intento se rechaza (403) o se corta. Se renueva la sesión y se reintenta una sola vez.
+          if (error.status !== 403 && error.status !== 0) throw error;
+          await client.session();
+          data = await client.login(username, secret);
+        }
         password.value = '';
         redirect(homeOf(data?.user));
       } catch (error) {

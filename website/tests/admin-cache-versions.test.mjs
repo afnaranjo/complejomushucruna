@@ -24,3 +24,19 @@ test('Mushuc Freestyle muestra las cuentas sin ficha arriba y abiertas', async (
   assert.match(js, /pendingPanel\.open = true/);
   assert.match(js, /'Incompleta'/);
 });
+
+test('los calendarios caben: la lista va arriba salvo en pantallas anchas y el celular abre en el día', async () => {
+  const css = await readFile(new URL('../src/admin/admin.css', import.meta.url), 'utf8');
+  assert.match(css, /\.calendar-layout \{ display: grid; grid-template-columns: minmax\(0, 1fr\);/);
+  assert.match(css, /@media \(min-width: 1540px\) \{\n  \.calendar-layout \{ grid-template-columns: minmax\(0, 15rem\) minmax\(0, 1fr\); \}/);
+  assert.match(css, /\.calendar-hours \{ position: sticky; left: 0;/);
+  for (const file of ['admin-produccion.js', 'admin-medios-gira.js', 'admin-creadoras.js']) {
+    const js = await readFile(new URL(`../src/admin/${file}`, import.meta.url), 'utf8');
+    assert.match(js, /matchMedia\?\.\('\(max-width: 700px\)'\)\.matches\) \{\n    state\.view = 'day';/, file);
+  }
+});
+
+test('el inicio de sesión renueva la sesión y reintenta una vez si la página quedó vieja', async () => {
+  const js = await readFile(new URL('../src/admin/admin.js', import.meta.url), 'utf8');
+  assert.match(js, /if \(error\.status !== 403 && error\.status !== 0\) throw error;\n\s+await client\.session\(\);\n\s+data = await client\.login\(username, secret\);/);
+});

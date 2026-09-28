@@ -63,7 +63,7 @@ ${homeLink ? `<nav class="admin-sidebar__home" aria-label="Resumen general">${ho
 // Llega con su espacio reservado (y se pinta al instante con lo último visto): la página no se corre hacia abajo.
 const campaignBanner = '<section class="campaign-banner" data-campaign-banner data-loading aria-label="Tema central de la campaña" aria-busy="true"></section>';
 
-function layout(page, content, script = '/assets/admin/admin.js?v=20260926-cache-1') {
+function layout(page, content, script = '/assets/admin/admin.js?v=20260928-responsive-1') {
   const api = page.adminEnvironment === 'development' ? (page.adminApiBase ?? LOCAL_API_BASE) : PRIMARY_API_BASE;
   const connectSources = apiBasesForCsp(api);
   return `<!doctype html>
@@ -77,7 +77,7 @@ function layout(page, content, script = '/assets/admin/admin.js?v=20260926-cache
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' blob:; media-src blob:; font-src 'self'; connect-src ${connectSources}; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="admin-api-base" content="${api}">
 <link rel="icon" href="/assets/finados/favicon-finados.png">
-<link rel="stylesheet" href="/assets/admin/admin.css?v=20260926-32">
+<link rel="stylesheet" href="/assets/admin/admin.css?v=20260928-responsive-1">
 <script type="module" src="${script}"></script>
 </head><body class="admin-page">
 <a class="skip-link" href="#contenido">Ir al contenido</a>
@@ -172,8 +172,8 @@ ${select('province', 'Provincia', ecuadorProvinces)}</div>
 </dialog>${mediaRecordDialog()}</main></div>`, ADMIN_MEDIOS_SCRIPT);
 }
 
-const ADMIN_CREADORAS_SCRIPT = '/assets/admin/admin-creadoras.js?v=20260926-cache-1';
-export const ADMIN_CREADORAS_EDICION_SCRIPT = '/assets/admin/admin-creadoras-edicion.js?v=20260926-cache-1';
+const ADMIN_CREADORAS_SCRIPT = '/assets/admin/admin-creadoras.js?v=20260928-responsive-1';
+export const ADMIN_CREADORAS_EDICION_SCRIPT = '/assets/admin/admin-creadoras-edicion.js?v=20260928-responsive-1';
 const ADMIN_MEDIOS_SCRIPT = '/assets/admin/admin-medios.js?v=20260926-cache-1';
 const RADIO_GENRE_OPTIONS = ['Noticias e información', 'Musical variada', 'Popular y tropical', 'Folclórica y andina', 'Juvenil y pop', 'Romántica', 'Religiosa', 'Deportiva', 'Comunitaria', 'Otro'];
 const PROVINCE_OPTIONS = ['Azuay', 'Bolívar', 'Cañar', 'Carchi', 'Chimborazo', 'Cotopaxi', 'El Oro', 'Esmeraldas', 'Galápagos', 'Guayas', 'Imbabura', 'Loja', 'Los Ríos', 'Manabí', 'Morona Santiago', 'Napo', 'Orellana', 'Pastaza', 'Pichincha', 'Santa Elena', 'Santo Domingo de los Tsáchilas', 'Sucumbíos', 'Tungurahua', 'Zamora Chinchipe'];
@@ -242,7 +242,7 @@ ${planField('Nota / intención', '<textarea name="note" maxlength="500" rows="3"
 </main></div>`, ADMIN_MEDIOS_CALENDARIO_SCRIPT);
 }
 
-export const ADMIN_MEDIOS_GIRA_SCRIPT = '/assets/admin/admin-medios-gira.js?v=20260926-cache-1';
+export const ADMIN_MEDIOS_GIRA_SCRIPT = '/assets/admin/admin-medios-gira.js?v=20260928-responsive-1';
 const TOUR_KINDS = Object.freeze({ entrevista: 'Entrevista', en_vivo: 'En vivo', grabacion: 'Grabación', visita: 'Visita', rueda: 'Rueda de prensa', otro: 'Otro' });
 const TOUR_STATUSES = Object.freeze({ programada: 'Programada', confirmada: 'Confirmada', realizada: 'Realizada', no_se_dio: 'No se dio' });
 const pairs = map => Object.entries(map).map(([value, label]) => `<option value="${esc(value)}">${esc(label)}</option>`).join('');
@@ -324,7 +324,7 @@ export function renderAdminMediosGiraPage(page) {
 </main></div>`, ADMIN_MEDIOS_GIRA_SCRIPT);
 }
 
-export const ADMIN_PRODUCCION_SCRIPT = '/assets/admin/admin-produccion.js?v=20260926-cache-1';
+export const ADMIN_PRODUCCION_SCRIPT = '/assets/admin/admin-produccion.js?v=20260928-responsive-1';
 export const PRODUCTION_BOARDS = Object.freeze({
   activaciones: { title: 'Activaciones', eyebrow: 'Finados 2026 · Producción', lead: 'Arrastra una activación de la biblioteca a una hora del calendario.' },
   sol: { title: 'Cronograma Sol', eyebrow: 'Finados 2026 · Producción', lead: 'Arrastra un show o actividad de la biblioteca a una hora del calendario.' },
