@@ -28,11 +28,18 @@
 .presentation-map--stand:hover { background: #ffc42e; color: #241146; box-shadow: 8px 8px 0 #f4eada; }
 .presentation-map--stand:active { box-shadow: 2px 2px 0 #f4eada; }
 .presentation-map--stand:hover .presentation-arrow { transform: translateX(5px); }
-.presentation-map--tickets { background: #ffc42e; color: #241146; box-shadow: 5px 5px 0 #00d2d6; }
-.presentation-map--tickets:hover { background: #f4eada; box-shadow: 8px 8px 0 #00d2d6; }
+.presentation-map--tickets{position:relative;background:#ffc42e linear-gradient(110deg,#0000 35%,#fffc 50%,#0000 65%) no-repeat;background-size:250% 100%;background-position:150% 0;color:#241146;box-shadow:5px 5px 0 #00d2d6;animation:pt-shine 3.2s ease-in-out infinite,pt-nudge 3.2s ease-in-out infinite}
+.presentation-map--tickets::after{content:"";position:absolute;inset:-2px;border:2px solid #ffc42e;border-radius:inherit;pointer-events:none;animation:pt-ring 3.2s ease-out infinite}
+.presentation-map--tickets .presentation-arrow{animation:pt-arrow 1.6s ease-in-out infinite}
+@keyframes pt-shine{0%,45%{background-position:150% 0}75%,to{background-position:-50% 0}}
+@keyframes pt-nudge{0%,62%,86%,to{transform:none}68%{transform:translateY(-4px) rotate(-2deg)}74%{transform:translateY(-4px) rotate(2deg)}80%{transform:translateY(-2px) rotate(-1deg)}}
+@keyframes pt-ring{0%,55%{opacity:0}60%{opacity:.9;transform:none}to{opacity:0;transform:scale(1.18,1.45)}}
+@keyframes pt-arrow{50%{transform:translateX(5px)}}
+.presentation-map--tickets:hover, .presentation-map--tickets:focus-visible { background: #f4eada; box-shadow: 8px 8px 0 #00d2d6; animation: none; }
+.presentation-map--tickets:hover::after, .presentation-map--tickets:focus-visible::after { animation: none; opacity: 0; }
 .presentation-map--tickets:active { box-shadow: 2px 2px 0 #00d2d6; }
-.presentation-map--tickets:hover .presentation-arrow { transform: translateX(5px); }
-@media (prefers-reduced-motion: reduce) { .presentation-map, .presentation-arrow { transition: none; } .presentation-map:hover, .presentation-map:active, .presentation-map:hover .presentation-arrow { transform: none; } }
+.presentation-map--tickets:hover .presentation-arrow { animation: none; transform: translateX(5px); }
+@media (prefers-reduced-motion: reduce) { .presentation-map--tickets, .presentation-map--tickets::after, .presentation-map--tickets .presentation-arrow { animation: none; } .presentation-map--tickets::after { opacity: 0; } .presentation-map, .presentation-arrow { transition: none; } .presentation-map:hover, .presentation-map:active, .presentation-map:hover .presentation-arrow { transform: none; } }
 .presentation-timer-wrap { position: relative; min-width: 0; }
 .presentation-symbol { display: block; width: clamp(6rem, 10vw, 10rem); height: auto; margin: 0 0 1.75rem auto; padding: 1rem; border-radius: 50%; background: #f4eada; }
 .presentation-countdown { position: relative; border: 2px solid #f4eada; background: #f4eada; padding: clamp(1rem, 2vw, 2rem); box-shadow: 8px 8px 0 #00d2d6; color: #241146; }

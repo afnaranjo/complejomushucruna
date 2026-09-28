@@ -45,7 +45,7 @@ test('Invitaciones preserva el RSVP y traslada la cabecera al documento desempaq
   const result = injectInvitationOpeningHeader(original, '/invitaciones/');
   assert.equal(injectInvitationOpeningHeader(result, '/invitaciones/'), result);
   assert.match(result, /doc\.body\.prepend\(fairHeader\.cloneNode\(true\)\)/);
-  assert.match(result, /fairRuntime\.src = '\/assets\/finados\/presentation\.js\?v=20260927-fair-start-3'/);
+  assert.match(result, /fairRuntime\.src = '\/assets\/finados\/presentation\.js\?v=20260928-fair-start-4'/);
   assert.ok(result.indexOf('doc.body.prepend') < result.indexOf('document.documentElement.replaceWith'));
   const encodedApp = original.split(/\r?\n/).find(line => line.startsWith('"<!DOCTYPE html>'));
   assert.ok(encodedApp, 'La aplicación congelada debe existir');
@@ -90,4 +90,12 @@ test('la portada ofrece «Comprar entradas» hacia SHOWS en la misma pestaña', 
   assert.ok(actions.indexOf('Comprar entradas') < actions.indexOf('Mapa de ubicación'), 'las entradas van primero');
   const finados = pages.find(page => page.route === '/finados/');
   assert.doesNotMatch(finados.render(finados), /Comprar entradas/);
+});
+
+test('«Comprar entradas» se mueve para llamar la atención y se queda quieto con movimiento reducido', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const css = await readFile(new URL('../src/finados/presentation.css', import.meta.url), 'utf8');
+  assert.match(css, /\.presentation-map--tickets\{[^}]*animation:pt-shine [^}]*pt-nudge/);
+  assert.match(css, /@keyframes pt-nudge/);
+  assert.match(css, /prefers-reduced-motion: reduce\) \{ \.presentation-map--tickets, \.presentation-map--tickets::after, \.presentation-map--tickets \.presentation-arrow \{ animation: none; \}/);
 });

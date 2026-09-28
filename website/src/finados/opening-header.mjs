@@ -2,7 +2,7 @@ import { routeOptions } from '../data/site.mjs';
 import { escapeHtml, externalAttributes } from '../render/html.mjs';
 import { PRESENTATION_AT, PRESENTATION_WELCOME } from './presentation.js';
 
-export const openingAssetVersion = '20260927-fair-start-3';
+export const openingAssetVersion = '20260928-fair-start-4';
 export const STAND_PURCHASE_URL = 'https://reserva.mushucticket.com/customers';
 export const TICKETS_URL = '/finados/shows/';
 
