@@ -48,16 +48,16 @@ test('la programación respeta la jerarquía y el orden del afiche, no el calend
 });
 
 test('conserva los shows de Plaza de la Luna y los atractivos del arte', () => {
-  assert.deepEqual(plazaShows.map(show => [show.artist, show.iso]), [['Hueveando', '2026-10-31'], ['Las Ñañas', '2026-11-01']]);
+  assert.deepEqual(plazaShows.map(show => [show.artist, show.iso]), [['Hueveando', '2026-11-03'], ['Las Ñañas', '2026-11-01']]);
   const output = html();
   for (const attraction of showsAttractions) assert.ok(output.includes(attraction));
   assert.match(output, /Más de 25\.000/);
   assert.match(output, /vasos de colada morada<br>rumbo al récord/);
   assert.match(output, /Luis Alfonso Chango P\./);
   assert.match(output, /código QR de información/);
-  assert.match(output, /shows-plaza-brand[^>]*><img[^>]*plaza-de-la-luna\.webp[^>]*width="170" height="165" alt="Plaza de la Luna"/);
+  assert.match(output, /shows-plaza-brand[^>]*><img[^>]*logo-plaza-de-la-luna\.svg[^>]*width="1300" height="1183" alt="Plaza de la Luna"/);
   assert.equal((output.match(/class="shows-plaza-show"/g) ?? []).length, 2);
-  assert.match(output, /<h4>Hueveando<\/h4><time datetime="2026-10-31">31 octubre<\/time>/);
+  assert.match(output, /<h4>Hueveando<\/h4><time datetime="2026-11-03">03 noviembre<\/time>/);
   assert.match(output, /<h4>Las Ñañas<\/h4><time datetime="2026-11-01">01 noviembre<\/time>/);
 });
 
@@ -101,11 +101,12 @@ test('el hero es conceptual y las imágenes oficiales son locales y adaptables',
   assert.match(output, /Imagen conceptual/);
   assert.match(output, /fetchpriority="high"/);
   assert.match(output, /source media="\(max-width: 640px\)"/);
-  assert.match(output, /1240w, [^" ]+ 2481w/);
-  assert.match(output, /width="2481" height="3300"/);
+  assert.match(output, /afiche-artistas-final\.svg\?v=20260928-shows-4/);
+  assert.match(output, /width="3509" height="4961"/);
+  assert.doesNotMatch(output, /cartel-shows-(?:1240|2481)/);
   assert.doesNotMatch(output, /data:image|R:\\|\.codex|base64/i);
   assert.match(output, /href="#shows"/);
-  for (const link of output.match(/<a [^>]*cartel-shows-2481[^>]*>/g) ?? []) {
+  for (const link of output.match(/<a [^>]*afiche-artistas-final\.svg[^>]*>/g) ?? []) {
     assert.match(link, /target="_blank"/);
     assert.match(link, /rel="noopener noreferrer"/);
   }
@@ -129,6 +130,10 @@ test('los estilos amplían los shows y llevan la franja de auspiciantes de borde
   assert.doesNotMatch(sponsors, /width:\s*min\(100%,\s*88rem\)/);
   assert.doesNotMatch(sponsors, /:root|@font-face|\.site-header|min-width/);
   assert.match(css, /shows-plaza-show h4[^}]*clamp\(2rem, 3\.8vw, 3\.4rem\)/);
+  assert.match(css, /\.shows-cartel\s*\{[^}]*width:\s*100%;[^}]*padding:[^;}]*0;/s);
+  assert.match(css, /\.shows-cartel > \.shows-section-heading\s*\{[^}]*width:\s*min\(calc\(100% - 64px\), 88rem\);/s);
+  assert.match(css, /\.shows-poster\s*\{[^}]*width:\s*100%;[^}]*margin:\s*0;/s);
+  assert.doesNotMatch(css, /\.shows-poster\s*\{[^}]*1040px/s);
   assert.match(css, /shows-plaza-list \{ grid-template-columns: 1fr;/);
   assert.doesNotMatch(css, /min-width: 1050px|shows-sponsors-scroll/);
   assert.match(css, /prefers-reduced-motion/);
@@ -151,6 +156,21 @@ test('los activos WebP conservan su formato y presupuestos de tamaño', async ()
   }
 });
 
+test('los SVG oficiales de afiche y Plaza de la Luna son íntegros y seguros', async () => {
+  for (const [name, hash, viewBox, budget] of [
+    ['afiche-artistas-final.svg', '0d6f2db14b78581c7c1ad65a78259f3c78cfa13c884fc7f4bee555006ad51191', '0 0 3509 4961', 16_000_000],
+    ['logo-plaza-de-la-luna.svg', '996d97f6f3b944b4603ba5507fff1080f8129e80a9335415193eca3b01538cd9', '0 0 1300 1183', 20_000],
+  ]) {
+    const path = new URL(`../public/assets/finados/shows/${name}`, import.meta.url);
+    const buffer = await readFile(path);
+    const svg = buffer.toString('utf8');
+    assert.equal(createHash('sha256').update(buffer).digest('hex'), hash);
+    assert.match(svg, new RegExp(`viewBox="${viewBox}"`));
+    assert.doesNotMatch(svg, /<(?:script|foreignObject|iframe|object|embed)\b|\bon[a-z]+\s*=|javascript:|<!ENTITY|<\?xml-stylesheet/i);
+    assert.ok((await stat(path)).size <= budget, name);
+  }
+});
+
 test('el build entrega SHOWS con CSS, imágenes y aviso de cookies', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'finados-shows-'));
   const files = await buildSite(directory);
@@ -159,15 +179,27 @@ test('el build entrega SHOWS con CSS, imágenes y aviso de cookies', async () =>
   assert.ok(files.includes('assets/finados/sponsors.css'));
   assert.ok(files.includes('assets/finados/shows/auspiciantes-finados-2026.webp'));
   assert.ok(files.includes('assets/finados/shows/auspiciantes-finados-2026.svg'));
-  assert.ok(files.includes('assets/finados/shows/plaza-de-la-luna.webp'));
+  assert.ok(files.includes('assets/finados/shows/afiche-artistas-final.svg'));
+  assert.ok(files.includes('assets/finados/shows/logo-plaza-de-la-luna.svg'));
   const output = await readFile(join(directory, 'finados/shows/index.html'), 'utf8');
   assert.match(output, /data-cookie-consent/);
   assert.match(output, /Nuestro sitio web utiliza cookies para mejorar tu navegación\./);
-  assert.match(output, /shows\.css\?v=20260917-shows-3/);
+  assert.match(output, /shows\.css\?v=20260928-shows-4/);
   assert.match(output, /sponsors\.css\?v=20260924-sponsors-7/);
   const finados = await readFile(join(directory, 'finados/index.html'), 'utf8');
   assert.match(finados, /sponsors\.css\?v=20260924-sponsors-7/);
   assert.ok(finados.includes(renderFinadosSponsors()));
+});
+
+test('el símbolo de Encuentro queda detrás, reducido y en cian para no tapar el texto', async () => {
+  const finadosPage = pages.find(item => item.route === '/finados/');
+  const output = finadosPage.render(finadosPage);
+  const theme = await readFile(new URL('../src/finados/finados.css', import.meta.url), 'utf8');
+  assert.match(output, /class="axis-copy relative z-10 max-w-52 pt-24 lg:pt-36"/);
+  assert.match(theme, /\.axis-copy\s*\{[^}]*position:\s*relative;[^}]*z-index:\s*2;/s);
+  assert.match(theme, /\.axis-icon\s*\{[^}]*z-index:\s*1;[^}]*pointer-events:\s*none;/s);
+  assert.match(theme, /\.axis-icon-encuentro\s*\{[^}]*width:\s*clamp\(5\.5rem, 30%, 8rem\);[^}]*opacity:\s*\.62;[^}]*filter:/s);
+  assert.match(output, /finados\.css\?v=20260928-axis-2/);
 });
 
 test('Finados y SHOWS comparten al final la composición nueva sin cambiar otras páginas', () => {

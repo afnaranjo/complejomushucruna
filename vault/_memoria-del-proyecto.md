@@ -12,6 +12,13 @@ tags:
 
 # Memoria del proyecto
 
+## 2026-09-28 — SHOWS: nuevo afiche, Plaza de la Luna y lectura de Encuentro
+
+- `/finados/shows/` incorpora el afiche oficial SVG `3509 × 4961` a ancho completo y el logo SVG actualizado de Plaza de la Luna; Hueveando se presenta el 3 de noviembre.
+- En la portada de Finados, la tarjeta Encuentro recuperó la lectura en móvil: símbolo cian reducido, decorativo y detrás del texto.
+- QA local aprobada: 12/12 pruebas específicas, 39/39 relacionadas, build de 232 archivos, `check-dist`, revisión escritorio/móvil y consola limpia. El check completo conserva dos fallos administrativos ya presentes en `main` y ajenos a esta página.
+- El cambio está listo localmente y todavía no fue enviado a GitHub ni publicado. Evidencia: [[11_eventos/2026_feria-finados/10_tecnologia-datos/2026-09-28_actualizacion-afiche-plaza-encuentro-web_v01|Actualización de SHOWS y Encuentro]].
+
 ## 2026-09-22 — Elección de dignidades y auspiciantes publicados
 
 - `main` ya estaba sincronizada en `8bc93b5`. Se actualizó el SVG compartido de auspiciantes 2026 en Finados y SHOWS, con digest exacto `347d08ee…ca054` y caché `20260922-sponsors-3`; la página histórica Dignidades 2025 conserva su composición propia.

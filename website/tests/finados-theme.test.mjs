@@ -14,7 +14,7 @@ test('Finados y sus registros no cargan el CSS institucional del Complejo', () =
     assert.doesNotMatch(html, /\/assets\/fonts\//, page.route);
     if (!/\/(acceso|mi-registro|restablecer|verificar|acreditacion)\/$/.test(page.route)
       && !/^\/finados\/(nombre|pantalla)\/(?:escribe\/)?$/.test(page.route)) {
-      const cssVersion = page.route === '/finados/' ? '20260924-manifesto-1' : '20260916-7';
+      const cssVersion = page.route === '/finados/' ? '20260928-axis-2' : '20260916-7';
       assert.match(html, new RegExp(`/assets/finados/finados\\.css\\?v=${cssVersion}`), page.route);
       assert.match(html, /\/assets\/finados\/navigation\.css\?v=20260925-navigation-fluid-1/, page.route);
       assert.match(html, /id="navegacion-principal"/, page.route);

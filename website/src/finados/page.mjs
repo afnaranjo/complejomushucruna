@@ -14,7 +14,7 @@ const finadosSocialLinks = [
 
 const purchaseUrl = 'https://mushucticket.com/';
 const campaignAssetVersion = '20260903';
-const campaignRuntimeVersion = '20260924-manifesto-1';
+const campaignRuntimeVersion = '20260928-axis-2';
 const campaignScriptVersion = '20260918-navigation-progress-1';
 const navigationAssetVersion = '20260925-navigation-fluid-1';
 
@@ -55,7 +55,7 @@ function axisMarkup() {
     <article class="axis-panel group relative min-h-80 overflow-hidden border-t-2 border-night p-6 sm:p-8 lg:min-h-96 lg:border-l-2 lg:border-t-0" data-reveal>
       <span class="font-sans text-xs font-black tracking-mega text-night/60">${axis.number}</span>
       <img class="axis-icon axis-icon-${axis.key} absolute -bottom-8 -right-7 ${iconSize} transition duration-200 ease-brand group-hover:-translate-y-2" src="/assets/finados/icons/${axis.key}.svg?v=${campaignAssetVersion}" alt="" loading="lazy">
-      <div class="relative z-10 max-w-52 pt-24 lg:pt-36">
+      <div class="axis-copy relative z-10 max-w-52 pt-24 lg:pt-36">
         <h3 class="font-display text-4xl uppercase leading-none text-night sm:text-5xl">${axis.title}</h3>
         <p class="mt-4 font-sans text-sm font-semibold leading-relaxed text-night/75">${axis.text}</p>
       </div>

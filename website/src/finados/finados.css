@@ -1316,8 +1316,23 @@
   .axis-panel:nth-child(4) { background: #e6dafb; }
 
   .axis-icon {
+    z-index: 1;
+    pointer-events: none;
     object-fit: contain;
     object-position: center;
+  }
+
+  .axis-copy {
+    position: relative;
+    z-index: 2;
+  }
+
+  .axis-icon-encuentro {
+    right: 1rem;
+    bottom: 1rem;
+    width: clamp(5.5rem, 30%, 8rem);
+    opacity: .62;
+    filter: brightness(0) saturate(100%) invert(72%) sepia(90%) saturate(1083%) hue-rotate(127deg) brightness(91%) contrast(102%);
   }
 
   .axis-icon-espectador {

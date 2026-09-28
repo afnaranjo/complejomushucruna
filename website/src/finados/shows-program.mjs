@@ -14,7 +14,7 @@ export const showsProgram = Object.freeze([
 ]);
 
 export const plazaShows = Object.freeze([
-  Object.freeze({ artist: 'Hueveando', date: '31 octubre', iso: '2026-10-31' }),
+  Object.freeze({ artist: 'Hueveando', date: '03 noviembre', iso: '2026-11-03' }),
   Object.freeze({ artist: 'Las Ñañas', date: '01 noviembre', iso: '2026-11-01' }),
 ]);
 

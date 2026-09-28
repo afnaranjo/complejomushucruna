@@ -240,6 +240,8 @@ export const assetManifest = Object.freeze([
   { path: '/assets/finados/shows/ambiente-concierto-1600.webp', kind: 'campaign-image' },
   { path: '/assets/finados/shows/cartel-shows-1240.webp', kind: 'campaign-image' },
   { path: '/assets/finados/shows/cartel-shows-2481.webp', kind: 'campaign-image' },
+  { path: '/assets/finados/shows/afiche-artistas-final.svg', kind: 'campaign-image' },
+  { path: '/assets/finados/shows/logo-plaza-de-la-luna.svg', kind: 'campaign-logo' },
   { path: '/assets/finados/shows/auspiciantes-finados-2026.webp', kind: 'campaign-image' },
   { path: '/assets/finados/mfs/mfs-logo.svg', kind: 'campaign-logo' },
   { path: '/assets/finados/mfs/mfs-icono.svg', kind: 'campaign-icon' },

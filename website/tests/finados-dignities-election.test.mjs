@@ -40,7 +40,7 @@ test('la elección aparece debajo de la franja manifiesto con fecha y llamados c
   assert.match(output, /<span class="manifesto-word manifesto-word--secondary">que nos une<\/span>/);
   assert.match(output, /Memoria <strong>que se celebra<\/strong>/);
   assert.match(output, /30 OCT <span aria-hidden="true">—<\/span> 03 NOV/);
-  assert.match(output, /finados\.css\?v=20260924-manifesto-1/);
+  assert.match(output, /finados\.css\?v=20260928-axis-2/);
   assert.doesNotMatch(output, /class="marquee|marquee-track/);
   assert.match(output, /<span>Tú eliges<\/span> a las próximas dignidades/);
   assert.match(output, /Rey Pan y Señorita Colada Morada/);

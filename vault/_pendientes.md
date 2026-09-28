@@ -12,6 +12,8 @@ tags:
 
 # Pendientes ejecutivos
 
+- [ ] Publicar en GitHub y frontend la [[11_eventos/2026_feria-finados/10_tecnologia-datos/2026-09-28_actualizacion-afiche-plaza-encuentro-web_v01|actualización de SHOWS y Encuentro]] cuando Alex lo autorice: afiche SVG a ancho completo, logo nuevo de Plaza de la Luna, Hueveando el 3 de noviembre y símbolo de Encuentro sin solapamiento. Responsable: Alex/tecnología/diseño. Fecha: por definir.
+
 - [x] Publicar la [[11_eventos/2026_feria-finados/10_tecnologia-datos/2026-09-22_eleccion-dignidades-actualizacion-auspiciantes-web_v01|elección de las próximas dignidades 2026 y el SVG nuevo de auspiciantes]]: diez candidaturas en orden, diseño Finados responsive, cachés renovadas y maestro compartido en Finados/SHOWS. `a650a70` en GitHub; 165 Node, 21 PHP y 10 integración; respaldo frontend y 14 comprobaciones HTTPS/SHA-256 sin fallos. Dignidades 2025 se preservó como histórico. Responsable: tecnología/diseño. Completado: 2026-09-22.
 
 - [ ] Completar la [[11_eventos/2026_feria-finados/05_marketing-comunicacion/03_pauta/2026-09-19_auditoria-campana-entradas-31-oct-whatsapp_v01|campaña activa de entradas del 31 de octubre]] sin aumentar gasto no autorizado: el segundo conjunto/anuncio ya está preparado **en pausa**, excluye `Folklore` y usa la misma publicación. Alex debe confirmar el tope diario total, la hora de corte de ventas del 31 de octubre y la capacidad de respuesta de WhatsApp antes de activarlo. Comprobar antes su revisión en Meta y después el estado y presupuesto por API. Responsable: Alex/pauta digital/Ventas. Fecha: antes de ampliar la campaña.

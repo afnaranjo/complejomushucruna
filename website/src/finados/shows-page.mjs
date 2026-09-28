@@ -6,8 +6,10 @@ import { showsProgram, plazaShows, showsAttractions } from './shows-program.mjs'
 import { renderFinadosSponsors, sponsorAssetVersion } from './sponsors.mjs';
 import { renderFairOpeningHeader, renderOpeningAssets } from './opening-header.mjs';
 
-const version = '20260916-shows-2';
-const asset = name => `/assets/finados/shows/${name}.webp?v=${version}`;
+const webpVersion = '20260916-shows-2';
+const svgVersion = '20260928-shows-4';
+const webpAsset = name => `/assets/finados/shows/${name}.webp?v=${webpVersion}`;
+const svgAsset = name => `/assets/finados/shows/${name}.svg?v=${svgVersion}`;
 
 function renderProgram() {
   return showsProgram.map(show => `<article class="shows-date-row${show.featured ? ' shows-date-row--featured' : ''}">
@@ -31,7 +33,7 @@ export function renderFinadosShowsPage(page) {
   <link rel="apple-touch-icon" href="/assets/finados/favicon-finados.png">
   <link rel="stylesheet" href="/assets/finados/finados.css?v=20260916-7">
   <link rel="stylesheet" href="/assets/finados/navigation.css?v=20260925-navigation-fluid-1">
-  <link rel="stylesheet" href="/assets/finados/shows.css?v=20260917-shows-3">
+  <link rel="stylesheet" href="/assets/finados/shows.css?v=${svgVersion}">
   <link rel="stylesheet" href="/assets/finados/sponsors.css?v=${sponsorAssetVersion}">
   ${renderOpeningAssets()}
   <script type="module" src="/assets/finados/finados.js?v=20260918-navigation-progress-1"></script>
@@ -51,8 +53,8 @@ export function renderFinadosShowsPage(page) {
     ${renderFairOpeningHeader({ compact: true })}
     <section class="shows-hero" aria-labelledby="shows-title">
       <picture class="shows-hero-image">
-        <source media="(max-width: 640px)" srcset="${asset('ambiente-concierto-800')}">
-        <img src="${asset('ambiente-concierto-1600')}" width="1600" height="900" alt="Imagen conceptual de un grupo de amigos disfrutando de un concierto" fetchpriority="high" decoding="async">
+        <source media="(max-width: 640px)" srcset="${webpAsset('ambiente-concierto-800')}">
+        <img src="${webpAsset('ambiente-concierto-1600')}" width="1600" height="900" alt="Imagen conceptual de un grupo de amigos disfrutando de un concierto" fetchpriority="high" decoding="async">
       </picture>
       <div class="shows-hero-shade" aria-hidden="true"></div>
       <div class="shows-hero-copy">
@@ -68,11 +70,11 @@ export function renderFinadosShowsPage(page) {
     <section id="shows" class="shows-cartel" aria-labelledby="shows-cartel-title">
       <header class="shows-section-heading">
         <div><p class="shows-kicker">El escenario nos reúne</p><h2 id="shows-cartel-title">Un cartel.<br>Muchas emociones.</h2></div>
-        <a class="shows-text-link" href="${asset('cartel-shows-2481')}" target="_blank" rel="noopener noreferrer">Ampliar cartel <span aria-hidden="true">↗</span><span class="sr-only"> (se abre en otra pestaña)</span></a>
+        <a class="shows-text-link" href="${svgAsset('afiche-artistas-final')}" target="_blank" rel="noopener noreferrer">Ampliar cartel <span aria-hidden="true">↗</span><span class="sr-only"> (se abre en otra pestaña)</span></a>
       </header>
       <figure class="shows-poster">
-        <a href="${asset('cartel-shows-2481')}" target="_blank" rel="noopener noreferrer" aria-label="Ampliar el cartel oficial de shows en otra pestaña">
-          <img src="${asset('cartel-shows-1240')}" srcset="${asset('cartel-shows-1240')} 1240w, ${asset('cartel-shows-2481')} 2481w" sizes="(max-width: 1080px) calc(100vw - 32px), 1040px" width="2481" height="3300" alt="Cartel oficial de Finados Mushuc Runa 2026. Artistas, fechas, atractivos y código QR de información; programación en texto debajo." loading="lazy" decoding="async">
+        <a href="${svgAsset('afiche-artistas-final')}" target="_blank" rel="noopener noreferrer" aria-label="Ampliar el cartel oficial de shows en otra pestaña">
+          <img src="${svgAsset('afiche-artistas-final')}" width="3509" height="4961" alt="Cartel oficial de Finados Mushuc Runa 2026. Artistas, fechas, atractivos y código QR de información; programación en texto debajo." loading="lazy" decoding="async">
         </a>
         <figcaption>Organiza: Luis Alfonso Chango P. · Complejo Intercultural y Deportivo Mushuc Runa.<br>Diseño oficial y orden de artistas conservados.</figcaption>
       </figure>
@@ -85,7 +87,7 @@ export function renderFinadosShowsPage(page) {
       </header>
       <div class="shows-date-list">${renderProgram()}</div>
       <section class="shows-plaza" aria-labelledby="shows-plaza-title">
-        <h3 id="shows-plaza-title" class="shows-plaza-brand"><img src="${asset('plaza-de-la-luna')}" width="170" height="165" alt="Plaza de la Luna" loading="lazy" decoding="async"></h3>
+        <h3 id="shows-plaza-title" class="shows-plaza-brand"><img src="${svgAsset('logo-plaza-de-la-luna')}" width="1300" height="1183" alt="Plaza de la Luna" loading="lazy" decoding="async"></h3>
         <div class="shows-plaza-list">${plazaShows.map(show => `<article class="shows-plaza-show"><h4>${escapeHtml(show.artist)}</h4><time datetime="${show.iso}">${show.date}</time></article>`).join('')}</div>
       </section>
     </section>
