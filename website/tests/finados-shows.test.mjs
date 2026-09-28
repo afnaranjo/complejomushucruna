@@ -101,7 +101,7 @@ test('la página abre con el carrusel de entradas y las imágenes oficiales son 
   assert.doesNotMatch(output, /class="shows-hero"/);
   assert.match(output, /entradas-2026-10-30-1200\.webp[^"]*"[^>]*fetchpriority="high"/);
   assert.match(output, /srcset="[^"]*600w, [^"]*1200w"/);
-  assert.match(output, /afiche-artistas-final\.svg\?v=20260928-shows-6/);
+  assert.match(output, /afiche-artistas-final\.svg\?v=20260928-shows-7/);
   assert.match(output, /width="3509" height="4961"/);
   assert.doesNotMatch(output, /cartel-shows-(?:1240|2481)/);
   assert.doesNotMatch(output, /data:image|R:\\|\.codex|base64/i);
@@ -183,7 +183,7 @@ test('el build entrega SHOWS con CSS, imágenes y aviso de cookies', async () =>
   const output = await readFile(join(directory, 'finados/shows/index.html'), 'utf8');
   assert.match(output, /data-cookie-consent/);
   assert.match(output, /Nuestro sitio web utiliza cookies para mejorar tu navegación\./);
-  assert.match(output, /shows\.css\?v=20260928-shows-6/);
+  assert.match(output, /shows\.css\?v=20260928-shows-7/);
   assert.match(output, /sponsors\.css\?v=20260924-sponsors-7/);
   const finados = await readFile(join(directory, 'finados/index.html'), 'utf8');
   assert.match(finados, /sponsors\.css\?v=20260924-sponsors-7/);
@@ -266,5 +266,5 @@ test('el carrusel se maneja con flechas, puntos y avance automático que respeta
   assert.match(js, /\[data-slider-next\]/);
   assert.match(js, /\[data-slide-dot\]/);
   assert.match(js, /prefers-reduced-motion: reduce\)'\)\.matches\) return;/);
-  assert.match(js, /setInterval\(/);
+  assert.match(js, /setInterval\([^\n]*\}, 4000\);/);
 });

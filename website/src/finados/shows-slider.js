@@ -1,4 +1,4 @@
-// Carrusel de entradas de SHOWS: flechas, puntos, deslizar con el dedo y avance automático cada 5 s,
+// Carrusel de entradas de SHOWS: flechas, puntos, deslizar con el dedo y avance automático cada 4 s,
 // que se detiene al pasar el cursor, al enfocar o si la persona prefiere menos movimiento.
 export function initializeShowsSlider(root = document) {
   const slider = root.querySelector('[data-shows-slider]');
@@ -27,7 +27,7 @@ export function initializeShowsSlider(root = document) {
   for (const [event, value] of [['pointerenter', true], ['pointerleave', false], ['focusin', true], ['focusout', false], ['touchstart', true]]) {
     slider.addEventListener(event, () => { paused = value; }, { passive: true });
   }
-  setInterval(() => { if (!paused && !document.hidden) go(current + 1); }, 5000);
+  setInterval(() => { if (!paused && !document.hidden) go(current + 1); }, 4000);
 }
 
 if (typeof document !== 'undefined') initializeShowsSlider();

@@ -6,7 +6,7 @@ import { showsProgram, plazaShows, showsAttractions, showsTickets } from './show
 import { renderFinadosSponsors, sponsorAssetVersion } from './sponsors.mjs';
 import { renderFairOpeningHeader, renderOpeningAssets } from './opening-header.mjs';
 
-const svgVersion = '20260928-shows-6';
+const svgVersion = '20260928-shows-7';
 const ticketsVersion = '20260928-entradas-1';
 const ticketImage = (iso, width) => `/assets/finados/shows/entradas-${iso}-${width}.webp?v=${ticketsVersion}`;
 const ticketFor = iso => showsTickets.find(ticket => ticket.iso === iso);
