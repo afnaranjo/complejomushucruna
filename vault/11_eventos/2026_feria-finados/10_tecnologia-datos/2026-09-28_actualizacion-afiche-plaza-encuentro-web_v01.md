@@ -35,11 +35,11 @@ Alex pidió actualizar `/finados/shows/` con el nuevo afiche oficial y el nuevo 
 - Build local: 232 archivos; `check-dist` sin rutas rotas.
 - Revisión visual local de SHOWS en escritorio y 390 px: afiche completo sin deformación ni desbordamiento, logo nuevo legible y fecha `03 noviembre` visible.
 - Revisión de `/finados/` en 390 px: Encuentro conserva título y párrafo completos; el símbolo cian queda a la derecha y no invade las letras. Consola sin errores ni advertencias.
-- El check completo se intentó: 256/258 pruebas Node aprobaron. Permanecen dos fallos administrativos que ya provienen de `main` y no tocan Finados público: una aserción de formato de media query y otra de reintento de inicio de sesión. El corte de `npm test` impidió que ese comando continuara a PHP e integración.
+- Las dos aserciones administrativas que dependían del salto LF ahora aceptan también CRLF. El `npm run check` completo aprobó 258 pruebas Node, 32 suites PHP y 11 integraciones; el build conserva 232 archivos y 2.793 referencias válidas.
 
 ## Estado de publicación
 
-El cambio queda preparado localmente. No se envió a GitHub ni se desplegó porque la solicitud de este turno no incluyó publicación.
+Alex autorizó publicar este cambio junto con el retiro posterior de Kike Jav. Queda validado y listo para el despliegue frontend.
 
 ## Relación
 

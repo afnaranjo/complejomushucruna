@@ -6,7 +6,6 @@ export const dignityCandidates = Object.freeze([
   { name: 'Golpe a Golpe', slug: 'golpe-a-golpe', category: 'rey-pan' },
   { name: 'Guaynaa', slug: 'guaynaa', category: 'rey-pan' },
   { name: 'Hueveando', slug: 'hueveando', category: 'rey-pan' },
-  { name: 'Kike Jav', slug: 'kike-jav', category: 'rey-pan' },
   { name: 'Waldokinc', slug: 'waldokinc', category: 'rey-pan' },
   { name: 'William Luna', slug: 'william-luna', category: 'rey-pan' },
   { name: 'Karina Chango', slug: 'karina-chango', category: 'colada-morada' },
@@ -22,7 +21,7 @@ const categories = Object.freeze([
     key: 'rey-pan',
     number: '01',
     title: 'Rey Pan',
-    intro: 'Seis nominados. Una corona. Elige al artista que quieres ver como próximo Rey Pan.',
+    intro: 'Cinco nominados. Una corona. Elige al artista que quieres ver como próximo Rey Pan.',
   },
   {
     key: 'colada-morada',

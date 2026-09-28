@@ -13,18 +13,19 @@ import {
 const finadosPage = pages.find(page => page.route === '/finados/');
 const html = () => finadosPage.render(finadosPage);
 
-test('ordena los nueve nominados vigentes por dignidad y conserva los nombres entregados', () => {
+test('ordena los ocho nominados vigentes por dignidad y conserva los nombres entregados', () => {
   assert.equal(dignitiesAssetVersion, '20260923-dignities-5');
   assert.deepEqual(
     dignityCandidates.filter(candidate => candidate.category === 'rey-pan').map(candidate => candidate.name),
-    ['Golpe a Golpe', 'Guaynaa', 'Hueveando', 'Kike Jav', 'Waldokinc', 'William Luna'],
+    ['Golpe a Golpe', 'Guaynaa', 'Hueveando', 'Waldokinc', 'William Luna'],
   );
   assert.deepEqual(
     dignityCandidates.filter(candidate => candidate.category === 'colada-morada').map(candidate => candidate.name),
     ['Karina Chango', 'Kramelo Latino', 'Las Ñañas'],
   );
-  assert.equal(new Set(dignityCandidates.map(candidate => candidate.asset)).size, 9);
+  assert.equal(new Set(dignityCandidates.map(candidate => candidate.asset)).size, 8);
   assert.equal(dignityCandidates.some(candidate => candidate.slug === 'las-diablitas-taz-taz'), false);
+  assert.equal(dignityCandidates.some(candidate => candidate.slug === 'kike-jav'), false);
 });
 
 test('la elección aparece debajo de la franja manifiesto con fecha y llamados claros', () => {
@@ -48,9 +49,10 @@ test('la elección aparece debajo de la franja manifiesto con fecha y llamados c
   assert.match(output, /Conoce a quienes quieren llevar la corona/);
   assert.match(output, /Apoya a tu favorito/);
   assert.match(output, /Vota en los canales oficiales/);
-  assert.equal((output.match(/class="dignity-candidate"/g) ?? []).length, 9);
-  assert.equal((output.match(/target="_blank" rel="noopener noreferrer"/g) ?? []).length >= 9, true);
-  assert.doesNotMatch(output, /Las Diablitas|las-diablitas-taz-taz/);
+  assert.equal((output.match(/class="dignity-candidate"/g) ?? []).length, 8);
+  assert.equal((output.match(/target="_blank" rel="noopener noreferrer"/g) ?? []).length >= 8, true);
+  assert.doesNotMatch(output, /Las Diablitas|las-diablitas-taz-taz|Kike Jav|kike-jav/);
+  assert.match(output, /Cinco nominados\. Una corona\./);
   assert.equal(output.includes(renderDignitiesElection()), true);
 });
 
@@ -73,12 +75,11 @@ test('los artes optimizados están presentes, son WebP y respetan el presupuesto
   }
 });
 
-test('los nueve artes vigentes conservan la composición aprobada y la fecha corregida a OCTUBRE', async () => {
+test('los ocho artes vigentes conservan la composición aprobada y la fecha corregida a OCTUBRE', async () => {
   const approvedHashes = new Map([
     ['golpe-a-golpe', '7c38b6fac9a1e37239bb3d270b9c33e7230530f80276589eddf8cfdac4c603cc'],
     ['guaynaa', 'f651f5a0b624e4fa51f4403a449c31a08e12917dc971b8294e27b7863cf6e976'],
     ['hueveando', '17dd3461c3936f382961fb9591ee30995cb1d18ca9062cbfff19362944488903'],
-    ['kike-jav', '7b22ee87cabb9ae853c9c30544d32d4605c2273ffe2c1d1c0eecc9af4cb23b79'],
     ['waldokinc', '6a8e0ca935df30a437a2b7e1b79b0618e7f0718f3ca9609fa2e381b176c1ba50'],
     ['william-luna', 'b0613707608781dc160608d3c512bd40d1bba0f11ae43280893ede8a99b6a03a'],
     ['karina-chango', '998e68b01c9d5eb8dac630af89e1cea550452ab7e6218a43a5f4f043d832d961'],
