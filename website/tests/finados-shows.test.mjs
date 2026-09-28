@@ -101,7 +101,7 @@ test('el hero es conceptual y las imágenes oficiales son locales y adaptables',
   assert.match(output, /Imagen conceptual/);
   assert.match(output, /fetchpriority="high"/);
   assert.match(output, /source media="\(max-width: 640px\)"/);
-  assert.match(output, /afiche-artistas-final\.svg\?v=20260928-shows-4/);
+  assert.match(output, /afiche-artistas-final\.svg\?v=20260928-shows-5/);
   assert.match(output, /width="3509" height="4961"/);
   assert.doesNotMatch(output, /cartel-shows-(?:1240|2481)/);
   assert.doesNotMatch(output, /data:image|R:\\|\.codex|base64/i);
@@ -184,7 +184,7 @@ test('el build entrega SHOWS con CSS, imágenes y aviso de cookies', async () =>
   const output = await readFile(join(directory, 'finados/shows/index.html'), 'utf8');
   assert.match(output, /data-cookie-consent/);
   assert.match(output, /Nuestro sitio web utiliza cookies para mejorar tu navegación\./);
-  assert.match(output, /shows\.css\?v=20260928-shows-4/);
+  assert.match(output, /shows\.css\?v=20260928-shows-5/);
   assert.match(output, /sponsors\.css\?v=20260924-sponsors-7/);
   const finados = await readFile(join(directory, 'finados/index.html'), 'utf8');
   assert.match(finados, /sponsors\.css\?v=20260924-sponsors-7/);
@@ -233,4 +233,27 @@ test('Finados y SHOWS comparten al final la composición nueva sin cambiar otras
   for (const other of pages.filter(item => item.render && !['/finados/', '/finados/shows/'].includes(item.route))) {
     assert.doesNotMatch(other.render(other), /finados-sponsors|sponsors\.css/);
   }
+});
+
+test('SHOWS vende por noche: miniatura oficial y enlace de Ticketstar para cada día', async () => {
+  const { showsTickets, showsProgram } = await import('../src/finados/shows-program.mjs');
+  const { renderFinadosShowsPage } = await import('../src/finados/shows-page.mjs');
+  const { access } = await import('node:fs/promises');
+  assert.deepEqual(showsTickets.map(ticket => ticket.url), [
+    'https://ticketstar365.com/evento/Finados30Octubre',
+    'https://ticketstar365.com/evento/Finados31Octubre',
+    'https://ticketstar365.com/evento/Finados01Noviembre',
+    'https://ticketstar365.com/evento/Finados02Noviembre',
+    'https://ticketstar365.com/evento/finados03Noviembre',
+  ]);
+  const html = renderFinadosShowsPage({ route: '/finados/shows/', description: 'Shows' });
+  const section = html.slice(html.indexOf('id="entradas"'), html.indexOf('id="shows"'));
+  for (const ticket of showsTickets) {
+    assert.match(section, new RegExp(`href="${ticket.url}" target="_blank" rel="noopener noreferrer"`));
+    for (const width of [600, 1200]) await access(new URL(`../public/assets/finados/shows/entradas-${ticket.iso}-${width}.webp`, import.meta.url));
+    assert.ok(section.includes(`entradas-${ticket.iso}-1200.webp`));
+  }
+  for (const show of showsProgram) assert.ok(showsTickets.some(ticket => ticket.iso === show.iso), `sin entrada: ${show.iso}`);
+  assert.equal((html.match(/class="shows-row-ticket"/g) ?? []).length, showsProgram.length);
+  assert.match(html, /href="#entradas">Comprar entradas/);
 });
