@@ -96,16 +96,15 @@ test('la composición web incorpora SanFra y Bogati en el orden oficial actualiz
   assert.equal(png.subarray(0, 8).toString('hex'), '89504e470d0a1a0a');
 });
 
-test('el hero es conceptual y las imágenes oficiales son locales y adaptables', () => {
+test('la página abre con el carrusel de entradas y las imágenes oficiales son locales y adaptables', () => {
   const output = html();
-  assert.match(output, /Imagen conceptual/);
-  assert.match(output, /fetchpriority="high"/);
-  assert.match(output, /source media="\(max-width: 640px\)"/);
-  assert.match(output, /afiche-artistas-final\.svg\?v=20260928-shows-5/);
+  assert.doesNotMatch(output, /class="shows-hero"/);
+  assert.match(output, /entradas-2026-10-30-1200\.webp[^"]*"[^>]*fetchpriority="high"/);
+  assert.match(output, /srcset="[^"]*600w, [^"]*1200w"/);
+  assert.match(output, /afiche-artistas-final\.svg\?v=20260928-shows-6/);
   assert.match(output, /width="3509" height="4961"/);
   assert.doesNotMatch(output, /cartel-shows-(?:1240|2481)/);
   assert.doesNotMatch(output, /data:image|R:\\|\.codex|base64/i);
-  assert.match(output, /href="#shows"/);
   for (const link of output.match(/<a [^>]*afiche-artistas-final\.svg[^>]*>/g) ?? []) {
     assert.match(link, /target="_blank"/);
     assert.match(link, /rel="noopener noreferrer"/);
@@ -184,7 +183,7 @@ test('el build entrega SHOWS con CSS, imágenes y aviso de cookies', async () =>
   const output = await readFile(join(directory, 'finados/shows/index.html'), 'utf8');
   assert.match(output, /data-cookie-consent/);
   assert.match(output, /Nuestro sitio web utiliza cookies para mejorar tu navegación\./);
-  assert.match(output, /shows\.css\?v=20260928-shows-5/);
+  assert.match(output, /shows\.css\?v=20260928-shows-6/);
   assert.match(output, /sponsors\.css\?v=20260924-sponsors-7/);
   const finados = await readFile(join(directory, 'finados/index.html'), 'utf8');
   assert.match(finados, /sponsors\.css\?v=20260924-sponsors-7/);
@@ -247,7 +246,10 @@ test('SHOWS vende por noche: miniatura oficial y enlace de Ticketstar para cada 
     'https://ticketstar365.com/evento/finados03Noviembre',
   ]);
   const html = renderFinadosShowsPage({ route: '/finados/shows/', description: 'Shows' });
-  const section = html.slice(html.indexOf('id="entradas"'), html.indexOf('id="shows"'));
+  const section = html.slice(html.indexOf('id="entradas"'), html.indexOf('data-fair-opening'));
+  assert.ok(html.indexOf('id="entradas"') < html.indexOf('data-fair-opening'), 'el carrusel va arriba y debajo el contador');
+  assert.equal((section.match(/class="shows-slide"/g) ?? []).length, showsTickets.length);
+  assert.match(html, /\/assets\/finados\/shows-slider\.js\?v=/);
   for (const ticket of showsTickets) {
     assert.match(section, new RegExp(`href="${ticket.url}" target="_blank" rel="noopener noreferrer"`));
     for (const width of [600, 1200]) await access(new URL(`../public/assets/finados/shows/entradas-${ticket.iso}-${width}.webp`, import.meta.url));
@@ -255,5 +257,14 @@ test('SHOWS vende por noche: miniatura oficial y enlace de Ticketstar para cada 
   }
   for (const show of showsProgram) assert.ok(showsTickets.some(ticket => ticket.iso === show.iso), `sin entrada: ${show.iso}`);
   assert.equal((html.match(/class="shows-row-ticket"/g) ?? []).length, showsProgram.length);
-  assert.match(html, /href="#entradas">Comprar entradas/);
+});
+
+test('el carrusel se maneja con flechas, puntos y avance automático que respeta el movimiento reducido', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const js = await readFile(new URL('../src/finados/shows-slider.js', import.meta.url), 'utf8');
+  assert.match(js, /\[data-slider-prev\]/);
+  assert.match(js, /\[data-slider-next\]/);
+  assert.match(js, /\[data-slide-dot\]/);
+  assert.match(js, /prefers-reduced-motion: reduce\)'\)\.matches\) return;/);
+  assert.match(js, /setInterval\(/);
 });

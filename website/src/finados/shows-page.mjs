@@ -6,22 +6,32 @@ import { showsProgram, plazaShows, showsAttractions, showsTickets } from './show
 import { renderFinadosSponsors, sponsorAssetVersion } from './sponsors.mjs';
 import { renderFairOpeningHeader, renderOpeningAssets } from './opening-header.mjs';
 
-const webpVersion = '20260916-shows-2';
-const svgVersion = '20260928-shows-5';
+const svgVersion = '20260928-shows-6';
 const ticketsVersion = '20260928-entradas-1';
 const ticketImage = (iso, width) => `/assets/finados/shows/entradas-${iso}-${width}.webp?v=${ticketsVersion}`;
 const ticketFor = iso => showsTickets.find(ticket => ticket.iso === iso);
-const webpAsset = name => `/assets/finados/shows/${name}.webp?v=${webpVersion}`;
 const svgAsset = name => `/assets/finados/shows/${name}.svg?v=${svgVersion}`;
 
-function renderTickets() {
-  return showsTickets.map(ticket => `<article class="shows-ticket">
-    <a class="shows-ticket-link" href="${escapeHtml(ticket.url)}" target="_blank" rel="noopener noreferrer">
-      <img src="${ticketImage(ticket.iso, 600)}" srcset="${ticketImage(ticket.iso, 600)} 600w, ${ticketImage(ticket.iso, 1200)} 1200w" sizes="(max-width: 760px) calc(100vw - 32px), (max-width: 1200px) 50vw, 600px" width="1200" height="600" alt="${escapeHtml(ticket.alt)}" loading="lazy" decoding="async">
-      <span class="shows-ticket-bar"><time datetime="${ticket.iso}"><span>${ticket.day}</span> <strong>${ticket.date} ${ticket.month}</strong></time><span class="shows-ticket-cta">Comprar entradas <span aria-hidden="true">→</span></span></span>
-      <span class="sr-only"> (se abre Ticketstar en otra pestaña)</span>
-    </a>
-  </article>`).join('\n');
+function renderTicketSlider() {
+  const slides = showsTickets.map((ticket, index) => `<li class="shows-slide" id="noche-${ticket.iso}" aria-roledescription="diapositiva" aria-label="${index + 1} de ${showsTickets.length}: ${escapeHtml(ticket.day)} ${ticket.date} ${ticket.month}">
+      <a class="shows-slide-link" href="${escapeHtml(ticket.url)}" target="_blank" rel="noopener noreferrer">
+        <img src="${ticketImage(ticket.iso, 1200)}" srcset="${ticketImage(ticket.iso, 600)} 600w, ${ticketImage(ticket.iso, 1200)} 1200w" sizes="(max-width: 1240px) 100vw, 1200px" width="1200" height="600" alt="${escapeHtml(ticket.alt)}"${index === 0 ? ' fetchpriority="high"' : ' loading="lazy"'} decoding="async">
+        <span class="shows-slide-bar"><time datetime="${ticket.iso}"><span>${ticket.day}</span> <strong>${ticket.date} ${ticket.month}</strong></time><span class="shows-slide-cta">Comprar entradas <span aria-hidden="true">→</span></span></span>
+        <span class="sr-only"> (se abre Ticketstar en otra pestaña)</span>
+      </a>
+    </li>`).join('\n');
+  const dots = showsTickets.map((ticket, index) => `<button type="button" class="shows-slider-dot" data-slide-dot="${index}" aria-label="Ver ${escapeHtml(ticket.day)} ${ticket.date} ${ticket.month}"${index === 0 ? ' aria-current="true"' : ''}><span>${ticket.date} ${ticket.month}</span></button>`).join('');
+  return `<section id="entradas" class="shows-slider" aria-roledescription="carrusel" aria-labelledby="shows-title" data-shows-slider>
+      <div class="shows-slider-inner">
+        <header class="shows-slider-heading"><p class="shows-kicker">Venta oficial en Ticketstar</p><h1 id="shows-title">Shows · Elige tu noche</h1></header>
+        <div class="shows-slider-frame">
+          <ul class="shows-slider-track" data-slider-track>${slides}</ul>
+          <button type="button" class="shows-slider-arrow shows-slider-arrow--prev" data-slider-prev aria-label="Noche anterior">←</button>
+          <button type="button" class="shows-slider-arrow shows-slider-arrow--next" data-slider-next aria-label="Noche siguiente">→</button>
+        </div>
+        <div class="shows-slider-dots" role="group" aria-label="Elegir noche">${dots}</div>
+      </div>
+    </section>`;
 }
 
 function renderProgram() {
@@ -51,6 +61,7 @@ export function renderFinadosShowsPage(page) {
   <link rel="stylesheet" href="/assets/finados/sponsors.css?v=${sponsorAssetVersion}">
   ${renderOpeningAssets()}
   <script type="module" src="/assets/finados/finados.js?v=20260918-navigation-progress-1"></script>
+  <script type="module" src="/assets/finados/shows-slider.js?v=${svgVersion}"></script>
 </head>
 <body class="shows-page font-sans text-night antialiased selection:bg-winay selection:text-night">
   <a class="skip-link" href="#contenido">Ir al contenido</a>
@@ -64,30 +75,8 @@ export function renderFinadosShowsPage(page) {
   </header>
 
   <main id="contenido">
+    ${renderTicketSlider()}
     ${renderFairOpeningHeader({ compact: true })}
-    <section class="shows-hero" aria-labelledby="shows-title">
-      <picture class="shows-hero-image">
-        <source media="(max-width: 640px)" srcset="${webpAsset('ambiente-concierto-800')}">
-        <img src="${webpAsset('ambiente-concierto-1600')}" width="1600" height="900" alt="Imagen conceptual de un grupo de amigos disfrutando de un concierto" fetchpriority="high" decoding="async">
-      </picture>
-      <div class="shows-hero-shade" aria-hidden="true"></div>
-      <div class="shows-hero-copy">
-        <p class="shows-kicker">Finados Mushuc Runa 2026</p>
-        <h1 id="shows-title">SHOWS</h1>
-        <p class="shows-hero-tagline">La música<br>que nos une.</p>
-        <div class="shows-hero-actions"><a class="shows-button shows-button--tickets" href="#entradas">Comprar entradas <span aria-hidden="true">↓</span></a><a class="shows-button" href="#shows">Ver el cartel <span aria-hidden="true">↓</span></a></div>
-      </div>
-      <p class="shows-hero-caption">Ambiente de concierto · Imagen conceptual</p>
-      <div class="chumbi-line shows-hero-weave" aria-hidden="true"></div>
-    </section>
-
-    <section id="entradas" class="shows-tickets" aria-labelledby="shows-tickets-title">
-      <header class="shows-section-heading">
-        <div><p class="shows-kicker">Venta oficial en Ticketstar</p><h2 id="shows-tickets-title">Elige tu noche.<br>Compra tu entrada.</h2></div>
-        <p class="shows-stage-note"><strong>Una entrada por noche</strong><span>Toca el día para comprar</span></p>
-      </header>
-      <div class="shows-ticket-grid">${renderTickets()}</div>
-    </section>
 
     <section id="shows" class="shows-cartel" aria-labelledby="shows-cartel-title">
       <header class="shows-section-heading">

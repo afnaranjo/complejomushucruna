@@ -86,29 +86,44 @@
   .shows-button { transition: none; }
   .shows-button:hover { transform: none; }
 }
-.shows-hero-actions { display: flex; flex-wrap: wrap; gap: 1rem; }
-.shows-button--tickets { background: #ffc42e; color: #241146; box-shadow: 4px 4px 0 #ff2e8a; }
-.shows-button--tickets:hover { box-shadow: 2px 2px 0 #ff2e8a; }
-.shows-tickets { width: min(calc(100% - 64px), 88rem); margin: auto; padding: clamp(3rem, 6vw, 6rem) 0 0; scroll-margin-top: 110px; }
-.shows-ticket-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem; }
-.shows-ticket:first-child { grid-column: 1 / -1; }
-.shows-ticket-link { display: block; overflow: hidden; border: 2px solid #391f6f; border-radius: 1rem; background: #391f6f; color: #f4eada; text-decoration: none; box-shadow: 6px 6px 0 #00d2d6; transition: transform .16s ease, box-shadow .16s ease; }
-.shows-ticket-link img { display: block; width: 100%; height: auto; aspect-ratio: 2 / 1; object-fit: cover; }
-.shows-ticket-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem 1rem; padding: 1rem 1.25rem; }
-.shows-ticket-bar time { font: 800 .8rem/1.3 "Inter", sans-serif; letter-spacing: .08em; text-transform: uppercase; }
-.shows-ticket-bar time strong { color: #ffc42e; font: 400 1.6rem/1 "Anton", sans-serif; letter-spacing: .02em; }
-.shows-ticket-cta { display: inline-flex; align-items: center; gap: .75rem; padding: .75rem 1.2rem; border: 2px solid #f4eada; border-radius: 999px; background: #ff2e8a; color: #f4eada; font: 800 .85rem/1.2 "Inter", sans-serif; box-shadow: 3px 3px 0 #ffc42e; }
-.shows-ticket-link:hover, .shows-ticket-link:focus-visible { transform: translate(-3px, -3px); box-shadow: 9px 9px 0 #00d2d6; }
-.shows-ticket-link:hover .shows-ticket-cta, .shows-ticket-link:focus-visible .shows-ticket-cta { background: #ffc42e; color: #241146; box-shadow: 3px 3px 0 #ff2e8a; }
-.shows-ticket-link:focus-visible { outline: 3px solid #ffc42e; outline-offset: 4px; }
 .shows-date-row { grid-template-columns: 160px minmax(0, 1fr) auto; }
 .shows-row-ticket { display: inline-flex; align-items: center; gap: .6rem; padding: .7rem 1.1rem; border: 2px solid #391f6f; border-radius: 999px; background: #ffc42e; color: #241146; font: 800 .8rem/1.2 "Inter", sans-serif; letter-spacing: .06em; text-transform: uppercase; text-decoration: none; box-shadow: 3px 3px 0 #391f6f; white-space: nowrap; }
 .shows-row-ticket:hover, .shows-row-ticket:focus-visible { background: #ff2e8a; color: #f4eada; }
 @media (max-width: 760px) {
-  .shows-tickets { width: calc(100% - 32px); }
-  .shows-ticket-grid { grid-template-columns: 1fr; gap: 1.25rem; }
-  .shows-ticket-bar { padding: .85rem 1rem; }
   .shows-date-row { grid-template-columns: 80px minmax(0, 1fr); }
   .shows-row-ticket { grid-column: 2; justify-self: start; }
 }
-@media (prefers-reduced-motion: reduce) { .shows-ticket-link { transition: none; } .shows-ticket-link:hover, .shows-ticket-link:focus-visible { transform: none; } }
+/* Carrusel de entradas: lo primero de SHOWS. Cada diapositiva es el arte oficial de Ticketstar de una noche. */
+.shows-slider { padding: 132px 0 2.5rem; background: #241146; color: #f4eada; scroll-margin-top: 0; }
+.shows-slider-inner { width: min(calc(100% - 64px), 75rem); margin: auto; }
+.shows-slider-heading { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: .5rem 2rem; margin-bottom: 1.25rem; }
+.shows-slider-heading .shows-kicker { margin: 0; color: #00d2d6; }
+.shows-slider-heading h1 { margin: 0; font-size: clamp(2rem, 4vw, 3.4rem); line-height: 1.05; text-transform: uppercase; }
+.shows-slider-frame { position: relative; }
+.shows-slider-track { position: relative; display: flex; gap: 1rem; margin: 0; padding: 0; list-style: none; overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth; scrollbar-width: none; border-radius: 1.1rem; }
+.shows-slider-track::-webkit-scrollbar { display: none; }
+.shows-slide { flex: 0 0 100%; scroll-snap-align: center; }
+.shows-slide-link { display: block; overflow: hidden; border: 3px solid #f4eada; border-radius: 1.1rem; background: #391f6f; color: #f4eada; text-decoration: none; }
+.shows-slide-link img { display: block; width: 100%; height: auto; aspect-ratio: 2 / 1; }
+.shows-slide-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem 1rem; padding: 1rem 1.4rem; }
+.shows-slide-bar time { font: 800 .85rem/1.3 "Inter", sans-serif; letter-spacing: .08em; text-transform: uppercase; }
+.shows-slide-bar time strong { color: #ffc42e; font: 400 clamp(1.6rem, 2.6vw, 2.2rem)/1 "Anton", sans-serif; letter-spacing: .02em; }
+.shows-slide-cta { display: inline-flex; align-items: center; gap: .75rem; padding: .9rem 1.5rem; border: 2px solid #f4eada; border-radius: 999px; background: #ffc42e; color: #241146; font: 800 clamp(.9rem, 1.3vw, 1.05rem)/1.2 "Inter", sans-serif; box-shadow: 4px 4px 0 #ff2e8a; transition: transform .16s ease, box-shadow .16s ease, background-color .16s ease; }
+.shows-slide-link:hover .shows-slide-cta, .shows-slide-link:focus-visible .shows-slide-cta { background: #ff2e8a; color: #f4eada; transform: translate(-2px, -2px); box-shadow: 6px 6px 0 #ffc42e; }
+.shows-slide-link:focus-visible { outline: 3px solid #ffc42e; outline-offset: 4px; }
+.shows-slider-arrow { position: absolute; top: calc(50% - 2.2rem); display: grid; place-items: center; width: 3.2rem; height: 3.2rem; border: 2px solid #f4eada; border-radius: 50%; background: #241146d9; color: #f4eada; font: 800 1.3rem/1 "Inter", sans-serif; cursor: pointer; }
+.shows-slider-arrow:hover, .shows-slider-arrow:focus-visible { background: #ff2e8a; }
+.shows-slider-arrow--prev { left: -1.6rem; }
+.shows-slider-arrow--next { right: -1.6rem; }
+.shows-slider-dots { display: flex; flex-wrap: wrap; justify-content: center; gap: .6rem; margin-top: 1.25rem; }
+.shows-slider-dot { padding: .55rem 1rem; border: 2px solid #f4eada66; border-radius: 999px; background: transparent; color: #f4eada; font: 800 .75rem/1 "Inter", sans-serif; letter-spacing: .08em; text-transform: uppercase; cursor: pointer; }
+.shows-slider-dot[aria-current="true"] { border-color: #ffc42e; background: #ffc42e; color: #241146; }
+.shows-page .shows-slider + .presentation-hero--compact { padding-top: 3rem; }
+@media (max-width: 760px) {
+  .shows-slider { padding-top: 108px; }
+  .shows-slider-inner { width: calc(100% - 24px); }
+  .shows-slider-arrow { display: none; }
+  .shows-slide-bar { padding: .8rem 1rem; }
+  .shows-slide-cta { width: 100%; justify-content: center; }
+}
+@media (prefers-reduced-motion: reduce) { .shows-slider-track { scroll-behavior: auto; } .shows-slide-cta { transition: none; } .shows-slide-link:hover .shows-slide-cta { transform: none; } }
