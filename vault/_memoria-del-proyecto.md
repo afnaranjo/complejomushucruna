@@ -17,13 +17,14 @@ tags:
 - La portada `/finados/` deja de publicar el arte y la tarjeta de Kike Jav. Rey Pan conserva cinco candidaturas numeradas de forma continua; Señorita Colada Morada conserva sus tres candidaturas.
 - El activo histórico no se borró. No cambiaron los demás artes, la fecha de votación ni los enlaces oficiales.
 - QA completa aprobada: 258 pruebas Node, 32 suites PHP, 11 integraciones; build de 232 archivos y 2.793 referencias. Revisión visual en escritorio y 390 px confirma ocho tarjetas, ausencia de Kike Jav y ningún desbordamiento. Evidencia: [[11_eventos/2026_feria-finados/10_tecnologia-datos/2026-09-28_retiro-kike-jav-eleccion-web_v01|Retiro de Kike Jav]].
+- `0ef0e98` publicado en GitHub y frontend desplegado con respaldo previo, sin backend ni datos. Ambos dominios responden con 8 tarjetas, 0 referencias a Kike Jav y los cambios nuevos de SHOWS; revisión visual HTTPS aprobada.
 
 ## 2026-09-28 — SHOWS: nuevo afiche, Plaza de la Luna y lectura de Encuentro
 
 - `/finados/shows/` incorpora el afiche oficial SVG `3509 × 4961` a ancho completo y el logo SVG actualizado de Plaza de la Luna; Hueveando se presenta el 3 de noviembre.
 - En la portada de Finados, la tarjeta Encuentro recuperó la lectura en móvil: símbolo cian reducido, decorativo y detrás del texto.
 - QA local aprobada: 12/12 pruebas específicas, 39/39 relacionadas, build de 232 archivos, `check-dist`, revisión escritorio/móvil y consola limpia. Las aserciones de saltos de línea se hicieron portables y el check completo queda en verde: 258 Node, 32 PHP y 11 integración.
-- Alex autorizó publicar este cambio junto con el retiro de Kike Jav. Evidencia: [[11_eventos/2026_feria-finados/10_tecnologia-datos/2026-09-28_actualizacion-afiche-plaza-encuentro-web_v01|Actualización de SHOWS y Encuentro]].
+- `c0bbba8` publicado junto con el retiro de Kike Jav y verificado en los dos dominios: afiche, logo y fecha nueva presentes. Evidencia: [[11_eventos/2026_feria-finados/10_tecnologia-datos/2026-09-28_actualizacion-afiche-plaza-encuentro-web_v01|Actualización de SHOWS y Encuentro]].
 
 ## 2026-09-22 — Elección de dignidades y auspiciantes publicados
 

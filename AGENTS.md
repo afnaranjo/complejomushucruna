@@ -2103,6 +2103,7 @@ Nota de relevo escrita a pedido de Alex para que otro agente (Codex) retome la s
 - QA local: 12/12 pruebas específicas y 39/39 pruebas relacionadas; build de 232 archivos y `check-dist` sin rutas rotas. Revisión visual en escritorio y móvil de 390 px confirmó el ancho completo, el logo, la fecha y la tarjeta de Encuentro sin solapamiento; consola sin advertencias ni errores.
 - Las dos aserciones administrativas que dependían de saltos LF ahora admiten también CRLF. El `npm run check` completo queda en verde: 258 Node, 32 suites PHP, 11 integraciones; build de 232 archivos y 2.793 referencias válidas.
 - Alex autorizó publicar estos cambios junto con el retiro posterior de Kike Jav. Evidencia: [[vault/11_eventos/2026_feria-finados/10_tecnologia-datos/2026-09-28_actualizacion-afiche-plaza-encuentro-web_v01|Actualización de afiche, Plaza de la Luna y Encuentro]].
+- Publicado en `origin/main` con `c0bbba8` y desplegado junto con `0ef0e98`; respaldo recuperable previo y verificación en los dos dominios.
 
 ### 2026-09-28 — Retiro de Kike Jav de la elección de Rey Pan
 
@@ -2110,3 +2111,4 @@ Nota de relevo escrita a pedido de Alex para que otro agente (Codex) retome la s
 - Rey Pan queda con cinco candidaturas en el mismo orden relativo: Golpe a Golpe, Guaynaa, Hueveando, Waldokinc y William Luna. Señorita Colada Morada conserva Karina Chango, Kramelo Latino y Las Ñañas. La numeración se recalcula de forma continua.
 - TDD: la prueba específica falló primero por los nueve registros anteriores y quedó en verde con ocho candidaturas. QA completa en verde: 258 Node, 32 suites PHP, 11 integraciones; build de 232 archivos y 2.793 referencias válidas.
 - QA visual local: escritorio y móvil de 390 px sin desbordamiento; ocho tarjetas visibles, cinco de Rey Pan y tres de Señorita Colada Morada; ninguna referencia a `Kike Jav` o `kike-jav`. Evidencia: [[vault/11_eventos/2026_feria-finados/10_tecnologia-datos/2026-09-28_retiro-kike-jav-eleccion-web_v01|Retiro de Kike Jav de la elección web]].
+- Publicación autorizada: `0ef0e98` en `origin/main`; despliegue frontend estándar con respaldo, sin backend ni migraciones. En ambos dominios `/finados/` entrega ocho tarjetas, cero referencias a Kike Jav y el texto de cinco nominados; `/finados/shows/` entrega el afiche y logo SVG nuevos y Hueveando el 3 de noviembre. Los dos SVG responden 200 y la revisión visual HTTPS conserva la cuadrícula sin huecos.

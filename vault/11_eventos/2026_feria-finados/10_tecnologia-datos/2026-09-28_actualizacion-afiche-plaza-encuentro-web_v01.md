@@ -1,7 +1,7 @@
 ---
 titulo: "Actualización de afiche, Plaza de la Luna y Encuentro"
 responsable: "tecnología/diseño"
-estado: listo-para-publicar
+estado: publicado
 ultima_actualizacion: 2026-09-28
 fuente: "Solicitud de Alex y SVG oficiales recibidos el 28 de septiembre de 2026"
 confidencialidad: interno
@@ -39,7 +39,7 @@ Alex pidió actualizar `/finados/shows/` con el nuevo afiche oficial y el nuevo 
 
 ## Estado de publicación
 
-Alex autorizó publicar este cambio junto con el retiro posterior de Kike Jav. Queda validado y listo para el despliegue frontend.
+Publicado en GitHub como `c0bbba8` y desplegado junto con `0ef0e98` mediante el flujo frontend estándar, con respaldo recuperable previo y sin backend ni migraciones. Los dos dominios entregan el afiche y logo nuevos y Hueveando el 3 de noviembre; ambos SVG responden 200.
 
 ## Relación
 

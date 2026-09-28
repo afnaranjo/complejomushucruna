@@ -1,7 +1,7 @@
 ---
 titulo: "Retiro de Kike Jav de la elección web"
 responsable: "tecnología/diseño"
-estado: listo-para-publicar
+estado: publicado
 ultima_actualizacion: 2026-09-28
 fuente: "Solicitud de Alex del 28 de septiembre de 2026"
 confidencialidad: interno
@@ -34,6 +34,14 @@ Alex pidió retirar de `/finados/` el arte de Kike Jav, candidato a Rey Pan, y p
 - Frontend solamente.
 - No se modifican backend, migraciones, base de datos, Google Sheets ni formularios.
 - La publicación incluye también la actualización ya validada de SHOWS y Encuentro autorizada en el mismo turno.
+
+## Publicación
+
+- Commit funcional `0ef0e98` en `origin/main`, junto con `c0bbba8` de SHOWS y Encuentro.
+- Prevuelo completo aprobado y despliegue frontend estándar con respaldo recuperable; backend, migraciones y base de datos sin cambios.
+- Verificación HTTPS en `complejomushucruna.com` y `finados.expoferiamushucruna.com`: `/finados/` responde 200, contiene ocho tarjetas, el texto «Cinco nominados. Una corona.» y cero referencias a `Kike Jav`/`kike-jav`.
+- `/finados/shows/` responde 200 con el afiche SVG nuevo, el logo SVG nuevo y Hueveando el 3 de noviembre. Los dos activos SVG responden 200.
+- Revisión visual final sobre producción: cuadrícula de Rey Pan termina en Waldokinc y William Luna sin hueco; sin desbordamiento horizontal.
 
 ## Relación
 

@@ -12,7 +12,9 @@ tags:
 
 # Pendientes ejecutivos
 
-- [ ] Publicar en GitHub y frontend la [[11_eventos/2026_feria-finados/10_tecnologia-datos/2026-09-28_actualizacion-afiche-plaza-encuentro-web_v01|actualización de SHOWS y Encuentro]] cuando Alex lo autorice: afiche SVG a ancho completo, logo nuevo de Plaza de la Luna, Hueveando el 3 de noviembre y símbolo de Encuentro sin solapamiento. Responsable: Alex/tecnología/diseño. Fecha: por definir.
+- [x] Publicar en GitHub y frontend la [[11_eventos/2026_feria-finados/10_tecnologia-datos/2026-09-28_actualizacion-afiche-plaza-encuentro-web_v01|actualización de SHOWS y Encuentro]]: afiche SVG a ancho completo, logo nuevo de Plaza de la Luna, Hueveando el 3 de noviembre y símbolo de Encuentro sin solapamiento. `c0bbba8` publicado con respaldo y verificado en ambos dominios. Responsable: tecnología/diseño. Completado: 2026-09-28.
+
+- [x] Retirar y publicar [[11_eventos/2026_feria-finados/10_tecnologia-datos/2026-09-28_retiro-kike-jav-eleccion-web_v01|el arte de Kike Jav en la elección web]], conservando cinco candidatos a Rey Pan y tres a Señorita Colada Morada. `0ef0e98` en GitHub; check completo, respaldo frontend y verificación HTTPS/visual en ambos dominios. Responsable: tecnología/diseño. Completado: 2026-09-28.
 
 - [x] Publicar la [[11_eventos/2026_feria-finados/10_tecnologia-datos/2026-09-22_eleccion-dignidades-actualizacion-auspiciantes-web_v01|elección de las próximas dignidades 2026 y el SVG nuevo de auspiciantes]]: diez candidaturas en orden, diseño Finados responsive, cachés renovadas y maestro compartido en Finados/SHOWS. `a650a70` en GitHub; 165 Node, 21 PHP y 10 integración; respaldo frontend y 14 comprobaciones HTTPS/SHA-256 sin fallos. Dignidades 2025 se preservó como histórico. Responsable: tecnología/diseño. Completado: 2026-09-22.
 
