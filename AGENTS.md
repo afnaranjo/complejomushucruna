@@ -2137,3 +2137,9 @@ Nota de relevo escrita a pedido de Alex para que otro agente (Codex) retome la s
 - QA: `npm run check` en verde (262 Node, 34 suites PHP con `ticket_sales_test.php`, 11 integración; 243 archivos, 81 HTML, 2808 referencias). Prueba real contra Ticketstar desde la clase y revisión en Chrome sin interfaz a 1440 y 390 px con datos reales, sin desbordes: 127 entradas y USD 1.964,00 en 5 noches al corte.
 - Publicación externa: ninguna. Pendiente de autorización de Alex: instalar `ticketstar-config.json` en el servidor y desplegar backend → frontend.
 - Riesgos: las credenciales se compartieron por chat y son sencillas; conviene pedir a Ticketstar que las cambien y actualizar el archivo privado. Se entregaron dos cuentas (`mktmushucruna@…` y `mushucrunaeventos@…`) que hoy devuelven los mismos eventos; el panel usa la primera, la que Alex indicó.
+
+### 2026-09-30 — Publicación de la venta de entradas en el Panel
+
+- Alex autorizó con «sube a produccion». Se instaló `ticketstar-config.json` junto a la configuración privada del backend (permisos 600, sin sobrescribir, contenido enviado por stdin; la contraseña no quedó en Git ni en la línea de comandos). Backend y luego frontend publicados desde `main` sincronizada en `115567e`, con verificación completa, respaldo previo, sin migraciones y sin borrar archivos exclusivos.
+- Verificación: `/admin/panel/` 200 en ambos dominios con la sección y `panel.js?v=20260930-tickets-1`; `panel.js`, `admin-medios.js` y `admin.css` con SHA-256 idéntico al build; `health` 200 y `/api/venta-entradas` sin sesión 401 en ambas APIs. La clase publicada, ejecutada en el servidor, leyó Ticketstar en 1 s: 5 noches, 127 entradas, USD 1.964,00; caché y token con permisos 600.
+- Pendiente: pedir a Ticketstar que cambie la contraseña compartida en el chat y actualizar el archivo privado.
