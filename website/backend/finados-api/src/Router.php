@@ -353,6 +353,13 @@ final class Router
                 catch (Throwable) { return $this->error(503, 'social_unavailable', 'No se pudieron leer las redes sociales en este momento.', $headers); }
                 return $this->json(200, $report, $headers);
             }
+            if ($path === '/api/venta-entradas') {
+                if ($method !== 'GET') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+                if (array_diff(array_keys($query), ['refresh']) !== [] || (isset($query['refresh']) && $query['refresh'] !== '1')) throw new InvalidArgumentException();
+                try { $report = $this->ticketSales()->report(isset($query['refresh'])); }
+                catch (Throwable) { return $this->error(503, 'sales_unavailable', 'No se pudo leer la venta de entradas en este momento.', $headers); }
+                return $this->json(200, $report, $headers);
+            }
             if ($path === '/api/noticias' || str_starts_with($path, '/api/noticias/')) {
                 return $this->news($method, $path, $query, $server, $rawBody, $ip, $user, $headers);
             }
@@ -656,6 +663,12 @@ final class Router
     {
         require_once __DIR__ . '/MediaPlanStore.php';
         return new MediaPlanStore($this->pdo, $this->audit, $this->config->privateDirectory());
+    }
+
+    private function ticketSales(): TicketSales
+    {
+        require_once __DIR__ . '/TicketSales.php';
+        return new TicketSales($this->config->privateDirectory());
     }
 
     private function socialMetrics(): SocialMetrics

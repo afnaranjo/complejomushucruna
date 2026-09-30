@@ -92,7 +92,7 @@ export function createMediaAdminClient(baseUrl = API, fetchImplementation = fetc
   if (![API, MIRROR_API_BASE, LOCAL_API].filter(Boolean).includes(baseUrl)) throw new Error('Origen de API no permitido.');
   let csrf = '';
   async function request(path, options = {}) {
-    if (!/^\/(?:auth\/(?:session|logout)|panel|redes-sociales|media-plan|media-accounts|media-claims|media-events|medios(?:\/export)?)(?:\?[^#]*)?$/.test(path)
+    if (!/^\/(?:auth\/(?:session|logout)|panel|redes-sociales|venta-entradas|media-plan|media-accounts|media-claims|media-events|medios(?:\/export)?)(?:\?[^#]*)?$/.test(path)
       && !/^\/medios\/[a-f0-9]{32}(?:\/(?:delete|notes|password-reset|video-views|videos|photo|details|invite|claim\/(?:approve|reject)))?$/.test(path)
       && !/^\/media-events\/[a-f0-9]{32}(?:\/coverage\/[a-f0-9]{32})?$/.test(path)
       && !/^\/media-accounts\/[a-f0-9]{32}\/delete$/.test(path)
@@ -166,6 +166,7 @@ export function createMediaAdminClient(baseUrl = API, fetchImplementation = fetc
     createProductionEntry: (board, body) => request(`/produccion/${board}/entries`, { method: 'POST', body }),
     updateProductionEntry: (board, id, body) => request(`/produccion/${board}/entries/${id}`, { method: 'PATCH', body }),
     cancelProductionEntry: (board, id) => request(`/produccion/${board}/entries/${id}/cancelar`, { method: 'POST', body: {} }),
+    ticketSales: (refresh = false) => request('/venta-entradas' + (refresh ? '?refresh=1' : '')),
     social: (from, to, refresh = false) => request('/redes-sociales?' + new URLSearchParams({ from, to, ...(refresh ? { refresh: '1' } : {}) })),
     events: () => request('/media-events'),
     createEvent: body => request('/media-events', { method: 'POST', body }),

@@ -24,7 +24,7 @@ final class AdminUsers
      * portada y sus rutas de API en ROUTES) y aparece como una casilla más en la sección Usuarios.
      */
     public const MODULES = [
-        'panel' => ['label' => 'Panel', 'description' => 'Resumen de todo y redes sociales', 'home' => '/admin/panel/'],
+        'panel' => ['label' => 'Panel', 'description' => 'Resumen de todo, redes sociales y venta de entradas', 'home' => '/admin/panel/'],
         'noticias' => ['label' => 'Noticias', 'description' => 'Editar el tema central y los avisos', 'home' => '/admin/noticias/'],
         'voceros' => ['label' => 'Voceros', 'description' => 'Registros y seguimiento', 'home' => '/admin/voceros/'],
         'medios' => ['label' => 'Medios', 'description' => 'Seguimiento, eventos, calendario y gira', 'home' => '/admin/medios/'],
@@ -36,7 +36,7 @@ final class AdminUsers
     ];
     /** Qué módulo protege cada ruta administrativa de la API (por prefijo). */
     private const ROUTES = [
-        '/api/panel' => 'panel', '/api/redes-sociales' => 'panel',
+        '/api/panel' => 'panel', '/api/redes-sociales' => 'panel', '/api/venta-entradas' => 'panel',
         '/api/noticias' => 'noticias',
         '/api/voceros' => 'voceros', '/api/vocero-accounts' => 'voceros', '/api/vocero-video-schedule' => 'voceros', '/api/dashboard' => 'voceros',
         '/api/medios' => 'medios', '/api/media-accounts' => 'medios', '/api/media-claims' => 'medios', '/api/media-events' => 'medios', '/api/media-plan' => 'medios', '/api/media-tour' => 'medios',

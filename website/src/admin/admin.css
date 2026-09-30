@@ -815,3 +815,38 @@ body[data-shift-dragging="true"], body[data-shift-dragging="true"] * { cursor: g
 @media (max-width: 760px) { .us-activity li { grid-template-columns: 1fr; gap: .05rem; } }
 /* Entre tablet y laptop, una tabla ancha se desliza dentro de su sección en vez de empujar la página. */
 @media (min-width: 701px) and (max-width: 1119px) { .records { position: relative; overflow-x: auto; } }
+
+/* Venta de entradas (Ticketstar365) */
+.admin-tickets__controls { display: flex; justify-content: flex-end; }
+.admin-tickets__nights { display: grid; gap: .7rem; }
+.admin-tickets__night { border: 2px solid rgba(36, 17, 70, .12); border-radius: 1rem; background: #fff; }
+.admin-tickets__night > summary { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .35rem 1rem; align-items: center; padding: .9rem 1.1rem; cursor: pointer; list-style: none; }
+.admin-tickets__night > summary::-webkit-details-marker { display: none; }
+.admin-tickets__night > summary h3 { font-size: 1rem; }
+.admin-tickets__night > summary small { color: #665771; font-size: .72rem; }
+.admin-tickets__figures { display: grid; justify-items: end; }
+.admin-tickets__figures strong { font-size: 1.5rem; line-height: 1.05; font-weight: 800; color: #241146; font-variant-numeric: tabular-nums; }
+.admin-tickets__figures span { color: #4a4363; font-size: .8rem; font-variant-numeric: tabular-nums; }
+.admin-tickets__bar { grid-column: 1 / -1; display: block; height: .4rem; border-radius: 999px; background: #ece6f0; overflow: hidden; }
+.admin-tickets__bar > span { display: block; height: 100%; border-radius: inherit; background: #94165e; }
+.admin-tickets__warning { margin: 0 1.1rem .6rem; padding: .5rem .7rem; border-radius: .5rem; background: #f5e6bd; color: #5c4208; font-size: .8rem; }
+.admin-tickets__table { overflow-x: auto; padding: 0 1.1rem 1rem; }
+.admin-tickets__table table { width: 100%; border-collapse: collapse; font-size: .85rem; font-variant-numeric: tabular-nums; }
+.admin-tickets__table th, .admin-tickets__table td { padding: .45rem .5rem; border-bottom: 1px solid rgba(36, 17, 70, .08); text-align: right; white-space: nowrap; }
+.admin-tickets__table th:first-child, .admin-tickets__table td:first-child { text-align: left; white-space: normal; }
+.admin-tickets__table thead th { font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; color: #665771; }
+.admin-tickets__price td { color: #665771; font-size: .78rem; }
+.admin-tickets__price td:first-child { padding-left: 1.4rem; }
+@media (max-width: 700px) {
+  .admin-tickets__night > summary { grid-template-columns: 1fr; }
+  .admin-tickets__figures { justify-items: start; }
+  /* Esta tabla es corta: se mantiene como tabla, con encabezados, en vez del formato apilado del panel. */
+  .admin-tickets__table { padding: 0 .7rem .8rem; }
+  .admin-tickets__table table { display: table; font-size: .78rem; }
+  .admin-tickets__table thead { position: static; width: auto; height: auto; overflow: visible; clip-path: none; display: table-header-group; }
+  .admin-tickets__table tbody { display: table-row-group; }
+  .admin-tickets__table tr { display: table-row; }
+  .admin-tickets__table th, .admin-tickets__table td { display: table-cell; padding: .4rem .3rem; border-bottom: 1px solid rgba(36, 17, 70, .08); }
+  .admin-tickets__table td::before { content: none; }
+  .admin-tickets__table thead th { font-size: .62rem; letter-spacing: .03em; }
+}

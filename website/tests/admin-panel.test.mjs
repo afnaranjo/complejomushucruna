@@ -73,6 +73,34 @@ test('Panel va arriba de «Panel y formularios» y el panel muestra la sección 
   assert.equal(totals['Guiones grabados'], '2 de 10');
 });
 
+test('Venta de entradas: sección plegada al inicio del Panel y lectura por noche y localidad', async () => {
+  const { ticketNightLabel, ticketSummary, formatMoney } = await import('../src/admin/panel.js');
+  const page = pages.find(item => item.route === '/admin/panel/');
+  const html = page.render(page);
+  assert.match(html, /<h2 id="panel-entradas-title">Venta de entradas<\/h2>/);
+  assert.match(html, /<details class="admin-panel-section admin-panel-fold admin-tickets" data-panel-tickets/);
+  assert.ok(html.indexOf('data-panel-tickets') < html.indexOf('data-panel-social'), 'va antes de Redes sociales');
+  // Las credenciales de Ticketstar nunca llegan al navegador.
+  assert.doesNotMatch(html, /ticketstar365\.com\/api|password/i);
+  const client = await readFile(new URL('../src/admin/admin-medios.js', import.meta.url), 'utf8');
+  assert.match(client, /panel\|redes-sociales\|venta-entradas\|/);
+  assert.equal(ticketNightLabel('2026-10-31'), 'Sábado, 31 de octubre');
+  assert.equal(ticketNightLabel('x'), 'Fecha por confirmar');
+  const night = (date, sold, revenue, localities) => ({ date, name: `FERIA ${date}`, sold, revenue, consistent: true, localities });
+  const summary = ticketSummary({ totals: { sold: 39, revenue: 350, events: 3 }, events: [
+    night('2026-10-31', 11, 220, [{ name: 'VIP PREVENTA', sold: 11, revenue: 220, prices: [{ discount_id: 0, price: 20, sold: 11, revenue: 220 }] }]),
+    night('2026-11-01', 28, 130, [{ name: 'GENERAL PREVENTA', sold: 28, revenue: 130, prices: [{ discount_id: 0, price: 5, sold: 26, revenue: 125 }, { discount_id: 9, price: 2.5, sold: 2, revenue: 5 }] }]),
+    night('2026-11-02', 0, 0, []),
+  ] });
+  assert.equal(summary.average, 8.97);
+  assert.equal(summary.discounted, 2);
+  assert.equal(summary.topNight.date, '2026-10-31');
+  assert.equal(summary.topLocality.name, 'VIP PREVENTA');
+  assert.deepEqual(summary.withoutSales.map(event => event.date), ['2026-11-02']);
+  assert.equal(ticketSummary({}).average, null);
+  assert.equal(formatMoney(null), '—');
+});
+
 test('Redes sociales: periodo por defecto de 30 días, comparación y lectura para decidir', async () => {
   const { lastDays, socialDelta, socialVerdict, socialInsights, formatSocial } = await import('../src/admin/panel.js');
   const page = pages.find(item => item.route === '/admin/panel/');
@@ -118,9 +146,9 @@ test('las secciones del Panel arrancan plegadas y se abren con un clic en el tí
   const page = pages.find(item => item.route === '/admin/panel/');
   const html = page.render(page);
   const folds = [...html.matchAll(/<details class="admin-panel-section admin-panel-fold[^"]*"[^>]*data-panel-fold="([a-z]+)"[^>]*>/g)];
-  assert.deepEqual(folds.map(match => match[1]), ['redes', 'medios', 'creadoras', 'voceros']);
+  assert.deepEqual(folds.map(match => match[1]), ['entradas', 'redes', 'medios', 'creadoras', 'voceros']);
   for (const match of folds) assert.doesNotMatch(match[0], /\sopen/, `${match[1]} arranca cerrada`);
-  for (const key of ['redes', 'medios', 'creadoras', 'voceros']) assert.match(html, new RegExp(`<summary><div class="records-heading"><div><h2 id="panel-${key}-title">`));
+  for (const key of ['entradas', 'redes', 'medios', 'creadoras', 'voceros']) assert.match(html, new RegExp(`<summary><div class="records-heading"><div><h2 id="panel-${key}-title">`));
   const bundle = await readFile(new URL('../src/admin/panel.js', import.meta.url), 'utf8');
   assert.match(bundle, /social\.addEventListener\('toggle'/, 'Metricool se consulta al abrir la sección');
 });

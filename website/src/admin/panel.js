@@ -1,6 +1,6 @@
 import { resolveRuntimeOrigins } from '../finados/runtime-origins.mjs';
 // The panel reuses the administrative client: same allowlist, same CSRF handling, one bundle less.
-import { createMediaAdminClient } from './admin-medios.js?v=20260926-cache-1';
+import { createMediaAdminClient } from './admin-medios.js?v=20260930-tickets-1';
 import './sidebar.js?v=20260926-admin-sidebar-3';
 import './campaign-banner.js?v=20260925-banner-2';
 
@@ -54,6 +54,47 @@ export function creadoraTotals(data = {}) {
   ];
 }
 
+
+/* ---------- Venta de entradas (Ticketstar365) ---------- */
+
+const MONEY = new Intl.NumberFormat('es-EC', { style: 'currency', currency: 'USD' });
+const COUNT = new Intl.NumberFormat('es-EC');
+export const formatMoney = value => (Number.isFinite(Number(value)) && value !== null ? MONEY.format(Number(value)) : '—');
+export const formatCount = value => (Number.isFinite(Number(value)) && value !== null ? COUNT.format(Number(value)) : '—');
+
+/** «2026-10-31» → «Sábado 31 de octubre». */
+export function ticketNightLabel(date) {
+  if (typeof date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return 'Fecha por confirmar';
+  const text = new Intl.DateTimeFormat('es-EC', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' }).format(new Date(`${date}T00:00:00Z`));
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+/** Lectura rápida: precio promedio, la noche y la localidad que más venden, y las noches sin ventas. */
+export function ticketSummary(report = {}) {
+  const events = Array.isArray(report.events) ? report.events : [];
+  const sold = Number(report.totals?.sold) || 0;
+  const revenue = Number(report.totals?.revenue) || 0;
+  const localities = new Map();
+  let discounted = 0;
+  for (const event of events) for (const locality of event.localities ?? []) {
+    const entry = localities.get(locality.name) ?? { name: locality.name, sold: 0, revenue: 0 };
+    entry.sold += Number(locality.sold) || 0; entry.revenue += Number(locality.revenue) || 0;
+    localities.set(locality.name, entry);
+    for (const price of locality.prices ?? []) if (Number(price.discount_id)) discounted += Number(price.sold) || 0;
+  }
+  const byRevenue = (a, b) => b.revenue - a.revenue || b.sold - a.sold;
+  const topNight = [...events].sort(byRevenue)[0];
+  const topLocality = [...localities.values()].sort(byRevenue)[0];
+  return {
+    sold, revenue,
+    average: sold ? Math.round((revenue / sold) * 100) / 100 : null,
+    discounted,
+    topNight: topNight && topNight.sold > 0 ? topNight : null,
+    topLocality: topLocality && topLocality.sold > 0 ? topLocality : null,
+    withoutSales: events.filter(event => !(Number(event.sold) > 0)),
+    localities: [...localities.values()].sort(byRevenue),
+  };
+}
 
 /* ---------- Redes sociales (Metricool, solo Finados Mushuc Runa) ---------- */
 
@@ -297,6 +338,101 @@ export async function initializeAdminPanel() {
   }
 
 
+  /* Venta de entradas: se lee de Ticketstar solo al abrir la sección. */
+  const tickets = query('[data-panel-tickets]');
+  const ticketsFeedback = tickets?.querySelector('[data-tickets-feedback]');
+  const ticketsContent = tickets?.querySelector('[data-tickets-content]');
+
+  function ticketTile(label, value, note) {
+    const box = node('div', undefined, 'admin-social__tile');
+    box.append(node('span', label), node('strong', value));
+    if (note) box.append(node('small', note));
+    return box;
+  }
+
+  function bar(share) {
+    const track = node('span', undefined, 'admin-tickets__bar');
+    const fill = node('span');
+    fill.style.width = `${Math.max(0, Math.min(100, share))}%`;
+    track.append(fill);
+    return track;
+  }
+
+  function renderTickets(report) {
+    ticketsContent.replaceChildren();
+    if (!report.configured) { ticketsContent.append(node('p', 'Ticketstar todavía no está conectado en el servidor.', 'admin-panel-empty')); return; }
+    const summary = ticketSummary(report);
+    const tiles = node('div', undefined, 'admin-social__tiles');
+    tiles.append(
+      ticketTile('Entradas vendidas', formatCount(summary.sold), `${formatCount(report.totals?.events)} noches a la venta`),
+      ticketTile('Total vendido', formatMoney(summary.revenue), 'Según Ticketstar'),
+      ticketTile('Precio promedio', formatMoney(summary.average), 'Total vendido ÷ entradas'),
+      ticketTile('Con descuento', formatCount(summary.discounted), 'Entradas vendidas con un descuento aplicado'),
+    );
+    const reading = node('section', undefined, 'admin-social__insights');
+    const notes = [];
+    if (summary.topNight) notes.push(`La noche que más vende es ${ticketNightLabel(summary.topNight.date).toLowerCase()}: ${formatCount(summary.topNight.sold)} entradas y ${formatMoney(summary.topNight.revenue)}.`);
+    if (summary.topLocality) notes.push(`La localidad que más factura es ${summary.topLocality.name}: ${formatCount(summary.topLocality.sold)} entradas y ${formatMoney(summary.topLocality.revenue)}.`);
+    if (summary.withoutSales.length) notes.push(`Sin ventas todavía: ${summary.withoutSales.map(event => ticketNightLabel(event.date).toLowerCase()).join(', ')}. Conviene reforzar su promoción.`);
+    if ((report.events ?? []).some(event => event.consistent === false)) notes.push('En alguna noche el total de Ticketstar no coincide con la suma de sus localidades; está marcada abajo.');
+    if (!notes.length) notes.push('Todavía no hay entradas vendidas.');
+    const list = node('ul'); for (const text of notes) list.append(node('li', text));
+    reading.append(node('h3', 'Lectura rápida'), list);
+
+    const nights = node('div', undefined, 'admin-tickets__nights');
+    const maxRevenue = Math.max(...(report.events ?? []).map(event => Number(event.revenue) || 0), 0);
+    for (const event of report.events ?? []) {
+      const card = node('details', undefined, 'admin-tickets__night');
+      if (Number(event.sold) > 0) card.open = true;
+      const summaryRow = node('summary');
+      const title = node('div'); title.append(node('h3', ticketNightLabel(event.date)), node('small', event.name));
+      const figures = node('div', undefined, 'admin-tickets__figures');
+      figures.append(node('strong', formatMoney(event.revenue)), node('span', `${formatCount(event.sold)} entradas`));
+      summaryRow.append(title, figures, bar(maxRevenue ? (Number(event.revenue) || 0) / maxRevenue * 100 : 0));
+      card.append(summaryRow);
+      if (event.consistent === false) card.append(node('p', 'El total de esta noche no coincide con la suma de sus localidades. Revísalo en Ticketstar.', 'admin-tickets__warning'));
+      const wrap = node('div', undefined, 'admin-tickets__table');
+      const table = node('table');
+      table.append(node('caption', `Localidades de ${ticketNightLabel(event.date)}`, 'sr-only'));
+      const head = node('thead'); const headRow = node('tr');
+      for (const label of ['Localidad', 'Precio', 'Vendidas', 'Total']) { const th = node('th', label); th.scope = 'col'; headRow.append(th); }
+      head.append(headRow);
+      const body = node('tbody');
+      for (const locality of event.localities ?? []) {
+        const prices = locality.prices ?? [];
+        const row = node('tr');
+        const name = node('th', locality.name); name.scope = 'row';
+        row.append(name, node('td', prices.length === 1 ? formatMoney(prices[0].price) : '—'), node('td', formatCount(locality.sold)), node('td', formatMoney(locality.revenue)));
+        body.append(row);
+        if (prices.length > 1) for (const price of prices) {
+          const sub = node('tr', undefined, 'admin-tickets__price');
+          sub.append(node('td', price.label), node('td', formatMoney(price.price)), node('td', formatCount(price.sold)), node('td', formatMoney(price.revenue)));
+          body.append(sub);
+        }
+      }
+      if (!(event.localities ?? []).length) { const row = node('tr'); const cell = node('td', 'Sin localidades configuradas.'); cell.colSpan = 4; row.append(cell); body.append(row); }
+      table.append(head, body); wrap.append(table); card.append(wrap);
+      nights.append(card);
+    }
+    if (!(report.events ?? []).length) nights.append(node('p', 'Ticketstar no devolvió noches vigentes.', 'admin-panel-empty'));
+    const stamp = node('p', `Datos de Ticketstar365 · ${report.cached ? 'guardados hace menos de 5 min' : 'leídos ahora'}. Solo muestra noches vigentes; los importes son los que reporta Ticketstar.`, 'admin-social__stamp');
+    ticketsContent.append(tiles, reading, nights, stamp);
+  }
+
+  async function loadTickets(refresh = false) {
+    if (!tickets) return;
+    tickets.setAttribute('aria-busy', 'true');
+    feedback(ticketsFeedback, refresh ? 'Leyendo Ticketstar…' : 'Cargando venta de entradas…');
+    try {
+      renderTickets(await client.ticketSales(refresh));
+      feedback(ticketsFeedback, '');
+    } catch (error) {
+      if (error.status === 401) { location.replace('/admin/'); return; }
+      feedback(ticketsFeedback, error.status === 503 ? 'Ticketstar no respondió. Intenta de nuevo en unos minutos.' : error.message, 'error');
+    } finally { tickets.removeAttribute('aria-busy'); }
+  }
+  tickets?.querySelector('[data-tickets-refresh]')?.addEventListener('click', () => loadTickets(true));
+
   /* Redes sociales: se carga aparte para que una demora de Metricool no frene el resto del panel. */
   const social = query('[data-panel-social]');
   const socialFrom = social?.querySelector('[data-social-from]');
@@ -479,6 +615,12 @@ export async function initializeAdminPanel() {
     query('[data-admin-user]').textContent = `Sesión de ${session.user.username}`;
     if (sidebarUser) sidebarUser.textContent = session.user.username;
     if (logout) logout.disabled = false;
+    // Venta de entradas arranca plegada: Ticketstar solo se consulta la primera vez que se abre.
+    if (tickets) {
+      const openTickets = () => { if (tickets.open && !tickets.dataset.loaded) { tickets.dataset.loaded = 'true'; loadTickets(); } };
+      tickets.addEventListener('toggle', openTickets);
+      openTickets();
+    }
     // Redes sociales arranca plegada: Metricool solo se consulta la primera vez que se abre.
     if (social) {
       const openSocial = () => { if (social.open && !social.dataset.loaded) { social.dataset.loaded = 'true'; loadSocial(); } };
