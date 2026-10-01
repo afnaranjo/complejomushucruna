@@ -296,6 +296,11 @@ final class Router
             if (in_array($path, ['/api/admin-users', '/api/admin-roles', '/api/admin-activity'], true) || str_starts_with($path, '/api/admin-users/') || str_starts_with($path, '/api/admin-roles/')) {
                 return $this->adminAccess($method, $path, $query, $server, $rawBody, $ip, $user, $headers);
             }
+            if ($path === '/api/panel/resumen') {
+                if ($method !== 'GET') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+                if (array_diff(array_keys($query), ['from', 'to']) !== [] || !is_string($query['from'] ?? null) || !is_string($query['to'] ?? null)) throw new InvalidArgumentException();
+                return $this->json(200, $this->panelQuickView($query['from'], $query['to']), $headers);
+            }
             if ($path === '/api/panel' && $method === 'GET') {
                 if ($query !== []) throw new InvalidArgumentException();
                 return $this->json(200, $this->panelSummary(), $headers);
@@ -1668,6 +1673,38 @@ final class Router
     }
 
     /** Opening panel: Medios, its events and Voceros, each figure carrying the list behind it. */
+    /**
+     * Vista rápida del Panel: voceros con al menos un video enviado en el periodo, y el periodo
+     * anterior del mismo largo para comparar. Las fechas son de Ecuador; la base guarda UTC.
+     */
+    private function panelQuickView(string $from, string $to): array
+    {
+        $zone = new \DateTimeZone('America/Guayaquil');
+        $day = static function (string $value) use ($zone): \DateTimeImmutable {
+            $date = \DateTimeImmutable::createFromFormat('!Y-m-d', $value, $zone);
+            if ($date === false || $date->format('Y-m-d') !== $value) throw new InvalidArgumentException();
+            return $date;
+        };
+        $start = $day($from);
+        $end = $day($to);
+        $days = (int) $start->diff($end)->days + 1;
+        if ($start > $end || $days > 366) throw new InvalidArgumentException();
+        $utc = new \DateTimeZone('UTC');
+        $count = function (\DateTimeImmutable $first, \DateTimeImmutable $last) use ($utc): array {
+            $query = $this->pdo->prepare("SELECT COUNT(DISTINCT vv.vocero_id) AS voceros, COUNT(*) AS videos FROM vocero_videos vv JOIN voceros v ON v.id = vv.vocero_id
+                WHERE v.status <> 'Eliminado' AND vv.status = 'submitted' AND TRIM(COALESCE(vv.url, '')) <> '' AND vv.submitted_at >= ? AND vv.submitted_at < ?");
+            $query->execute([$first->setTimezone($utc)->format('Y-m-d H:i:s'), $last->modify('+1 day')->setTimezone($utc)->format('Y-m-d H:i:s')]);
+            $row = $query->fetch(PDO::FETCH_ASSOC) ?: [];
+            return ['voceros' => (int) ($row['voceros'] ?? 0), 'videos' => (int) ($row['videos'] ?? 0)];
+        };
+        $previousEnd = $start->modify('-1 day');
+        $total = $this->pdo->query("SELECT COUNT(DISTINCT vv.vocero_id) FROM vocero_videos vv JOIN voceros v ON v.id = vv.vocero_id WHERE v.status <> 'Eliminado' AND vv.status = 'submitted' AND TRIM(COALESCE(vv.url, '')) <> ''")->fetchColumn();
+        return [
+            'range' => ['from' => $from, 'to' => $to, 'days' => $days],
+            'voceros_with_video' => $count($start, $end) + ['previous' => $count($previousEnd->modify('-' . ($days - 1) . ' days'), $previousEnd)['voceros'], 'all_time' => (int) $total],
+        ];
+    }
+
     private function panelSummary(): array
     {
         $media = $this->media()->panel();

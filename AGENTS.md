@@ -2152,3 +2152,14 @@ Nota de relevo escrita a pedido de Alex para que otro agente (Codex) retome la s
 - Cachés `panel.js`, `admin-medios.js` y `admin.css` `20261001-tickets-2`. Sin migraciones ni cambios de datos.
 - QA: `npm run check` en verde (262 Node, 34 PHP, 11 integración; 243 archivos, 81 HTML, 2808 referencias). Revisión en Chrome sin interfaz con datos reales a 1440 y 390 px, sin desbordes; se comprobó que la hora cambia sola tras 30 s.
 - Publicación externa: Alex autorizó con «sube». Backend y luego frontend publicados desde `7e94983`, con verificación completa, respaldo y sin migraciones. En ambos dominios el Panel entrega la sección fija con indicador en vivo y `panel.js`, `admin.css` y `admin-medios.js` con SHA-256 idéntico al build; `health` 200 y `/api/venta-entradas` sin sesión 401. El backend activo usa caché de 20 s y leyó Ticketstar: 127 entradas, USD 1.964,00.
+
+### 2026-10-01 — Vista rápida del Panel con filtro de tiempo (local)
+
+- Alex pidió que todas las secciones del Panel sean plegables y que arriba, siempre visibles y actualizadas, queden solo tres cifras grandes con un filtro de tiempo: entradas vendidas, alcance sumado de las redes sociales y voceros con al menos un video.
+- «Venta de entradas» vuelve a ser plegable (con su tabla por día y localidad, que sigue en vivo). Nueva franja «Vista rápida» antes de todo lo plegable: filtro Hoy / 7 / 30 / 90 días o fechas propias (30 días por defecto) y tres indicadores grandes.
+  - Entradas vendidas: total acumulado de Ticketstar con su importe y barras por noche; no depende del periodo porque Ticketstar no entrega la fecha de compra. Se actualiza cada 30 s.
+  - Alcance en redes sociales: suma de las vistas del periodo en Facebook, Instagram, TikTok y YouTube según Metricool, con barras por red y comparación con el periodo anterior. Metricool solo entrega «alcance» para Instagram, por eso se suman vistas. Se actualiza cada 5 min (Metricool guarda caché de 30 min en el servidor).
+  - Voceros con al menos un video: voceros activos con un video enviado en el periodo, con comparación y el total histórico. Nueva ruta `GET /api/panel/resumen?from&to` (solo lectura, módulo `panel`, fechas de Ecuador convertidas a UTC). Se actualiza cada minuto.
+- Todo se pausa con la pestaña oculta y se pone al día al volver. Cachés `panel.js`, `admin-medios.js` y `admin.css` `20261001-kpis-3`. Sin migraciones ni cambios de datos.
+- QA: `npm run check` en verde (262 Node, 34 PHP con la ruta nueva en `ticket_sales_test.php`, 11 integración; 243 archivos). Revisión en Chrome sin interfaz con Ticketstar real a 1440 y 390 px, sin desbordes; lectura real de Metricool en el servidor: 7.792.640 vistas del 2 de septiembre al 1 de octubre.
+- Publicación externa: solo GitHub; pendiente de autorización para desplegar backend → frontend.

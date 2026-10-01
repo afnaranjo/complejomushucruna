@@ -99,7 +99,7 @@ file_put_contents($tsConfigPath, json_encode([
 ], JSON_THROW_ON_ERROR));
 $tsConfig = Config::fromFile($tsConfigPath);
 $tsPdo = Database::connect($tsConfig);
-foreach (['001_initial', '002_sheets_outbox', '003_vocero_accounts'] as $migration) $tsPdo->exec(file_get_contents(__DIR__ . '/../migrations/' . $migration . '_sqlite.sql'));
+foreach (['001_initial', '002_sheets_outbox', '003_vocero_accounts', '004_vocero_progress'] as $migration) $tsPdo->exec(file_get_contents(__DIR__ . '/../migrations/' . $migration . '_sqlite.sql'));
 $tsSecret = bin2hex(random_bytes(16));
 $tsPdo->prepare('INSERT INTO admin_users (public_id, username, password_hash, created_at, updated_at) VALUES (?, ?, ?, ?, ?)')->execute([str_repeat('d', 32), 'admin', Auth::hashPassword($tsSecret), gmdate('Y-m-d H:i:s'), gmdate('Y-m-d H:i:s')]);
 if (session_status() === PHP_SESSION_ACTIVE) session_write_close();
@@ -115,6 +115,29 @@ same(422, $tsRouter->handle('GET', '/api/venta-entradas?refresh=2', $tsOrigin)->
 same(403, $tsRouter->handle('POST', '/api/venta-entradas', $tsOrigin)->status);
 // La base del test no tiene archivo de Ticketstar: la sección responde «sin configurar».
 same(['configured' => false], json_decode($tsRouter->handle('GET', '/api/venta-entradas', $tsOrigin)->body, true));
+
+// Vista rápida: voceros con al menos un video enviado en el periodo (fechas de Ecuador; la base guarda UTC).
+$tsVocero = static function (string $id, string $status) use ($tsPdo): int {
+    $tsPdo->prepare('INSERT INTO voceros (public_id,submission_id,status,full_name,cedula_enc,cedula_idx,birth_date_enc,age_at_submission,whatsapp_enc,whatsapp_idx,email_enc,email_idx,city,main_network,previous_participation,community_source,kit_pickup,submitted_at,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)')
+        ->execute([str_repeat($id, 32), str_repeat($id, 32), $status, 'Vocero ' . $id, 'c', 'i' . $id, 'c', 20, 'c', 'w' . $id, 'c', 'e' . $id, 'Ambato', 'TikTok', 'No', 'Otro', 'Oficina']);
+    return (int) $tsPdo->lastInsertId();
+};
+$tsVideo = static function (int $vocero, int $slot, string $submitted, string $status = 'submitted') use ($tsPdo): void {
+    $tsPdo->prepare("INSERT INTO vocero_videos (vocero_id, slot, url, status, submitted_at, updated_at) VALUES (?, ?, 'https://video.example/v', ?, ?, ?)")->execute([$vocero, $slot, $status, $submitted, $submitted]);
+};
+$tsA = $tsVocero('a', 'Aprobado'); $tsB = $tsVocero('b', 'Aprobado'); $tsC = $tsVocero('c', 'Eliminado');
+$tsVideo($tsA, 1, '2026-09-20 15:00:00');
+$tsVideo($tsA, 2, '2026-09-21 15:00:00');
+$tsVideo($tsB, 1, '2026-09-21 04:30:00'); // 20 de septiembre, 23:30 en Ecuador
+$tsVideo($tsB, 2, '2026-09-10 15:00:00');
+$tsVideo($tsC, 1, '2026-09-20 15:00:00'); // retirado: no cuenta
+$quick = json_decode($tsRouter->handle('GET', '/api/panel/resumen?from=2026-09-20&to=2026-09-21', $tsOrigin)->body, true);
+same(['voceros' => 2, 'videos' => 3, 'previous' => 0, 'all_time' => 2], $quick['voceros_with_video']);
+same(1, json_decode($tsRouter->handle('GET', '/api/panel/resumen?from=2026-09-21&to=2026-09-21', $tsOrigin)->body, true)['voceros_with_video']['voceros']);
+same(1, json_decode($tsRouter->handle('GET', '/api/panel/resumen?from=2026-09-11&to=2026-09-19', $tsOrigin)->body, true)['voceros_with_video']['previous']);
+same(422, $tsRouter->handle('GET', '/api/panel/resumen?from=2026-09-21&to=2026-09-20', $tsOrigin)->status);
+same(422, $tsRouter->handle('GET', '/api/panel/resumen?from=2026-09-21', $tsOrigin)->status);
+same(422, $tsRouter->handle('GET', '/api/panel/resumen?from=2025-01-01&to=2026-09-20', $tsOrigin)->status);
 if (session_status() === PHP_SESSION_ACTIVE) session_write_close();
 session_id('');
 $_SESSION = [];

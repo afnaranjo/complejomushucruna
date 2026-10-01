@@ -1,6 +1,6 @@
 import { resolveRuntimeOrigins } from '../finados/runtime-origins.mjs';
 // The panel reuses the administrative client: same allowlist, same CSRF handling, one bundle less.
-import { createMediaAdminClient } from './admin-medios.js?v=20261001-tickets-2';
+import { createMediaAdminClient } from './admin-medios.js?v=20261001-kpis-3';
 import './sidebar.js?v=20260926-admin-sidebar-3';
 import './campaign-banner.js?v=20260925-banner-2';
 
@@ -115,6 +115,15 @@ export function ticketMatrix(report = {}) {
     sold: events.reduce((sum, event) => sum + (Number(event.sold) || 0), 0),
     revenue: events.reduce((sum, event) => sum + (Number(event.revenue) || 0), 0),
   };
+}
+
+/** Barras de la vista rápida: entradas por noche, con el día corto («Sáb 31»). */
+export function ticketBars(report = {}) {
+  return (Array.isArray(report.events) ? report.events : []).map(event => {
+    const valid = typeof event.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(event.date);
+    const short = valid ? new Intl.DateTimeFormat('es-EC', { weekday: 'short', day: 'numeric', timeZone: 'UTC' }).format(new Date(`${event.date}T00:00:00Z`)).replace('.', '') : '—';
+    return { label: short.charAt(0).toUpperCase() + short.slice(1), sold: Number(event.sold) || 0 };
+  });
 }
 
 /* ---------- Redes sociales (Metricool, solo Finados Mushuc Runa) ---------- */
@@ -359,7 +368,7 @@ export async function initializeAdminPanel() {
   }
 
 
-  /* Venta de entradas: fija arriba del Panel y se actualiza sola mientras la pestaña está a la vista. */
+  /* Venta de entradas: alimenta la vista rápida y su sección plegada; se actualiza sola mientras la pestaña está a la vista. */
   const tickets = query('[data-panel-tickets]');
   const ticketsFeedback = tickets?.querySelector('[data-tickets-feedback]');
   const ticketsContent = tickets?.querySelector('[data-tickets-content]');
@@ -491,6 +500,7 @@ export async function initializeAdminPanel() {
     try {
       const report = await client.ticketSales(refresh);
       renderTickets(report);
+      renderTicketKpi(report);
       ticketsAt = report.generated_at ? Date.parse(report.generated_at) || Date.now() : Date.now();
       feedback(ticketsFeedback, '');
     } catch (error) {
@@ -511,6 +521,115 @@ export async function initializeAdminPanel() {
     document.addEventListener('visibilitychange', scheduleTickets);
   }
   tickets?.querySelector('[data-tickets-refresh]')?.addEventListener('click', () => loadTickets(true));
+
+  /* Vista rápida: tres cifras siempre a la vista, con su propio periodo y actualización sola. */
+  const kpis = query('[data-panel-kpis]');
+  const kpi = key => kpis?.querySelector(`[data-kpi="${key}"]`);
+  const kpisFeedback = kpis?.querySelector('[data-kpis-feedback]');
+  const kpisLive = kpis?.querySelector('[data-kpis-live]');
+  const kpisFrom = kpis?.querySelector('[data-kpis-from]');
+  const kpisTo = kpis?.querySelector('[data-kpis-to]');
+  let kpiRange = lastDays(30);
+  let kpiAt = 0, reachAt = 0, kpiTimer = null;
+  const KPI_EVERY = 60_000, REACH_EVERY = 300_000;
+
+  function setKpi(key, value, meta, chart, delta) {
+    const box = kpi(key);
+    if (!box) return;
+    box.removeAttribute('aria-busy');
+    box.querySelector('[data-kpi-value]').textContent = value;
+    const metaBox = box.querySelector('[data-kpi-meta]');
+    metaBox.replaceChildren(node('span', meta));
+    if (delta) metaBox.append(delta);
+    box.querySelector('[data-kpi-chart]').replaceChildren(...(chart ? [chart] : []));
+  }
+
+  function bars(points, unit) {
+    const max = Math.max(...points.map(point => point.value), 0);
+    const list = node('div', undefined, 'admin-kpi__bars');
+    list.setAttribute('role', 'img');
+    list.setAttribute('aria-label', points.map(point => `${point.label}: ${formatCount(point.value)} ${unit}`).join('; '));
+    for (const point of points) {
+      const item = node('span', undefined, 'admin-kpi__bar');
+      const fill = node('i'); fill.style.height = `${max ? Math.max(4, point.value / max * 100) : 4}%`;
+      if (!point.value) fill.dataset.zero = 'true';
+      item.title = `${point.label}: ${formatCount(point.value)} ${unit}`;
+      item.append(node('b', formatCount(point.value)), fill, node('small', point.label));
+      list.append(item);
+    }
+    return list;
+  }
+
+  function renderTicketKpi(report) {
+    if (!report?.configured) { setKpi('tickets', '—', 'Ticketstar todavía no está conectado'); return; }
+    setKpi('tickets', formatCount(report.totals?.sold), `${formatMoney(report.totals?.revenue)} · acumulado, no depende del periodo`,
+      bars(ticketBars(report).map(bar => ({ label: bar.label, value: bar.sold })), 'entradas'));
+  }
+
+  function rangeText(range) {
+    return range.from === range.to ? 'hoy' : `del ${new Intl.DateTimeFormat('es-EC', { day: 'numeric', month: 'short', timeZone: 'UTC' }).format(new Date(`${range.from}T00:00:00Z`))} al ${new Intl.DateTimeFormat('es-EC', { day: 'numeric', month: 'short', timeZone: 'UTC' }).format(new Date(`${range.to}T00:00:00Z`))}`;
+  }
+
+  function chip(current, previous) {
+    const delta = socialDelta(current, previous);
+    const box = node('span', socialDeltaText(delta, current, previous), 'admin-social__delta');
+    if (delta.good !== null) box.dataset.good = String(delta.good);
+    box.title = `Periodo anterior del mismo largo: ${formatCount(previous)}`;
+    return box;
+  }
+
+  async function loadReach() {
+    try {
+      const report = await client.social(kpiRange.from, kpiRange.to);
+      reachAt = Date.now();
+      if (!report.configured) { setKpi('reach', '—', 'Metricool todavía no está conectado'); return; }
+      const views = report.totals?.views ?? {};
+      const points = (report.networks ?? []).map(network => ({ label: network.label, value: Number(network.metrics?.views?.current) || 0 }));
+      setKpi('reach', formatCount(views.current), `Vistas ${rangeText(kpiRange)} en las 4 redes`, bars(points, 'vistas'), chip(views.current, views.previous));
+    } catch (error) {
+      if (error.status === 401) { location.replace('/admin/'); return; }
+      setKpi('reach', '—', error.status === 422 ? 'Revisa el periodo: hasta hoy y de máximo un año' : 'Metricool no respondió; se reintentará');
+    }
+  }
+
+  async function loadVoceros() {
+    try {
+      const data = await client.quickView(kpiRange.from, kpiRange.to);
+      const item = data.voceros_with_video ?? {};
+      setKpi('voceros', formatCount(item.voceros), `${formatCount(item.videos)} videos ${rangeText(kpiRange)} · ${formatCount(item.all_time)} voceros en total`, null, chip(item.voceros, item.previous));
+    } catch (error) {
+      if (error.status === 401) { location.replace('/admin/'); return; }
+      setKpi('voceros', '—', error.status === 422 ? 'Revisa el periodo' : 'No se pudo leer; se reintentará');
+    }
+  }
+
+  async function loadKpis({ reach = false } = {}) {
+    if (!kpis) return;
+    await Promise.all([loadVoceros(), reach || Date.now() - reachAt >= REACH_EVERY ? loadReach() : null]);
+    kpiAt = Date.now();
+    if (kpisLive) kpisLive.textContent = `Actualizado a las ${clock.format(new Date(kpiAt))} · entradas cada 30 s, voceros cada minuto, redes cada 5 min`;
+  }
+
+  function scheduleKpis() {
+    clearInterval(kpiTimer); kpiTimer = null;
+    if (!kpis || document.hidden) return;
+    if (Date.now() - kpiAt >= KPI_EVERY) loadKpis();
+    kpiTimer = setInterval(() => { loadKpis(); }, KPI_EVERY);
+  }
+
+  if (kpis) {
+    const presets = [...kpis.querySelectorAll('[data-kpis-preset]')];
+    const press = active => { for (const button of presets) button.setAttribute('aria-pressed', String(button === active)); };
+    const syncInputs = () => { kpisFrom.value = kpiRange.from; kpisTo.value = kpiRange.to; kpisTo.max = ecuadorToday(); kpisFrom.max = kpisTo.value; };
+    syncInputs();
+    for (const button of presets) button.addEventListener('click', () => { kpiRange = lastDays(Number(button.dataset.kpisPreset)); press(button); syncInputs(); feedback(kpisFeedback, ''); loadKpis({ reach: true }); });
+    kpis.querySelector('[data-kpis-apply]').addEventListener('click', () => {
+      if (!kpisFrom.value || !kpisTo.value || kpisFrom.value > kpisTo.value) { feedback(kpisFeedback, 'Elige una fecha de inicio anterior a la de fin.', 'error'); return; }
+      if (kpisTo.value > ecuadorToday()) { feedback(kpisFeedback, 'La fecha de fin no puede ser posterior a hoy.', 'error'); return; }
+      kpiRange = { from: kpisFrom.value, to: kpisTo.value }; press(null); feedback(kpisFeedback, ''); loadKpis({ reach: true });
+    });
+    document.addEventListener('visibilitychange', scheduleKpis);
+  }
 
   /* Redes sociales: se carga aparte para que una demora de Metricool no frene el resto del panel. */
   const social = query('[data-panel-social]');
@@ -694,8 +813,9 @@ export async function initializeAdminPanel() {
     query('[data-admin-user]').textContent = `Sesión de ${session.user.username}`;
     if (sidebarUser) sidebarUser.textContent = session.user.username;
     if (logout) logout.disabled = false;
-    // Venta de entradas está siempre a la vista: carga de una vez y queda en vivo.
+    // La vista rápida y la venta de entradas cargan de una vez y quedan en vivo; las secciones plegadas se abren aparte.
     scheduleTickets();
+    scheduleKpis();
     // Redes sociales arranca plegada: Metricool solo se consulta la primera vez que se abre.
     if (social) {
       const openSocial = () => { if (social.open && !social.dataset.loaded) { social.dataset.loaded = 'true'; loadSocial(); } };

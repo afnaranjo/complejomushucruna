@@ -73,24 +73,27 @@ test('Panel va arriba de «Panel y formularios» y el panel muestra la sección 
   assert.equal(totals['Guiones grabados'], '2 de 10');
 });
 
-test('Venta de entradas: fija arriba del Panel, en vivo y por día y localidad', async () => {
-  const { ticketNightLabel, ticketSummary, ticketMatrix, formatMoney } = await import('../src/admin/panel.js');
+test('Vista rápida y venta de entradas: cifras fijas arriba, en vivo, y detalle por día y localidad', async () => {
+  const { ticketNightLabel, ticketSummary, ticketMatrix, ticketBars, formatMoney } = await import('../src/admin/panel.js');
   const page = pages.find(item => item.route === '/admin/panel/');
   const html = page.render(page);
   assert.match(html, /<h2 id="panel-entradas-title">Venta de entradas<\/h2>/);
-  // No es desplegable: siempre a la vista, arriba de todo, con su indicador en vivo.
-  assert.match(html, /<section class="admin-panel-section admin-tickets" data-panel-tickets/);
-  assert.doesNotMatch(html, /<details[^>]*data-panel-tickets/);
-  assert.match(html, /data-tickets-live/);
-  assert.ok(html.indexOf('data-panel-tickets') < html.indexOf('data-panel-fold'), 'va antes de las secciones plegadas');
+  // Venta de entradas vuelve a ser plegable; arriba queda la vista rápida, siempre visible.
+  assert.match(html, /<details class="admin-panel-section admin-panel-fold admin-tickets" data-panel-tickets/);
+  assert.match(html, /<section class="admin-kpis" data-panel-kpis/);
+  assert.ok(html.indexOf('data-panel-kpis') < html.indexOf('data-panel-fold'), 'la vista rápida va antes de todo lo plegable');
+  for (const key of ['tickets', 'reach', 'voceros']) assert.match(html, new RegExp(`data-kpi="${key}"`));
+  assert.match(html, /data-kpis-preset="30" aria-pressed="true"/);
   const bundle = await readFile(new URL('../src/admin/panel.js', import.meta.url), 'utf8');
   assert.match(bundle, /TICKETS_EVERY = 30_000/);
   assert.match(bundle, /visibilitychange/);
+  assert.match(bundle, /KPI_EVERY = 60_000/);
+  assert.deepEqual(ticketBars({ events: [{ date: '2026-10-31', sold: 82 }, { date: 'x', sold: 0 }] }), [{ label: 'Sáb 31', sold: 82 }, { label: '—', sold: 0 }]);
   assert.ok(html.indexOf('data-panel-tickets') < html.indexOf('data-panel-social'), 'va antes de Redes sociales');
   // Las credenciales de Ticketstar nunca llegan al navegador.
   assert.doesNotMatch(html, /ticketstar365\.com\/api|password/i);
   const client = await readFile(new URL('../src/admin/admin-medios.js', import.meta.url), 'utf8');
-  assert.match(client, /panel\|redes-sociales\|venta-entradas\|/);
+  assert.match(client, /panel\(\?:\\\/resumen\)\?\|redes-sociales\|venta-entradas\|/);
   assert.equal(ticketNightLabel('2026-10-31'), 'Sábado, 31 de octubre');
   assert.equal(ticketNightLabel('x'), 'Fecha por confirmar');
   const night = (date, sold, revenue, localities) => ({ date, name: `FERIA ${date}`, sold, revenue, consistent: true, localities });
@@ -164,9 +167,9 @@ test('las secciones del Panel arrancan plegadas y se abren con un clic en el tí
   const page = pages.find(item => item.route === '/admin/panel/');
   const html = page.render(page);
   const folds = [...html.matchAll(/<details class="admin-panel-section admin-panel-fold[^"]*"[^>]*data-panel-fold="([a-z]+)"[^>]*>/g)];
-  assert.deepEqual(folds.map(match => match[1]), ['redes', 'medios', 'creadoras', 'voceros']);
+  assert.deepEqual(folds.map(match => match[1]), ['entradas', 'redes', 'medios', 'creadoras', 'voceros']);
   for (const match of folds) assert.doesNotMatch(match[0], /\sopen/, `${match[1]} arranca cerrada`);
-  for (const key of ['redes', 'medios', 'creadoras', 'voceros']) assert.match(html, new RegExp(`<summary><div class="records-heading"><div><h2 id="panel-${key}-title">`));
+  for (const key of ['entradas', 'redes', 'medios', 'creadoras', 'voceros']) assert.match(html, new RegExp(`<summary><div class="records-heading"><div><h2 id="panel-${key}-title">`));
   const bundle = await readFile(new URL('../src/admin/panel.js', import.meta.url), 'utf8');
   assert.match(bundle, /social\.addEventListener\('toggle'/, 'Metricool se consulta al abrir la sección');
 });
