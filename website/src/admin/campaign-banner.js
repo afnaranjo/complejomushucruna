@@ -37,6 +37,18 @@ export function daysLeft(today, endsOn) {
   return Math.round((end - start) / 86400000);
 }
 
+/** Frentes de las acciones del calendario: lo emocional convive con shows, atractivos, venta y lo demás. */
+export const FRONTS = Object.freeze([
+  Object.freeze({ key: 'emocional', label: 'Emocional', color: '#94165e' }),
+  Object.freeze({ key: 'shows', label: 'Shows', color: '#3b6ef5' }),
+  Object.freeze({ key: 'atractivos', label: 'Atractivos', color: '#14a08a' }),
+  Object.freeze({ key: 'venta', label: 'Venta', color: '#e0761a' }),
+  Object.freeze({ key: 'participacion', label: 'Participación', color: '#7a3fd1' }),
+  Object.freeze({ key: 'medios', label: 'Medios', color: '#b3852a' }),
+  Object.freeze({ key: 'servicio', label: 'Servicio', color: '#4a5568' }),
+]);
+export const frontOf = key => FRONTS.find(front => front.key === key) ?? FRONTS[0];
+
 export function phaseLabel(phase) {
   if (!phase) return '';
   return [phase.title, phase.detail].filter(Boolean).join(' · ');
@@ -79,6 +91,28 @@ export function renderBanner(banner, data) {
   if (data.next) phases.append(card(data.next, 'Después viene'));
   banner.append(phases);
 
+  // Lo que toca salir hoy según el calendario de la campaña.
+  const todays = Array.isArray(data.today_actions) ? data.today_actions : [];
+  if (todays.length) {
+    const box = node('div', undefined, 'campaign-banner__todo');
+    const head = node('div', undefined, 'campaign-banner__todo-head');
+    head.append(node('span', 'Hoy toca'));
+    const link = node('a', 'Ver calendario');
+    link.href = '/admin/noticias/#calendario';
+    head.append(link);
+    const list = node('ul');
+    for (const action of todays.slice(0, 6)) {
+      const front = frontOf(action.front);
+      const item = node('li');
+      item.style.setProperty('--front-color', front.color);
+      item.append(node('b', front.label), node('span', action.title));
+      list.append(item);
+    }
+    if (todays.length > 6) list.append(node('li', `y ${todays.length - 6} más en el calendario`, 'campaign-banner__todo-more'));
+    box.append(head, list);
+    banner.append(box);
+  }
+
   if (data.notices?.length) {
     const notices = node('ul', undefined, 'campaign-banner__notices');
     for (const notice of data.notices) notices.append(node('li', notice.body));
@@ -89,7 +123,7 @@ export function renderBanner(banner, data) {
   banner.removeAttribute('aria-busy');
 }
 
-const CACHE_KEY = 'finados-campaign-banner-v1';
+const CACHE_KEY = 'finados-campaign-banner-v2';
 /** Lo último que se vio de la banda (tramos y avisos de campaña, sin datos personales). Si falla, no pasa nada. */
 function readCache() {
   try { const value = JSON.parse(sessionStorage.getItem(CACHE_KEY) ?? 'null'); return value && typeof value === 'object' ? value : null; } catch { return null; }

@@ -118,5 +118,41 @@ same(2, count(news_body($router->handle('POST', '/api/noticias/avisos', $json($c
 $quitado = news_body($router->handle('POST', '/api/noticias/avisos/' . $vigente['notices'][0]['public_id'], $json($csrf), ''));
 same(1, count($quitado['notices']));
 
+// Antes de migrar las acciones, la banda y Noticias siguen funcionando sin ellas.
+same([], news_body($router->handle('GET', '/api/noticias', $origin))['actions']);
+$pdo->exec(file_get_contents(__DIR__ . '/../migrations/035_campaign_actions_sqlite.sql'));
+$pdo->exec(file_get_contents(__DIR__ . '/../migrations/035_campaign_actions_sqlite.sql')); // aplicarla dos veces no duplica la propuesta
+$conAcciones = news_body($router->handle('GET', '/api/noticias', $origin));
+same(29, count($conAcciones['actions']), 'la propuesta inicial llega sembrada');
+same(['propuesta'], array_values(array_unique(array_column($conAcciones['actions'], 'status'))));
+same(true, $conAcciones['actions'][0]['starts_on'] <= $conAcciones['actions'][28]['starts_on'], 'ordenadas por fecha');
+foreach ($conAcciones['actions'] as $accion) same(true, in_array($accion['front'], ['emocional', 'shows', 'atractivos', 'venta', 'participacion', 'medios', 'servicio'], true));
+// Entre el 3 y el 11 de octubre conviven lo emocional con shows, atractivos y venta.
+$tramo = array_filter($conAcciones['actions'], static fn (array $a): bool => $a['starts_on'] >= '2026-10-03' && $a['starts_on'] <= '2026-10-11');
+same(true, count(array_intersect(['emocional', 'shows', 'atractivos', 'venta'], array_column($tramo, 'front'))) === 4);
+
+// Coordinación agrega, corrige y quita acciones; lo de hoy llega a la banda.
+same(422, $router->handle('POST', '/api/noticias/acciones', $json($csrf), news_json(['title' => '', 'starts_on' => $hoy]))->status);
+same(422, $router->handle('POST', '/api/noticias/acciones', $json($csrf), news_json(['title' => 'x', 'starts_on' => $hoy, 'front' => 'chisme']))->status);
+same(422, $router->handle('POST', '/api/noticias/acciones', $json($csrf), news_json(['title' => 'x', 'starts_on' => $hoy, 'status' => 'lista']))->status);
+same(422, $router->handle('POST', '/api/noticias/acciones', $json($csrf), news_json(['title' => 'x', 'starts_on' => '2026-10-10', 'ends_on' => '2026-10-01']))->status);
+same(422, $router->handle('POST', '/api/noticias/acciones', $json($csrf), news_json(['title' => 'x', 'starts_on' => $hoy, 'color' => 'rojo']))->status);
+$conHoyR = $router->handle('POST', '/api/noticias/acciones', $json($csrf), news_json([
+    'title' => 'Reel de recuerdo', 'starts_on' => $hoy, 'front' => 'shows', 'channel' => 'Reels', 'owner' => 'Audiovisual', 'detail' => "Toma 1\nToma 2"]));
+$conHoy = news_body($conHoyR);
+same(30, count($conHoy['actions']));
+$mia = array_values(array_filter($conHoy['actions'], static fn (array $a): bool => $a['title'] === 'Reel de recuerdo'))[0];
+same($hoy, $mia['ends_on'], 'sin fecha final, dura un día');
+same("Toma 1\nToma 2", $mia['detail'], 'el detalle conserva sus saltos de línea');
+same(true, in_array($mia['public_id'], array_column($conHoy['today_actions'], 'public_id'), true));
+$aprobada = news_body($router->handle('PATCH', '/api/noticias/acciones/' . $mia['public_id'], $json($csrf), news_json(['status' => 'aprobada'])));
+$mia = array_values(array_filter($aprobada['actions'], static fn (array $a): bool => $a['public_id'] === $mia['public_id']))[0];
+same(['aprobada', 'shows', 'Reels'], [$mia['status'], $mia['front'], $mia['channel']], 'cambiar el estado conserva lo demás');
+$descartada = news_body($router->handle('PATCH', '/api/noticias/acciones/' . $mia['public_id'], $json($csrf), news_json(['status' => 'descartada'])));
+same(false, in_array($mia['public_id'], array_column($descartada['today_actions'], 'public_id'), true), 'lo descartado no llega a la banda');
+same(29, count(news_body($router->handle('POST', '/api/noticias/acciones/' . $mia['public_id'], $json($csrf), ''))['actions']));
+same(1, (int) $pdo->query("SELECT COUNT(*) FROM campaign_actions WHERE archived_at IS NOT NULL")->fetchColumn(), 'quitar archiva, no borra');
+same(422, $router->handle('PATCH', '/api/noticias/acciones/' . $mia['public_id'], $json($csrf), news_json(['status' => 'aprobada']))->status);
+
 same(404, $router->handle('GET', '/api/noticias/otra-cosa', $origin)->status);
 if (session_status() === PHP_SESSION_ACTIVE) session_write_close();

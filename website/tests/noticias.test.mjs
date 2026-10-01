@@ -110,3 +110,44 @@ test('la banda del tema central sale en todos los paneles y Noticias tiene su se
   assert.match(banner, /const LOCAL_API = null;/);
   assert.doesNotMatch(banner, /127\.0\.0\.1/);
 });
+
+test('Mapa de la campaña: tramos desplegables con acciones por fecha y calendario por mes', async () => {
+  const { actionPayload, groupActions, monthWeeks, actionsOn } = await import('../src/admin/admin-noticias.js');
+  const { renderAdminNoticiasPage } = await import('../src/admin/page.mjs');
+  const html = renderAdminNoticiasPage({ route: '/admin/noticias/', title: 'Noticias', description: '' });
+  assert.match(html, /data-plan-view="lista" aria-pressed="true"/);
+  assert.match(html, /data-plan-view="calendario"/);
+  assert.match(html, /data-plan-calendar hidden/);
+  assert.match(html, /data-action-dialog/);
+  assert.match(html, /<textarea name="detail"/);
+  assert.match(html, /id="calendario"/);
+
+  const form = values => ({ get: key => values[key] ?? '' });
+  assert.deepEqual(actionPayload(form({ title: ' Reel ', starts_on: '2026-10-05', front: 'shows' })),
+    { title: 'Reel', starts_on: '2026-10-05', ends_on: '2026-10-05', front: 'shows', status: 'propuesta', channel: '', owner: '', detail: '' });
+  assert.throws(() => actionPayload(form({ title: '', starts_on: '2026-10-05', front: 'shows' })), /qué debe salir/);
+  assert.throws(() => actionPayload(form({ title: 'x', starts_on: '2026-10-05', ends_on: '2026-10-01', front: 'shows' })), /anterior/);
+  assert.throws(() => actionPayload(form({ title: 'x', starts_on: '2026-10-05', front: 'otro' })), /frente/);
+
+  const phases = [{ public_id: 'a', starts_on: '2026-10-03', ends_on: '2026-10-11' }, { public_id: 'b', starts_on: '2026-10-12', ends_on: '2026-10-25' }];
+  const actions = [{ title: 'uno', starts_on: '2026-10-05', ends_on: '2026-10-13' }, { title: 'dos', starts_on: '2026-10-12', ends_on: '2026-10-12' }, { title: 'fuera', starts_on: '2026-12-01', ends_on: '2026-12-01' }];
+  const grouped = groupActions(phases, actions);
+  assert.deepEqual(grouped.groups.map(group => group.actions.map(a => a.title)), [['uno'], ['dos']], 'cada acción va al tramo donde empieza');
+  assert.deepEqual(grouped.outside.map(a => a.title), ['fuera']);
+  assert.deepEqual(actionsOn(actions, '2026-10-12').map(a => a.title), ['uno', 'dos'], 'una acción de varios días aparece en cada día');
+
+  const october = monthWeeks(2026, 9);
+  assert.equal(october[0][0].iso, '2026-09-28', 'las semanas empiezan en lunes');
+  assert.equal(october[0][3].iso, '2026-10-01');
+  assert.ok(october.every(week => week.length === 7));
+  assert.equal(october.flat().filter(day => day.inMonth).length, 31);
+});
+
+test('la banda de cada panel muestra lo que toca hoy, con su frente', async () => {
+  const banner = await readFile(new URL('../src/admin/campaign-banner.js', import.meta.url), 'utf8');
+  assert.match(banner, /'Hoy toca'/);
+  assert.match(banner, /today_actions/);
+  const { FRONTS, frontOf } = await import('../src/admin/campaign-banner.js');
+  assert.deepEqual(FRONTS.map(front => front.key), ['emocional', 'shows', 'atractivos', 'venta', 'participacion', 'medios', 'servicio']);
+  assert.equal(frontOf('nada').key, 'emocional');
+});

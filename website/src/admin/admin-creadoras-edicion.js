@@ -1,6 +1,6 @@
 import { resolveRuntimeOrigins } from '../finados/runtime-origins.mjs';
 // Mismo cliente que el calendario de Creadoras: sesión, CSRF y rutas permitidas compartidos.
-import { createCreadoraAdminClient, creadoraColor, dayLabel, shiftLabel } from './admin-creadoras.js?v=20260928-responsive-1';
+import { createCreadoraAdminClient, creadoraColor, dayLabel, shiftLabel } from './admin-creadoras.js?v=20261001-mapa-4';
 
 const LOCAL_API = 'http://127.0.0.1:4174/api';
 

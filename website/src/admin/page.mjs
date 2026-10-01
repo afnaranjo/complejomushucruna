@@ -63,7 +63,7 @@ ${homeLink ? `<nav class="admin-sidebar__home" aria-label="Resumen general">${ho
 // Llega con su espacio reservado (y se pinta al instante con lo último visto): la página no se corre hacia abajo.
 const campaignBanner = '<section class="campaign-banner" data-campaign-banner data-loading aria-label="Tema central de la campaña" aria-busy="true"></section>';
 
-function layout(page, content, script = '/assets/admin/admin.js?v=20260928-responsive-1') {
+function layout(page, content, script = '/assets/admin/admin.js?v=20261001-mapa-4') {
   const api = page.adminEnvironment === 'development' ? (page.adminApiBase ?? LOCAL_API_BASE) : PRIMARY_API_BASE;
   const connectSources = apiBasesForCsp(api);
   return `<!doctype html>
@@ -77,7 +77,7 @@ function layout(page, content, script = '/assets/admin/admin.js?v=20260928-respo
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' blob:; media-src blob:; font-src 'self'; connect-src ${connectSources}; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="admin-api-base" content="${api}">
 <link rel="icon" href="/assets/finados/favicon-finados.png">
-<link rel="stylesheet" href="/assets/admin/admin.css?v=20261001-kpis-3">
+<link rel="stylesheet" href="/assets/admin/admin.css?v=20261001-mapa-4">
 <script type="module" src="${script}"></script>
 </head><body class="admin-page">
 <a class="skip-link" href="#contenido">Ir al contenido</a>
@@ -172,9 +172,9 @@ ${select('province', 'Provincia', ecuadorProvinces)}</div>
 </dialog>${mediaRecordDialog()}</main></div>`, ADMIN_MEDIOS_SCRIPT);
 }
 
-const ADMIN_CREADORAS_SCRIPT = '/assets/admin/admin-creadoras.js?v=20260928-responsive-1';
-export const ADMIN_CREADORAS_EDICION_SCRIPT = '/assets/admin/admin-creadoras-edicion.js?v=20260928-responsive-1';
-const ADMIN_MEDIOS_SCRIPT = '/assets/admin/admin-medios.js?v=20261001-kpis-3';
+const ADMIN_CREADORAS_SCRIPT = '/assets/admin/admin-creadoras.js?v=20261001-mapa-4';
+export const ADMIN_CREADORAS_EDICION_SCRIPT = '/assets/admin/admin-creadoras-edicion.js?v=20261001-mapa-4';
+const ADMIN_MEDIOS_SCRIPT = '/assets/admin/admin-medios.js?v=20261001-mapa-4';
 const RADIO_GENRE_OPTIONS = ['Noticias e información', 'Musical variada', 'Popular y tropical', 'Folclórica y andina', 'Juvenil y pop', 'Romántica', 'Religiosa', 'Deportiva', 'Comunitaria', 'Otro'];
 const PROVINCE_OPTIONS = ['Azuay', 'Bolívar', 'Cañar', 'Carchi', 'Chimborazo', 'Cotopaxi', 'El Oro', 'Esmeraldas', 'Galápagos', 'Guayas', 'Imbabura', 'Loja', 'Los Ríos', 'Manabí', 'Morona Santiago', 'Napo', 'Orellana', 'Pastaza', 'Pichincha', 'Santa Elena', 'Santo Domingo de los Tsáchilas', 'Sucumbíos', 'Tungurahua', 'Zamora Chinchipe'];
 
@@ -202,7 +202,7 @@ function mediaRecordDialog() {
 </div><button class="button-primary" type="submit">Guardar medio</button></fieldset></form></dialog>`;
 }
 
-export const ADMIN_MEDIOS_CALENDARIO_SCRIPT = '/assets/admin/admin-medios-calendario.js?v=20260926-cache-1';
+export const ADMIN_MEDIOS_CALENDARIO_SCRIPT = '/assets/admin/admin-medios-calendario.js?v=20261001-mapa-4';
 const planTabs = [['spots', '1. Spots promocionales'], ['calendario', '2. Calendario semanal'], ['reportes', '3. Reportes']];
 const planField = (label, control, wide = 1) => `<label class="mc-field mc-field--${wide}">${label}${control}</label>`;
 
@@ -242,7 +242,7 @@ ${planField('Nota / intención', '<textarea name="note" maxlength="500" rows="3"
 </main></div>`, ADMIN_MEDIOS_CALENDARIO_SCRIPT);
 }
 
-export const ADMIN_MEDIOS_GIRA_SCRIPT = '/assets/admin/admin-medios-gira.js?v=20260928-responsive-1';
+export const ADMIN_MEDIOS_GIRA_SCRIPT = '/assets/admin/admin-medios-gira.js?v=20261001-mapa-4';
 const TOUR_KINDS = Object.freeze({ entrevista: 'Entrevista', en_vivo: 'En vivo', grabacion: 'Grabación', visita: 'Visita', rueda: 'Rueda de prensa', otro: 'Otro' });
 const TOUR_STATUSES = Object.freeze({ programada: 'Programada', confirmada: 'Confirmada', realizada: 'Realizada', no_se_dio: 'No se dio' });
 const pairs = map => Object.entries(map).map(([value, label]) => `<option value="${esc(value)}">${esc(label)}</option>`).join('');
@@ -324,7 +324,7 @@ export function renderAdminMediosGiraPage(page) {
 </main></div>`, ADMIN_MEDIOS_GIRA_SCRIPT);
 }
 
-export const ADMIN_PRODUCCION_SCRIPT = '/assets/admin/admin-produccion.js?v=20260928-responsive-1';
+export const ADMIN_PRODUCCION_SCRIPT = '/assets/admin/admin-produccion.js?v=20261001-mapa-4';
 export const PRODUCTION_BOARDS = Object.freeze({
   activaciones: { title: 'Activaciones', eyebrow: 'Finados 2026 · Producción', lead: 'Arrastra una activación de la biblioteca a una hora del calendario.' },
   sol: { title: 'Cronograma Sol', eyebrow: 'Finados 2026 · Producción', lead: 'Arrastra un show o actividad de la biblioteca a una hora del calendario.' },
@@ -465,7 +465,7 @@ ${select('main_network', 'Red principal', ['TikTok', 'Instagram', 'Facebook'])}<
 <form data-status-form><fieldset disabled><label>Estado del registro<select name="status" required>${options(EMPRENDEDOR_STATUSES)}</select></label><button class="button-primary" type="submit">Guardar estado</button></fieldset></form>
 <section class="admin-progress" aria-labelledby="admin-progress-title"><div class="admin-progress-heading"><div><h3 id="admin-progress-title">Progreso del emprendedor</h3><p>Registra los seguidores validados, el nivel, el semáforo y las views validadas de cada video. Las fechas se configuran una sola vez en la sección global.</p></div><span data-admin-progress-summary>Sin actualizar</span></div><form data-progress-form><fieldset disabled><div class="admin-progress-grid"><label>Seguidores validados<input type="number" name="followers_count" min="0" max="1000000000" step="1" required></label><label>Nivel<select name="level" required>${EMPRENDEDOR_LEVELS.map((label, index) => `<option value="${index}">${index} · ${esc(label)}</option>`).join('')}</select></label><label>Semáforo<select name="traffic_light" required><option value="red">Rojo · En preparación</option><option value="yellow">Amarillo · En avance</option><option value="green">Verde · Listo</option></select></label></div><div class="admin-videos" data-admin-videos></div><button class="button-primary" type="submit">Guardar progreso</button></fieldset></form><p class="feedback" data-progress-feedback role="status" aria-live="polite"></p></section>
 <section class="notes-section"><h3>Notas internas</h3><ol data-notes></ol><form data-note-form><fieldset disabled><label>Añadir nota<textarea name="body" rows="3" maxlength="2000" required></textarea></label><button class="button-primary" type="submit">Guardar nota</button></fieldset></form></section>
-</dialog></main></div>`, '/assets/admin/admin-emprendedores.js?v=20260926-cache-1');
+</dialog></main></div>`, '/assets/admin/admin-emprendedores.js?v=20261001-mapa-4');
 }
 
 export function renderAdminNoticiasPage(page) {
@@ -473,9 +473,12 @@ export function renderAdminNoticiasPage(page) {
 <div class="workspace-heading"><div><p class="eyebrow">Finados 2026</p><h1>Noticias</h1><p data-admin-user>Comprobando acceso…</p></div>
 <div class="workspace-actions"><button type="button" class="button-quiet" data-notice-new>Publicar aviso</button><button type="button" class="button-primary" data-phase-new>Agregar tramo</button></div></div>
 <p class="feedback" data-admin-feedback role="status" aria-live="polite" aria-atomic="true">Cargando noticias…</p>
-<section class="admin-panel-section" aria-labelledby="mapa-title">
-<div class="records-heading"><div><h2 id="mapa-title">Mapa de la campaña</h2><p>El tema central de cada tramo. Es lo que ve el equipo arriba de cada panel.</p></div></div>
+<section class="admin-panel-section" aria-labelledby="mapa-title" id="calendario">
+<div class="records-heading campaign-plan__heading"><div><h2 id="mapa-title">Mapa de la campaña</h2><p>El tema central de cada tramo y, adentro, lo que debe salir en cada fecha: lo emocional junto con shows, atractivos, venta y lo demás.</p></div>
+<div class="campaign-plan__actions"><div class="campaign-plan__views" role="group" aria-label="Vista del mapa"><button type="button" class="button-quiet" data-plan-view="lista" aria-pressed="true">Lista</button><button type="button" class="button-quiet" data-plan-view="calendario" aria-pressed="false">Calendario</button></div><button type="button" class="button-primary" data-action-new>Agregar acción</button></div></div>
+<div class="campaign-plan__fronts" role="group" aria-label="Filtrar por frente" data-front-filter></div>
 <ol class="campaign-map" data-phase-list></ol>
+<div class="campaign-calendar" data-plan-calendar hidden><div class="campaign-calendar__nav"><button type="button" class="button-quiet" data-month-prev aria-label="Mes anterior">←</button><h3 data-month-label>—</h3><button type="button" class="button-quiet" data-month-next aria-label="Mes siguiente">→</button></div><div class="campaign-calendar__grid" data-month-grid></div></div>
 </section>
 <section class="admin-panel-section" aria-labelledby="avisos-title">
 <div class="records-heading"><div><h2 id="avisos-title">Avisos</h2><p>Mensajes puntuales. Con fechas se muestran solo mientras están vigentes.</p></div></div>
@@ -498,6 +501,26 @@ export function renderAdminNoticiasPage(page) {
 </div>
 </form>
 </dialog>
+<dialog class="record-dialog" data-action-dialog aria-label="Acción de la campaña">
+<form method="dialog" class="record-form">
+<div class="records-heading"><div><h2 data-action-title>Agregar acción</h2><p data-action-phase>Qué debe salir, cuándo, por qué canal y quién lo hace.</p></div></div>
+<div class="record-grid">
+<label class="record-grid__wide">Qué debe salir<input name="title" maxlength="200" required placeholder="Ej.: Recuerdo con música: Kjarkas y William Luna"></label>
+<label>Frente<select name="front" data-front-select></select></label>
+<label>Estado<select name="status"><option value="propuesta">Propuesta</option><option value="aprobada">Aprobada</option><option value="produccion">En producción</option><option value="publicada">Publicada</option><option value="descartada">Descartada</option></select></label>
+<label>Desde<input name="starts_on" type="date" required></label>
+<label>Hasta<input name="ends_on" type="date"></label>
+<label>Canal<input name="channel" maxlength="160" placeholder="Ej.: Reel + pauta"></label>
+<label>Responsable<input name="owner" maxlength="160" placeholder="Ej.: Audiovisual"></label>
+<label class="record-grid__wide">Detalle<textarea name="detail" rows="5" maxlength="1500" placeholder="Idea, tono, piezas, datos que deben confirmarse…"></textarea></label>
+</div>
+<p class="feedback" data-action-feedback role="status" aria-live="polite"></p>
+<div class="record-form__actions record-form__actions--split">
+<span class="record-form__side"><button type="button" class="button-quiet" data-action-remove hidden>Quitar</button></span>
+<span class="record-form__side"><button type="submit" value="cancel" class="button-quiet">Cancelar</button><button type="submit" value="save" class="button-primary">Guardar</button></span>
+</div>
+</form>
+</dialog>
 <dialog class="record-dialog record-dialog--compact" data-notice-dialog aria-label="Aviso">
 <form method="dialog" class="record-form">
 <div class="records-heading"><div><h2>Publicar aviso</h2><p>Se muestra arriba de todos los paneles mientras esté vigente.</p></div></div>
@@ -510,7 +533,7 @@ export function renderAdminNoticiasPage(page) {
 <div class="record-form__actions"><button type="submit" value="cancel" class="button-quiet">Cancelar</button><button type="submit" value="save" class="button-primary">Publicar</button></div>
 </form>
 </dialog>
-</main></div>`, '/assets/admin/admin-noticias.js?v=20260926-cache-1');
+</main></div>`, '/assets/admin/admin-noticias.js?v=20261001-mapa-4');
 }
 
 export function renderAdminCreadorasPage(page) {
@@ -652,7 +675,7 @@ export function renderAdminCreadorasEdicionPage(page) {
 </main></div>`, ADMIN_CREADORAS_EDICION_SCRIPT);
 }
 
-export const ADMIN_USUARIOS_SCRIPT = '/assets/admin/admin-usuarios.js?v=20260926-usuarios-1';
+export const ADMIN_USUARIOS_SCRIPT = '/assets/admin/admin-usuarios.js?v=20261001-mapa-4';
 
 /** Usuarios: cada persona con su cuenta y su rol, los roles con sus módulos y quién hizo qué. */
 export function renderAdminUsuariosPage(page) {
@@ -740,12 +763,12 @@ ${panelFold('medios', 'Medios', 'Toca un número para ver la lista.', `<div data
 <section class="admin-panel-subsection" aria-labelledby="panel-eventos-title"><div class="records-heading"><div><h3 id="panel-eventos-title">Medios por evento</h3><p>Abre un evento para ver su cobertura.</p></div></div><div data-panel-events></div></section>`)}
 ${panelFold('creadoras', 'Creadoras de contenido', 'Horas que vinieron, lo que grabaron y sus videos. Toca a una creadora para ver su historial.', '<div data-panel-creadoras></div>')}
 ${panelFold('voceros', 'Voceros', 'Toca un número para ver la lista.', '<div data-panel-voceros></div>')}
-</main></div>`, '/assets/admin/panel.js?v=20261001-kpis-3');
+</main></div>`, '/assets/admin/panel.js?v=20261001-mapa-4');
 }
 
 // Mushuc Freestyle: los estados viven aquí para que el HTML no dependa del módulo del navegador.
 const MFS_STATUS_OPTIONS = Object.freeze(['Nuevo', 'En revisión', 'Aprobado', 'Rechazado', 'Seleccionado']);
-export const ADMIN_MFS_SCRIPT = '/assets/admin/admin-mfs.js?v=20260926-admin-mfs-5';
+export const ADMIN_MFS_SCRIPT = '/assets/admin/admin-mfs.js?v=20261001-mapa-4';
 
 export function renderAdminMfsPage(page) {
   return layout(page, `<div class="admin-shell">${adminSidebar(page)}<main id="contenido" class="admin-workspace" data-admin-mfs>${campaignBanner}

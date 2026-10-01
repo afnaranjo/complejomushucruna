@@ -17,6 +17,10 @@ final class NewsRepository
 {
     private const MAX_PHASES = 40;
     private const MAX_NOTICES = 20;
+    private const MAX_ACTIONS = 400;
+    /** Frentes de cada acción: lo emocional convive con shows, atractivos, venta, participación, medios y servicio. */
+    public const FRONTS = ['emocional', 'shows', 'atractivos', 'venta', 'participacion', 'medios', 'servicio'];
+    public const STATUSES = ['propuesta', 'aprobada', 'produccion', 'publicada', 'descartada'];
     /** Las fechas de la campaña viven en 2026 y algo de 2027 por si se extiende el cierre. */
     private const MIN_DAY = '2026-01-01';
     private const MAX_DAY = '2027-12-31';
@@ -38,8 +42,12 @@ final class NewsRepository
         }
         // Si hoy cae fuera de todo tramo, el siguiente sigue siendo el próximo que empiece.
         if ($current === null) foreach ($phases as $phase) if ($phase['starts_on'] > $today) { $next = $next ?? $phase; break; }
+        $actions = $this->actions();
+        // Lo que toca salir hoy: acciones vigentes que no se descartaron.
+        $todayActions = array_values(array_filter($actions, static fn (array $action): bool => $action['starts_on'] <= $today && $today <= $action['ends_on'] && $action['status'] !== 'descartada'));
         return ['today' => $today, 'current' => $current, 'next' => $next, 'phases' => $phases,
-            'notices' => $this->notices($today), 'all_notices' => $this->allNotices()];
+            'notices' => $this->notices($today), 'all_notices' => $this->allNotices(),
+            'actions' => $actions, 'today_actions' => $todayActions];
     }
 
     public function phases(): array
@@ -54,6 +62,53 @@ final class NewsRepository
             'accent' => $row['accent'],
             'position' => (int) $row['position'],
         ], $statement->fetchAll(PDO::FETCH_ASSOC));
+    }
+
+    /** Las acciones del calendario de la campaña, ordenadas por fecha. Sin la tabla (antes de migrar) no hay ninguna. */
+    public function actions(): array
+    {
+        try {
+            $statement = $this->pdo->query('SELECT public_id, starts_on, ends_on, front, title, detail, channel, owner, status FROM campaign_actions WHERE archived_at IS NULL ORDER BY starts_on, ends_on, id LIMIT ' . self::MAX_ACTIONS);
+        } catch (\Throwable) {
+            return [];
+        }
+        if ($statement === false) return [];
+        return array_map(static fn (array $row): array => [
+            'public_id' => $row['public_id'], 'starts_on' => (string) $row['starts_on'], 'ends_on' => (string) $row['ends_on'],
+            'front' => $row['front'], 'title' => $row['title'], 'detail' => $row['detail'],
+            'channel' => $row['channel'], 'owner' => $row['owner'], 'status' => $row['status'],
+        ], $statement->fetchAll(PDO::FETCH_ASSOC));
+    }
+
+    public function createAction(array $input, ?int $adminId, mixed $ip): array
+    {
+        $values = $this->validateAction($input);
+        if ((int) $this->pdo->query('SELECT COUNT(*) FROM campaign_actions WHERE archived_at IS NULL')->fetchColumn() >= self::MAX_ACTIONS) throw new InvalidArgumentException('Ya hay demasiadas acciones en el calendario.');
+        $now = gmdate('Y-m-d H:i:s');
+        $publicId = bin2hex(random_bytes(16));
+        $this->pdo->prepare('INSERT INTO campaign_actions (public_id, starts_on, ends_on, front, title, detail, channel, owner, status, created_by_admin_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
+            ->execute([$publicId, $values['starts_on'], $values['ends_on'], $values['front'], $values['title'], $values['detail'], $values['channel'], $values['owner'], $values['status'], $adminId, $now, $now]);
+        $this->audit->log('campaign.action_created', $adminId, 'campaign_action', $publicId, [], $ip);
+        return $this->overview();
+    }
+
+    public function updateAction(string $publicId, array $input, ?int $adminId, mixed $ip): array
+    {
+        $current = $this->actionRow($publicId);
+        $values = $this->validateAction($input, $current);
+        $this->pdo->prepare('UPDATE campaign_actions SET starts_on = ?, ends_on = ?, front = ?, title = ?, detail = ?, channel = ?, owner = ?, status = ?, updated_at = ? WHERE id = ?')
+            ->execute([$values['starts_on'], $values['ends_on'], $values['front'], $values['title'], $values['detail'], $values['channel'], $values['owner'], $values['status'], gmdate('Y-m-d H:i:s'), $current['id']]);
+        $this->audit->log('campaign.action_updated', $adminId, 'campaign_action', $publicId, [], $ip);
+        return $this->overview();
+    }
+
+    /** Quitar una acción la archiva: deja de verse, pero no se borra. */
+    public function archiveAction(string $publicId, ?int $adminId, mixed $ip): array
+    {
+        $current = $this->actionRow($publicId);
+        $this->pdo->prepare('UPDATE campaign_actions SET archived_at = ?, updated_at = ? WHERE id = ?')->execute([gmdate('Y-m-d H:i:s'), gmdate('Y-m-d H:i:s'), $current['id']]);
+        $this->audit->log('campaign.action_archived', $adminId, 'campaign_action', $publicId, [], $ip);
+        return $this->overview();
     }
 
     /** Los avisos vigentes hoy; los que tienen fechas se apagan solos al pasar. */
@@ -153,6 +208,37 @@ final class NewsRepository
             'ends_on' => $ends,
             'accent' => strtolower($accent),
         ];
+    }
+
+    private function validateAction(array $input, ?array $current = null): array
+    {
+        $title = $this->text($input['title'] ?? ($current['title'] ?? ''), 200);
+        if ($title === '') throw new InvalidArgumentException('Escribe qué debe salir.');
+        $starts = $this->day($input['starts_on'] ?? ($current['starts_on'] ?? ''));
+        $ends = $this->day($input['ends_on'] ?? ($current['ends_on'] ?? $starts));
+        if ($ends < $starts) throw new InvalidArgumentException('La fecha final no puede ser anterior a la inicial.');
+        $front = $input['front'] ?? ($current['front'] ?? 'emocional');
+        if (!is_string($front) || !in_array($front, self::FRONTS, true)) throw new InvalidArgumentException('Elige un frente válido.');
+        $status = $input['status'] ?? ($current['status'] ?? 'propuesta');
+        if (!is_string($status) || !in_array($status, self::STATUSES, true)) throw new InvalidArgumentException('Elige un estado válido.');
+        // El detalle conserva sus saltos de línea: puede ser un guion o una lista de piezas.
+        $detail = $input['detail'] ?? ($current['detail'] ?? '');
+        $detail = is_string($detail) ? mb_substr(trim(str_replace(["\r\n", "\r"], "\n", $detail)), 0, 1500) : '';
+        return [
+            'title' => $title, 'starts_on' => $starts, 'ends_on' => $ends, 'front' => $front, 'status' => $status, 'detail' => $detail,
+            'channel' => $this->text($input['channel'] ?? ($current['channel'] ?? ''), 160),
+            'owner' => $this->text($input['owner'] ?? ($current['owner'] ?? ''), 160),
+        ];
+    }
+
+    private function actionRow(string $publicId): array
+    {
+        if (!preg_match('~^[a-f0-9]{32}$~D', $publicId)) throw new InvalidArgumentException('Acción no encontrada.');
+        $statement = $this->pdo->prepare('SELECT * FROM campaign_actions WHERE public_id = ? AND archived_at IS NULL');
+        $statement->execute([$publicId]);
+        $row = $statement->fetch(PDO::FETCH_ASSOC);
+        if ($row === false) throw new InvalidArgumentException('Acción no encontrada.');
+        return $row;
     }
 
     private function day(mixed $value): string

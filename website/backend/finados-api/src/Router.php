@@ -1147,6 +1147,19 @@ final class Router
             if ($method === 'POST') return $this->json(200, ['ok' => true, ...$repository->deletePhase($parts[1], $user['id'], $ip)], $headers);
             return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
         }
+        if ($path === '/api/noticias/acciones') {
+            if ($method !== 'POST') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+            $body = $this->body($server, $rawBody, ['title', 'detail', 'starts_on', 'ends_on', 'front', 'channel', 'owner', 'status']);
+            return $this->json(201, ['ok' => true, ...$repository->createAction($body, $user['id'], $ip)], $headers);
+        }
+        if (preg_match('~^/api/noticias/acciones/([a-f0-9]{32})$~D', $path, $parts)) {
+            if ($method === 'PATCH') {
+                $body = $this->body($server, $rawBody, ['title', 'detail', 'starts_on', 'ends_on', 'front', 'channel', 'owner', 'status']);
+                return $this->json(200, ['ok' => true, ...$repository->updateAction($parts[1], $body, $user['id'], $ip)], $headers);
+            }
+            if ($method === 'POST') return $this->json(200, ['ok' => true, ...$repository->archiveAction($parts[1], $user['id'], $ip)], $headers);
+            return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+        }
         if ($path === '/api/noticias/avisos') {
             if ($method !== 'POST') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
             $body = $this->body($server, $rawBody, ['body', 'starts_on', 'ends_on']);

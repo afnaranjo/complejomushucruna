@@ -73,6 +73,6 @@ test('Creadoras despliega Creadoras y Edición en el menú, y Edición se public
   const panel = await readFile(join(output, 'admin/panel/index.html'), 'utf8');
   assert.match(panel, /aria-controls="admin-nav-creadoras">[\s\S]*?<div class="admin-nav-children" id="admin-nav-creadoras" data-nav-children hidden>/);
   const bundle = await readFile(join(output, 'assets/admin/admin-creadoras-edicion.js'), 'utf8');
-  assert.match(bundle, /from '\.\/admin-creadoras\.js\?v=20260928-responsive-1'/);
+  assert.match(bundle, /from '\.\/admin-creadoras\.js\?v=20261001-mapa-4'/);
   assert.match(bundle, /const LOCAL_API = null;/);
 });
