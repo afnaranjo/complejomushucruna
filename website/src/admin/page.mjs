@@ -77,7 +77,7 @@ function layout(page, content, script = '/assets/admin/admin.js?v=20260928-respo
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' blob:; media-src blob:; font-src 'self'; connect-src ${connectSources}; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="admin-api-base" content="${api}">
 <link rel="icon" href="/assets/finados/favicon-finados.png">
-<link rel="stylesheet" href="/assets/admin/admin.css?v=20260930-tickets-1">
+<link rel="stylesheet" href="/assets/admin/admin.css?v=20261001-tickets-2">
 <script type="module" src="${script}"></script>
 </head><body class="admin-page">
 <a class="skip-link" href="#contenido">Ir al contenido</a>
@@ -174,7 +174,7 @@ ${select('province', 'Provincia', ecuadorProvinces)}</div>
 
 const ADMIN_CREADORAS_SCRIPT = '/assets/admin/admin-creadoras.js?v=20260928-responsive-1';
 export const ADMIN_CREADORAS_EDICION_SCRIPT = '/assets/admin/admin-creadoras-edicion.js?v=20260928-responsive-1';
-const ADMIN_MEDIOS_SCRIPT = '/assets/admin/admin-medios.js?v=20260930-tickets-1';
+const ADMIN_MEDIOS_SCRIPT = '/assets/admin/admin-medios.js?v=20261001-tickets-2';
 const RADIO_GENRE_OPTIONS = ['Noticias e información', 'Musical variada', 'Popular y tropical', 'Folclórica y andina', 'Juvenil y pop', 'Romántica', 'Religiosa', 'Deportiva', 'Comunitaria', 'Otro'];
 const PROVINCE_OPTIONS = ['Azuay', 'Bolívar', 'Cañar', 'Carchi', 'Chimborazo', 'Cotopaxi', 'El Oro', 'Esmeraldas', 'Galápagos', 'Guayas', 'Imbabura', 'Loja', 'Los Ríos', 'Manabí', 'Morona Santiago', 'Napo', 'Orellana', 'Pastaza', 'Pichincha', 'Santa Elena', 'Santo Domingo de los Tsáchilas', 'Sucumbíos', 'Tungurahua', 'Zamora Chinchipe'];
 
@@ -722,8 +722,8 @@ export function renderAdminPanelPage(page) {
 <div class="workspace-heading"><div><p class="eyebrow">Finados 2026</p><h1>Panel</h1><p data-admin-user>Comprobando acceso…</p></div></div>
 <p class="feedback" data-admin-feedback role="status" aria-live="polite" aria-atomic="true">Cargando panel…</p>
 <button type="button" class="button-quiet" data-session-retry hidden>Reintentar conexión</button>
-${panelFold('entradas', 'Venta de entradas', 'Entradas vendidas y total por noche y localidad, leídos de Ticketstar365. Se renuevan cada 5 minutos.', `<div class="admin-tickets__controls"><button type="button" class="button-quiet" data-tickets-refresh title="Volver a leer Ticketstar ahora">Actualizar datos</button></div>
-<p class="feedback" data-tickets-feedback role="status" aria-live="polite"></p><div data-tickets-content></div>`, 'admin-tickets" data-panel-tickets')}
+<section class="admin-panel-section admin-tickets" data-panel-tickets aria-labelledby="panel-entradas-title" aria-busy="true"><div class="records-heading admin-tickets__heading"><div><h2 id="panel-entradas-title">Venta de entradas</h2><p>Entradas vendidas por día y localidad, leídas de Ticketstar365. Se actualiza sola cada 30 segundos.</p></div><div class="admin-tickets__controls"><span class="admin-tickets__live" data-tickets-live>Conectando…</span><button type="button" class="button-quiet" data-tickets-refresh title="Volver a leer Ticketstar ahora">Actualizar ahora</button></div></div>
+<p class="feedback" data-tickets-feedback role="status" aria-live="polite"></p><div data-tickets-content></div></section>
 ${panelFold('redes', 'Redes sociales', 'Solo la cuenta Finados Mushuc Runa, leída de Metricool. Cada cifra se compara con el periodo anterior del mismo largo.', `<div class="admin-social__controls" role="group" aria-label="Periodo de las redes sociales"><div class="admin-social__presets"><button type="button" class="button-quiet" data-social-preset="7" aria-pressed="false">7 días</button><button type="button" class="button-quiet" data-social-preset="30" aria-pressed="true">30 días</button><button type="button" class="button-quiet" data-social-preset="90" aria-pressed="false">90 días</button></div>
 <label>Desde<input type="date" data-social-from></label><label>Hasta<input type="date" data-social-to></label><button type="button" class="button-primary" data-social-apply>Ver periodo</button><button type="button" class="button-quiet" data-social-refresh title="Volver a leer Metricool ahora">Actualizar datos</button></div>
 <p class="feedback" data-social-feedback role="status" aria-live="polite"></p><div data-social-content></div>`, 'admin-social" data-panel-social')}
@@ -731,7 +731,7 @@ ${panelFold('medios', 'Medios', 'Toca un número para ver la lista.', `<div data
 <section class="admin-panel-subsection" aria-labelledby="panel-eventos-title"><div class="records-heading"><div><h3 id="panel-eventos-title">Medios por evento</h3><p>Abre un evento para ver su cobertura.</p></div></div><div data-panel-events></div></section>`)}
 ${panelFold('creadoras', 'Creadoras de contenido', 'Horas que vinieron, lo que grabaron y sus videos. Toca a una creadora para ver su historial.', '<div data-panel-creadoras></div>')}
 ${panelFold('voceros', 'Voceros', 'Toca un número para ver la lista.', '<div data-panel-voceros></div>')}
-</main></div>`, '/assets/admin/panel.js?v=20260930-tickets-1');
+</main></div>`, '/assets/admin/panel.js?v=20261001-tickets-2');
 }
 
 // Mushuc Freestyle: los estados viven aquí para que el HTML no dependa del módulo del navegador.

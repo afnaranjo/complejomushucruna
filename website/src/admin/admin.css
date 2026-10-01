@@ -817,7 +817,36 @@ body[data-shift-dragging="true"], body[data-shift-dragging="true"] * { cursor: g
 @media (min-width: 701px) and (max-width: 1119px) { .records { position: relative; overflow-x: auto; } }
 
 /* Venta de entradas (Ticketstar365) */
-.admin-tickets__controls { display: flex; justify-content: flex-end; }
+.admin-tickets__heading { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: .6rem 1rem; }
+.admin-tickets__controls { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: .6rem; }
+.admin-tickets__live { display: inline-flex; align-items: center; gap: .4rem; font-size: .78rem; font-weight: 650; color: #174d3e; font-variant-numeric: tabular-nums; }
+.admin-tickets__live::before { content: ""; width: .55rem; height: .55rem; border-radius: 50%; background: #1f9d6b; box-shadow: 0 0 0 0 rgba(31, 157, 107, .5); animation: admin-tickets-pulse 2s infinite; }
+.admin-tickets__live[data-stale="true"] { color: #7a2418; }
+.admin-tickets__live[data-stale="true"]::before { background: #b3412e; animation: none; }
+@keyframes admin-tickets-pulse { 70% { box-shadow: 0 0 0 .45rem rgba(31, 157, 107, 0); } 100% { box-shadow: 0 0 0 0 rgba(31, 157, 107, 0); } }
+@media (prefers-reduced-motion: reduce) { .admin-tickets__live::before { animation: none; } }
+.admin-tickets__subtitle { margin: 1.1rem 0 .6rem; font-size: .9rem; }
+.admin-tickets__matrix { overflow-x: auto; margin: 0 0 1rem; border: 2px solid rgba(36, 17, 70, .12); border-radius: 1rem; background: #fff; }
+.admin-tickets__matrix table { display: table; width: 100%; border-collapse: collapse; font-size: .88rem; font-variant-numeric: tabular-nums; }
+.admin-tickets__matrix thead { position: static; width: auto; height: auto; overflow: visible; clip-path: none; display: table-header-group; }
+.admin-tickets__matrix tbody { display: table-row-group; }
+.admin-tickets__matrix tfoot { display: table-footer-group; }
+.admin-tickets__matrix tr { display: table-row; }
+.admin-tickets__matrix th, .admin-tickets__matrix td { display: table-cell; padding: .55rem .7rem; border-bottom: 1px solid rgba(36, 17, 70, .08); text-align: right; white-space: nowrap; }
+.admin-tickets__matrix td::before { content: none; }
+.admin-tickets__matrix th:first-child { position: sticky; left: 0; z-index: 1; background: #fff; text-align: left; }
+.admin-tickets__matrix thead th { font-size: .7rem; text-transform: uppercase; letter-spacing: .05em; color: #4a4363; vertical-align: bottom; }
+.admin-tickets__matrix thead th span, .admin-tickets__matrix thead th small { display: block; }
+.admin-tickets__matrix thead th small { text-transform: none; letter-spacing: 0; font-size: .74rem; color: #241146; font-weight: 700; }
+.admin-tickets__matrix tbody th { font-size: .78rem; font-weight: 700; color: #241146; }
+.admin-tickets__matrix tbody td { font-weight: 700; color: #241146; }
+.admin-tickets__matrix td[data-zero="true"] { color: #b9aec2; font-weight: 500; }
+.admin-tickets__matrix td[data-empty="true"] { color: #d5ccdb; font-weight: 400; }
+.admin-tickets__matrix td strong, .admin-tickets__matrix td small { display: block; }
+.admin-tickets__matrix td small { font-size: .7rem; font-weight: 500; color: #665771; }
+.admin-tickets__matrix tfoot th, .admin-tickets__matrix tfoot td { border-top: 2px solid #241146; border-bottom: 0; background: #f7f1fa; }
+.admin-tickets__matrix tfoot th:first-child { background: #f7f1fa; }
+.admin-tickets__matrix tr > :last-child { background: #fbf7fd; }
 .admin-tickets__nights { display: grid; gap: .7rem; }
 .admin-tickets__night { border: 2px solid rgba(36, 17, 70, .12); border-radius: 1rem; background: #fff; }
 .admin-tickets__night > summary { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .35rem 1rem; align-items: center; padding: .9rem 1.1rem; cursor: pointer; list-style: none; }
@@ -840,6 +869,12 @@ body[data-shift-dragging="true"], body[data-shift-dragging="true"] * { cursor: g
 @media (max-width: 700px) {
   .admin-tickets__night > summary { grid-template-columns: 1fr; }
   .admin-tickets__figures { justify-items: start; }
+  .admin-tickets__heading { align-items: flex-start; }
+  .admin-tickets__controls { justify-content: flex-start; }
+  .admin-tickets__matrix table { font-size: .78rem; }
+  .admin-tickets__matrix th, .admin-tickets__matrix td { padding: .45rem .5rem; }
+  .admin-tickets__matrix th:first-child { white-space: normal; min-width: 5.5rem; max-width: 6.5rem; font-size: .66rem; }
+  .admin-tickets__matrix thead th small { font-size: .66rem; }
   /* Esta tabla es corta: se mantiene como tabla, con encabezados, en vez del formato apilado del panel. */
   .admin-tickets__table { padding: 0 .7rem .8rem; }
   .admin-tickets__table table { display: table; font-size: .78rem; }

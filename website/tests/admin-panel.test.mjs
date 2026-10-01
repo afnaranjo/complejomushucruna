@@ -73,12 +73,19 @@ test('Panel va arriba de «Panel y formularios» y el panel muestra la sección 
   assert.equal(totals['Guiones grabados'], '2 de 10');
 });
 
-test('Venta de entradas: sección plegada al inicio del Panel y lectura por noche y localidad', async () => {
-  const { ticketNightLabel, ticketSummary, formatMoney } = await import('../src/admin/panel.js');
+test('Venta de entradas: fija arriba del Panel, en vivo y por día y localidad', async () => {
+  const { ticketNightLabel, ticketSummary, ticketMatrix, formatMoney } = await import('../src/admin/panel.js');
   const page = pages.find(item => item.route === '/admin/panel/');
   const html = page.render(page);
   assert.match(html, /<h2 id="panel-entradas-title">Venta de entradas<\/h2>/);
-  assert.match(html, /<details class="admin-panel-section admin-panel-fold admin-tickets" data-panel-tickets/);
+  // No es desplegable: siempre a la vista, arriba de todo, con su indicador en vivo.
+  assert.match(html, /<section class="admin-panel-section admin-tickets" data-panel-tickets/);
+  assert.doesNotMatch(html, /<details[^>]*data-panel-tickets/);
+  assert.match(html, /data-tickets-live/);
+  assert.ok(html.indexOf('data-panel-tickets') < html.indexOf('data-panel-fold'), 'va antes de las secciones plegadas');
+  const bundle = await readFile(new URL('../src/admin/panel.js', import.meta.url), 'utf8');
+  assert.match(bundle, /TICKETS_EVERY = 30_000/);
+  assert.match(bundle, /visibilitychange/);
   assert.ok(html.indexOf('data-panel-tickets') < html.indexOf('data-panel-social'), 'va antes de Redes sociales');
   // Las credenciales de Ticketstar nunca llegan al navegador.
   assert.doesNotMatch(html, /ticketstar365\.com\/api|password/i);
@@ -98,6 +105,17 @@ test('Venta de entradas: sección plegada al inicio del Panel y lectura por noch
   assert.equal(summary.topLocality.name, 'VIP PREVENTA');
   assert.deepEqual(summary.withoutSales.map(event => event.date), ['2026-11-02']);
   assert.equal(ticketSummary({}).average, null);
+  // Tabla por localidad y día: «—» donde esa noche no vende esa localidad, totales por fila y por día.
+  const matrix = ticketMatrix({ events: [
+    night('2026-10-31', 11, 220, [{ name: 'VIP PREVENTA', sold: 11, revenue: 220 }, { name: 'MESA PREVENTA', sold: 0, revenue: 0 }]),
+    night('2026-11-01', 28, 130, [{ name: 'GENERAL PREVENTA', sold: 25, revenue: 125 }, { name: 'VIP PREVENTA', sold: 3, revenue: 75 }]),
+  ] });
+  assert.deepEqual(matrix.rows.map(row => [row.name, row.cells, row.sold]), [
+    ['GENERAL PREVENTA', [null, 25], 25], ['VIP PREVENTA', [11, 3], 14], ['MESA PREVENTA', [0, null], 0],
+  ]);
+  assert.deepEqual(matrix.days.map(day => day.sold), [11, 28]);
+  assert.equal(matrix.sold, 39);
+  assert.deepEqual(ticketMatrix({}).rows, []);
   assert.equal(formatMoney(null), '—');
 });
 
@@ -146,9 +164,9 @@ test('las secciones del Panel arrancan plegadas y se abren con un clic en el tí
   const page = pages.find(item => item.route === '/admin/panel/');
   const html = page.render(page);
   const folds = [...html.matchAll(/<details class="admin-panel-section admin-panel-fold[^"]*"[^>]*data-panel-fold="([a-z]+)"[^>]*>/g)];
-  assert.deepEqual(folds.map(match => match[1]), ['entradas', 'redes', 'medios', 'creadoras', 'voceros']);
+  assert.deepEqual(folds.map(match => match[1]), ['redes', 'medios', 'creadoras', 'voceros']);
   for (const match of folds) assert.doesNotMatch(match[0], /\sopen/, `${match[1]} arranca cerrada`);
-  for (const key of ['entradas', 'redes', 'medios', 'creadoras', 'voceros']) assert.match(html, new RegExp(`<summary><div class="records-heading"><div><h2 id="panel-${key}-title">`));
+  for (const key of ['redes', 'medios', 'creadoras', 'voceros']) assert.match(html, new RegExp(`<summary><div class="records-heading"><div><h2 id="panel-${key}-title">`));
   const bundle = await readFile(new URL('../src/admin/panel.js', import.meta.url), 'utf8');
   assert.match(bundle, /social\.addEventListener\('toggle'/, 'Metricool se consulta al abrir la sección');
 });

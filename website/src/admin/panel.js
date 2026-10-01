@@ -1,6 +1,6 @@
 import { resolveRuntimeOrigins } from '../finados/runtime-origins.mjs';
 // The panel reuses the administrative client: same allowlist, same CSRF handling, one bundle less.
-import { createMediaAdminClient } from './admin-medios.js?v=20260930-tickets-1';
+import { createMediaAdminClient } from './admin-medios.js?v=20261001-tickets-2';
 import './sidebar.js?v=20260926-admin-sidebar-3';
 import './campaign-banner.js?v=20260925-banner-2';
 
@@ -93,6 +93,27 @@ export function ticketSummary(report = {}) {
     topLocality: topLocality && topLocality.sold > 0 ? topLocality : null,
     withoutSales: events.filter(event => !(Number(event.sold) > 0)),
     localities: [...localities.values()].sort(byRevenue),
+  };
+}
+
+/** Tabla de entradas vendidas: una fila por localidad, una columna por día, con totales. */
+export function ticketMatrix(report = {}) {
+  const events = Array.isArray(report.events) ? report.events : [];
+  const rows = new Map();
+  events.forEach((event, column) => {
+    for (const locality of event.localities ?? []) {
+      const row = rows.get(locality.name) ?? { name: locality.name, cells: events.map(() => null), sold: 0, revenue: 0 };
+      row.cells[column] = (row.cells[column] ?? 0) + (Number(locality.sold) || 0);
+      row.sold += Number(locality.sold) || 0;
+      row.revenue += Number(locality.revenue) || 0;
+      rows.set(locality.name, row);
+    }
+  });
+  return {
+    days: events.map(event => ({ date: event.date, label: ticketNightLabel(event.date), sold: Number(event.sold) || 0, revenue: Number(event.revenue) || 0 })),
+    rows: [...rows.values()].sort((a, b) => b.sold - a.sold || b.revenue - a.revenue || a.name.localeCompare(b.name, 'es')),
+    sold: events.reduce((sum, event) => sum + (Number(event.sold) || 0), 0),
+    revenue: events.reduce((sum, event) => sum + (Number(event.revenue) || 0), 0),
   };
 }
 
@@ -338,10 +359,49 @@ export async function initializeAdminPanel() {
   }
 
 
-  /* Venta de entradas: se lee de Ticketstar solo al abrir la sección. */
+  /* Venta de entradas: fija arriba del Panel y se actualiza sola mientras la pestaña está a la vista. */
   const tickets = query('[data-panel-tickets]');
   const ticketsFeedback = tickets?.querySelector('[data-tickets-feedback]');
   const ticketsContent = tickets?.querySelector('[data-tickets-content]');
+  const ticketsLive = tickets?.querySelector('[data-tickets-live]');
+  const TICKETS_EVERY = 30_000;
+  let ticketsAt = 0, ticketsTimer = null, ticketsBusy = false;
+  const clock = new Intl.DateTimeFormat('es-EC', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false, timeZone: 'America/Guayaquil' });
+
+  function matrixTable(report) {
+    const matrix = ticketMatrix(report);
+    const wrap = node('div', undefined, 'admin-tickets__matrix');
+    const table = node('table');
+    table.append(node('caption', 'Entradas vendidas por localidad (filas) y por día (columnas)', 'sr-only'));
+    const head = node('thead'); const headRow = node('tr');
+    const corner = node('th', 'Localidad'); corner.scope = 'col'; headRow.append(corner);
+    for (const day of matrix.days) { const th = node('th'); th.scope = 'col'; th.append(node('span', day.label.split(',')[0]), node('small', day.label.split(',').slice(1).join(',').trim())); headRow.append(th); }
+    const totalHead = node('th', 'Total'); totalHead.scope = 'col'; headRow.append(totalHead);
+    head.append(headRow);
+    const body = node('tbody');
+    for (const row of matrix.rows) {
+      const tr = node('tr');
+      const name = node('th', row.name); name.scope = 'row'; tr.append(name);
+      for (const cell of row.cells) { const td = node('td', cell === null ? '—' : formatCount(cell)); if (cell === null) td.dataset.empty = 'true'; else if (!cell) td.dataset.zero = 'true'; tr.append(td); }
+      const total = node('td'); total.append(node('strong', formatCount(row.sold)), node('small', formatMoney(row.revenue))); tr.append(total);
+      body.append(tr);
+    }
+    if (!matrix.rows.length) { const tr = node('tr'); const td = node('td', 'Todavía no hay localidades a la venta.'); td.colSpan = matrix.days.length + 2; tr.append(td); body.append(tr); }
+    const foot = node('tfoot'); const footRow = node('tr');
+    const label = node('th', 'Total del día'); label.scope = 'row'; footRow.append(label);
+    for (const day of matrix.days) { const td = node('td'); td.append(node('strong', formatCount(day.sold)), node('small', formatMoney(day.revenue))); footRow.append(td); }
+    const grand = node('td'); grand.append(node('strong', formatCount(matrix.sold)), node('small', formatMoney(matrix.revenue))); footRow.append(grand);
+    foot.append(footRow);
+    table.append(head, body, foot); wrap.append(table);
+    return wrap;
+  }
+
+  function showLive() {
+    if (!ticketsLive || !ticketsAt) return;
+    const seconds = Math.max(0, Math.round((Date.now() - ticketsAt) / 1000));
+    ticketsLive.textContent = `En vivo · ${clock.format(new Date(ticketsAt))} (hace ${seconds < 60 ? `${seconds} s` : `${Math.floor(seconds / 60)} min`})`;
+    ticketsLive.dataset.stale = String(seconds > 120);
+  }
 
   function ticketTile(label, value, note) {
     const box = node('div', undefined, 'admin-social__tile');
@@ -359,6 +419,8 @@ export async function initializeAdminPanel() {
   }
 
   function renderTickets(report) {
+    // Al actualizarse en vivo, las noches que estaban abiertas siguen abiertas.
+    const opened = new Set([...ticketsContent.querySelectorAll('.admin-tickets__night[open]')].map(card => card.dataset.date));
     ticketsContent.replaceChildren();
     if (!report.configured) { ticketsContent.append(node('p', 'Ticketstar todavía no está conectado en el servidor.', 'admin-panel-empty')); return; }
     const summary = ticketSummary(report);
@@ -383,7 +445,8 @@ export async function initializeAdminPanel() {
     const maxRevenue = Math.max(...(report.events ?? []).map(event => Number(event.revenue) || 0), 0);
     for (const event of report.events ?? []) {
       const card = node('details', undefined, 'admin-tickets__night');
-      if (Number(event.sold) > 0) card.open = true;
+      card.dataset.date = String(event.date ?? event.id);
+      if (opened.has(card.dataset.date)) card.open = true;
       const summaryRow = node('summary');
       const title = node('div'); title.append(node('h3', ticketNightLabel(event.date)), node('small', event.name));
       const figures = node('div', undefined, 'admin-tickets__figures');
@@ -415,21 +478,37 @@ export async function initializeAdminPanel() {
       nights.append(card);
     }
     if (!(report.events ?? []).length) nights.append(node('p', 'Ticketstar no devolvió noches vigentes.', 'admin-panel-empty'));
-    const stamp = node('p', `Datos de Ticketstar365 · ${report.cached ? 'guardados hace menos de 5 min' : 'leídos ahora'}. Solo muestra noches vigentes; los importes son los que reporta Ticketstar.`, 'admin-social__stamp');
-    ticketsContent.append(tiles, reading, nights, stamp);
+    const stamp = node('p', 'Datos de Ticketstar365. Solo muestra noches vigentes; los importes son los que reporta Ticketstar.', 'admin-social__stamp');
+    const detail = node('h3', 'Detalle por noche y tipo de precio', 'admin-tickets__subtitle');
+    ticketsContent.append(tiles, matrixTable(report), reading, detail, nights, stamp);
   }
 
   async function loadTickets(refresh = false) {
-    if (!tickets) return;
-    tickets.setAttribute('aria-busy', 'true');
-    feedback(ticketsFeedback, refresh ? 'Leyendo Ticketstar…' : 'Cargando venta de entradas…');
+    if (!tickets || ticketsBusy) return;
+    ticketsBusy = true;
+    if (!ticketsAt) feedback(ticketsFeedback, 'Cargando venta de entradas…');
+    else if (refresh) feedback(ticketsFeedback, 'Leyendo Ticketstar…');
     try {
-      renderTickets(await client.ticketSales(refresh));
+      const report = await client.ticketSales(refresh);
+      renderTickets(report);
+      ticketsAt = report.generated_at ? Date.parse(report.generated_at) || Date.now() : Date.now();
       feedback(ticketsFeedback, '');
     } catch (error) {
       if (error.status === 401) { location.replace('/admin/'); return; }
-      feedback(ticketsFeedback, error.status === 503 ? 'Ticketstar no respondió. Intenta de nuevo en unos minutos.' : error.message, 'error');
-    } finally { tickets.removeAttribute('aria-busy'); }
+      // Si una lectura falla se conservan las últimas cifras y el aviso lo dice.
+      feedback(ticketsFeedback, error.status === 503 ? `Ticketstar no respondió${ticketsAt ? '; se muestran las últimas cifras' : ''}. Se reintentará en 30 segundos.` : error.message, 'error');
+    } finally { ticketsBusy = false; tickets.removeAttribute('aria-busy'); showLive(); }
+  }
+  // Solo consulta mientras la pestaña está a la vista; al volver, se pone al día de inmediato.
+  function scheduleTickets() {
+    clearInterval(ticketsTimer); ticketsTimer = null;
+    if (!tickets || document.hidden) return;
+    if (Date.now() - ticketsAt >= TICKETS_EVERY) loadTickets();
+    ticketsTimer = setInterval(() => { loadTickets(); }, TICKETS_EVERY);
+  }
+  if (tickets) {
+    setInterval(showLive, 1000);
+    document.addEventListener('visibilitychange', scheduleTickets);
   }
   tickets?.querySelector('[data-tickets-refresh]')?.addEventListener('click', () => loadTickets(true));
 
@@ -615,12 +694,8 @@ export async function initializeAdminPanel() {
     query('[data-admin-user]').textContent = `Sesión de ${session.user.username}`;
     if (sidebarUser) sidebarUser.textContent = session.user.username;
     if (logout) logout.disabled = false;
-    // Venta de entradas arranca plegada: Ticketstar solo se consulta la primera vez que se abre.
-    if (tickets) {
-      const openTickets = () => { if (tickets.open && !tickets.dataset.loaded) { tickets.dataset.loaded = 'true'; loadTickets(); } };
-      tickets.addEventListener('toggle', openTickets);
-      openTickets();
-    }
+    // Venta de entradas está siempre a la vista: carga de una vez y queda en vivo.
+    scheduleTickets();
     // Redes sociales arranca plegada: Metricool solo se consulta la primera vez que se abre.
     if (social) {
       const openSocial = () => { if (social.open && !social.dataset.loaded) { social.dataset.loaded = 'true'; loadSocial(); } };

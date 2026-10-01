@@ -23,7 +23,7 @@ final class TicketSales
 {
     private const API = 'https://www.ticketstar365.com/api/public';
     private const TIMEZONE = 'America/Guayaquil';
-    private const CACHE_SECONDS = 300;
+    private const CACHE_SECONDS = 20;
     /** Margen antes del vencimiento del JWT para no usar uno a punto de caducar. */
     private const TOKEN_MARGIN = 120;
 
