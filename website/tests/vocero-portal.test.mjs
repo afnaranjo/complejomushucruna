@@ -253,6 +253,27 @@ test('perfil: mapeo explícito, identificador estable, campos bloqueados excluid
   assert.throws(() => fresh.body(new FormData()), /fotografía/i);
 });
 
+test('videos: un vocero aprobado puede pegar sus enlaces aunque su ficha ya no se edite', async () => {
+  const { VoceroProfileState, VIDEO_STATUSES } = await clientModule();
+  const base = { registered: true, submission_id: 'b'.repeat(32) };
+  const approved = new VoceroProfileState(); approved.load({ ...base, status: 'Aprobado' });
+  assert.equal(approved.editable, false, 'la ficha aprobada no se edita');
+  assert.equal(approved.canSubmitVideos, true, 'pero sí acepta enlaces de video');
+  const fresh = new VoceroProfileState(); fresh.load({ ...base, status: 'Nuevo' });
+  assert.equal(fresh.canSubmitVideos, true);
+  for (const status of ['En revisión', 'Rechazado', 'Eliminado']) {
+    const state = new VoceroProfileState(); state.load({ ...base, status });
+    assert.equal(state.canSubmitVideos, false, status);
+  }
+  const unregistered = new VoceroProfileState(() => 'c'.repeat(32)); unregistered.load({ registered: false });
+  assert.equal(unregistered.canSubmitVideos, false, 'sin ficha no hay videos');
+  // Debe coincidir con lo que acepta el servidor en VoceroProfile::saveVideo.
+  const server = await readFile(new URL('../backend/finados-api/src/VoceroProfile.php', import.meta.url), 'utf8');
+  assert.match(server, new RegExp(`in_array\\(\\$linked\\['status'\\], \\[${VIDEO_STATUSES.map(status => `'${status}'`).join(', ')}\\]`));
+  const portal = await readFile(new URL('../src/finados/vocero-portal.js', import.meta.url), 'utf8');
+  assert.match(portal, /const unlocked = Boolean\(video\.unlocked\) && state\.canSubmitVideos && !submitted;/);
+});
+
 test('foto: validación y limpieza de URL al reemplazar, guardar y salir', async () => {
   const { PhotoPreview, validatePhoto } = await clientModule();
   const revoked = []; let id = 0; let leave;

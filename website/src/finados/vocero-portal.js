@@ -1,6 +1,9 @@
 import { qrcode } from './qrcode-generator.mjs';
 import { isAllowedSiteOrigin, MIRROR_API_BASE, PRIMARY_API_BASE, PRIMARY_SITE_ORIGIN, resolveRuntimeOrigins } from './runtime-origins.mjs';
 
+/** Estados con los que el servidor acepta enlaces de video (igual que VoceroProfile::saveVideo). */
+export const VIDEO_STATUSES = Object.freeze(['Nuevo', 'Pendiente de autorización', 'Aprobado']);
+
 const API = PRIMARY_API_BASE;
 const LOCAL_API = 'http://127.0.0.1:4174/api';
 const ACCESS = '/finados/voceros/acceso/?modo=login';
@@ -145,6 +148,8 @@ export class VoceroProfileState {
     } else if (!this.submissionId) this.submissionId = this.generateId();
     this.photoRequired = !profile.registered;
     this.editable = !profile.registered || ['Nuevo', 'Pendiente de autorización'].includes(profile.status);
+    // Los videos siguen abiertos aunque la ficha ya no sea editable: un vocero aprobado es justamente quien debe subirlos.
+    this.canSubmitVideos = profile.registered && VIDEO_STATUSES.includes(profile.status);
     this.values = Object.fromEntries(Object.entries(PROFILE_FIELDS).map(([name, key]) => [name, String(profile[key] ?? '')]));
     return this.values;
   }
@@ -460,7 +465,7 @@ export async function initializeVoceroPortal(root = document, location = globalT
     for (const slotElement of root.querySelectorAll('[data-video-slot]')) {
       const slot = Number(slotElement.dataset.videoSlot); const video = videos.find(item => Number(item.slot) === slot) ?? { slot, unlocked: false, url: '', status: 'empty' };
       const submitted = video.status === 'submitted' && String(video.url ?? '').trim() !== '';
-      const unlocked = Boolean(video.unlocked) && state.editable && !submitted;
+      const unlocked = Boolean(video.unlocked) && state.canSubmitVideos && !submitted;
       const input = slotElement.querySelector('[data-video-url]'); const button = slotElement.querySelector('[data-video-save]'); const status = slotElement.querySelector('[data-video-status]');
       if (input) { input.disabled = !unlocked; input.value = video.url ?? ''; input.readOnly = submitted; }
       if (button) button.disabled = !unlocked;
