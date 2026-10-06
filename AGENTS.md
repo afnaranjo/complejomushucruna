@@ -2206,3 +2206,11 @@ Nota de relevo escrita a pedido de Alex para que otro agente (Codex) retome la s
 - QA: `npm run check` en verde (265 Node, PHP, 11 integración; 243 archivos). Revisión visual a 1440 y 390 px sin desbordes; se corrigieron las tarjetas, que sin modificador de color salían vacías.
 - Publicación externa: solo GitHub. Pendiente de autorización de Alex para desplegar el frontend.
 - Riesgos: las bases piden registrar el video por WhatsApp y que compita un solo video por stand, mientras el portal tiene cinco espacios de video; conviene definir cuál cuenta.
+
+### 2026-10-06 — Cinco videos de Emprendedores siempre abiertos y publicación
+
+- Alex confirmó el registro activo y pidió que los 5 enlaces de video de Emprendedor estén disponibles sin fecha programada, porque cada emprendedor puede subir varios videos. Solo aplica a Emprendedores; Voceros no cambia.
+- Backend: `EmprendedorRepository` devuelve los cinco espacios siempre abiertos (`unlocked = true`, sin `enabled_at`) y acepta el enlace sin revisar el calendario. Siguen vigentes los estados que pueden enviar (Nuevo, En revisión, Aprobado), el `https://` obligatorio y el bloqueo del enlace ya recibido. No hay migración y la tabla del calendario queda sin uso.
+- Portal: un registro aprobado ya no podía pegar enlaces, porque el campo dependía de que la ficha fuera editable (el mismo caso de Voceros del 2 de octubre). Ahora sigue la regla del servidor con `canSubmitEmprendedorVideos`. Caché `20261006-videos-abiertos-1`. Se actualizaron los textos de la landing, del portal y de las Bases. En el panel se ocultó el formulario de fechas globales, que ahora muestra «Videos de emprendedores · No hay fechas que configurar».
+- QA: `npm run check` en verde (266 Node, PHP, 11 integración; 243 archivos). Commits `c5dc249` (premio) y `2acf1e9` (videos).
+- Publicación autorizada por Alex: backend y luego frontend, con respaldo y sin borrar archivos exclusivos. En el espejo, la landing muestra el premio y no los niveles, el portal muestra los cinco espacios abiertos, tres archivos coinciden por SHA-256 con el build (incluido `vocero-portal.js` sin cambios), la sesión de Emprendedor responde 200, el envío de video sin sesión 401 y `health` 200. El dominio principal no resolvía desde esta red; el despliegue reportó verificación correcta.
