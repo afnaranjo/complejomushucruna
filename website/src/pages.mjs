@@ -334,7 +334,7 @@ const finadosMediaPage = {
 const finadosEmprendedoresPage = {
   route: '/finados/emprendedores/',
   title: 'Emprendedores',
-  description: 'Programa De emprendedor a influencer de Finados Mushuc Runa 2026: registro, videos, niveles y gafete para expositores.',
+  description: 'Programa De emprendedor a influencer de Finados Mushuc Runa 2026: registro, videos y premio de USD 250 al video con más reproducciones.',
   indexable: false,
   render: renderEmprendedoresPage,
 };

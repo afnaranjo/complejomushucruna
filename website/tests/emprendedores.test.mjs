@@ -45,7 +45,10 @@ test('el build publica la landing, el portal, la validación, los cinco document
   assert.match(landing, /href="\/finados\/emprendedores\/" aria-current="page"/);
   // No prizes, thresholds or dates are invented for the programme.
   assert.doesNotMatch(landing, /vistas válidas acumuladas|Gorra|Kit completo|premios económicos/);
-  for (const level of PORTAL_LEVELS) assert.match(landing, new RegExp(`<h3>${level}</h3>`), level);
+  assert.match(landing, /USD 250 al video con más reproducciones/);
+  assert.match(landing, /#finadosmushucruna/);
+  assert.doesNotMatch(landing, /Siete niveles|Sube de nivel|id="niveles"/);
+  for (const level of PORTAL_LEVELS) assert.doesNotMatch(landing, new RegExp(`<h3>${level}</h3>`), level);
 
   const access = await readFile(join(output, 'finados/emprendedores/acceso/index.html'), 'utf8');
   assert.match(access, /data-emprendedor-view="access"/);

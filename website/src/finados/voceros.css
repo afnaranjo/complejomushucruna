@@ -1158,3 +1158,12 @@
   .voceros-conditions a,
   .voceros-rules__list a { transition: none; }
 }
+
+/* Emprendedores · tarjetas del premio: sin escalera de niveles. */
+.emprendedores-prize .voceros-level { width: 100%; }
+.emprendedores-prize .voceros-level__number { font-size: 1.1rem; letter-spacing: .04em; }
+@media (min-width: 900px) {
+  .emprendedores-prize .voceros-levels { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+  .emprendedores-prize .voceros-level { width: 100%; }
+  .emprendedores-prize .voceros-level h3 { font-size: 2rem; }
+}

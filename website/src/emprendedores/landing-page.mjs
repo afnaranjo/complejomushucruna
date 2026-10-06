@@ -2,10 +2,10 @@ import { site } from '../data/site.mjs';
 import { escapeHtml } from '../render/html.mjs';
 import { renderFinadosFooter } from '../finados/footer.mjs';
 import { renderFinadosNavigation } from '../finados/navigation.mjs';
-import { EMPRENDEDOR_LEVELS } from './portal-page.mjs';
 
 const campaignAssetVersion = '20260914-1';
 const campaignRuntimeVersion = '20260916-7';
+const vocerosStyleVersion = '20261006-premio-1';
 const campaignScriptVersion = '20260918-navigation-progress-1';
 const navigationAssetVersion = '20260925-navigation-fluid-1';
 const BASE = '/finados/emprendedores';
@@ -14,27 +14,17 @@ const steps = Object.freeze([
   { number: '01', title: 'Crea tu cuenta', text: 'Con tu correo y una contraseña. Es tu acceso privado al programa.' },
   { number: '02', title: 'Registra tu emprendimiento', text: 'Tus datos, tu foto, qué produces o vendes, tu stand si ya lo tienes y las redes donde publicas.' },
   { number: '03', title: 'Cuenta tu historia en video', text: 'Cinco espacios de video que la coordinación habilita en fechas comunes. Cuando se abra uno, pegas el enlace de tu video.' },
-  { number: '04', title: 'Sube de nivel', text: 'La coordinación valida tus seguidores y las vistas de cada video y actualiza tu nivel y tu semáforo. Tu gafete digital lo muestra.' },
+  { number: '04', title: 'Suma reproducciones', text: 'Publica en TikTok con #finadosmushucruna y comparte tu video. El video con más reproducciones al corte del 29 de octubre gana USD 250.' },
 ]);
 
 const faqs = Object.freeze([
   ['¿Quién puede participar?', 'Personas mayores de edad que produzcan o vendan un producto o servicio y participen como expositoras en la feria. Si todavía no tienes stand, puedes registrarte y agregar el código después.'],
   ['¿Tiene costo?', 'No. Registrarte en el programa es gratuito y no reemplaza la compra de tu stand, que se hace por el canal oficial de venta.'],
   ['¿Qué videos cuentan?', 'Los que publiques desde un perfil público declarado en tu registro, sobre tu emprendimiento y tu participación en la feria, en cada espacio habilitado.'],
-  ['¿Qué gano?', 'Visibilidad para tu stand y acompañamiento para contar tu historia. Los reconocimientos del programa, cuando existan, se publican por escrito en las Bases de participación antes de aplicarse; no prometemos lo que aún no está definido.'],
-  ['¿Cómo se valida mi avance?', 'La coordinación revisa tus perfiles y la analítica de cada video, registra seguidores y vistas validadas, y actualiza tu nivel y tu semáforo. No suman vistas compradas, bots ni pauta no autorizada.'],
+  ['¿Qué gano?', 'Visibilidad para tu stand y acompañamiento para contar tu historia. Además, el video con más reproducciones en TikTok al corte del 29 de octubre, a las 18:00, gana USD 250. Hay un solo ganador: no hay segundo lugar, menciones ni premios compartidos.'],
+  ['¿Cómo se elige al ganador?', 'Gana el video con más reproducciones al corte. Si hay empate, desempatan los compartidos y, si persiste, los me gusta. Los números salen de la publicación misma: no hay votación ni jurado. Se anuncia el 30 de octubre en la apertura de la feria.'],
+  ['¿Cómo se validan las reproducciones?', 'La coordinación abre cada video registrado y captura reproducciones, compartidos y me gusta con hora; esa captura es la evidencia oficial. Queda fuera cualquier video con vistas, likes o compartidos comprados o generados con bots.'],
 ]);
-
-function levelMarkup() {
-  return EMPRENDEDOR_LEVELS.map((label, index) => `<article class="voceros-level" data-reveal>
-    <span class="voceros-level__number">${String(index).padStart(2, '0')}</span>
-    <div>
-      <p>Nivel ${index}</p>
-      <h3>${escapeHtml(label)}</h3>
-      <span>${index === 0 ? 'Registro completo con foto y consentimientos.' : index === 1 ? 'Primer video habilitado y recibido.' : 'Criterio publicado por la coordinación en las Bases de participación.'}</span>
-    </div>
-  </article>`).join('');
-}
 
 function faqMarkup() {
   return faqs.map(([question, answer], index) => `<details class="voceros-faq"${index === 0 ? ' open' : ''}>
@@ -60,7 +50,7 @@ export function renderEmprendedoresPage(page) {
   <link rel="apple-touch-icon" href="/assets/finados/favicon-finados.png">
   <link rel="preload" as="image" href="/assets/finados/logo-finados.svg?v=${campaignAssetVersion}" fetchpriority="high">
   <link rel="stylesheet" href="/assets/finados/finados.css?v=${campaignRuntimeVersion}">
-  <link rel="stylesheet" href="/assets/finados/voceros.css?v=${campaignRuntimeVersion}">
+  <link rel="stylesheet" href="/assets/finados/voceros.css?v=${vocerosStyleVersion}">
   <link rel="stylesheet" href="/assets/finados/navigation.css?v=${navigationAssetVersion}">
   <script type="module" src="/assets/finados/finados.js?v=${campaignScriptVersion}"></script>
 </head>
@@ -84,7 +74,7 @@ export function renderEmprendedoresPage(page) {
         <div class="voceros-hero__copy">
           <p class="voceros-pill">De emprendedor a influencer</p>
           <h1 id="emprendedores-title">Tu historia <em>trae gente</em> a tu stand</h1>
-          <p>Cuenta en video quién eres, qué haces y por qué hay que visitarte en la feria. Registra tu emprendimiento, sube tus videos y mira cómo avanzas.</p>
+          <p>Cuenta en video quién eres, qué haces y por qué hay que visitarte en la feria. Registra tu emprendimiento y sube tus videos: el que más reproducciones logre gana USD 250.</p>
           <a class="voceros-button" href="${BASE}/acceso/">Crear cuenta <span aria-hidden="true">↗</span></a>
           <a class="voceros-button" href="${BASE}/acceso/?modo=login">Iniciar sesión</a>
         </div>
@@ -109,24 +99,42 @@ export function renderEmprendedoresPage(page) {
         </div>
         <div class="voceros-principles">
           <article data-reveal><img src="/assets/finados/icons/encuentro.svg?v=${campaignAssetVersion}" width="256" height="256" alt=""><span>Encuentro</span><h3>Tu voz, tu producto</h3><p>Grabas con tu celular, a tu manera. Mientras más real, mejor conecta.</p></article>
-          <article data-reveal><img src="/assets/finados/icons/crecimiento.svg?v=${campaignAssetVersion}" width="256" height="256" alt=""><span>Crecimiento</span><h3>Avanzas con datos</h3><p>La coordinación valida tus seguidores y las vistas de cada video. Tu nivel y tu semáforo se actualizan en tu registro.</p></article>
-          <article data-reveal><img src="/assets/finados/icons/legado.svg?v=${campaignAssetVersion}" width="256" height="256" alt=""><span>Legado</span><h3>Te acompañamos</h3><p>Fechas comunes para cada video, guía de contenido y un gafete digital que muestra tu avance.</p></article>
+          <article data-reveal><img src="/assets/finados/icons/crecimiento.svg?v=${campaignAssetVersion}" width="256" height="256" alt=""><span>Crecimiento</span><h3>Gana el que más se ve</h3><p>El video con más reproducciones en TikTok al corte del 29 de octubre se lleva USD 250.</p></article>
+          <article data-reveal><img src="/assets/finados/icons/legado.svg?v=${campaignAssetVersion}" width="256" height="256" alt=""><span>Legado</span><h3>Te acompañamos</h3><p>Fechas comunes para cada video, guía de contenido y un gafete digital del programa.</p></article>
         </div>
       </div>
     </section>
 
-    <section class="voceros-thermometer voceros-section" id="niveles" aria-labelledby="niveles-title">
+    <section class="voceros-thermometer voceros-section emprendedores-prize" id="premio" aria-labelledby="premio-title">
       <div class="voceros-shell">
         <div class="voceros-heading voceros-heading--light" data-reveal>
-          <p>02 · Tu camino</p>
-          <h2 id="niveles-title">Siete niveles</h2>
-          <span>Del registro al tope. Los criterios de cada nivel y los reconocimientos se publican en las Bases antes de aplicarse.</span>
+          <p>02 · El premio</p>
+          <h2 id="premio-title">USD 250 al video con más reproducciones</h2>
+          <span>Hay un solo ganador. No hay segundo lugar, menciones, empates ni premios compartidos.</span>
         </div>
-        <div class="voceros-levels">${levelMarkup()}</div>
+        <div class="voceros-levels">
+          <article class="voceros-level voceros-level--tope" data-reveal>
+            <span class="voceros-level__number">$250</span>
+            <div><p>Ganador único</p><h3>Video con más reproducciones</h3><span>Al corte del 29 de octubre, a las 18:00, en TikTok.</span></div>
+          </article>
+          <article class="voceros-level voceros-level--gorra" data-reveal>
+            <span class="voceros-level__number">29</span>
+            <div><p>Octubre · 12:00</p><h3>Cierre de postulación</h3><span>Hasta esa hora puedes registrar o reemplazar el enlace de tu video.</span></div>
+          </article>
+          <article class="voceros-level voceros-level--tuyos" data-reveal>
+            <span class="voceros-level__number">30</span>
+            <div><p>Octubre · apertura</p><h3>Premiación</h3><span>Se anuncia el ganador desde el escenario, en el acto de apertura de la feria.</span></div>
+          </article>
+          <article class="voceros-level voceros-level--registro" data-reveal>
+            <span class="voceros-level__number">=</span>
+            <div><p>Empate</p><h3>Desempate</h3><span>Primero los compartidos; si persiste, los me gusta. Sin votación ni jurado.</span></div>
+          </article>
+        </div>
         <aside class="voceros-conditions" data-reveal>
-          <h3>Cómo funciona</h3>
-          <p>Cuentas con cinco espacios de video. La coordinación los habilita en fechas comunes para todos; cuando se abre uno, pegas el enlace público de tu video.</p>
-          <p>Solo cuentan vistas y seguidores validados: el contenido impulsado con pauta no autorizada, las vistas compradas y los bots no suman.</p>
+          <h3>Para que tu video cuente</h3>
+          <p>Publícalo en TikTok, en cuenta pública del negocio o de su titular, entre el 8 y el 29 de octubre, con el hashtag #finadosmushucruna en la descripción. Mínimo 15 segundos.</p>
+          <p>Muestra tu negocio, tu producto y a quien lo hace, nombra la Feria de Finados Mushuc Runa e invita a venir. Mantenlo publicado hasta después de la premiación.</p>
+          <p>Queda fuera cualquier video con vistas, likes o compartidos comprados o con bots, y la decisión del comité es definitiva.</p>
           <a href="${BASE}/bases-de-participacion/" target="_blank" rel="noopener noreferrer">Bases de participación <span aria-hidden="true">↗</span></a>
         </aside>
       </div>
@@ -147,7 +155,7 @@ export function renderEmprendedoresPage(page) {
         <div class="voceros-rules__list" data-reveal>
           <p>Cuenta lo que haces de verdad: tu producto, tu proceso, tu gente.</p>
           <p>Solo información oficial de la feria. Si no está publicado, no se publica.</p>
-          <p>Sin promesas de premios, ventas o resultados que nadie ha anunciado.</p>
+          <p>Sin precios, fechas ni promociones de la feria que no sean oficiales, y sin prometer ventas.</p>
           <p>Sin rostros ni datos de menores de edad sin permiso del adulto responsable.</p>
           <p>Respeto a la comunidad Chibuleo, a los demás expositores y al público. Pide permiso antes de grabar.</p>
           <a href="${BASE}/politicas-del-programa/" target="_blank" rel="noopener noreferrer">Revisar Políticas del programa <span aria-hidden="true">↗</span></a>
@@ -160,7 +168,7 @@ export function renderEmprendedoresPage(page) {
         <header class="voceros-heading" data-reveal>
           <p>05 · Registro</p>
           <h2 id="registro-title">Tu registro, en tu cuenta</h2>
-          <span>Crea una cuenta para completar tus datos, tu emprendimiento y tu fotografía. Podrás consultar tu estado, tu avance y agregar tus videos.</span>
+          <span>Crea una cuenta para completar tus datos, tu emprendimiento y tu fotografía. Podrás consultar tu estado y agregar tus videos.</span>
         </header>
         <div class="voceros-form">
           <p>Si ya tienes una cuenta, inicia sesión para continuar con tu registro.</p>
@@ -188,7 +196,7 @@ export function renderEmprendedoresPage(page) {
           <li><a href="${BASE}/autorizacion-de-imagen/" target="_blank" rel="noopener noreferrer">Autorización de uso de imagen <span aria-hidden="true">↗</span></a></li>
           <li><a href="${BASE}/ejercer-derechos/" target="_blank" rel="noopener noreferrer">Contacto para ejercer derechos <span aria-hidden="true">↗</span></a></li>
         </ul>
-        <small>Última actualización de esta página: 22 de septiembre de 2026.</small>
+        <small>Última actualización de esta página: 6 de octubre de 2026.</small>
       </div>
     </section>
   </main>

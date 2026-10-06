@@ -2197,3 +2197,12 @@ Nota de relevo escrita a pedido de Alex para que otro agente (Codex) retome la s
 - Corrección: nueva condición `canSubmitVideos` con los mismos estados que acepta el servidor, independiente de si la ficha se puede editar. La ficha aprobada sigue sin poder editarse. Caché del portal `20261002-videos-aprobados-1`. Sin cambios de backend ni de datos.
 - QA: prueba nueva en `vocero-portal.test.mjs` (aprobado sí, en revisión, rechazado, eliminado y sin ficha no, y coincidencia con la regla del servidor); `npm run check` en verde (265 Node, 34 PHP, 11 integración; 243 archivos).
 - Publicación externa: Alex autorizó con «sube a producción». Frontend publicado desde `3b48a48` con respaldo y sin borrar archivos exclusivos; sin cambios de backend ni de datos. En ambos dominios «Mi registro» carga `vocero-portal.js?v=20261002-videos-aprobados-1`, idéntico al build y con la corrección; portada, Finados, Voceros, acceso y paneles en 200; `health` 200.
+
+### 2026-10-06 — Emprendedores: sin niveles y con el premio de USD 250
+
+- Alex pidió retirar los niveles de `/finados/emprendedores/` y colocar el premio de USD 250 al video que más vistas logre, según las bases `De emprendedor a influencer` v03 (PDF local, borrador para aprobación).
+- La sección «Siete niveles» se reemplazó por «USD 250 al video con más reproducciones»: ganador único, corte el 29 de octubre a las 18:00, cierre de postulación a las 12:00, premiación el 30 de octubre en la apertura, desempate por compartidos y luego me gusta, y requisitos del video (TikTok público entre el 8 y el 29 de octubre, `#finadosmushucruna`, mínimo 15 s, nombrar la feria, mantenerlo publicado, sin bots). Se ajustaron el paso 04, las preguntas frecuentes, la descripción y una regla. Las Bases de participación del sitio (secciones 4–6 y 8) ahora describen el premio; el nivel queda solo como referencia interna. El portal, el gafete y el panel no cambian.
+- No se publicaron el WhatsApp de registro, las sesiones Zoom ni el responsable, que el PDF marca como pendientes de aprobación.
+- QA: `npm run check` en verde (265 Node, PHP, 11 integración; 243 archivos). Revisión visual a 1440 y 390 px sin desbordes; se corrigieron las tarjetas, que sin modificador de color salían vacías.
+- Publicación externa: solo GitHub. Pendiente de autorización de Alex para desplegar el frontend.
+- Riesgos: las bases piden registrar el video por WhatsApp y que compita un solo video por stand, mientras el portal tiene cinco espacios de video; conviene definir cuál cuenta.
