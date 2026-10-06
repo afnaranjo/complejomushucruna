@@ -230,7 +230,7 @@ final class EmprendedorRepository
 
     // ---------------------------------------------------------------- progress and videos
 
-    /** Progress plus five stable video slots governed by the global schedule. */
+    /** Progress plus five stable video slots, always open for Emprendedores (no schedule). */
     public function progressFor(int $profileId, ?array $row = null): array
     {
         if ($row === null) {
@@ -254,13 +254,11 @@ final class EmprendedorRepository
 
     private function videoSlots(array $rows): array
     {
-        $schedule = [];
-        foreach ($this->videoSchedule() as $entry) $schedule[$entry['slot']] = $entry['enabled_at'];
         $bySlot = [];
         foreach ($rows as $row) $bySlot[(int) $row['slot']] = $row;
-        return array_map(function (int $slot) use ($bySlot, $schedule): array {
+        return array_map(function (int $slot) use ($bySlot): array {
             $row = $bySlot[$slot] ?? [];
-            return ['slot' => $slot, 'unlocked' => self::slotAvailable($schedule[$slot] ?? null), 'enabled_at' => $schedule[$slot] ?? null,
+            return ['slot' => $slot, 'unlocked' => true, 'enabled_at' => null,
                 'url' => (string) ($row['url'] ?? ''), 'status' => (string) ($row['status'] ?? 'empty'), 'views_count' => (int) ($row['views_count'] ?? 0),
                 'submitted_at' => $row['submitted_at'] ?? null, 'updated_at' => $row['updated_at'] ?? null];
         }, range(1, self::VIDEO_SLOTS));
@@ -330,10 +328,6 @@ final class EmprendedorRepository
             $statement->execute([$accountId]);
             $profile = $statement->fetch();
             if ($profile === false || !in_array($profile['status'], self::VIDEO_STATUSES, true)) throw new Forbidden();
-            $schedule = $this->pdo->prepare('SELECT enabled_at FROM emprendedor_video_schedule WHERE slot = ?');
-            $schedule->execute([$slot]);
-            $enabledAt = $schedule->fetchColumn();
-            if (!is_string($enabledAt) || !self::slotAvailable(substr($enabledAt, 0, 10))) throw new OutOfBoundsException();
             $existing = $this->pdo->prepare('SELECT url, status FROM emprendedor_videos WHERE profile_id = ? AND slot = ?');
             $existing->execute([$profile['id'], $slot]);
             $current = $existing->fetch();

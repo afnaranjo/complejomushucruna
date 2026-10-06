@@ -138,6 +138,7 @@ export class EmprendedorProfileState {
     // The photo is mandatory for the badge: required on the first save and whenever it is still missing.
     this.photoRequired = !profile.registered || !profile.photo?.available;
     this.editable = !profile.registered || ['Nuevo', 'En revisión'].includes(profile.status);
+    this.status = profile.registered ? profile.status : null;
     this.values = Object.fromEntries(Object.entries(PROFILE_FIELDS).map(([name, key]) => [name, String(profile[key] ?? '')]));
     return this.values;
   }
@@ -210,10 +211,9 @@ function ageToday(value) {
   const [y, m, d] = today.split('-').map(Number);
   return y - year - (m < month || (m === month && d < day) ? 1 : 0);
 }
-function videoEnabledDate(value) {
-  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return '';
-  const [year, month, day] = value.split('-').map(Number);
-  return new Intl.DateTimeFormat('es-EC', { dateStyle: 'medium', timeZone: 'UTC' }).format(new Date(Date.UTC(year, month - 1, day)));
+// Same statuses the server accepts for video links: an approved profile can no longer edit its data, but keeps adding videos.
+export function canSubmitEmprendedorVideos(status) {
+  return ['Nuevo', 'En revisión', 'Aprobado'].includes(status);
 }
 function validateForm(form) {
   const invalid = [...form.elements].find(element => element.willValidate && !element.checkValidity());
@@ -447,11 +447,11 @@ export async function initializeEmprendedorPortal(root = document, location = gl
     for (const slotElement of root.querySelectorAll('[data-video-slot]')) {
       const slot = Number(slotElement.dataset.videoSlot); const video = videos.find(item => Number(item.slot) === slot) ?? { slot, unlocked: false, url: '', status: 'empty' };
       const submitted = video.status === 'submitted' && String(video.url ?? '').trim() !== '';
-      const unlocked = Boolean(video.unlocked) && state.editable && !submitted;
+      const unlocked = Boolean(video.unlocked) && canSubmitEmprendedorVideos(state.status) && !submitted;
       const input = slotElement.querySelector('[data-video-url]'); const button = slotElement.querySelector('[data-video-save]'); const status = slotElement.querySelector('[data-video-status]');
       if (input) { input.disabled = !unlocked; input.value = video.url ?? ''; input.readOnly = submitted; }
       if (button) button.disabled = !unlocked;
-      if (status) status.textContent = !video.unlocked ? `Bloqueado hasta ${videoEnabledDate(video.enabled_at) || 'que coordinación lo habilite'}` : submitted ? `Enlace recibido y bloqueado · Disponible desde ${videoEnabledDate(video.enabled_at) || 'la fecha indicada'}` : `Habilitado para enviar · Disponible desde ${videoEnabledDate(video.enabled_at) || 'la fecha indicada'}`;
+      if (status) status.textContent = submitted ? 'Enlace recibido' : unlocked ? 'Disponible · pega aquí el enlace de tu video' : 'Disponible cuando guardes tu registro';
       slotElement.dataset.locked = String(!unlocked);
     }
   }

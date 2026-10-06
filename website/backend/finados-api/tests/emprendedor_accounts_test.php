@@ -112,7 +112,7 @@ same('policies', $saved['consents'][0]['consent_type']);
 same(0, $saved['progress']['level']);
 same('En preparación', $saved['progress']['level_label']);
 same(5, count($saved['progress']['videos']));
-same(false, $saved['progress']['videos'][0]['unlocked']);
+same(true, $saved['progress']['videos'][0]['unlocked']); // Emprendedores: five slots always open, no schedule.
 $publicId = $saved['public_id'];
 same(1, preg_match('/^[a-f0-9]{32}$/', $publicId));
 // Saving again keeps one record and one consent row per type.
@@ -121,8 +121,7 @@ same('Pelileo', $again['city']);
 same(1, (int) $pdo->query('SELECT COUNT(*) FROM emprendedor_profiles')->fetchColumn());
 same(3, (int) $pdo->query('SELECT COUNT(*) FROM emprendedor_consents')->fetchColumn());
 same(false, str_contains((string) $pdo->query('SELECT GROUP_CONCAT(ip_hash) FROM emprendedor_consents')->fetchColumn(), '192.0.2'));
-// Videos stay locked until the global date arrives.
-same(404, $router->handle('POST', '/api/emprendedor/videos/1', $json($login['csrf']), emprendedor_json(['url' => 'https://www.tiktok.com/@dulcesabuela/video/1']))->status);
+// An unknown slot is rejected; the five real slots are always open.
 same(404, $router->handle('POST', '/api/emprendedor/videos/9', $json($login['csrf']), emprendedor_json(['url' => 'https://www.tiktok.com/@dulcesabuela/video/1']))->status);
 same(404, $router->handle('GET', '/api/emprendedor/photo', $origin)->status);
 
@@ -222,17 +221,17 @@ same($tomorrow, $updated['video_slots'][1]['enabled_at']);
 same(1, (int) $pdo->query("SELECT COUNT(*) FROM audit_log WHERE event_type = 'emprendedor.video_schedule_updated'")->fetchColumn());
 emprendedor_close_session();
 
-// The entrepreneur pastes the link once its slot opens; a received link is locked and views come from administration.
+// The entrepreneur pastes links in any of the five open slots; a received link is locked and views come from administration.
 $session = emprendedor_body($router->handle('GET', '/api/emprendedor/auth/session', $origin));
 $login = emprendedor_body($router->handle('POST', '/api/emprendedor/auth/login', $json($session['csrf']), emprendedor_json(['email' => 'tienda@example.invalid', 'password' => $secret])));
 $own = emprendedor_body($router->handle('GET', '/api/emprendedor/profile', $origin));
+// A stored schedule date no longer locks anything: every slot is open.
 same(true, $own['progress']['videos'][0]['unlocked']);
-same(false, $own['progress']['videos'][1]['unlocked']);
-same($tomorrow, $own['progress']['videos'][1]['enabled_at']);
-same(1, $own['progress']['videos_unlocked']);
+same(true, $own['progress']['videos'][1]['unlocked']);
+same(null, $own['progress']['videos'][1]['enabled_at']);
+same(5, $own['progress']['videos_unlocked']);
 same(false, array_key_exists('notes', $own));
 same(422, $router->handle('POST', '/api/emprendedor/videos/1', $json($login['csrf']), emprendedor_json(['url' => 'http://www.tiktok.com/@dulcesabuela/video/1']))->status);
-same(404, $router->handle('POST', '/api/emprendedor/videos/2', $json($login['csrf']), emprendedor_json(['url' => 'https://www.tiktok.com/@dulcesabuela/video/2']))->status);
 $video = emprendedor_body($router->handle('POST', '/api/emprendedor/videos/1', $json($login['csrf']), emprendedor_json(['url' => 'https://www.tiktok.com/@dulcesabuela/video/1'])));
 same('submitted', $video['progress']['videos'][0]['status']);
 same('https://www.tiktok.com/@dulcesabuela/video/1', $video['progress']['videos'][0]['url']);

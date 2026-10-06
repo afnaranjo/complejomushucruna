@@ -102,7 +102,7 @@ test('el build publica la landing, el portal, la validación, los cinco document
   assert.match(admin, /\/assets\/admin\/admin-emprendedores\.js\?v=/);
   assert.doesNotMatch(admin, /\/assets\/admin\/admin\.js|admin-medios\.js/);
   assert.match(admin, /href="\/admin\/emprendedores\/" aria-current="page"/);
-  assert.match(admin, /Habilitación global de videos/);
+  assert.match(admin, /Videos de emprendedores/); assert.match(admin, /No hay fechas que configurar/);
   assert.match(admin, /Top 20 por visualizaciones de videos/);
   assert.match(admin, /Top 20 por seguidores/);
   assert.equal((admin.match(/name="schedule_video_\d_enabled_at"/g) ?? []).length, 5);
@@ -227,4 +227,13 @@ test('el artefacto del backend exige las clases, el catálogo y la migración de
   const start = router.indexOf('public function __construct(private readonly Config $config');
   const constructor = router.slice(start, router.indexOf('public function handle', start));
   assert.doesNotMatch(constructor, /Emprendedor|Media/, 'el Router no construye Emprendedor ni Medios al arrancar');
+});
+
+test('Emprendedores: los cinco videos están abiertos para registros nuevos, en revisión y aprobados', async () => {
+  const { canSubmitEmprendedorVideos } = await import('../src/finados/emprendedor-portal.js');
+  for (const status of ['Nuevo', 'En revisión', 'Aprobado']) assert.equal(canSubmitEmprendedorVideos(status), true, status);
+  for (const status of ['Rechazado', 'Eliminado', null, undefined]) assert.equal(canSubmitEmprendedorVideos(status), false, String(status));
+  const repository = await readFile(new URL('../backend/finados-api/src/EmprendedorRepository.php', import.meta.url), 'utf8');
+  assert.match(repository, /VIDEO_STATUSES = \['Nuevo', 'En revisión', 'Aprobado'\]/);
+  assert.match(repository, /'unlocked' => true, 'enabled_at' => null/);
 });

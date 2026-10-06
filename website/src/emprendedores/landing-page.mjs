@@ -13,14 +13,14 @@ const BASE = '/finados/emprendedores';
 const steps = Object.freeze([
   { number: '01', title: 'Crea tu cuenta', text: 'Con tu correo y una contraseña. Es tu acceso privado al programa.' },
   { number: '02', title: 'Registra tu emprendimiento', text: 'Tus datos, tu foto, qué produces o vendes, tu stand si ya lo tienes y las redes donde publicas.' },
-  { number: '03', title: 'Cuenta tu historia en video', text: 'Cinco espacios de video que la coordinación habilita en fechas comunes. Cuando se abra uno, pegas el enlace de tu video.' },
+  { number: '03', title: 'Cuenta tu historia en video', text: 'Cinco espacios de video abiertos desde que guardas tu registro: pega el enlace de cada video que publiques.' },
   { number: '04', title: 'Suma reproducciones', text: 'Publica en TikTok con #finadosmushucruna y comparte tu video. El video con más reproducciones al corte del 29 de octubre gana USD 250.' },
 ]);
 
 const faqs = Object.freeze([
   ['¿Quién puede participar?', 'Personas mayores de edad que produzcan o vendan un producto o servicio y participen como expositoras en la feria. Si todavía no tienes stand, puedes registrarte y agregar el código después.'],
   ['¿Tiene costo?', 'No. Registrarte en el programa es gratuito y no reemplaza la compra de tu stand, que se hace por el canal oficial de venta.'],
-  ['¿Qué videos cuentan?', 'Los que publiques desde un perfil público declarado en tu registro, sobre tu emprendimiento y tu participación en la feria, en cada espacio habilitado.'],
+  ['¿Qué videos cuentan?', 'Los que publiques desde un perfil público declarado en tu registro, sobre tu emprendimiento y tu participación en la feria. Tienes cinco espacios abiertos, sin fechas.'],
   ['¿Qué gano?', 'Visibilidad para tu stand y acompañamiento para contar tu historia. Además, el video con más reproducciones en TikTok al corte del 29 de octubre, a las 18:00, gana USD 250. Hay un solo ganador: no hay segundo lugar, menciones ni premios compartidos.'],
   ['¿Cómo se elige al ganador?', 'Gana el video con más reproducciones al corte. Si hay empate, desempatan los compartidos y, si persiste, los me gusta. Los números salen de la publicación misma: no hay votación ni jurado. Se anuncia el 30 de octubre en la apertura de la feria.'],
   ['¿Cómo se validan las reproducciones?', 'La coordinación abre cada video registrado y captura reproducciones, compartidos y me gusta con hora; esa captura es la evidencia oficial. Queda fuera cualquier video con vistas, likes o compartidos comprados o generados con bots.'],
@@ -100,7 +100,7 @@ export function renderEmprendedoresPage(page) {
         <div class="voceros-principles">
           <article data-reveal><img src="/assets/finados/icons/encuentro.svg?v=${campaignAssetVersion}" width="256" height="256" alt=""><span>Encuentro</span><h3>Tu voz, tu producto</h3><p>Grabas con tu celular, a tu manera. Mientras más real, mejor conecta.</p></article>
           <article data-reveal><img src="/assets/finados/icons/crecimiento.svg?v=${campaignAssetVersion}" width="256" height="256" alt=""><span>Crecimiento</span><h3>Gana el que más se ve</h3><p>El video con más reproducciones en TikTok al corte del 29 de octubre se lleva USD 250.</p></article>
-          <article data-reveal><img src="/assets/finados/icons/legado.svg?v=${campaignAssetVersion}" width="256" height="256" alt=""><span>Legado</span><h3>Te acompañamos</h3><p>Fechas comunes para cada video, guía de contenido y un gafete digital del programa.</p></article>
+          <article data-reveal><img src="/assets/finados/icons/legado.svg?v=${campaignAssetVersion}" width="256" height="256" alt=""><span>Legado</span><h3>Te acompañamos</h3><p>Cinco espacios de video siempre abiertos, guía de contenido y un gafete digital del programa.</p></article>
         </div>
       </div>
     </section>
