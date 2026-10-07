@@ -12,7 +12,7 @@ tags:
 
 # Pendientes ejecutivos
 
-- [ ] Completar la publicación autorizada de la [[11_eventos/2026_feria-finados/10_tecnologia-datos/2026-10-07_actualizacion-auspiciantes-skybiz-ingco-web_v01|nueva franja de auspiciantes con Skybiz Travel e INGCO]]: check completo, revisión responsive, push y despliegue frontend con respaldo, sin backend ni datos. Responsable: tecnología/diseño. Fecha: 2026-10-07.
+- [x] Publicar la [[11_eventos/2026_feria-finados/10_tecnologia-datos/2026-10-07_actualizacion-auspiciantes-skybiz-ingco-web_v01|nueva franja de auspiciantes con Skybiz Travel e INGCO]]: `8647ee7` y `24028d5` en Git; check completo, respaldo frontend y verificación HTTPS/SHA-256 en ambos dominios. Sin backend, migraciones ni cambios de datos. Responsable: tecnología/diseño. Completado: 2026-10-07.
 
 - [x] Publicar en GitHub y frontend la [[11_eventos/2026_feria-finados/10_tecnologia-datos/2026-09-28_actualizacion-afiche-plaza-encuentro-web_v01|actualización de SHOWS y Encuentro]]: afiche SVG a ancho completo, logo nuevo de Plaza de la Luna, Hueveando el 3 de noviembre y símbolo de Encuentro sin solapamiento. `c0bbba8` publicado con respaldo y verificado en ambos dominios. Responsable: tecnología/diseño. Completado: 2026-09-28.
 
