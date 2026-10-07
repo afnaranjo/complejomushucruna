@@ -69,7 +69,7 @@ test('todos los auspiciantes están en el footer, sin cambios en otros pies de c
   assert.ok(sponsor < output.lastIndexOf('</footer>'));
   for (const name of showsSponsors) assert.ok(output.includes(name), name);
   assert.equal((output.match(/auspiciantes-finados-2026\.webp/g) ?? []).length, 2);
-  assert.match(output, /width="2321" height="650"/);
+  assert.match(output, /width="2320" height="650"/);
   assert.match(output, /Organiza: Luis Alfonso Chango P\. Auspician:/);
   assert.ok(output.includes('SanFra'));
   assert.ok(output.includes('Bogati'));
@@ -80,13 +80,13 @@ test('todos los auspiciantes están en el footer, sin cambios en otros pies de c
   assert.doesNotMatch(output, /shows-sponsors-scroll|auspiciantes-finados-2026\.svg/);
 });
 
-test('la composición web incorpora SanFra y Bogati en el orden oficial actualizado', async () => {
+test('la composición web incorpora Skybiz Travel e INGCO en el orden oficial actualizado', async () => {
   const web = await readFile(new URL('../public/assets/finados/shows/auspiciantes-finados-2026.webp', import.meta.url));
-  assert.equal(createHash('sha256').update(web).digest('hex'), 'c5d5a690a6f6ef4723a3f91448ff9499fd628b189fd0d9d10d302f9881a0ef4d');
+  assert.equal(createHash('sha256').update(web).digest('hex'), '0be35ee628bc9889b6c05fdcdb171b0a5aebec1433bcd00f62721324ffc63c04');
   const original = await readFile(new URL('../public/assets/finados/shows/auspiciantes-finados-2026.svg', import.meta.url));
-  assert.equal(createHash('sha256').update(original).digest('hex'), '14a7b9998fdc310e3f4ca763860cec4ea8a65ae55a9ea51eefe55ed4862551fa');
+  assert.equal(createHash('sha256').update(original).digest('hex'), 'ac906043c241ba8f78768dd3e4d6eee864db538a135ede9e32ad68f22e44a1af');
   const svg = original.toString('utf8');
-  assert.match(svg, /viewBox="0 0 2321 650"/);
+  assert.match(svg, /viewBox="0 0 2320 650"/);
   assert.doesNotMatch(svg, /<(?:script|foreignObject|iframe|object|embed)\b|\bon[a-z]+\s*=|<!ENTITY|<\?xml-stylesheet/i);
   const references = [...svg.matchAll(/(?:xlink:)?href="([^"]*)"/gi)].map(match => match[1]);
   assert.equal(references.length, 1);
@@ -118,7 +118,7 @@ test('los estilos amplían los shows y llevan la franja de auspiciantes de borde
   assert.match(css, /padding-top: 132px/);
   assert.match(css, /padding-top: 108px/);
   assert.match(css, /minmax\(0, 1fr\)/);
-  assert.match(sponsors, /aspect-ratio: 2321 \/ 650/);
+  assert.match(sponsors, /aspect-ratio: 2320 \/ 650/);
   assert.match(sponsors, /\.finados-sponsors-body\s*\{[^}]*padding:\s*3rem 0 0;/s);
   assert.match(sponsors, /\.finados-sponsors\s*\{[^}]*width:\s*100%;[^}]*margin:\s*0 0 3rem;/s);
   assert.match(sponsors, /width: 100%; height: auto/);
@@ -184,9 +184,9 @@ test('el build entrega SHOWS con CSS, imágenes y aviso de cookies', async () =>
   assert.match(output, /data-cookie-consent/);
   assert.match(output, /Nuestro sitio web utiliza cookies para mejorar tu navegación\./);
   assert.match(output, /shows\.css\?v=20260928-shows-7/);
-  assert.match(output, /sponsors\.css\?v=20260924-sponsors-7/);
+  assert.match(output, /sponsors\.css\?v=20261007-sponsors-8/);
   const finados = await readFile(join(directory, 'finados/index.html'), 'utf8');
-  assert.match(finados, /sponsors\.css\?v=20260924-sponsors-7/);
+  assert.match(finados, /sponsors\.css\?v=20261007-sponsors-8/);
   assert.ok(finados.includes(renderFinadosSponsors()));
 });
 
@@ -212,17 +212,21 @@ test('Finados y SHOWS comparten al final la composición nueva sin cambiar otras
     assert.equal((output.match(/<h1\b/g) ?? []).length, 1);
     assert.ok(output.indexOf(composition) > output.indexOf('</main>'));
     assert.ok(output.indexOf(composition) < output.indexOf('Volver a complejomushucruna.com'));
-    assert.match(output, /auspiciantes-finados-2026\.webp\?v=20260924-sponsors-7/);
+    assert.match(output, /auspiciantes-finados-2026\.webp\?v=20261007-sponsors-8/);
     assert.ok(output.includes('Credi Fácil Ltda. Cooperativa de Ahorro y Crédito'));
     assert.ok(output.includes('SanFra'));
     assert.ok(output.includes('Óptica Interandina'));
     assert.ok(output.includes('Mutualista Ambato'));
     assert.ok(output.includes('Bogati'));
+    assert.ok(output.includes('Skybiz Travel'));
+    assert.ok(output.includes('INGCO'));
     assert.ok(showsSponsors.indexOf('Cogarol') < showsSponsors.indexOf('SanFra'));
     assert.ok(showsSponsors.indexOf('SanFra') < showsSponsors.indexOf('Whisky John Morris'));
     assert.ok(showsSponsors.indexOf('Óptica Interandina') < showsSponsors.indexOf('Mutualista Ambato'));
     assert.ok(showsSponsors.indexOf('Mutualista Ambato') < showsSponsors.indexOf('Pollos al Gusto'));
     assert.ok(showsSponsors.indexOf('Pollos al Gusto') < showsSponsors.indexOf('Bogati'));
+    assert.ok(showsSponsors.indexOf('Bogati') < showsSponsors.indexOf('Skybiz Travel'));
+    assert.ok(showsSponsors.indexOf('Skybiz Travel') < showsSponsors.indexOf('INGCO'));
   }
   assert.ok(shows.indexOf(composition) > shows.indexOf('<footer'));
   assert.match(shows, /<footer class="bg-night py-12 text-lienzo">[\s\S]*finados-sponsors[\s\S]*<div class="px-4">/);

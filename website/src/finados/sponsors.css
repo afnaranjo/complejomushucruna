@@ -14,7 +14,7 @@
 }
 .finados-sponsors[data-reveal].is-visible .finados-sponsors-art { opacity: 1; clip-path: inset(0); }
 .finados-sponsors-art { display: block; overflow: hidden; }
-.finados-sponsors-art img { display: block; width: 100%; height: auto; aspect-ratio: 2321 / 650; }
+.finados-sponsors-art img { display: block; width: 100%; height: auto; aspect-ratio: 2320 / 650; }
 .finados-sponsors-art:focus-visible { outline: 3px solid #00d2d6; outline-offset: 6px; }
 
 @media (prefers-reduced-motion: reduce) {

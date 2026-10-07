@@ -12,6 +12,12 @@ tags:
 
 # Memoria del proyecto
 
+## 2026-10-07 — Nueva composición de auspiciantes lista para publicación
+
+- FINADOS y SHOWS comparten la nueva franja oficial `2320 × 650`, que conserva las marcas anteriores e incorpora Skybiz Travel e INGCO al final del orden recibido.
+- El SVG fue revisado antes de integrarlo y se conserva exacto; el WebP responsive y el texto alternativo se actualizaron con caché `20261007-sponsors-8`.
+- TDD específico en verde: 14/14 casos. Check completo aprobado (266 Node, 34 PHP, 11 integración; 243 archivos y 2.808 referencias) y revisión responsive de FINADOS/SHOWS sin desbordes ni errores de consola. Alex autorizó Git y producción; faltan push, publicación frontend y verificación de ambos dominios. Sin backend, migraciones ni cambios de base de datos. Evidencia: [[11_eventos/2026_feria-finados/10_tecnologia-datos/2026-10-07_actualizacion-auspiciantes-skybiz-ingco-web_v01|Actualización de auspiciantes con Skybiz Travel e INGCO]].
+
 ## 2026-09-28 — Kike Jav retirado de la elección web
 
 - La portada `/finados/` deja de publicar el arte y la tarjeta de Kike Jav. Rey Pan conserva cinco candidaturas numeradas de forma continua; Señorita Colada Morada conserva sus tres candidaturas.

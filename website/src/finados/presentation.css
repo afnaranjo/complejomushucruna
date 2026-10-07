@@ -1,4 +1,3 @@
-/* Isolated opening headers: Finados family and the promotion on the Complejo home. */
 @font-face { font-family: "Finados Opening Anton"; src: url("/assets/finados/fonts/anton-latin.woff2") format("woff2"); font-style: normal; font-weight: 400; font-display: swap; }
 @font-face { font-family: "Finados Opening Inter"; src: url("/assets/finados/fonts/inter-variable-latin.woff2") format("woff2"); font-style: normal; font-weight: 100 900; font-display: swap; }
 .presentation-hero { position: relative; isolation: isolate; overflow: hidden; background: #241146; color: #f4eada; padding: clamp(9rem, 13vw, 12rem) 1rem 5rem; }
@@ -17,7 +16,6 @@
 .presentation-location { max-width: 32rem; margin: 0 0 1.75rem; font: 500 1.125rem/1.6 "Finados Opening Inter", sans-serif; }
 .presentation-location strong { display: block; color: #00d2d6; font-weight: 800; }
 .presentation-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 1.25rem; }
-/* Botones con volumen: se levantan al pasar el cursor y se hunden al presionarlos. */
 .presentation-map { display: inline-flex; align-items: center; justify-content: center; gap: 1rem; min-height: 3.5rem; border: 2px solid #f4eada; border-radius: 999px; background: #00d2d6; padding: 1rem 1.6rem; box-shadow: 5px 5px 0 #ff2e8a; color: #241146; cursor: pointer; font: 800 .95rem/1.4 "Finados Opening Inter", sans-serif; text-decoration: none; transition: transform .16s ease, box-shadow .16s ease, background-color .16s ease, color .16s ease; }
 .presentation-map:hover { background: #f4eada; transform: translate(-3px, -3px); box-shadow: 8px 8px 0 #ff2e8a; }
 .presentation-map:active { transform: translate(3px, 3px); box-shadow: 2px 2px 0 #ff2e8a; }
