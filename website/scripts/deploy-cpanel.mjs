@@ -56,7 +56,11 @@ function run(command, args, options = {}) {
 
   if (result.error) fail(`No se pudo ejecutar ${command}.`);
   if (result.status !== 0) {
-    const detail = options.silent ? '' : (result.stderr || result.stdout || '').trim();
+    const tail = value => {
+      const text = (value ?? '').trim();
+      return text.length > 6_000 ? text.slice(-6_000) : text;
+    };
+    const detail = options.silent ? '' : [tail(result.stdout), tail(result.stderr)].filter(Boolean).join('\n');
     fail(detail ? `${options.label ?? command}: ${detail}` : `${options.label ?? command} falló.`);
   }
   return options.silent ? '' : (result.stdout ?? '').trim();
