@@ -30,7 +30,9 @@ Alex pidió retirar de la portada `/finados/` la franja de auspiciantes situada 
 
 ## Publicación
 
-- Estado: listo para commit, push y despliegue frontend. No requiere backend, migraciones ni cambios de base de datos.
+- Git: cambio técnico confirmado y enviado a `origin/main` en `0ba7f66`.
+- Producción: pendiente por indisponibilidad temporal de los canales de administración del hosting. Las comprobaciones y el intento de recuperación no restablecieron el acceso.
+- Se abrió una solicitud privada con el proveedor. No hubo carga parcial ni cambios en backend, migraciones o base de datos.
 
 ## Relación
 
