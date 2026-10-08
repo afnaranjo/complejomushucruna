@@ -5,7 +5,7 @@ import { renderFinadosNavigation } from './navigation.mjs';
 
 // Mushuc Freestyle 2026: su propia línea gráfica (azul, lima y crema, Badeen Display)
 // dentro del marco de Finados. Los datos salen de la especificación aprobada del módulo.
-export const mfsAssetVersion = '20260924-mfs-4';
+export const mfsAssetVersion = '20261007-mfs-5';
 const asset = name => `/assets/finados/mfs/${name}?v=${mfsAssetVersion}`;
 
 export const mfsEvent = Object.freeze({
@@ -121,7 +121,7 @@ export function renderMfsPage(page) {
         <div class="mfs-editorial-copy">
           <p>Mushuc Freestyle regresa en su segunda edición a la Plaza de la Luna. Rimas, beats y la barra del público, en medio de la feria más grande de Finados.</p>
           <p>Si improvisas, esta es tu tarima: inscríbete gratis, envía tu audición y gánate uno de los ${mfsEvent.slots} cupos.</p>
-          <img class="mfs-plaza-logo" src="${asset('mfs-plaza.svg')}" width="472" height="456" alt="Plaza de la Luna" loading="lazy" decoding="async">
+          <img class="mfs-plaza-logo" src="${asset('mfs-plaza.svg')}" width="165" height="240" alt="Plaza de la Luna" loading="lazy" decoding="async">
         </div>
       </div>
     </section>

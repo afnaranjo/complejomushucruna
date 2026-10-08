@@ -2220,3 +2220,10 @@ Nota de relevo escrita a pedido de Alex para que otro agente (Codex) retome la s
 - Maestro SVG exacto con SHA-256 `AC906043C241BA8F78768DD3E4D6EEE864DB538A135EDE9E32AD68F22E44A1AF`; WebP optimizado con SHA-256 `0BE35EE628BC9889B6C05FDCDB171B0A5AEBEC1433BCD00F62721324FFC63C04`; caché `20261007-sponsors-8`.
 - TDD específico en verde (14/14). Check completo aprobado: 266 Node, 34 PHP, 11 integración; 243 archivos y 2.808 referencias. QA visual de FINADOS/SHOWS en escritorio y móvil sin desbordes ni consola.
 - `8647ee7` y la mejora diagnóstica `24028d5` publicados en Git. Despliegue frontend con respaldo y sin backend/datos. Ambos dominios entregan FINADOS y SHOWS con versión `20261007-sponsors-8`, Skybiz Travel, INGCO, dimensiones exactas y activos idénticos por SHA-256; APIs health 200. Evidencia: [[vault/11_eventos/2026_feria-finados/10_tecnologia-datos/2026-10-07_actualizacion-auspiciantes-skybiz-ingco-web_v01|Actualización de auspiciantes con Skybiz Travel e INGCO]].
+
+### 2026-10-08 — Retiro de franja y nuevo logo de Plaza de la Luna (listo para publicar)
+
+- Alex pidió retirar la franja de auspiciantes de la portada `/finados/` y reemplazar el logo de Plaza de la Luna en todas sus apariciones visibles con el SVG oficial recibido.
+- FINADOS ya no carga el componente ni `sponsors.css`; SHOWS conserva su composición de auspiciantes dentro del footer. SHOWS y Mushuc Freestyle usan el mismo maestro SVG `165 × 240`, SHA-256 `43897b8ce05d815d3eff0097d0e8b7704848cc84a5099607d4c4000c98fdced2`.
+- QA local: 266 Node, 34 PHP, 11 integración; build de 243 archivos, 81 HTML y 2.805 referencias. Revisión en escritorio y móvil sin desbordes ni errores de consola.
+- Publicación externa: pendiente de commit, push y despliegue frontend autorizado. Sin backend, migraciones ni cambios de datos. Evidencia: [[vault/11_eventos/2026_feria-finados/10_tecnologia-datos/2026-10-08_retiro-franja-actualizacion-logo-plaza-luna-web_v01|Retiro de franja y actualización del logo de Plaza de la Luna]].

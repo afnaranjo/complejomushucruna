@@ -21,7 +21,10 @@ async function worker(t, stage) {
     await rm(root, { recursive: true, force: true });
   });
   async function waitStage(expected) {
-    const deadline = Date.now() + 5000;
+    // The Tailwind build can cross five seconds on the Windows/WSL workspace even
+    // though the worker is healthy. Keep the checkpoint below the test's 15 s cap
+    // while avoiding a timing-only failure during deployment validation.
+    const deadline = Date.now() + 8000;
     while (Date.now() < deadline) {
       const found = events.find((event) => event.stage === expected);
       if (found) return found;

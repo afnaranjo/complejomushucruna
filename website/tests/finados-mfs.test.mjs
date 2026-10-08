@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
 import { pages } from '../src/pages.mjs';
 import { primaryNavigation } from '../src/data/site.mjs';
 import { mfsAssetVersion, mfsEvent, mfsPrizes } from '../src/finados/mfs-page.mjs';
@@ -42,6 +43,7 @@ test('la landing usa la línea gráfica de Mushuc Freestyle y sus datos aprobado
   assert.doesNotMatch(html, /muy pronto/);
   assert.ok(html.includes('href="#bases"') && html.includes('id="bases"'));
   assert.ok(html.includes('https://wa.me/593980346729'));
+  assert.match(html, /mfs-plaza\.svg[^>]*width="165" height="240" alt="Plaza de la Luna"/);
   // Sin voseo en los textos nuevos.
   assert.doesNotMatch(html, /\b(inscribite|grabá|subí|registrate|escribinos|podés|tenés|sumate)\b/i);
   // Los enlaces externos abren en otra pestaña de forma segura.
@@ -54,6 +56,9 @@ test('los SVG del arte son vectoriales, livianos y sin contenido activo', async 
     assert.doesNotMatch(svg, /<script|foreignObject|base64|javascript:/i, name);
     assert.ok(svg.length < 200_000, `${name} pesa ${svg.length} bytes`);
   }
+  const plaza = await readFile(new URL('../public/assets/finados/mfs/mfs-plaza.svg', import.meta.url));
+  assert.equal(createHash('sha256').update(plaza).digest('hex'), '43897b8ce05d815d3eff0097d0e8b7704848cc84a5099607d4c4000c98fdced2');
+  assert.match(plaza.toString('utf8'), /viewBox="0 0 165 240"/);
 });
 
 test('el portal de MFS tiene acceso, registro y restablecer, privados y con su propia API', () => {

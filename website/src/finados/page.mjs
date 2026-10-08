@@ -1,7 +1,6 @@
 import { routeOptions, site } from '../data/site.mjs';
 import { escapeHtml, externalAttributes } from '../render/html.mjs';
 import { renderFinadosFooter } from './footer.mjs';
-import { renderFinadosSponsors, sponsorAssetVersion } from './sponsors.mjs';
 import { dignitiesAssetVersion, renderDignitiesElection } from './dignities-election.mjs';
 import { renderFinadosNavigation } from './navigation.mjs';
 import { renderFairOpeningHeader, renderOpeningAssets } from './opening-header.mjs';
@@ -88,7 +87,6 @@ export function renderFinadosPage(page) {
   <link rel="stylesheet" href="/assets/finados/finados.css?v=${campaignRuntimeVersion}">
   <link rel="stylesheet" href="/assets/finados/navigation.css?v=${navigationAssetVersion}">
   ${renderOpeningAssets()}
-  <link rel="stylesheet" href="/assets/finados/sponsors.css?v=${sponsorAssetVersion}">
   <link rel="stylesheet" href="/assets/finados/dignities-election.css?v=${dignitiesAssetVersion}">
   <script type="module" src="/assets/finados/finados.js?v=${campaignScriptVersion}"></script>
 </head>
@@ -274,7 +272,6 @@ export function renderFinadosPage(page) {
     </section>
   </main>
 
-  <div class="finados-sponsors-body">${renderFinadosSponsors()}</div>
   ${renderFinadosFooter()}
 </body>
 </html>`;

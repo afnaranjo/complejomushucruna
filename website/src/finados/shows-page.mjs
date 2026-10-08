@@ -6,7 +6,7 @@ import { showsProgram, plazaShows, showsAttractions, showsTickets } from './show
 import { renderFinadosSponsors, sponsorAssetVersion } from './sponsors.mjs';
 import { renderFairOpeningHeader, renderOpeningAssets } from './opening-header.mjs';
 
-const svgVersion = '20260928-shows-7';
+const svgVersion = '20261007-shows-8';
 const ticketsVersion = '20260928-entradas-1';
 const ticketImage = (iso, width) => `/assets/finados/shows/entradas-${iso}-${width}.webp?v=${ticketsVersion}`;
 const ticketFor = iso => showsTickets.find(ticket => ticket.iso === iso);
@@ -98,7 +98,7 @@ export function renderFinadosShowsPage(page) {
       </header>
       <div class="shows-date-list">${renderProgram()}</div>
       <section class="shows-plaza" aria-labelledby="shows-plaza-title">
-        <h3 id="shows-plaza-title" class="shows-plaza-brand"><img src="${svgAsset('logo-plaza-de-la-luna')}" width="1300" height="1183" alt="Plaza de la Luna" loading="lazy" decoding="async"></h3>
+        <h3 id="shows-plaza-title" class="shows-plaza-brand"><img src="${svgAsset('logo-plaza-de-la-luna')}" width="165" height="240" alt="Plaza de la Luna" loading="lazy" decoding="async"></h3>
         <div class="shows-plaza-list">${plazaShows.map(show => `<article class="shows-plaza-show"><h4>${escapeHtml(show.artist)}</h4><time datetime="${show.iso}">${show.date}</time></article>`).join('')}</div>
       </section>
     </section>

@@ -55,7 +55,7 @@ test('conserva los shows de Plaza de la Luna y los atractivos del arte', () => {
   assert.match(output, /vasos de colada morada<br>rumbo al récord/);
   assert.match(output, /Luis Alfonso Chango P\./);
   assert.match(output, /código QR de información/);
-  assert.match(output, /shows-plaza-brand[^>]*><img[^>]*logo-plaza-de-la-luna\.svg[^>]*width="1300" height="1183" alt="Plaza de la Luna"/);
+  assert.match(output, /shows-plaza-brand[^>]*><img[^>]*logo-plaza-de-la-luna\.svg[^>]*width="165" height="240" alt="Plaza de la Luna"/);
   assert.equal((output.match(/class="shows-plaza-show"/g) ?? []).length, 2);
   assert.match(output, /<h4>Hueveando<\/h4><time datetime="2026-11-03">03 noviembre<\/time>/);
   assert.match(output, /<h4>Las Ñañas<\/h4><time datetime="2026-11-01">01 noviembre<\/time>/);
@@ -101,7 +101,7 @@ test('la página abre con el carrusel de entradas y las imágenes oficiales son 
   assert.doesNotMatch(output, /class="shows-hero"/);
   assert.match(output, /entradas-2026-10-30-1200\.webp[^"]*"[^>]*fetchpriority="high"/);
   assert.match(output, /srcset="[^"]*600w, [^"]*1200w"/);
-  assert.match(output, /afiche-artistas-final\.svg\?v=20260928-shows-7/);
+  assert.match(output, /afiche-artistas-final\.svg\?v=20261007-shows-8/);
   assert.match(output, /width="3509" height="4961"/);
   assert.doesNotMatch(output, /cartel-shows-(?:1240|2481)/);
   assert.doesNotMatch(output, /data:image|R:\\|\.codex|base64/i);
@@ -158,7 +158,7 @@ test('los activos WebP conservan su formato y presupuestos de tamaño', async ()
 test('los SVG oficiales de afiche y Plaza de la Luna son íntegros y seguros', async () => {
   for (const [name, hash, viewBox, budget] of [
     ['afiche-artistas-final.svg', '0d6f2db14b78581c7c1ad65a78259f3c78cfa13c884fc7f4bee555006ad51191', '0 0 3509 4961', 16_000_000],
-    ['logo-plaza-de-la-luna.svg', '996d97f6f3b944b4603ba5507fff1080f8129e80a9335415193eca3b01538cd9', '0 0 1300 1183', 20_000],
+    ['logo-plaza-de-la-luna.svg', '43897b8ce05d815d3eff0097d0e8b7704848cc84a5099607d4c4000c98fdced2', '0 0 165 240', 70_000],
   ]) {
     const path = new URL(`../public/assets/finados/shows/${name}`, import.meta.url);
     const buffer = await readFile(path);
@@ -183,11 +183,10 @@ test('el build entrega SHOWS con CSS, imágenes y aviso de cookies', async () =>
   const output = await readFile(join(directory, 'finados/shows/index.html'), 'utf8');
   assert.match(output, /data-cookie-consent/);
   assert.match(output, /Nuestro sitio web utiliza cookies para mejorar tu navegación\./);
-  assert.match(output, /shows\.css\?v=20260928-shows-7/);
+  assert.match(output, /shows\.css\?v=20261007-shows-8/);
   assert.match(output, /sponsors\.css\?v=20261007-sponsors-8/);
   const finados = await readFile(join(directory, 'finados/index.html'), 'utf8');
-  assert.match(finados, /sponsors\.css\?v=20261007-sponsors-8/);
-  assert.ok(finados.includes(renderFinadosSponsors()));
+  assert.doesNotMatch(finados, /sponsors\.css|finados-sponsors|auspiciantes-finados-2026/);
 });
 
 test('el símbolo de Encuentro queda detrás, reducido y en cian para no tapar el texto', async () => {
@@ -201,38 +200,30 @@ test('el símbolo de Encuentro queda detrás, reducido y en cian para no tapar e
   assert.match(output, /finados\.css\?v=20260928-axis-2/);
 });
 
-test('Finados y SHOWS comparten al final la composición nueva sin cambiar otras páginas', () => {
+test('la portada ya no muestra la franja bajo el contenido y SHOWS conserva los auspiciantes en su footer', () => {
   const finadosPage = pages.find(item => item.route === '/finados/');
   const finados = finadosPage.render(finadosPage);
   const shows = html();
   const composition = renderFinadosSponsors();
-  for (const output of [finados, shows]) {
-    assert.ok(output.includes(composition));
-    assert.equal((output.match(/class="finados-sponsors"/g) ?? []).length, 1);
-    assert.equal((output.match(/<h1\b/g) ?? []).length, 1);
-    assert.ok(output.indexOf(composition) > output.indexOf('</main>'));
-    assert.ok(output.indexOf(composition) < output.indexOf('Volver a complejomushucruna.com'));
-    assert.match(output, /auspiciantes-finados-2026\.webp\?v=20261007-sponsors-8/);
-    assert.ok(output.includes('Credi Fácil Ltda. Cooperativa de Ahorro y Crédito'));
-    assert.ok(output.includes('SanFra'));
-    assert.ok(output.includes('Óptica Interandina'));
-    assert.ok(output.includes('Mutualista Ambato'));
-    assert.ok(output.includes('Bogati'));
-    assert.ok(output.includes('Skybiz Travel'));
-    assert.ok(output.includes('INGCO'));
-    assert.ok(showsSponsors.indexOf('Cogarol') < showsSponsors.indexOf('SanFra'));
-    assert.ok(showsSponsors.indexOf('SanFra') < showsSponsors.indexOf('Whisky John Morris'));
-    assert.ok(showsSponsors.indexOf('Óptica Interandina') < showsSponsors.indexOf('Mutualista Ambato'));
-    assert.ok(showsSponsors.indexOf('Mutualista Ambato') < showsSponsors.indexOf('Pollos al Gusto'));
-    assert.ok(showsSponsors.indexOf('Pollos al Gusto') < showsSponsors.indexOf('Bogati'));
-    assert.ok(showsSponsors.indexOf('Bogati') < showsSponsors.indexOf('Skybiz Travel'));
-    assert.ok(showsSponsors.indexOf('Skybiz Travel') < showsSponsors.indexOf('INGCO'));
+  assert.doesNotMatch(finados, /finados-sponsors|sponsors\.css|auspiciantes-finados-2026/);
+  assert.ok(shows.includes(composition));
+  assert.equal((shows.match(/class="finados-sponsors"/g) ?? []).length, 1);
+  assert.equal((finados.match(/<h1\b/g) ?? []).length, 1);
+  assert.equal((shows.match(/<h1\b/g) ?? []).length, 1);
+  assert.match(shows, /auspiciantes-finados-2026\.webp\?v=20261007-sponsors-8/);
+  for (const name of ['Credi Fácil Ltda. Cooperativa de Ahorro y Crédito', 'SanFra', 'Óptica Interandina', 'Mutualista Ambato', 'Bogati', 'Skybiz Travel', 'INGCO']) {
+    assert.ok(shows.includes(name), name);
   }
+  assert.ok(showsSponsors.indexOf('Cogarol') < showsSponsors.indexOf('SanFra'));
+  assert.ok(showsSponsors.indexOf('SanFra') < showsSponsors.indexOf('Whisky John Morris'));
+  assert.ok(showsSponsors.indexOf('Óptica Interandina') < showsSponsors.indexOf('Mutualista Ambato'));
+  assert.ok(showsSponsors.indexOf('Mutualista Ambato') < showsSponsors.indexOf('Pollos al Gusto'));
+  assert.ok(showsSponsors.indexOf('Pollos al Gusto') < showsSponsors.indexOf('Bogati'));
+  assert.ok(showsSponsors.indexOf('Bogati') < showsSponsors.indexOf('Skybiz Travel'));
+  assert.ok(showsSponsors.indexOf('Skybiz Travel') < showsSponsors.indexOf('INGCO'));
   assert.ok(shows.indexOf(composition) > shows.indexOf('<footer'));
   assert.match(shows, /<footer class="bg-night py-12 text-lienzo">[\s\S]*finados-sponsors[\s\S]*<div class="px-4">/);
-  assert.ok(finados.indexOf(composition) < finados.indexOf('<footer'));
   assert.equal(finados.match(/<footer[\s\S]*?<\/footer>/)?.[0], renderFinadosFooter());
-  assert.ok(finados.indexOf('id="legado"') < finados.indexOf(composition));
   for (const other of pages.filter(item => item.render && !['/finados/', '/finados/shows/'].includes(item.route))) {
     assert.doesNotMatch(other.render(other), /finados-sponsors|sponsors\.css/);
   }

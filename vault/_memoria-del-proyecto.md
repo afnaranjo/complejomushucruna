@@ -489,3 +489,10 @@ El 28 de agosto quedó confirmado `¡LEGADO QUE NOS UNE!` como eslogan gráfico 
 - El Panel administrativo abre con la sección **Redes sociales**: solo la marca Metricool «Finados Mushuc Runa» (Facebook, Instagram, TikTok, YouTube y Meta Ads). El backend tiene fijo ese identificador de marca y rechaza cualquier otro, por pedido expreso de Alex.
 - Selector de periodo (7, 30, 90 días o fechas propias; por defecto los últimos 30 días en hora de Ecuador). Cada cifra se compara con el periodo anterior del mismo largo: seguidores y crecimiento por red, vistas, alcance, interacciones, interacción por vista, publicaciones, inversión, CTR, costo por clic, costo por mil y costo aproximado por nuevo seguidor, más un veredicto por red y una lectura rápida para decidir.
 - El token vive solo en `metricool-config.json` junto a la configuración privada del backend en el servidor; nunca en Git. Caché de 30 minutos. TikTok solo conserva unas semanas en Metricool: sin datos se muestra «Sin comparación», no cero.
+
+### 2026-10-08 — Retiro de franja en FINADOS y nuevo logo de Plaza de la Luna
+
+- Alex pidió retirar de `/finados/` la franja de auspiciantes posterior al contenido general; SHOWS conserva la composición en su footer.
+- El SVG oficial de Plaza de la Luna reemplaza los recursos visibles de SHOWS y Mushuc Freestyle, con cachés renovadas y el mismo maestro SHA-256 en ambos lugares.
+- QA local completo en verde: 266 Node, 34 PHP, 11 integración; 243 archivos, 81 HTML y 2.805 referencias. Portada, SHOWS y MFS revisados en escritorio y móvil sin desbordes ni errores de consola.
+- Estado: listo para Git y despliegue frontend autorizado. Evidencia: [[11_eventos/2026_feria-finados/10_tecnologia-datos/2026-10-08_retiro-franja-actualizacion-logo-plaza-luna-web_v01|Retiro de franja y actualización del logo de Plaza de la Luna]].
