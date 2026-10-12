@@ -5,7 +5,7 @@ import { renderFinadosNavigation } from './navigation.mjs';
 
 // Mushuc Freestyle 2026: su propia línea gráfica (azul, lima y crema, Badeen Display)
 // dentro del marco de Finados. Los datos salen de la especificación aprobada del módulo.
-export const mfsAssetVersion = '20261007-mfs-5';
+export const mfsAssetVersion = '20261012-mfs-6';
 const asset = name => `/assets/finados/mfs/${name}?v=${mfsAssetVersion}`;
 
 export const mfsEvent = Object.freeze({

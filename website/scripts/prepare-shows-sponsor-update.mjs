@@ -11,8 +11,8 @@ if (!sourcePath || !sharpModule) throw new Error('Indica el SVG oficial y el mó
 const original = await readFile(sourcePath);
 const svg = original.toString('utf8');
 const digest = createHash('sha256').update(original).digest('hex');
-const approvedDigest = 'ac906043c241ba8f78768dd3e4d6eee864db538a135ede9e32ad68f22e44a1af';
-// The October 7 master includes one small inert PNG and keeps the artwork otherwise vectorial.
+const approvedDigest = '851c5b8ec94390471523ae9d5d15ceafd23b0c169dc6e147076af7295b9037ea';
+// The October 12 master includes one small inert PNG and keeps the artwork otherwise vectorial.
 const references = [...svg.matchAll(/(?:xlink:)?href=["']([^"']*)["']/gi)].map(match => match[1]);
 const safeReference = value => {
   if (/^#[\w.-]+$/.test(value)) return true;
@@ -20,7 +20,7 @@ const safeReference = value => {
   const png = Buffer.from(value.slice('data:image/png;base64,'.length), 'base64');
   return png.length < 1_000_000 && png.subarray(0, 8).equals(Buffer.from('89504e470d0a1a0a', 'hex'));
 };
-if (digest !== approvedDigest || !svg.includes('viewBox="0 0 2320 650"')
+if (digest !== approvedDigest || !svg.includes('viewBox="0 0 2321 650"')
   || /<(?:script|foreignObject|iframe|object|embed)\b|\bon[a-z]+\s*=|<!ENTITY|<\?xml-stylesheet/i.test(svg)
   || references.some(value => !safeReference(value))) {
   throw new Error('El SVG no coincide con la composición vectorial revisada.');
@@ -29,6 +29,6 @@ const directory = new URL('../public/assets/finados/shows/', import.meta.url);
 await copyFile(sourcePath, new URL('auspiciantes-finados-2026.svg', directory));
 const sharp = createRequire(import.meta.url)(resolve(sharpModule));
 // Refresh the optimized WebP used by the pages; preserve the exact SVG as the public master.
-await sharp(original).resize({ width: 2320 }).webp({ quality: 90 })
+await sharp(original).resize({ width: 2321 }).webp({ quality: 90 })
   .toFile(fileURLToPath(new URL('auspiciantes-finados-2026.webp', directory)));
 console.log(`SHA-256 del SVG oficial: ${digest}`);

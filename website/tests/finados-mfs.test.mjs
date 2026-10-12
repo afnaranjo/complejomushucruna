@@ -21,6 +21,7 @@ test('MFS tiene su landing noindex y cierra el submenú de Finados', () => {
 });
 
 test('la landing usa la línea gráfica de Mushuc Freestyle y sus datos aprobados', () => {
+  assert.equal(mfsAssetVersion, '20261012-mfs-6');
   assert.match(html, new RegExp(`/assets/finados/mfs\\.css\\?v=${mfsAssetVersion}`));
   assert.match(html, /badeen-display-latin\.woff2/);
   for (const name of ['mfs-logo.svg', 'mfs-retrato-1100.webp', 'mfs-retrato-640.webp', 'mfs-organizadores.svg', 'mfs-arte-oficial-800.webp']) {
