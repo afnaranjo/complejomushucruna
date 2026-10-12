@@ -496,3 +496,9 @@ El 28 de agosto quedó confirmado `¡LEGADO QUE NOS UNE!` como eslogan gráfico 
 - El SVG oficial de Plaza de la Luna reemplaza los recursos visibles de SHOWS y Mushuc Freestyle, con cachés renovadas y el mismo maestro SHA-256 en ambos lugares.
 - QA local completo en verde: 266 Node, 34 PHP, 11 integración; 243 archivos, 81 HTML y 2.805 referencias. Portada, SHOWS y MFS revisados en escritorio y móvil sin desbordes ni errores de consola.
 - Estado: `0ba7f66` está en `origin/main`; el despliegue frontend sigue pendiente porque la administración del hosting no responde. El proveedor atiende una solicitud privada. No hubo carga parcial, backend, migraciones ni cambios de datos. Evidencia: [[11_eventos/2026_feria-finados/10_tecnologia-datos/2026-10-08_retiro-franja-actualizacion-logo-plaza-luna-web_v01|Retiro de franja y actualización del logo de Plaza de la Luna]].
+
+### 2026-10-12 — Plaza de la Luna y auspiciantes actualizados en Git; producción bloqueada por identidad SSH
+
+- Alex entregó los SVG oficiales y autorizó Git y producción. El logo de Plaza recibido coincide con el maestro ya revisado y ahora fuerza caché nueva en SHOWS y MFS; la franja `2321 × 650` añade Cayambe Import S.A. y ENAG Escuela de Cocina. `/finados/` conserva la franja retirada y SHOWS mantiene la composición en el footer.
+- `caabfdc` está en `origin/main`. QA completo en verde: 266 Node, 34 PHP, 11 integración, 243 archivos, 81 HTML y 2.805 referencias.
+- Producción no cambió: el probe remoto detectó que las tres claves SSH actuales difieren de las conocidas en Windows y WSL. SSH y cPanel responden por red y cPanel tiene HTTPS válido, pero no hay sesión autenticada ni SSHFP; no se aceptó una identidad nueva sin confirmación del proveedor. Sin transferencia parcial, migraciones ni escrituras de datos. Ver [[11_eventos/2026_feria-finados/10_tecnologia-datos/2026-10-12_actualizacion-plaza-auspiciantes-web_v01|estado y hashes]].

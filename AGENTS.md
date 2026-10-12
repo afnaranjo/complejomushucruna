@@ -2235,3 +2235,9 @@ Nota de relevo escrita a pedido de Alex para que otro agente (Codex) retome la s
 - Solo lectura sobre datos existentes: sin migraciones ni cambios en la base.
 - QA: `npm run check` en verde (266 Node, PHP, 11 integración; 243 archivos, 81 HTML, 2805 referencias), con pruebas de la suma en `api_test.php` y `medios.test.mjs`.
 - Publicación externa: solo GitHub. **No está desplegado**; requiere autorización de Alex para backend → frontend.
+
+### 2026-10-12 — Plaza de la Luna y auspiciantes actualizados en Git; identidad SSH pendiente
+
+- Alex pidió hacer pull, actualizar el logo de Plaza de la Luna en todas sus apariciones y sustituir la composición de auspiciantes, con Git y producción. El SVG de Plaza recibido es idéntico al maestro validado (`165 × 240`, SHA-256 `43897b8ce05d815d3eff0097d0e8b7704848cc84a5099607d4c4000c98fdced2`) y se renovaron las cachés de SHOWS y MFS. La franja oficial pasa a `2321 × 650`, incorpora Cayambe Import S.A. y ENAG Escuela de Cocina y usa caché `20261012-sponsors-9`.
+- QA completo en verde: 266 Node, 34 PHP, 11 integración; build de 243 archivos, 81 HTML y 2.805 referencias. Commit `caabfdc` en `origin/main`, integrado después de `51d55ae` sin conflictos.
+- El despliegue backend → frontend autorizado no modificó producción: el probe se detuvo antes de respaldo, release o transferencia porque las tres claves SSH actuales difieren de las identidades conocidas guardadas en Windows y WSL. SSH y cPanel responden y cPanel presenta HTTPS válido, pero no hay sesión autenticada ni SSHFP; no se reemplazó `known_hosts` sin confirmación del proveedor. Producción sigue en las versiones de caché anteriores. Evidencia: [[vault/11_eventos/2026_feria-finados/10_tecnologia-datos/2026-10-12_actualizacion-plaza-auspiciantes-web_v01|Actualización de Plaza de la Luna y auspiciantes]].
