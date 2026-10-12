@@ -267,6 +267,7 @@ test('Top 20 por visualizaciones: Medios suma sus videos y Voceros amplía su ra
   assert.deepEqual(topMediaViews([{ media_name: 'B', views_total: 5 }, { media_name: 'A', views_total: 5 }, { media_name: 'Sin views', views_total: 0 }, null]).map(item => item.media_name), ['A', 'B']);
   const videos = Array.from({ length: 30 }, (_, index) => ({ full_name: `Vocero ${index}`, slot: 1, views_count: index + 1 }));
   assert.equal(topVideoViews(videos).length, 20);
+  assert.deepEqual(topVideoViews([{ full_name: 'Ana', views_count: 30, videos_count: 2 }, { full_name: 'Luis', views_count: 25, videos_count: 1 }]).map(item => [item.full_name, item.views_count, item.videos_count]), [['Ana', 30, 2], ['Luis', 25, 1]]);
 
   assert.deepEqual(collectVideoViews([{ dataset: { videoId: '7' }, value: ' 1500 ' }, { dataset: { videoId: '9' }, value: '0' }]), { 7: 1500, 9: 0 });
   for (const value of ['', '1.500', '-3', '1e3', '1000000001']) assert.throws(() => collectVideoViews([{ dataset: { videoId: '7' }, value }]), /números enteros/, value);

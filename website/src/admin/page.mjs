@@ -63,7 +63,7 @@ ${homeLink ? `<nav class="admin-sidebar__home" aria-label="Resumen general">${ho
 // Llega con su espacio reservado (y se pinta al instante con lo último visto): la página no se corre hacia abajo.
 const campaignBanner = '<section class="campaign-banner" data-campaign-banner data-loading aria-label="Tema central de la campaña" aria-busy="true"></section>';
 
-function layout(page, content, script = '/assets/admin/admin.js?v=20261001-mapa-4') {
+function layout(page, content, script = '/assets/admin/admin.js?v=20261012-views-suma-1') {
   const api = page.adminEnvironment === 'development' ? (page.adminApiBase ?? LOCAL_API_BASE) : PRIMARY_API_BASE;
   const connectSources = apiBasesForCsp(api);
   return `<!doctype html>
@@ -112,7 +112,7 @@ export function renderAdminVocerosPage(page) {
 <section aria-label="Resumen de todos los registros" class="summary" data-admin-dashboard aria-busy="true"></section>
 <details class="activity"><summary>Actividad y estados de todos los registros</summary><div class="activity-columns"><div><h2>Por estado</h2><dl data-status-counts></dl></div><div><h2>Registros por fecha (UTC)</h2><dl data-date-counts></dl></div></div></details>
 <section class="admin-global-videos" aria-labelledby="global-videos-title"><div class="records-heading"><div><h2 id="global-videos-title">Habilitación global de videos</h2><p>Estas fechas aplican para todos los voceros. Cuando llegue la fecha, podrán pegar el enlace del video habilitado.</p></div><p data-global-video-summary>—</p></div><form data-global-video-form><fieldset disabled><div class="admin-video-list">${videoSlotControls('schedule_video')}</div><button class="button-primary" type="submit">Guardar fechas globales</button></fieldset></form><p class="feedback" data-global-video-feedback role="status" aria-live="polite">Cargando fechas…</p></section>
-<section class="followers-leaderboard video-views-leaderboard" aria-labelledby="video-views-leaderboard-title"><div class="records-heading"><div><h2 id="video-views-leaderboard-title">Top 20 por visualizaciones de videos</h2><p>Ranking rápido de los videos con más views validadas por coordinación.</p></div><p data-video-views-leaderboard-count>—</p></div><ol data-video-views-leaderboard aria-live="polite"></ol></section>
+<section class="followers-leaderboard video-views-leaderboard" aria-labelledby="video-views-leaderboard-title"><div class="records-heading"><div><h2 id="video-views-leaderboard-title">Top 20 por visualizaciones de videos</h2><p>Voceros con más views validadas por coordinación, sumando todos sus videos (por ejemplo, 10 del video 1 + 20 del video 2 = 30).</p></div><p data-video-views-leaderboard-count>—</p></div><ol data-video-views-leaderboard aria-live="polite"></ol></section>
 <section class="followers-leaderboard" aria-labelledby="followers-leaderboard-title"><div class="records-heading"><div><h2 id="followers-leaderboard-title">Top 20 por seguidores</h2><p>Ranking rápido basado en la cantidad de seguidores validados por coordinación.</p></div><p data-followers-leaderboard-count>—</p></div><ol data-followers-leaderboard aria-live="polite"></ol></section>
 <form class="filters" data-admin-filters><fieldset disabled data-panel-fields>
 <legend>Filtrar registros</legend>

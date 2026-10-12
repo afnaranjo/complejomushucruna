@@ -46,9 +46,9 @@ export function topFollowers(items = [], limit = 20) {
 }
 export function topVideoViews(items = [], limit = 20) {
   return (Array.isArray(items) ? items : [])
-    .map(item => ({ ...item, views_count: Math.max(0, Number.parseInt(item?.views_count, 10) || 0), slot: Math.max(1, Math.min(5, Number.parseInt(item?.slot, 10) || 1)) }))
+    .map(item => ({ ...item, views_count: Math.max(0, Number.parseInt(item?.views_count, 10) || 0), videos_count: Math.max(0, Number.parseInt(item?.videos_count, 10) || 0) }))
     .filter(item => item.views_count > 0 && typeof item.full_name === 'string' && item.full_name.trim() !== '')
-    .sort((left, right) => right.views_count - left.views_count || left.full_name.localeCompare(right.full_name, 'es') || left.slot - right.slot)
+    .sort((left, right) => right.views_count - left.views_count || left.full_name.localeCompare(right.full_name, 'es'))
     .slice(0, Math.max(0, Number.parseInt(limit, 10) || 0));
 }
 export function videoSubmissionState(record = {}) {
@@ -419,7 +419,7 @@ export async function initializeAdmin() {
   function renderVideoViewsLeaderboard(items = []) {
     const ranking = topVideoViews(items, 20);
     videoViewsLeaderboard.replaceChildren();
-    videoViewsLeaderboardCount.textContent = ranking.length ? `${ranking.length} videos` : 'Sin datos';
+    videoViewsLeaderboardCount.textContent = ranking.length ? `${ranking.length} ${ranking.length === 1 ? 'vocero' : 'voceros'}` : 'Sin datos';
     if (!ranking.length) {
       videoViewsLeaderboard.append(node('li', 'Todavía no hay videos con views registradas.'));
       return;
@@ -428,8 +428,9 @@ export async function initializeAdmin() {
       const item = node('li');
       const rank = node('span', String(index + 1).padStart(2, '0'), 'followers-leaderboard__rank');
       const body = node('div');
-      body.append(node('strong', `${record.full_name} · Video ${record.slot}`));
-      const meta = [record.city, record.main_network].filter(Boolean).join(' · ');
+      body.append(node('strong', record.full_name));
+      const videosLabel = record.videos_count ? `${record.videos_count} ${record.videos_count === 1 ? 'video' : 'videos'} sumados` : '';
+      const meta = [videosLabel, record.city, record.main_network].filter(Boolean).join(' · ');
       body.append(node('small', meta || 'Sin ciudad o red principal'));
       const value = node('span', new Intl.NumberFormat('es-EC').format(record.views_count), 'followers-leaderboard__value');
       if (/^[a-f0-9]{32}$/.test(record.public_id ?? '')) {

@@ -405,17 +405,17 @@ final class VocerosRepository
     {
         if (!$this->hasVideoViewsSchema()) return [];
         $limit = max(1, min(50, $limit));
-        $query = $this->pdo->prepare("SELECT v.public_id, v.full_name, v.city, v.main_network, vv.slot, vv.url, vv.views_count FROM vocero_videos vv JOIN voceros v ON v.id = vv.vocero_id WHERE v.status <> 'Eliminado' AND vv.status = 'submitted' AND TRIM(COALESCE(vv.url, '')) <> '' AND vv.views_count > 0 ORDER BY vv.views_count DESC, vv.updated_at DESC, v.full_name ASC LIMIT ?");
+        $query = $this->pdo->prepare("SELECT v.public_id, v.full_name, v.city, v.main_network, COUNT(vv.id) AS videos_count, SUM(vv.views_count) AS views_total, MAX(vv.updated_at) AS last_update FROM vocero_videos vv JOIN voceros v ON v.id = vv.vocero_id WHERE v.status <> 'Eliminado' AND vv.status = 'submitted' AND TRIM(COALESCE(vv.url, '')) <> '' AND vv.views_count > 0 GROUP BY v.id, v.public_id, v.full_name, v.city, v.main_network ORDER BY views_total DESC, last_update DESC, v.full_name ASC LIMIT ?");
         $query->bindValue(1, $limit, PDO::PARAM_INT);
         $query->execute();
+        // Ranking por vocero: suma las views validadas de todos sus videos enviados.
         return array_map(static fn (array $row): array => [
             'public_id' => (string) $row['public_id'],
             'full_name' => (string) $row['full_name'],
             'city' => (string) ($row['city'] ?? ''),
             'main_network' => (string) ($row['main_network'] ?? ''),
-            'slot' => (int) $row['slot'],
-            'url' => (string) ($row['url'] ?? ''),
-            'views_count' => (int) $row['views_count'],
+            'videos_count' => (int) $row['videos_count'],
+            'views_count' => (int) $row['views_total'],
         ], $query->fetchAll());
     }
 

@@ -2227,3 +2227,11 @@ Nota de relevo escrita a pedido de Alex para que otro agente (Codex) retome la s
 - FINADOS ya no carga el componente ni `sponsors.css`; SHOWS conserva su composición de auspiciantes dentro del footer. SHOWS y Mushuc Freestyle usan el mismo maestro SVG `165 × 240`, SHA-256 `43897b8ce05d815d3eff0097d0e8b7704848cc84a5099607d4c4000c98fdced2`.
 - QA local: 266 Node, 34 PHP, 11 integración; build de 243 archivos, 81 HTML y 2.805 referencias. Revisión en escritorio y móvil sin desbordes ni errores de consola.
 - Publicación externa: `0ba7f66` enviado a `origin/main`. El despliegue frontend autorizado se detuvo antes de transferir porque la administración del hosting no respondió; el intento de recuperación no restableció el acceso y el proveedor atiende una solicitud privada. Sin carga parcial, backend, migraciones ni cambios de datos. Evidencia: [[vault/11_eventos/2026_feria-finados/10_tecnologia-datos/2026-10-08_retiro-franja-actualizacion-logo-plaza-luna-web_v01|Retiro de franja y actualización del logo de Plaza de la Luna]].
+
+### 2026-10-12 — Top 20 de Voceros suma las views de todos sus videos
+
+- Alex pidió que el ranking de views de Voceros sume por persona: si un vocero tiene 10 views en el video 1 y 20 en el video 2, debe aparecer con 30. Antes el Top 20 ordenaba cada video por separado.
+- `VocerosRepository::topVideos` ahora agrupa por vocero (`SUM(views_count)` y cantidad de videos con views); el panel muestra un nombre por fila con «N videos sumados». Las views se siguen registrando por video en el detalle, igual que antes. Caché `admin.js?v=20261012-views-suma-1`. Emprendedores y Medios no cambian.
+- Solo lectura sobre datos existentes: sin migraciones ni cambios en la base.
+- QA: `npm run check` en verde (266 Node, PHP, 11 integración; 243 archivos, 81 HTML, 2805 referencias), con pruebas de la suma en `api_test.php` y `medios.test.mjs`.
+- Publicación externa: solo GitHub. **No está desplegado**; requiere autorización de Alex para backend → frontend.
