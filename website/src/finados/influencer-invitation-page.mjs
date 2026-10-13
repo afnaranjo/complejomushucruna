@@ -8,7 +8,7 @@ export const influencerEventDefaults = Object.freeze({
   dateLabel: 'Jueves 15 de octubre de 2026',
   place: 'Juan Montalvo y 12 de Noviembre, Ambato, Ecuador',
 });
-export const influencerInvitationVersion = '20261013-invitacion-1';
+export const influencerInvitationVersion = '20261013-invitacion-2';
 
 function shell(page, { api, body, kind }) {
   const connect = apiBasesForCsp(api);
@@ -19,10 +19,10 @@ function shell(page, { api, body, kind }) {
 <meta name="description" content="${esc(page.description)}">
 <meta name="robots" content="noindex, nofollow, noarchive"><meta name="referrer" content="no-referrer">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src ${connect}; base-uri 'none'; form-action 'none'; object-src 'none'">
-<meta name="invitation-api-base" content="${esc(api)}"><meta name="theme-color" content="#391f6f">
+<meta name="invitation-api-base" content="${esc(api)}"><meta name="theme-color" content="#140d1f">
 <link rel="canonical" href="https://complejomushucruna.com${esc(page.route)}">
 <link rel="icon" href="/assets/finados/favicon-finados.png">
-<link rel="preload" href="/assets/finados/fonts/anton-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/finados/guaynaa-lanzamiento-640.webp" as="image" media="(max-width: 700px)"><link rel="preload" href="/assets/finados/guaynaa-lanzamiento-1122.webp" as="image" media="(min-width: 701px)">
 <link rel="stylesheet" href="/assets/finados/influencer-invitation.css?v=${influencerInvitationVersion}">
 <script type="module" src="/assets/finados/influencer-invitation.js?v=${influencerInvitationVersion}"></script>
 </head><body class="inv" data-invitation="${kind}">
@@ -30,14 +30,14 @@ function shell(page, { api, body, kind }) {
 <main id="contenido">
 ${body}
 </main>
+<footer class="inv-footer"><img src="/assets/finados/logo-finados.svg?v=20260903" width="766" height="449" alt="Finados Mushuc Runa 2026, legado que nos une"></footer>
 <noscript><p class="inv-noscript">Activa JavaScript para confirmar tu asistencia.</p></noscript>
 </body></html>`;
 }
 
 const eventCard = `<section class="inv-event" aria-labelledby="inv-event-title">
-<figure class="inv-art"><img src="/assets/finados/guaynaa-finados-960.webp" width="960" height="480" alt="Arte oficial de Guaynaa para el Megaescenario de Finados Mushuc Runa 2026" decoding="async"><figcaption>Guaynaa en el Megaescenario de Finados · domingo 1 de noviembre</figcaption></figure>
 <div class="inv-event-body">
-<p class="inv-kicker">Te esperamos en</p>
+<p class="inv-kicker"><span class="inv-eq" aria-hidden="true"><i></i><i></i><i></i></span>Te esperamos en</p>
 <h2 id="inv-event-title" data-event-title>${esc(influencerEventDefaults.title)}</h2>
 <dl class="inv-facts">
 <div><dt>Cuándo</dt><dd><span data-event-date>${esc(influencerEventDefaults.dateLabel)}</span><small data-event-time>Hora por confirmar</small></dd></div>
@@ -52,7 +52,7 @@ const pageApi = page => page.adminEnvironment === 'development' ? (page.adminApi
 /** «Creadores»: invitación personal. El nombre llega desde el enlace (?c=…) que coordinación le envía. */
 export function renderInfluencerPersonalPage(page) {
   const body = `<header class="inv-hero">
-<img class="inv-logo" src="/assets/finados/logo-finados.svg?v=20260903" width="766" height="449" alt="Finados Mushuc Runa 2026, legado que nos une">
+<figure class="inv-poster"><img src="/assets/finados/guaynaa-lanzamiento-1122.webp" srcset="/assets/finados/guaynaa-lanzamiento-640.webp 640w, /assets/finados/guaynaa-lanzamiento-1122.webp 1122w" sizes="(max-width: 700px) calc(100vw - 32px), 34rem" width="1122" height="1402" alt="SanFra te trae a Guaynaa. Domingo 1 de noviembre, Expo Feria Mushuc Runa 2026." fetchpriority="high" decoding="async"></figure>
 <p class="inv-eyebrow">Una invitación solo para ti</p>
 <h1 class="inv-title"><span class="inv-name" data-guest-name>Hola</span><span>queremos que estés aquí.</span></h1>
 <p class="inv-lead">Antes de que todo Ecuador lo sepa, queremos que tú lo vivas primero. Te invitamos al <strong>Lanzamiento Guaynaa</strong> de Finados Mushuc Runa 2026.</p>
@@ -73,7 +73,7 @@ ${eventCard}
 /** «Nuevos creadores»: invitación abierta; la persona deja sus datos y confirma. */
 export function renderInfluencerOpenPage(page) {
   const body = `<header class="inv-hero">
-<img class="inv-logo" src="/assets/finados/logo-finados.svg?v=20260903" width="766" height="449" alt="Finados Mushuc Runa 2026, legado que nos une">
+<figure class="inv-poster"><img src="/assets/finados/guaynaa-lanzamiento-1122.webp" srcset="/assets/finados/guaynaa-lanzamiento-640.webp 640w, /assets/finados/guaynaa-lanzamiento-1122.webp 1122w" sizes="(max-width: 700px) calc(100vw - 32px), 34rem" width="1122" height="1402" alt="SanFra te trae a Guaynaa. Domingo 1 de noviembre, Expo Feria Mushuc Runa 2026." fetchpriority="high" decoding="async"></figure>
 <p class="inv-eyebrow">Invitación para creadores</p>
 <h1 class="inv-title"><span class="inv-name">Tu voz</span><span>también es parte de esta tradición.</span></h1>
 <p class="inv-lead">Queremos que vivas desde adentro el <strong>Lanzamiento Guaynaa</strong> de Finados Mushuc Runa 2026, junto a los creadores que cuentan nuestra tierra.</p>
