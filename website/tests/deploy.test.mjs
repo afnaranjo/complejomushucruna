@@ -989,6 +989,13 @@ test('la verificación completa conserva serialización y todas las suites del p
   assert.equal(packageConfig.scripts.check, 'npm test && npm run test:integration && npm run build && node scripts/check-dist.mjs');
 });
 
+test('el sitio ejecuta PHP con la versión asignada actualmente en cPanel', async () => {
+  const htaccess = await readFile(join(websiteRoot, 'public', '.htaccess'), 'utf8');
+
+  assert.match(htaccess, /AddHandler application\/x-httpd-ea-php82 \.php \.php8 \.phtml/);
+  assert.doesNotMatch(htaccess, /application\/x-httpd-ea-php81/);
+});
+
 test('el preflight frontend ejecuta una sola vez la verificación completa del proyecto', async () => {
   const deployModule = await import('../scripts/deploy-cpanel.mjs');
   assert.equal(typeof deployModule.runProjectChecks, 'function');
