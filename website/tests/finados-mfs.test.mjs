@@ -21,7 +21,7 @@ test('MFS tiene su landing noindex y cierra el submenú de Finados', () => {
 });
 
 test('la landing usa la línea gráfica de Mushuc Freestyle y sus datos aprobados', () => {
-  assert.equal(mfsAssetVersion, '20261013-mfs-7');
+  assert.equal(mfsAssetVersion, '20261013-mfs-8');
   assert.match(html, new RegExp(`/assets/finados/mfs\\.css\\?v=${mfsAssetVersion}`));
   assert.match(html, /badeen-display-latin\.woff2/);
   for (const name of ['mfs-logo.svg', 'mfs-retrato-1100.webp', 'mfs-retrato-640.webp', 'mfs-organizadores.svg', 'mfs-arte-oficial-800.webp']) {
@@ -199,4 +199,13 @@ test('el cartel de participantes corre continuo entre la cinta y la plaza', asyn
   assert.match(css, /\.mfs-cartel \{ --mfs-cartel-size: calc\(100vw \/ 4\.35\)/);
   assert.match(css, /translateX\(calc\(var\(--mfs-cartel-size\) \* -11\)\)/);
   assert.match(css, /prefers-reduced-motion[\s\S]*\.mfs-cartel-track \{ animation: none; \}/);
+});
+
+test('la portada destaca el total de premios y lleva a la sección de premios', () => {
+  const panel = html.slice(html.indexOf('class="mfs-hero-panel"'), html.indexOf('class="mfs-facts"'));
+  const total = mfsPrizes.reduce((sum, prize) => sum + prize.amount, 0);
+  assert.equal(total, 950);
+  assert.match(panel, /class="mfs-prize-badge" href="#premios"/);
+  assert.ok(panel.includes(`<strong>de USD ${total}</strong><em>en premios</em>`));
+  assert.ok(html.includes('<section id="premios" class="mfs-prizes"'));
 });

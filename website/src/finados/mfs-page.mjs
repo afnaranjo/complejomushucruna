@@ -5,7 +5,7 @@ import { renderFinadosNavigation } from './navigation.mjs';
 
 // Mushuc Freestyle 2026: su propia línea gráfica (azul, lima y crema, Badeen Display)
 // dentro del marco de Finados. Los datos salen de la especificación aprobada del módulo.
-export const mfsAssetVersion = '20261013-mfs-7';
+export const mfsAssetVersion = '20261013-mfs-8';
 const asset = name => `/assets/finados/mfs/${name}?v=${mfsAssetVersion}`;
 
 export const mfsEvent = Object.freeze({
@@ -106,6 +106,7 @@ export function renderMfsPage(page) {
         </h1>
         <p class="mfs-regresa">Regresa</p>
         <div class="mfs-hero-panel">
+        <a class="mfs-prize-badge" href="#premios"><span class="mfs-prize-badge-plus" aria-hidden="true">+</span><span><strong>de USD ${mfsPrizes.reduce((sum, prize) => sum + prize.amount, 0)}</strong><em>en premios</em></span></a>
         <dl class="mfs-facts">
           <div><dt>Final</dt><dd><time datetime="${mfsEvent.dateIso}">${mfsEvent.date} · ${mfsEvent.time}</time></dd></div>
           <div><dt>Dónde</dt><dd>${mfsEvent.place}<small>${mfsEvent.venue}</small></dd></div>
@@ -138,7 +139,7 @@ export function renderMfsPage(page) {
       </div>
     </section>
 
-    <section class="mfs-prizes" aria-labelledby="mfs-prizes-title">
+    <section id="premios" class="mfs-prizes" aria-labelledby="mfs-prizes-title">
       <div class="mfs-wrap">
         <p class="mfs-kicker">Premio económico</p>
         <h2 id="mfs-prizes-title">Más de USD 950<br>en premios</h2>
