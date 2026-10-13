@@ -136,3 +136,28 @@ body[data-celebrate="true"] .inv-rsvp { animation: inv-celebrate 1.2s cubic-bezi
 .inv-perks small { color: var(--inv-muted); font-size: .88rem; line-height: 1.45; }
 @media (max-width: 560px) { .inv-perks ul { grid-template-columns: minmax(0, 1fr); } .inv-perks li { grid-template-columns: auto minmax(0, 1fr); column-gap: .8rem; } .inv-perk-icon { grid-row: span 2; margin: 0; } }
 @media (prefers-reduced-motion: reduce) { .inv-radar, .inv-perks { animation: none; } }
+
+/* Pantalla de gracias */
+.inv-poster--small { width: min(100%, 15rem); margin: .5rem auto 1.6rem; }
+.inv-poster--small img { border-radius: 20px; }
+.inv-thanks-hero .inv-lead { color: #ece6f7; }
+body[data-celebrate="true"] .inv-thanks-hero .inv-name { animation: inv-glow 2.4s ease-in-out infinite; }
+.inv-change { margin: 0 0 1.4rem; text-align: center; }
+.inv-change a { color: var(--inv-lilac); font-weight: 600; text-underline-offset: 4px; }
+@keyframes inv-glow { 0%, 100% { text-shadow: 0 0 28px rgba(185, 146, 255, .75); } 50% { text-shadow: 0 0 48px rgba(185, 146, 255, 1), 0 0 90px rgba(139, 92, 246, .7); } }
+@media (prefers-reduced-motion: reduce) { body[data-celebrate="true"] .inv-thanks-hero .inv-name { animation: none; } }
+
+/* Gafete y validación */
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.inv-badge-preview { display: block; width: min(100%, 22rem); height: auto; margin: 0 auto 1.3rem; border-radius: 22px; box-shadow: 0 24px 60px -20px rgba(139, 92, 246, .8); }
+.inv-badge-cta { margin: 0 0 1.4rem; text-align: center; }
+.inv-badge-cta .inv-yes { text-decoration: none; }
+.inv-badge-cta p { margin: .7rem 0 0; color: var(--inv-muted); font-size: .92rem; }
+.inv-verify-result { padding: 1.4rem 1rem; border-radius: 20px; }
+.inv-verify-result[data-valid="true"] { background: rgba(34, 197, 94, .16); border: 2px solid #4ade80; }
+.inv-verify-result[data-valid="false"] { background: rgba(244, 63, 94, .14); border: 2px solid #fb7185; }
+.inv-verify-state { margin: 0 0 .6rem; font: 900 clamp(1.6rem, 6vw, 2.2rem)/1.15 "Inter", sans-serif; }
+.inv-verify-result[data-valid="true"] .inv-verify-state { color: #86efac; }
+.inv-verify-result[data-valid="false"] .inv-verify-state { color: #fda4af; }
+.inv-verify-name { margin: 0 0 .4rem; font: italic 400 clamp(1.8rem, 7vw, 2.4rem)/1.15 "DM Serif Display", Georgia, serif; overflow-wrap: anywhere; }
+.inv-verify-meta { margin: .2rem 0 0; color: var(--inv-lilac); }

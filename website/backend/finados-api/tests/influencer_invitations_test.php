@@ -51,7 +51,7 @@ $send = static fn (string $method, string $path, array $body = []) => $router->h
 $created = $decode($send('POST', '/api/influencers', ['names' => "Ana Pérez\n\n  Carlos   Ruiz  \nLuz"]))['guests'];
 same(['Ana Pérez', 'Carlos Ruiz', 'Luz'], array_column($created, 'full_name'));
 same(3, count(array_unique(array_column($created, 'invite_token'))));
-foreach ($created as $guest) same(1, preg_match('/^[a-f0-9]{32}$/D', $guest['invite_token']));
+foreach ($created as $guest) same(1, preg_match('/^[a-hjkmnp-z2-9]{10}$/D', $guest['invite_token']), 'el enlace usa un código corto');
 same(422, $send('POST', '/api/influencers', ['names' => " \n "])->status);
 same(422, $send('POST', '/api/influencers', ['names' => str_repeat("Nombre\n", 201)])->status);
 
@@ -87,14 +87,30 @@ same(201, $router->handle('POST', '/api/invitacion/nuevo', $json, json_encode([.
 $news = $decode($router->handle('GET', '/api/influencers?kind=nuevo', $origin));
 same(1, $news['totals']['total']);
 $mia = $news['guests'][0];
-same(['Mía Tapia', '0987654321', '@mia.crea', 13000, 'Ambato', 'si', 'pendiente', null], [$mia['full_name'], $mia['whatsapp'], $mia['social_link'], $mia['followers'], $mia['city'], $mia['response'], $mia['approval'], $mia['invite_token']]);
+same(['Mía Tapia', '0987654321', '@mia.crea', 13000, 'Ambato', 'si', 'pendiente'], [$mia['full_name'], $mia['whatsapp'], $mia['social_link'], $mia['followers'], $mia['city'], $mia['response'], $mia['approval']]);
+same(1, preg_match('/^[a-hjkmnp-z2-9]{10}$/D', $mia['invite_token']), 'el nuevo creador también recibe su enlace propio');
 same(false, str_contains((string) $pdo->query('SELECT whatsapp_enc FROM influencer_guests WHERE kind = \'nuevo\'')->fetchColumn(), '0987654321'), 'el WhatsApp se guarda cifrado');
 
+// Gafete: un nuevo creador que dijo sí todavía no lo tiene hasta que se apruebe.
+$pending = $decode($router->handle('GET', '/api/invitacion/gafete/' . $mia['invite_token'], $origin));
+same([false, 'aprobacion', null], [$pending['ready'], $pending['reason'], $pending['guest']['public_id']]);
 // Coordinación aprueba y anota.
 $approved = $decode($send('PATCH', '/api/influencers/' . $mia['public_id'], ['approval' => 'aprobado', 'note' => 'Llamar el miércoles']))['guest'];
 same(['aprobado', 'Llamar el miércoles'], [$approved['approval'], $approved['note']]);
 same(422, $send('PATCH', '/api/influencers/' . $mia['public_id'], ['approval' => 'quizás'])->status);
 same(1, $decode($router->handle('GET', '/api/influencers?kind=nuevo', $origin))['totals']['aprobados_si']);
+
+$badge = $decode($router->handle('GET', '/api/invitacion/gafete/' . $mia['invite_token'], $origin));
+same([true, $mia['public_id']], [$badge['ready'], $badge['guest']['public_id']]);
+// El creador personal que confirmó ya tiene su gafete; el que dijo que no, no.
+same(true, $decode($router->handle('GET', '/api/invitacion/gafete/' . $ana['invite_token'], $origin))['ready']);
+same([false, 'respuesta'], array_values(array_intersect_key($decode($router->handle('GET', '/api/invitacion/gafete/' . $created[1]['invite_token'], $origin)), ['ready' => 0, 'reason' => 0])));
+// Al escanear el QR la puerta ve el nombre y si la invitación es válida, sin teléfono.
+$scan = $decode($router->handle('GET', '/api/invitacion/verificar/' . $mia['public_id'], $origin))['verification'];
+same([true, 'Mía Tapia', 'Nuevo creador'], [$scan['valid'], $scan['name'], $scan['kind']]);
+same(false, array_key_exists('whatsapp', $scan));
+same(false, $decode($router->handle('GET', '/api/invitacion/verificar/' . $created[1]['public_id'], $origin))['verification']['valid']);
+same(404, $router->handle('GET', '/api/invitacion/verificar/' . str_repeat('a', 32), $origin)->status);
 
 // Muchos registros seguidos desde la misma conexión se frenan.
 for ($i = 0; $i < 4; $i++) $router->handle('POST', '/api/invitacion/nuevo', $json, json_encode([...$newcomer, 'whatsapp' => '09900000' . $i . '0']));
@@ -105,6 +121,9 @@ same(200, $send('POST', '/api/influencers/' . $ana['public_id'] . '/archivar')->
 same(404, $router->handle('GET', '/api/invitacion/c/' . $ana['invite_token'], $origin)->status);
 same(2, $decode($router->handle('GET', '/api/influencers?kind=creador', $origin))['totals']['total']);
 same('1', (string) $pdo->query("SELECT COUNT(*) FROM influencer_guests WHERE archived_at IS NOT NULL")->fetchColumn());
+// Un gafete de alguien retirado deja de ser válido en la puerta.
+$retired = $decode($router->handle('GET', '/api/invitacion/verificar/' . $ana['public_id'], $origin))['verification'];
+same([false, true], [$retired['valid'], $retired['retired']]);
 
 // Exportar a CSV.
 $csv = $router->handle('GET', '/api/influencers/export?kind=nuevo', $origin);

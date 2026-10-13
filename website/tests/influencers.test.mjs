@@ -2,8 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { pages } from '../src/pages.mjs';
-import { eventDateLabel, eventTimeLabel, invitationToken, responseMessage, validateOpenForm } from '../src/finados/influencer-invitation.js';
-import { invitationMessage, matchesFilter, openInvitationUrl, personalInvitationUrl, whatsappLink, whatsappNumber } from '../src/admin/admin-influencers.js';
+import { badgePath, badgeVerificationUrl, describeVerification, eventDateLabel, eventTimeLabel, invitationToken, responseMessage, thanksContent, THANKS_PATH, validateOpenForm } from '../src/finados/influencer-invitation.js';
+import { badgeMessage, badgeUrl, invitationMessage, matchesFilter, openInvitationUrl, personalInvitationUrl, whatsappLink, whatsappNumber } from '../src/admin/admin-influencers.js';
 
 const render = route => { const page = pages.find(item => item.route === route); assert.ok(page, route); return page.render(page); };
 
@@ -62,7 +62,7 @@ test('el formulario de nuevos creadores valida antes de enviar', () => {
 test('el panel arma el enlace personal y el mensaje listo para WhatsApp', () => {
   const token = 'b'.repeat(32);
   const url = personalInvitationUrl('https://finados.expoferiamushucruna.com', token);
-  assert.equal(url, `https://finados.expoferiamushucruna.com/finados/invitacion/?c=${token}`);
+  assert.equal(url, `https://finados.expoferiamushucruna.com/i/?c=${token}`);
   assert.equal(openInvitationUrl('https://complejomushucruna.com'), 'https://complejomushucruna.com/finados/invitacion/creadores/');
   assert.equal(whatsappNumber('0987654321'), '593987654321');
   assert.equal(whatsappNumber(''), '');
@@ -72,4 +72,42 @@ test('el panel arma el enlace personal y el mensaje listo para WhatsApp', () => 
   assert.ok(whatsappLink('', 'hola').startsWith('https://wa.me/?text='));
   assert.equal(matchesFilter({ response: 'si', approval: 'pendiente' }, 'por_aprobar'), true);
   assert.equal(matchesFilter({ response: 'no', approval: 'aprobado' }, 'si'), false);
+});
+
+test('al confirmar, la persona pasa a la pantalla de gracias según su respuesta', async () => {
+  assert.equal(THANKS_PATH, '/finados/invitacion/gracias/');
+  const html = render('/finados/invitacion/gracias/');
+  assert.match(html, /data-invitation="gracias"/);
+  assert.match(html, /noindex, nofollow, noarchive/);
+  assert.doesNotMatch(html, /1494610251215623|data-cookie-consent/);
+  assert.deepEqual([thanksContent({ kind: 'creador', name: 'Ana Pérez', response: 'si' }).title, thanksContent({ kind: 'creador', name: 'Ana Pérez', response: 'si' }).subtitle], ['¡Gracias, Ana!', 'Tu lugar está confirmado.']);
+  assert.match(thanksContent({ kind: 'nuevo', name: 'Mía', response: 'si' }).message, /te escribirá por WhatsApp/);
+  assert.equal(thanksContent({ kind: 'creador', name: 'Ana', response: 'no' }).perks, false);
+  assert.equal(thanksContent().title, '¡Gracias!');
+  const js = await readFile(new URL('../src/finados/influencer-invitation.js', import.meta.url), 'utf8');
+  // El nombre nunca viaja en la dirección: se pasa dentro de la pestaña.
+  assert.doesNotMatch(js, /THANKS_PATH\s*\+|gracias\/\?/);
+  assert.equal((js.match(/location\.assign\(THANKS_PATH\)/g) ?? []).length, 2);
+});
+
+test('enlace corto, gafete con QR y validación en la puerta', () => {
+  assert.equal(invitationToken('?c=k7m2q9xa4b'), 'k7m2q9xa4b');
+  assert.equal(invitationToken('?c=k7m2q9xa4l'), '', 'sin letras confusas');
+  assert.ok(render('/i/').includes('data-invitation="creador"'));
+  assert.doesNotMatch(render('/i/'), /1494610251215623|data-cookie-consent/);
+  assert.equal(badgePath('k7m2q9xa4b'), '/finados/invitacion/gafete/?c=k7m2q9xa4b');
+  const id = 'c'.repeat(32);
+  assert.equal(badgeVerificationUrl(id, 'https://finados.expoferiamushucruna.com'), `https://finados.expoferiamushucruna.com/finados/invitacion/verificar/?id=${id}`);
+  assert.equal(badgeVerificationUrl(id, 'https://otro.example'), `https://complejomushucruna.com/finados/invitacion/verificar/?id=${id}`);
+  assert.throws(() => badgeVerificationUrl('x'));
+  assert.equal(describeVerification({ valid: true, name: 'Ana' }).state, 'Invitación válida ✓');
+  assert.equal(describeVerification({ valid: false, response: 'si', approval: 'pendiente' }).state, 'Pendiente de aprobación');
+  assert.equal(describeVerification({ valid: false, retired: true }).state, 'Invitación retirada');
+  assert.equal(badgeUrl('https://complejomushucruna.com', 'k7m2q9xa4b'), 'https://complejomushucruna.com/finados/invitacion/gafete/?c=k7m2q9xa4b');
+  assert.match(badgeMessage('Ana', 'https://x'), /Tu lugar en el Lanzamiento Guaynaa está confirmado/);
+  for (const route of ['/finados/invitacion/gafete/', '/finados/invitacion/verificar/']) {
+    const html = render(route);
+    assert.match(html, /noindex, nofollow, noarchive/);
+    assert.match(html, /img-src 'self' blob:/);
+  }
 });

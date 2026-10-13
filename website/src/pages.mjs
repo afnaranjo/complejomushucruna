@@ -26,7 +26,7 @@ import { renderFinadosShowsPage } from './finados/shows-page.mjs';
 import { renderMfsPage } from './finados/mfs-page.mjs';
 import { renderMfsPortalPage } from './finados/mfs-portal-page.mjs';
 import { renderMfsVerificationPage } from './finados/mfs-verification-page.mjs';
-import { renderInfluencerOpenPage, renderInfluencerPersonalPage } from './finados/influencer-invitation-page.mjs';
+import { renderInfluencerBadgePage, renderInfluencerOpenPage, renderInfluencerPersonalPage, renderInfluencerThanksPage, renderInfluencerVerifyPage } from './finados/influencer-invitation-page.mjs';
 import { mfsLegalDocuments, mfsLegalRoutes, renderMfsLegalPage } from './finados/mfs-legal-page.mjs';
 import { renderStandsAccessPage } from './finados/stands-page.mjs';
 import { renderVocerosLegalPage } from './finados/voceros-legal-page.mjs';
@@ -401,6 +401,10 @@ export const pages = Object.freeze([
   { route: '/admin/influencers/creadores/', title: 'Influencers · Creadores · Administración', indexable: false, render: renderAdminInfluencersPage },
   { route: '/admin/influencers/nuevos/', title: 'Influencers · Nuevos creadores · Administración', indexable: false, render: renderAdminInfluencersPage },
   { route: '/finados/invitacion/', title: 'Tu invitación al Lanzamiento Guaynaa', description: 'Invitación personal al Lanzamiento Guaynaa de Finados Mushuc Runa 2026.', indexable: false, render: renderInfluencerPersonalPage },
+  { route: '/i/', title: 'Tu invitación al Lanzamiento Guaynaa', description: 'Invitación personal al Lanzamiento Guaynaa de Finados Mushuc Runa 2026.', indexable: false, render: renderInfluencerPersonalPage },
+  { route: '/finados/invitacion/gafete/', title: 'Tu gafete · Lanzamiento Guaynaa', description: 'Gafete con código QR para el Lanzamiento Guaynaa de Finados Mushuc Runa 2026.', indexable: false, render: renderInfluencerBadgePage },
+  { route: '/finados/invitacion/verificar/', title: 'Validación de gafete · Lanzamiento Guaynaa', description: 'Validación del gafete del Lanzamiento Guaynaa.', indexable: false, render: renderInfluencerVerifyPage },
+  { route: '/finados/invitacion/gracias/', title: 'Gracias por confirmar · Lanzamiento Guaynaa', description: 'Confirmación de asistencia al Lanzamiento Guaynaa de Finados Mushuc Runa 2026.', indexable: false, render: renderInfluencerThanksPage },
   { route: '/finados/invitacion/creadores/', title: 'Invitación a creadores · Lanzamiento Guaynaa', description: 'Invitación abierta a creadores de contenido al Lanzamiento Guaynaa de Finados Mushuc Runa 2026.', indexable: false, render: renderInfluencerOpenPage },
   { route: '/finados/creadoras/', title: 'Creadoras de contenido · Finados 2026', indexable: false, render: renderCreadorasLandingPage },
   { route: '/finados/creadoras/acceso/', title: 'Tu cuenta de creadora', indexable: false, render: renderCreadoraPortalPage },

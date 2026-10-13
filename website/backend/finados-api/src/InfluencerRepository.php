@@ -20,6 +20,9 @@ final class InfluencerRepository
     public const RESPONSES = ['pendiente', 'si', 'no'];
     public const APPROVALS = ['aprobado', 'pendiente', 'rechazado'];
     private const MAX_BULK = 200;
+    /** Código del enlace: 10 letras y números sin los que se confunden (l, i, o, 0, 1). Los de 32 caracteres anteriores siguen sirviendo. */
+    public const TOKEN_PATTERN = '/^(?:[a-f0-9]{32}|[a-hjkmnp-z2-9]{10})$/D';
+    private const TOKEN_ALPHABET = 'abcdefghjkmnpqrstuvwxyz23456789';
 
     public function __construct(private readonly PDO $pdo, private readonly Crypto $crypto, private readonly Audit $audit) {}
 
@@ -88,7 +91,7 @@ final class InfluencerRepository
         try {
             foreach ($lines as $line) {
                 $publicId = bin2hex(random_bytes(16));
-                $insert->execute([$publicId, bin2hex(random_bytes(16)), $line, $actorId, $now, $now]);
+                $insert->execute([$publicId, $this->newToken(), $line, $actorId, $now, $now]);
                 $this->audit->log('influencer.created', $actorId, 'influencer', $publicId, [], $ip);
                 $created[] = $publicId;
             }
@@ -117,6 +120,8 @@ final class InfluencerRepository
         if (array_key_exists('approval', $input)) {
             if (!in_array($input['approval'], self::APPROVALS, true)) throw new InvalidArgumentException();
             $sets[] = 'approval = ?'; $values[] = $input['approval'];
+            // Al aprobar a un nuevo creador recibe su enlace propio, con el que descarga su gafete.
+            if ($input['approval'] === 'aprobado' && ($row['invite_token'] ?? null) === null) { $sets[] = 'invite_token = ?'; $values[] = $this->newToken(); }
         }
         if (array_key_exists('response', $input)) {
             // Coordinación también registra la respuesta que le llega por teléfono o en persona.
@@ -143,8 +148,7 @@ final class InfluencerRepository
     public function newLink(string $publicId, int $actorId, string $ip): array
     {
         $row = $this->row($publicId);
-        if ($row['kind'] !== 'creador') throw new InvalidArgumentException();
-        $this->pdo->prepare('UPDATE influencer_guests SET invite_token = ?, opened_at = NULL, updated_at = ? WHERE id = ?')->execute([bin2hex(random_bytes(16)), gmdate('Y-m-d H:i:s'), (int) $row['id']]);
+        $this->pdo->prepare('UPDATE influencer_guests SET invite_token = ?, opened_at = NULL, updated_at = ? WHERE id = ?')->execute([$this->newToken(), gmdate('Y-m-d H:i:s'), (int) $row['id']]);
         $this->audit->log('influencer.link_created', $actorId, 'influencer', $publicId, [], $ip);
         return $this->find($publicId);
     }
@@ -163,7 +167,7 @@ final class InfluencerRepository
         if ($row['opened_at'] === null) {
             $this->pdo->prepare('UPDATE influencer_guests SET opened_at = ? WHERE id = ? AND opened_at IS NULL')->execute([gmdate('Y-m-d H:i:s'), (int) $row['id']]);
         }
-        return ['event' => $this->event(), 'guest' => ['name' => (string) $row['full_name'], 'response' => (string) $row['response']]];
+        return ['event' => $this->event(), 'guest' => ['name' => (string) $row['full_name'], 'response' => (string) $row['response'], 'kind' => (string) $row['kind'], 'badge' => self::badgeReady($row)]];
     }
 
     public function respond(string $token, mixed $response, string $ip): array
@@ -174,7 +178,46 @@ final class InfluencerRepository
         $this->pdo->prepare('UPDATE influencer_guests SET response = ?, responded_at = ?, opened_at = COALESCE(opened_at, ?), updated_at = ? WHERE id = ?')
             ->execute([$response, $now, $now, $now, (int) $row['id']]);
         $this->audit->log('influencer.responded', null, 'influencer', (string) $row['public_id'], [], $ip);
-        return ['name' => (string) $row['full_name'], 'response' => $response];
+        return ['name' => (string) $row['full_name'], 'response' => $response, 'kind' => (string) $row['kind'], 'badge' => self::badgeReady([...$row, 'response' => $response])];
+    }
+
+    /** El gafete existe cuando la persona confirmó que asiste y su lugar está aprobado. */
+    public function badge(string $token): array
+    {
+        $row = $this->byToken($token);
+        $ready = self::badgeReady($row);
+        return [
+            'event' => $this->event(),
+            'ready' => $ready,
+            'reason' => $ready ? null : ($row['response'] !== 'si' ? 'respuesta' : 'aprobacion'),
+            'guest' => ['name' => (string) $row['full_name'], 'kind' => (string) $row['kind'], 'public_id' => $ready ? (string) $row['public_id'] : null, 'social_link' => (string) $row['social_link']],
+        ];
+    }
+
+    /** Lo que ve el equipo al escanear el QR del gafete en la puerta. Sin teléfonos ni datos privados. */
+    public function verification(string $publicId): array
+    {
+        if (preg_match('/^[a-f0-9]{32}$/D', $publicId) !== 1) throw new OutOfBoundsException();
+        $query = $this->pdo->prepare('SELECT * FROM influencer_guests WHERE public_id = ?');
+        $query->execute([$publicId]);
+        $row = $query->fetch(PDO::FETCH_ASSOC);
+        if (!is_array($row)) throw new OutOfBoundsException();
+        $active = $row['archived_at'] === null;
+        return [
+            'valid' => $active && self::badgeReady($row),
+            'name' => (string) $row['full_name'],
+            'kind' => $row['kind'] === 'creador' ? 'Creador invitado' : 'Nuevo creador',
+            'social_link' => (string) $row['social_link'],
+            'response' => (string) $row['response'],
+            'approval' => (string) $row['approval'],
+            'retired' => !$active,
+            'event' => $this->event()['title'],
+        ];
+    }
+
+    private static function badgeReady(array $row): bool
+    {
+        return ($row['response'] ?? '') === 'si' && ($row['approval'] ?? '') === 'aprobado';
     }
 
     /** Nuevo creador: deja sus datos y confirma; si vuelve con el mismo WhatsApp se actualiza su registro. */
@@ -210,13 +253,24 @@ final class InfluencerRepository
         if ((int) $burst->fetchColumn() >= 150) throw new RateLimitException();
 
         $publicId = bin2hex(random_bytes(16));
-        $this->pdo->prepare("INSERT INTO influencer_guests (public_id, kind, invite_token, full_name, whatsapp_enc, whatsapp_lookup, social_link, followers, city, response, responded_at, approval, note, consent_at, ip_hash, created_at, updated_at) VALUES (?, 'nuevo', NULL, ?, ?, ?, ?, ?, ?, ?, ?, 'pendiente', '', ?, ?, ?, ?)")
-            ->execute([$publicId, $name, $this->crypto->encrypt($phone), $lookup, $social, $followers, $city, $response, $now, $now, $ipHash, $now, $now]);
+        $this->pdo->prepare("INSERT INTO influencer_guests (public_id, kind, invite_token, full_name, whatsapp_enc, whatsapp_lookup, social_link, followers, city, response, responded_at, approval, note, consent_at, ip_hash, created_at, updated_at) VALUES (?, 'nuevo', ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pendiente', '', ?, ?, ?, ?)")
+            ->execute([$publicId, $this->newToken(), $name, $this->crypto->encrypt($phone), $lookup, $social, $followers, $city, $response, $now, $now, $ipHash, $now, $now]);
         $this->audit->log('influencer.registered', null, 'influencer', $publicId, [], $ip);
         return ['name' => $name, 'response' => $response];
     }
 
     /* ---------- Internos ---------- */
+
+    private function newToken(): string
+    {
+        do {
+            $token = '';
+            for ($i = 0; $i < 10; $i++) $token .= self::TOKEN_ALPHABET[random_int(0, strlen(self::TOKEN_ALPHABET) - 1)];
+            $exists = $this->pdo->prepare('SELECT 1 FROM influencer_guests WHERE invite_token = ?');
+            $exists->execute([$token]);
+        } while ($exists->fetchColumn() !== false);
+        return $token;
+    }
 
     private function row(string $publicId): array
     {
@@ -230,8 +284,8 @@ final class InfluencerRepository
 
     private function byToken(string $token): array
     {
-        if (preg_match('/^[a-f0-9]{32}$/D', $token) !== 1) throw new OutOfBoundsException();
-        $query = $this->pdo->prepare("SELECT * FROM influencer_guests WHERE invite_token = ? AND kind = 'creador' AND archived_at IS NULL");
+        if (preg_match(self::TOKEN_PATTERN, $token) !== 1) throw new OutOfBoundsException();
+        $query = $this->pdo->prepare('SELECT * FROM influencer_guests WHERE invite_token = ? AND archived_at IS NULL');
         $query->execute([$token]);
         $row = $query->fetch(PDO::FETCH_ASSOC);
         if (!is_array($row)) throw new OutOfBoundsException();
@@ -246,7 +300,7 @@ final class InfluencerRepository
         }
         return [
             'public_id' => (string) $row['public_id'], 'kind' => (string) $row['kind'],
-            'invite_token' => $row['kind'] === 'creador' ? (string) $row['invite_token'] : null,
+            'invite_token' => $row['invite_token'] === null ? null : (string) $row['invite_token'],
             'full_name' => (string) $row['full_name'], 'whatsapp' => $phone, 'social_link' => (string) $row['social_link'],
             'followers' => $row['followers'] === null ? null : (int) $row['followers'], 'city' => (string) $row['city'],
             'response' => (string) $row['response'], 'responded_at' => $row['responded_at'] === null ? null : (string) $row['responded_at'],

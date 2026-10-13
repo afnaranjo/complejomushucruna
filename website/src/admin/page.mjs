@@ -801,7 +801,7 @@ export function renderAdminMfsPage(page) {
 }
 
 // Influencers: invitaciones al lanzamiento. «Creadores» lleva el nombre de cada uno; «Nuevos creadores» es abierta.
-export const ADMIN_INFLUENCERS_SCRIPT = '/assets/admin/admin-influencers.js?v=20261013-influencers-1';
+export const ADMIN_INFLUENCERS_SCRIPT = '/assets/admin/admin-influencers.js?v=20261013-influencers-2';
 
 export function renderAdminInfluencersPage(page) {
   const personal = page.route === '/admin/influencers/creadores/';

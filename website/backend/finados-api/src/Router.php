@@ -619,7 +619,15 @@ final class Router
             $body = $this->body($server, $rawBody, ['full_name', 'whatsapp', 'social_link', 'followers', 'city', 'response', 'consent']);
             return $this->json(201, ['ok' => true, 'guest' => $this->influencers()->register($body, (string) $ip)], $headers);
         }
-        if (preg_match('~^/api/invitacion/c/([a-f0-9]{32})$~D', $path, $parts)) {
+        if (preg_match('~^/api/invitacion/gafete/([a-z0-9]{10}|[a-f0-9]{32})$~D', $path, $parts)) {
+            if ($method !== 'GET') return $notAllowed();
+            return $this->json(200, ['ok' => true, ...$this->influencers()->badge($parts[1])], $headers);
+        }
+        if (preg_match('~^/api/invitacion/verificar/([a-f0-9]{32})$~D', $path, $parts)) {
+            if ($method !== 'GET') return $notAllowed();
+            return $this->json(200, ['ok' => true, 'verification' => $this->influencers()->verification($parts[1])], $headers);
+        }
+        if (preg_match('~^/api/invitacion/c/([a-z0-9]{10}|[a-f0-9]{32})$~D', $path, $parts)) {
             if ($method === 'GET') return $this->json(200, ['ok' => true, ...$this->influencers()->openInvitation($parts[1])], $headers);
             if ($method !== 'POST') return $notAllowed();
             $body = $this->body($server, $rawBody, ['response']);

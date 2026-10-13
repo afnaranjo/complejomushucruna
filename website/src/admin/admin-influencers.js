@@ -61,7 +61,16 @@ export function createInfluencersClient(baseUrl = API, fetchImplementation = fet
 
 /** El enlace personal de un creador, siempre del mismo sitio donde se abrió el panel. */
 export function personalInvitationUrl(origin, token) {
-  return `${origin}/finados/invitacion/?c=${encodeURIComponent(token)}`;
+  return `${origin}/i/?c=${encodeURIComponent(token)}`;
+}
+
+/** El gafete con QR, para quien confirmó y está aprobado. */
+export function badgeUrl(origin, token) {
+  return `${origin}/finados/invitacion/gafete/?c=${encodeURIComponent(token)}`;
+}
+
+export function badgeMessage(name, url) {
+  return `Hola, ${name}. ¡Tu lugar en el Lanzamiento Guaynaa está confirmado! Descarga aquí tu gafete con tu código QR y preséntalo en la entrada: ${url}`;
 }
 
 export function openInvitationUrl(origin) {
@@ -230,6 +239,11 @@ export async function initializeInfluencers() {
     } else if (guest.whatsapp) {
       const chat = Object.assign(node('a', 'Escribir por WhatsApp', 'button-quiet'), { href: whatsappLink(guest.whatsapp, `Hola, ${guest.full_name.split(' ')[0]}. Te escribimos de Finados Mushuc Runa por tu registro al Lanzamiento Guaynaa.`), target: '_blank', rel: 'noopener noreferrer' });
       actions.append(chat);
+    }
+    if (guest.invite_token && guest.response === 'si' && guest.approval === 'aprobado') {
+      const badge = badgeUrl(location.origin, guest.invite_token);
+      const sendBadge = Object.assign(node('a', 'Enviar gafete', kind === 'nuevo' ? 'button-primary' : 'button-quiet'), { href: whatsappLink(guest.whatsapp, badgeMessage(guest.full_name, badge)), target: '_blank', rel: 'noopener noreferrer' });
+      actions.append(sendBadge);
     }
     const edit = node('button', 'Editar', 'button-quiet');
     edit.type = 'button';

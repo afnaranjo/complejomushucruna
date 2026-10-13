@@ -9,7 +9,7 @@ export const influencerEventDefaults = Object.freeze({
   time: '18:00',
   place: 'Juan Montalvo y 12 de Noviembre, Ambato, Ecuador',
 });
-export const influencerInvitationVersion = '20261013-invitacion-3';
+export const influencerInvitationVersion = '20261013-invitacion-5';
 
 function shell(page, { api, body, kind }) {
   const connect = apiBasesForCsp(api);
@@ -19,7 +19,7 @@ function shell(page, { api, body, kind }) {
 <title>${esc(page.title)} | Finados Mushuc Runa 2026</title>
 <meta name="description" content="${esc(page.description)}">
 <meta name="robots" content="noindex, nofollow, noarchive"><meta name="referrer" content="no-referrer">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src ${connect}; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' blob:; font-src 'self'; connect-src ${connect}; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="invitation-api-base" content="${esc(api)}"><meta name="theme-color" content="#140d1f">
 <link rel="canonical" href="https://complejomushucruna.com${esc(page.route)}">
 <link rel="icon" href="/assets/finados/favicon-finados.png">
@@ -83,6 +83,7 @@ ${eventCard}
 <button type="button" class="inv-yes" data-answer="si">Sí, ahí estaré</button>
 <button type="button" class="inv-no" data-answer="no">Esta vez no podré</button>
 </div>
+<p class="inv-change" data-badge-link hidden><a href="/finados/invitacion/gafete/">Ver y descargar mi gafete</a></p>
 </section>`;
   return shell(page, { api: pageApi(page), body, kind: 'creador' });
 }
@@ -116,7 +117,75 @@ ${eventCard}
 <p class="inv-status" data-status role="status" aria-live="polite"></p>
 <button type="submit" class="inv-yes">Confirmar</button>
 </form>
-<div class="inv-thanks" data-thanks hidden tabindex="-1"></div>
 </section>`;
   return shell(page, { api: pageApi(page), body, kind: 'nuevo' });
+}
+
+/** La pantalla de «gracias» a la que pasa cada persona después de confirmar. */
+export function renderInfluencerThanksPage(page) {
+  const body = `<header class="inv-hero inv-thanks-hero">
+<figure class="inv-poster inv-poster--small"><img src="/assets/finados/guaynaa-lanzamiento-oficial-640.webp" width="640" height="800" alt="SanFra te trae a Guaynaa. 15 de octubre, 18:00, Finados Mushuc Runa." decoding="async"></figure>
+<p class="inv-eyebrow" data-thanks-eyebrow>Confirmación recibida</p>
+<h1 class="inv-title"><span class="inv-name" data-thanks-title>¡Gracias!</span><span data-thanks-subtitle>Tu respuesta quedó registrada.</span></h1>
+<p class="inv-lead" data-thanks-message>Gracias por responder a la invitación al <strong>Lanzamiento Guaynaa</strong>.</p>
+</header>
+<section class="inv-event" aria-labelledby="inv-event-title" data-thanks-event>
+<div class="inv-event-body">
+<p class="inv-kicker"><span class="inv-eq" aria-hidden="true"><i></i><i></i><i></i></span>Guarda la fecha</p>
+<h2 id="inv-event-title" data-event-title>${esc(influencerEventDefaults.title)}</h2>
+<dl class="inv-facts">
+<div><dt>Cuándo</dt><dd><span data-event-date>${esc(influencerEventDefaults.dateLabel)}</span><small data-event-time>${esc(influencerEventDefaults.time)} · hora de Ecuador</small></dd></div>
+<div><dt>Dónde</dt><dd><span data-event-place>${esc(influencerEventDefaults.place)}</span><a class="inv-map" data-event-map href="https://www.google.com/maps/search/?api=1&amp;query=${encodeURIComponent(influencerEventDefaults.place)}" target="_blank" rel="noopener noreferrer">Cómo llegar →</a></dd></div>
+</dl>
+<p class="inv-details" data-event-details hidden></p>
+</div>
+</section>
+<section class="inv-perks" aria-labelledby="inv-perks-title" data-thanks-perks>
+<h2 id="inv-perks-title">Lo que te espera</h2>
+<ul>
+<li><span class="inv-perk-icon" aria-hidden="true">★</span><strong>Zona VIP</strong><small>Tu espacio exclusivo durante el lanzamiento.</small></li>
+<li><span class="inv-perk-icon" aria-hidden="true">●</span><strong>Zona de creadores</strong><small>Pensada para tu streaming y tu contenido en vivo.</small></li>
+<li><span class="inv-perk-icon" aria-hidden="true">✦</span><strong>Zona de cócteles</strong><small>Para compartir y conectar con otros creadores y las marcas.</small></li>
+</ul>
+</section>
+<div class="inv-badge-cta" data-thanks-badge hidden><a class="inv-yes" data-thanks-badge-link href="/finados/invitacion/gafete/">Ver y descargar mi gafete</a><p>Tu gafete tiene un código QR único: preséntalo en la entrada.</p></div>
+<p class="inv-change"><a data-thanks-back href="/finados/invitacion/creadores/" hidden>Cambiar mi respuesta</a></p>`;
+  return shell(page, { api: pageApi(page), body, kind: 'gracias' });
+}
+
+/** El gafete del invitado: se genera en su teléfono con un QR único que valida su invitación. */
+export function renderInfluencerBadgePage(page) {
+  const body = `<header class="inv-hero">
+<p class="inv-eyebrow">Tu gafete</p>
+<h1 class="inv-title"><span class="inv-name" data-badge-name>Tu gafete</span><span>Lanzamiento Guaynaa</span></h1>
+<p class="inv-lead">Descárgalo y preséntalo en la entrada. Su código QR es único y valida tu invitación.</p>
+</header>
+<section class="inv-rsvp inv-badge" aria-labelledby="inv-badge-title">
+<h2 id="inv-badge-title" class="sr-only">Gafete</h2>
+<p class="inv-status" data-status role="status" aria-live="polite">Preparando tu gafete…</p>
+<img class="inv-badge-preview" data-badge-preview alt="Tu gafete para el Lanzamiento Guaynaa con tu nombre y tu código QR" width="1080" height="1920" hidden>
+<div class="inv-choices" data-badge-actions hidden>
+<button type="button" class="inv-yes" data-badge-download>Descargar gafete</button>
+<button type="button" class="inv-no" data-badge-share>Compartir</button>
+</div>
+</section>`;
+  return shell(page, { api: pageApi(page), body, kind: 'gafete' });
+}
+
+/** Lo que ve el equipo al escanear el QR del gafete en la puerta. */
+export function renderInfluencerVerifyPage(page) {
+  const body = `<header class="inv-hero">
+<p class="inv-eyebrow">Validación de gafete</p>
+<h1 class="inv-title"><span class="inv-name">Lanzamiento</span><span>Guaynaa</span></h1>
+</header>
+<section class="inv-rsvp inv-verify" aria-live="polite">
+<p class="inv-status" data-status role="status">Validando…</p>
+<div class="inv-verify-result" data-verify-result hidden>
+<p class="inv-verify-state" data-verify-state></p>
+<p class="inv-verify-name" data-verify-name></p>
+<p class="inv-verify-meta" data-verify-kind></p>
+<p class="inv-verify-meta" data-verify-social></p>
+</div>
+</section>`;
+  return shell(page, { api: pageApi(page), body, kind: 'verificar' });
 }
