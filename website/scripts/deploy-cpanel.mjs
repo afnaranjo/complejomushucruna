@@ -297,7 +297,7 @@ async function uploadDist(config, { archiveArgs = distArchiveArgs() } = {}) {
   });
   const remoteTar = spawn(
     'ssh',
-    [...sshBaseArgs(config), target, `tar -xf - -C ${config.DEPLOY_REMOTE_ROOT}`],
+    [...sshBaseArgs(config), target, `umask 022; tar --no-overwrite-dir --no-same-permissions -xf - -C ${config.DEPLOY_REMOTE_ROOT}`],
     { cwd: websiteRoot, stdio: ['pipe', 'ignore', 'pipe'] },
   );
 
@@ -322,13 +322,19 @@ async function uploadDist(config, { archiveArgs = distArchiveArgs() } = {}) {
 function normalizeRemotePermissions(config) {
   const target = `${config.DEPLOY_SSH_USER}@${config.DEPLOY_SSH_HOST}`;
   const root = config.DEPLOY_REMOTE_ROOT;
-  const findCommand = [
-    `find ${root} -mindepth 1 -type d -perm 0700`,
+  const directoryCommand = [
+    `find ${root} -mindepth 1 -type d`,
     `! -path '${root}/.well-known' ! -path '${root}/.well-known/*'`,
     `! -path '${root}/cgi-bin' ! -path '${root}/cgi-bin/*'`,
     '-exec chmod 755 {} +',
   ].join(' ');
-  const command = ['set -eu', `chmod 750 ${root}`, findCommand].join('; ');
+  const fileCommand = [
+    `find ${root} -mindepth 1 -type f -perm /0022`,
+    `! -path '${root}/.well-known/*'`,
+    `! -path '${root}/cgi-bin/*'`,
+    '-exec chmod go-w {} +',
+  ].join(' ');
+  const command = ['set -eu', `chmod 750 ${root}`, directoryCommand, fileCommand].join('; ');
 
   run('ssh', [...sshBaseArgs(config), target, command], {
     silent: true,

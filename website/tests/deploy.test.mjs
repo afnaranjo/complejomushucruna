@@ -934,6 +934,14 @@ test('normaliza permisos de carpetas después de la transferencia y antes de ver
   assert.deepEqual(stages, ['backend-health', 'install', 'upload', 'permissions', 'HTTPS']);
 });
 
+test('la transferencia no sobrescribe permisos de carpetas y retira escritura grupal', async () => {
+  const source = await readFile(deployScript, 'utf8');
+
+  assert.match(source, /umask 022; tar --no-overwrite-dir --no-same-permissions -xf - -C/);
+  assert.match(source, /find \$\{root\} -mindepth 1 -type f -perm \/0022/);
+  assert.match(source, /-exec chmod go-w \{\} \+/);
+});
+
 test('el frontend no instala endpoint ni transfiere archivos si la salud web del backend no cumple el contrato', async () => {
   const { publishFrontendFiles } = await import('../scripts/deploy-cpanel.mjs');
   const stages = [];
@@ -965,7 +973,7 @@ test('transfiere dist por el mismo cliente SSH sin depender de SCP en Windows', 
 
   assert.match(source, /spawn\('tar'/);
   assert.match(source, /localTar\.stdout\.pipe\(remoteTar\.stdin\)/);
-  assert.match(source, /tar -xf - -C/);
+  assert.match(source, /tar --no-overwrite-dir --no-same-permissions -xf - -C/);
   assert.doesNotMatch(source, /run\('scp'/);
 });
 
