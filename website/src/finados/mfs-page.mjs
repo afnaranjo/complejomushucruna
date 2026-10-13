@@ -5,7 +5,7 @@ import { renderFinadosNavigation } from './navigation.mjs';
 
 // Mushuc Freestyle 2026: su propia línea gráfica (azul, lima y crema, Badeen Display)
 // dentro del marco de Finados. Los datos salen de la especificación aprobada del módulo.
-export const mfsAssetVersion = '20261012-mfs-6';
+export const mfsAssetVersion = '20261013-mfs-7';
 const asset = name => `/assets/finados/mfs/${name}?v=${mfsAssetVersion}`;
 
 export const mfsEvent = Object.freeze({
@@ -49,6 +49,16 @@ const tickerWords = ['Inscripción gratuita', 'Premio económico', `${mfsEvent.s
 function renderTicker() {
   const run = tickerWords.map(word => `<span>${escapeHtml(word)}</span><img src="${asset('mfs-icono.svg')}" width="24" height="24" alt="">`).join('');
   return `<div class="mfs-ticker" aria-hidden="true"><div class="mfs-ticker-track">${run}${run}</div></div>`;
+}
+
+export const mfsCartelCount = 11;
+
+function renderCartel() {
+  const slide = (n, hidden) => `<img src="${asset(`mfs-cartel-${String(n).padStart(2, '0')}.webp`)}" width="720" height="720" alt="${hidden ? '' : `Cartel de Mushuc Freestyle 2026, pieza ${n} de ${mfsCartelCount}`}" loading="lazy" decoding="async">`;
+  const numbers = Array.from({ length: mfsCartelCount }, (_, i) => i + 1);
+  const first = numbers.map(n => slide(n, false)).join('');
+  const copy = numbers.map(n => slide(n, true)).join('');
+  return `<section class="mfs-cartel" aria-label="Cartel de Mushuc Freestyle 2026"><div class="mfs-cartel-track">${first}<span class="mfs-cartel-copy" aria-hidden="true">${copy}</span></div></section>`;
 }
 
 export function renderMfsPage(page) {
@@ -111,6 +121,8 @@ export function renderMfsPage(page) {
     </section>
 
     ${renderTicker()}
+
+    ${renderCartel()}
 
     <section class="mfs-editorial" aria-labelledby="mfs-plaza-title">
       <div class="mfs-wrap mfs-editorial-grid">

@@ -21,7 +21,7 @@ test('MFS tiene su landing noindex y cierra el submenú de Finados', () => {
 });
 
 test('la landing usa la línea gráfica de Mushuc Freestyle y sus datos aprobados', () => {
-  assert.equal(mfsAssetVersion, '20261012-mfs-6');
+  assert.equal(mfsAssetVersion, '20261013-mfs-7');
   assert.match(html, new RegExp(`/assets/finados/mfs\\.css\\?v=${mfsAssetVersion}`));
   assert.match(html, /badeen-display-latin\.woff2/);
   for (const name of ['mfs-logo.svg', 'mfs-retrato-1100.webp', 'mfs-retrato-640.webp', 'mfs-organizadores.svg', 'mfs-arte-oficial-800.webp']) {
@@ -179,4 +179,24 @@ test('el QR del gafete de MFS lleva a su validación y la cédula nunca va compl
   assert.match(markup, /data-mfs-verification/);
   assert.match(markup, /mfs-verification\.js\?v=/);
   assert.doesNotMatch(markup, /emprendedor|vocero-verification/);
+});
+
+test('el cartel de participantes corre continuo entre la cinta y la plaza', async () => {
+  const ticker = html.indexOf('class="mfs-ticker"');
+  const cartel = html.indexOf('class="mfs-cartel"');
+  const plaza = html.indexOf('class="mfs-editorial"');
+  assert.ok(ticker < cartel && cartel < plaza, 'va entre la cinta lima y La plaza vuelve a llenarse');
+  const section = html.slice(cartel, plaza);
+  for (let n = 1; n <= 11; n += 1) {
+    const name = `mfs-cartel-${String(n).padStart(2, '0')}.webp`;
+    // Cada pieza aparece dos veces: la serie visible y su copia para el bucle sin salto.
+    assert.equal(section.split(`/assets/finados/mfs/${name}?v=${mfsAssetVersion}`).length - 1, 2, name);
+    const file = await readFile(new URL(`../public/assets/finados/mfs/${name}`, import.meta.url));
+    assert.equal(file.subarray(8, 12).toString('ascii'), 'WEBP', name);
+  }
+  assert.match(section, /class="mfs-cartel-copy" aria-hidden="true"/);
+  const css = await readFile(new URL('../src/finados/mfs.css', import.meta.url), 'utf8');
+  assert.match(css, /\.mfs-cartel \{ --mfs-cartel-size: calc\(100vw \/ 4\.35\)/);
+  assert.match(css, /translateX\(calc\(var\(--mfs-cartel-size\) \* -11\)\)/);
+  assert.match(css, /prefers-reduced-motion[\s\S]*\.mfs-cartel-track \{ animation: none; \}/);
 });
