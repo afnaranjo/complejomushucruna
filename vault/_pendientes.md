@@ -2,7 +2,7 @@
 titulo: "Pendientes ejecutivos"
 responsable: "dirección integral de la feria"
 estado: en-revision
-ultima_actualizacion: 2026-09-22
+ultima_actualizacion: 2026-10-13
 fuente: interna
 confidencialidad: interno
 tags:
@@ -264,7 +264,7 @@ tags:
 - [x] Extender a todo el ancho la franja oficial de auspiciantes en FINADOS y SHOWS, conservar el contenido del pie y validar escritorio/móvil en ambos dominios. Responsable: tecnología/diseño. Completado: 2026-09-23. Evidencia: [[11_eventos/2026_feria-finados/10_tecnologia-datos/2026-09-23_franja-auspiciantes-ancho-completo-web_v01|Franja de auspiciantes a ancho completo]].
 - [x] Actualizar la franja oficial de auspiciantes con SanFra y Bogati y reemplazar su movimiento por una apertura central tipo telón, una sola vez y compatible con movimiento reducido; publicar y verificar FINADOS y SHOWS en ambos dominios. Responsable: tecnología/diseño. Completado: 2026-09-24. Evidencia: [[11_eventos/2026_feria-finados/10_tecnologia-datos/2026-09-24_actualizacion-auspiciantes-animacion-telon-web_v01|Actualización de auspiciantes y animación tipo telón]].
 - [x] Aprobar y publicar la variante de franja manifiesto de `/finados/` en GitHub y producción, con respaldo y verificación en ambos dominios. Responsable: Alex/dirección y tecnología/diseño. Completado: 2026-09-24. Evidencia: [[11_eventos/2026_feria-finados/10_tecnologia-datos/2026-09-24_variante-franja-manifiesto-finados-web_v01|Variante de franja manifiesto]].
-- [ ] Confirmar por un canal confiable la nueva huella SSH del hosting, actualizar la entrada conocida y publicar backend → frontend desde `origin/main` (`caabfdc`): Top 20 de Voceros agregado por persona, logo oficial de Plaza de la Luna en SHOWS/MFS y franja 2026 de auspiciantes con Cayambe Import S.A. y ENAG. Después verificar cachés y hashes en ambos dominios. El servidor responde, pero sus tres claves ya no coinciden con las identidades guardadas; no se aceptó el cambio a ciegas. Responsable: Alex/proveedor/tecnología. Fecha: cuando el proveedor confirme la huella. Evidencia: [[11_eventos/2026_feria-finados/10_tecnologia-datos/2026-10-12_actualizacion-plaza-auspiciantes-web_v01|Actualización de Plaza de la Luna y auspiciantes]].
+- [x] Confirmar las nuevas identidades SSH del hosting, respaldar y renovar `known_hosts`, publicar backend → frontend desde `origin/main` y verificar el Top 20 agregado por vocero, Plaza de la Luna en SHOWS/MFS y la franja 2026 con Cayambe Import S.A. y ENAG. Se corrigieron además el handler `ea-php82` y la preservación de permisos del publicador; hashes, cachés, JSON, CORS y salud aprobados en ambos dominios. Responsable: Alex/tecnología. Completado: 2026-10-13. Evidencia: [[11_eventos/2026_feria-finados/10_tecnologia-datos/2026-10-12_actualizacion-plaza-auspiciantes-web_v01|Actualización de Plaza de la Luna y auspiciantes]].
 
 ## Regla
 

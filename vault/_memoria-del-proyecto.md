@@ -2,7 +2,7 @@
 titulo: "Memoria del proyecto"
 responsable: "dirección integral de la feria"
 estado: en-revision
-ultima_actualizacion: 2026-09-22
+ultima_actualizacion: 2026-10-13
 fuente: interna
 confidencialidad: interno
 tags:
@@ -11,6 +11,13 @@ tags:
 ---
 
 # Memoria del proyecto
+
+## 2026-10-13 — Plaza, auspiciantes y backend publicados tras renovar la identidad SSH
+
+- Alex confirmó las nuevas identidades SSH. Windows y WSL conservaron respaldos de `known_hosts` y solo aceptaron las tres claves después de comprobar sus huellas exactas. El JSON privado ya tenía los dos orígenes autorizados y no fue reescrito.
+- Backend y frontend se publicaron en ese orden con respaldos. El backend activa el Top 20 que suma videos por vocero; verificación de solo lectura: 35 migraciones esperadas, 35 aplicadas, 0 pendientes, sin importaciones ni cambios funcionales de datos.
+- La migración del hosting dejó obsoleto el handler `ea-php81`. La verificación detectó PHP servido como texto, lo contuvo y migró a `ea-php82`; Acreditación y Voceros volvieron a JSON. También se corrigió el publicador para preservar permisos de carpetas y retirar escritura grupal. Commits de infraestructura: `cd1fa2f` y `82f72f5`.
+- SHOWS y MFS entregan el mismo SVG oficial de Plaza de la Luna; SHOWS entrega la composición nueva de auspiciantes en SVG/WebP. Versiones `20261012-shows-9`, `20261012-mfs-6` y `20261012-sponsors-9`; hashes idénticos al build en ambos dominios. Las dos APIs responden 200/`ok` y CORS exacto para los dos orígenes aprobados. Evidencia: [[11_eventos/2026_feria-finados/10_tecnologia-datos/2026-10-12_actualizacion-plaza-auspiciantes-web_v01|Actualización de Plaza de la Luna y auspiciantes]].
 
 ## 2026-10-07 — Nueva composición de auspiciantes publicada
 
