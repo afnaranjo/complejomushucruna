@@ -121,3 +121,18 @@ body[data-celebrate="true"] .inv-rsvp { animation: inv-celebrate 1.2s cubic-bezi
   .inv-poster, .inv-hero, .inv-event, .inv-rsvp, body[data-celebrate="true"] .inv-rsvp, .inv-eq i { animation: none; }
   .inv-yes, .inv-no { transition: none; }
 }
+
+/* Estás en nuestro radar y lo que te espera */
+.inv-radar, .inv-perks { margin: 0 0 1.4rem; padding: clamp(1.3rem, 4vw, 1.8rem); border: 1px solid var(--inv-line); border-radius: 26px; background: var(--inv-glass); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08), 0 20px 50px -24px rgba(139, 92, 246, .6); backdrop-filter: blur(14px); animation: inv-rise .9s .15s cubic-bezier(.2, .8, .3, 1) both; }
+.inv-radar { background: linear-gradient(135deg, rgba(139, 92, 246, .35), rgba(56, 40, 82, .45)); border-color: rgba(196, 170, 255, .45); }
+.inv-radar h2, .inv-perks h2 { margin: 0 0 .9rem; font: 800 clamp(1.45rem, 5vw, 1.9rem)/1.15 "Inter", sans-serif; letter-spacing: -.02em; }
+.inv-radar p:not(.inv-kicker) { margin: 0 0 .8rem; color: #ece6f7; font-size: 1.04rem; line-height: 1.6; }
+.inv-radar p:last-child { margin-bottom: 0; }
+.inv-radar strong { color: #fff; }
+.inv-perks ul { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .8rem; margin: 0; padding: 0; list-style: none; }
+.inv-perks li { display: grid; gap: .3rem; align-content: start; padding: 1rem; border: 1px solid var(--inv-line); border-radius: 18px; background: rgba(14, 9, 22, .45); }
+.inv-perk-icon { display: grid; place-items: center; width: 2.4rem; height: 2.4rem; margin-bottom: .3rem; border-radius: 50%; background: linear-gradient(135deg, #a77bff, #7c3aed); color: #fff; font-size: 1.05rem; box-shadow: 0 6px 18px -6px rgba(139, 92, 246, .9); }
+.inv-perks strong { font-size: 1.02rem; }
+.inv-perks small { color: var(--inv-muted); font-size: .88rem; line-height: 1.45; }
+@media (max-width: 560px) { .inv-perks ul { grid-template-columns: minmax(0, 1fr); } .inv-perks li { grid-template-columns: auto minmax(0, 1fr); column-gap: .8rem; } .inv-perk-icon { grid-row: span 2; margin: 0; } }
+@media (prefers-reduced-motion: reduce) { .inv-radar, .inv-perks { animation: none; } }

@@ -26,6 +26,10 @@ test('las dos invitaciones muestran el Lanzamiento Guaynaa, su fecha y su lugar 
     assert.ok(html.includes('Jueves 15 de octubre de 2026'));
     assert.ok(html.includes('Juan Montalvo y 12 de Noviembre, Ambato, Ecuador'));
     assert.doesNotMatch(html, /1494610251215623|data-cookie-consent/);
+    assert.ok(html.includes('guaynaa-lanzamiento-oficial-1122.webp'), route);
+    assert.ok(html.includes('18:00 · hora de Ecuador'), route);
+    assert.ok(html.includes('estamos en busca de talentos para todas nuestras marcas amigas'), route);
+    for (const zone of ['Zona VIP', 'Zona de creadores', 'Zona de cócteles']) assert.ok(html.includes(zone), `${route} ${zone}`);
   }
   assert.match(render('/finados/invitacion/'), /data-answer="si">Sí, ahí estaré/);
   assert.match(render('/finados/invitacion/creadores/'), /name="consent" required/);
