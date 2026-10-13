@@ -1,0 +1,115 @@
+<?php
+declare(strict_types=1);
+
+require_once __DIR__ . '/Test.php';
+require_once __DIR__ . '/../src/Router.php';
+
+use Finados\Auth;
+use Finados\Config;
+use Finados\Database;
+use Finados\Router;
+
+$root = tempnam(sys_get_temp_dir(), 'finados-influencers-');
+if ($root === false || !unlink($root) || !mkdir($root, 0700)) throw new RuntimeException('Unable to create influencer test root.');
+register_shutdown_function(static function () use ($root): void {
+    foreach (glob($root . '/*') ?: [] as $file) is_dir($file) ? null : unlink($file);
+    rmdir($root);
+});
+file_put_contents($root . '/config.json', json_encode([
+    'environment' => 'test', 'databaseDsn' => 'sqlite::memory:', 'databaseUser' => '', 'databasePassword' => '',
+    'allowedOrigin' => 'https://example.invalid', 'encryptionKey' => base64_encode(str_repeat('v', 32)), 'hmacKey' => base64_encode(str_repeat('w', 32)),
+], JSON_THROW_ON_ERROR));
+$config = Config::fromFile($root . '/config.json');
+$pdo = Database::connect($config);
+$migrations = glob(__DIR__ . '/../migrations/*_sqlite.sql');
+sort($migrations, SORT_STRING);
+foreach ($migrations as $migration) $pdo->exec(file_get_contents($migration));
+$pdo->exec(file_get_contents(__DIR__ . '/../migrations/036_influencer_invitations_sqlite.sql')); // aplicarla dos veces no duplica el evento
+same('1', (string) $pdo->query('SELECT COUNT(*) FROM influencer_event')->fetchColumn());
+$secret = bin2hex(random_bytes(16));
+$pdo->prepare('INSERT INTO admin_users (public_id, username, password_hash, created_at, updated_at) VALUES (?, ?, ?, ?, ?)')->execute([str_repeat('f', 32), 'admin', Auth::hashPassword($secret), gmdate('Y-m-d H:i:s'), gmdate('Y-m-d H:i:s')]);
+
+if (session_status() === PHP_SESSION_ACTIVE) session_write_close();
+session_id('');
+$_SESSION = [];
+$router = new Router($config, $pdo);
+$origin = ['HTTP_ORIGIN' => 'https://example.invalid', 'REMOTE_ADDR' => '192.0.2.81'];
+$json = [...$origin, 'CONTENT_TYPE' => 'application/json'];
+$decode = static fn ($response): array => json_decode($response->body, true, 64, JSON_THROW_ON_ERROR);
+
+// El evento es público y trae lo que dio Alex: Lanzamiento Guaynaa, jueves 15 de octubre, hora por confirmar.
+$event = $decode($router->handle('GET', '/api/invitacion/evento', $origin))['event'];
+same(['Lanzamiento Guaynaa', '2026-10-15', '', 'Juan Montalvo y 12 de Noviembre, Ambato, Ecuador'], [$event['title'], $event['date'], $event['time'], $event['place']]);
+
+// El panel exige sesión.
+same(401, $router->handle('GET', '/api/influencers?kind=creador', $origin)->status);
+$session = $decode($router->handle('GET', '/api/auth/session', $origin));
+$csrf = $decode($router->handle('POST', '/api/auth/login', [...$json, 'HTTP_X_CSRF_TOKEN' => $session['csrf']], json_encode(['username' => 'admin', 'password' => $secret])))['csrf'];
+$send = static fn (string $method, string $path, array $body = []) => $router->handle($method, $path, [...$json, 'HTTP_X_CSRF_TOKEN' => $csrf], json_encode((object) $body));
+
+// Coordinación pega los nombres de los creadores, uno por línea: cada uno recibe su enlace personal.
+$created = $decode($send('POST', '/api/influencers', ['names' => "Ana Pérez\n\n  Carlos   Ruiz  \nLuz"]))['guests'];
+same(['Ana Pérez', 'Carlos Ruiz', 'Luz'], array_column($created, 'full_name'));
+same(3, count(array_unique(array_column($created, 'invite_token'))));
+foreach ($created as $guest) same(1, preg_match('/^[a-f0-9]{32}$/D', $guest['invite_token']));
+same(422, $send('POST', '/api/influencers', ['names' => " \n "])->status);
+same(422, $send('POST', '/api/influencers', ['names' => str_repeat("Nombre\n", 201)])->status);
+
+// La hora se completa desde el panel.
+same(422, $send('PATCH', '/api/influencers/evento', ['title' => 'Lanzamiento Guaynaa', 'date' => '2026-10-15', 'time' => '25:00', 'place' => 'Ambato'])->status);
+same('19:30', $decode($send('PATCH', '/api/influencers/evento', ['title' => 'Lanzamiento Guaynaa', 'date' => '2026-10-15', 'time' => '19:30', 'place' => $event['place'], 'details' => '']))['event']['time']);
+
+// El creador abre su invitación: ve su nombre y queda marcado como «abrió»; luego confirma.
+$ana = $created[0];
+$opened = $decode($router->handle('GET', '/api/invitacion/c/' . $ana['invite_token'], $origin));
+same(['Ana Pérez', 'pendiente', '19:30'], [$opened['guest']['name'], $opened['guest']['response'], $opened['event']['time']]);
+same(404, $router->handle('GET', '/api/invitacion/c/' . str_repeat('0', 32), $origin)->status);
+same(403, $router->handle('POST', '/api/invitacion/c/' . $ana['invite_token'], ['REMOTE_ADDR' => '192.0.2.81', 'CONTENT_TYPE' => 'application/json'], json_encode(['response' => 'si']))->status, 'sin Origin no se acepta');
+same(422, $router->handle('POST', '/api/invitacion/c/' . $ana['invite_token'], $json, json_encode(['response' => 'tal vez']))->status);
+same('si', $decode($router->handle('POST', '/api/invitacion/c/' . $ana['invite_token'], $json, json_encode(['response' => 'si'])))['guest']['response']);
+same('no', $decode($router->handle('POST', '/api/invitacion/c/' . $created[1]['invite_token'], $json, json_encode(['response' => 'no'])))['guest']['response']);
+$list = $decode($router->handle('GET', '/api/influencers?kind=creador', $origin));
+same([3, 1, 1, 1, 2], [$list['totals']['total'], $list['totals']['si'], $list['totals']['no'], $list['totals']['pendiente'], $list['totals']['abrieron']]);
+
+// Un enlace nuevo invalida el anterior.
+$relinked = $decode($send('POST', '/api/influencers/' . $created[2]['public_id'] . '/enlace'))['guest'];
+same(false, $relinked['invite_token'] === $created[2]['invite_token']);
+same(404, $router->handle('GET', '/api/invitacion/c/' . $created[2]['invite_token'], $origin)->status);
+
+// Nuevos creadores: el enlace general pide sus datos, su respuesta y el consentimiento.
+$newcomer = ['full_name' => 'Mía Tapia', 'whatsapp' => '098 765 4321', 'social_link' => 'mia.crea', 'followers' => 12500, 'city' => 'Ambato', 'response' => 'si', 'consent' => true];
+same(422, $router->handle('POST', '/api/invitacion/nuevo', $json, json_encode([...$newcomer, 'consent' => false]))->status);
+same(422, $router->handle('POST', '/api/invitacion/nuevo', $json, json_encode([...$newcomer, 'whatsapp' => '12']))->status);
+same(422, $router->handle('POST', '/api/invitacion/nuevo', $json, json_encode([...$newcomer, 'social_link' => 'http://inseguro.example/x']))->status);
+same(201, $router->handle('POST', '/api/invitacion/nuevo', $json, json_encode($newcomer))->status);
+// Volver con el mismo WhatsApp actualiza su registro en lugar de duplicarlo.
+same(201, $router->handle('POST', '/api/invitacion/nuevo', $json, json_encode([...$newcomer, 'followers' => '13000']))->status);
+$news = $decode($router->handle('GET', '/api/influencers?kind=nuevo', $origin));
+same(1, $news['totals']['total']);
+$mia = $news['guests'][0];
+same(['Mía Tapia', '0987654321', '@mia.crea', 13000, 'Ambato', 'si', 'pendiente', null], [$mia['full_name'], $mia['whatsapp'], $mia['social_link'], $mia['followers'], $mia['city'], $mia['response'], $mia['approval'], $mia['invite_token']]);
+same(false, str_contains((string) $pdo->query('SELECT whatsapp_enc FROM influencer_guests WHERE kind = \'nuevo\'')->fetchColumn(), '0987654321'), 'el WhatsApp se guarda cifrado');
+
+// Coordinación aprueba y anota.
+$approved = $decode($send('PATCH', '/api/influencers/' . $mia['public_id'], ['approval' => 'aprobado', 'note' => 'Llamar el miércoles']))['guest'];
+same(['aprobado', 'Llamar el miércoles'], [$approved['approval'], $approved['note']]);
+same(422, $send('PATCH', '/api/influencers/' . $mia['public_id'], ['approval' => 'quizás'])->status);
+same(1, $decode($router->handle('GET', '/api/influencers?kind=nuevo', $origin))['totals']['aprobados_si']);
+
+// Muchos registros seguidos desde la misma conexión se frenan.
+for ($i = 0; $i < 4; $i++) $router->handle('POST', '/api/invitacion/nuevo', $json, json_encode([...$newcomer, 'whatsapp' => '09900000' . $i . '0']));
+same(429, $router->handle('POST', '/api/invitacion/nuevo', $json, json_encode([...$newcomer, 'whatsapp' => '0991111111']))->status);
+
+// Retirar archiva sin borrar y el enlace deja de abrir.
+same(200, $send('POST', '/api/influencers/' . $ana['public_id'] . '/archivar')->status);
+same(404, $router->handle('GET', '/api/invitacion/c/' . $ana['invite_token'], $origin)->status);
+same(2, $decode($router->handle('GET', '/api/influencers?kind=creador', $origin))['totals']['total']);
+same('1', (string) $pdo->query("SELECT COUNT(*) FROM influencer_guests WHERE archived_at IS NOT NULL")->fetchColumn());
+
+// Exportar a CSV.
+$csv = $router->handle('GET', '/api/influencers/export?kind=nuevo', $origin);
+same(200, $csv->status);
+same(true, str_contains($csv->body, 'Mía Tapia'));
+
+// Solo existen las dos listas: Creadores y Nuevos creadores.
+same(422, $router->handle('GET', '/api/influencers?kind=otro', $origin)->status);

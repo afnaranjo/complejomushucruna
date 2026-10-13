@@ -89,7 +89,7 @@ export async function buildSite(outputDirectory = join(websiteRoot, 'dist'), { a
     const relativePath = page.route === '/' ? 'index.html' : `${page.route.slice(1)}index.html`;
     const target = join(output, relativePath);
     await mkdir(dirname(target), { recursive: true });
-    const accountPage = page.route.startsWith('/admin/') || /^\/finados\/(?:voceros|medios|emprendedores|creadoras|mfs)\/(acceso|mi-registro|restablecer|acreditacion)\/$/.test(page.route);
+    const accountPage = page.route.startsWith('/admin/') || /^\/finados\/(?:voceros|medios|emprendedores|creadoras|mfs)\/(acceso|mi-registro|restablecer|acreditacion)\/$/.test(page.route) || /^\/finados\/invitacion\/(?:creadores\/)?$/.test(page.route);
     const html = page.render ? page.render(accountPage ? { ...page, adminEnvironment, adminApiBase: developmentApi } : page) : renderLayout(page);
     await writeFile(target, `${html}\n`, 'utf8');
   }
@@ -173,6 +173,13 @@ export async function buildSite(outputDirectory = join(websiteRoot, 'dist'), { a
     "const LOCAL_API = 'http://127.0.0.1:4174/api';",
     adminEnvironment === 'production' ? 'const LOCAL_API = null;' : `const LOCAL_API = '${developmentApi}';`), 'utf8');
 
+  // Invitaciones de Influencers: página pública sin sesión, como las cuentas no lleva la API local a producción.
+  await cp(join(websiteRoot, 'src', 'finados', 'influencer-invitation.css'), join(finadosAssets, 'influencer-invitation.css'));
+  const influencerInvitationScript = await readFile(join(websiteRoot, 'src', 'finados', 'influencer-invitation.js'), 'utf8');
+  await writeFile(join(finadosAssets, 'influencer-invitation.js'), influencerInvitationScript.replace(
+    "const LOCAL_API = 'http://127.0.0.1:4174/api';",
+    adminEnvironment === 'production' ? 'const LOCAL_API = null;' : `const LOCAL_API = '${developmentApi}';`), 'utf8');
+
   const adminAssets = join(output, 'assets', 'admin');
   await mkdir(adminAssets, { recursive: true });
   await execFileAsync(process.execPath, [
@@ -216,6 +223,11 @@ export async function buildSite(outputDirectory = join(websiteRoot, 'dist'), { a
     "const LOCAL_API = 'http://127.0.0.1:4174/api';",
     adminEnvironment === 'production' ? 'const LOCAL_API = null;' : `const LOCAL_API = '${developmentApi}';`), 'utf8');
 
+  const adminInfluencersScript = await readFile(join(websiteRoot, 'src', 'admin', 'admin-influencers.js'), 'utf8');
+  await writeFile(join(adminAssets, 'admin-influencers.js'), adminInfluencersScript.replace(
+    "const LOCAL_API = 'http://127.0.0.1:4174/api';",
+    adminEnvironment === 'production' ? 'const LOCAL_API = null;' : `const LOCAL_API = '${developmentApi}';`), 'utf8');
+
   const scriptAdminUsuarios = await readFile(join(websiteRoot, 'src', 'admin', 'admin-usuarios.js'), 'utf8');
   await writeFile(join(adminAssets, 'admin-usuarios.js'), scriptAdminUsuarios.replace(
     "const LOCAL_API = 'http://127.0.0.1:4174/api';",
@@ -253,7 +265,7 @@ export async function buildSite(outputDirectory = join(websiteRoot, 'dist'), { a
 
   const htmlFiles = (await listFiles(output)).filter((file) => file.endsWith('.html'));
   for (const htmlFile of htmlFiles) {
-    const accountPage = htmlFile.startsWith('admin/') || /^finados\/(?:voceros|medios|emprendedores|creadoras|mfs)\/(acceso|mi-registro|restablecer|acreditacion)\//.test(htmlFile);
+    const accountPage = htmlFile.startsWith('admin/') || /^finados\/(?:voceros|medios|emprendedores|creadoras|mfs)\/(acceso|mi-registro|restablecer|acreditacion)\//.test(htmlFile) || /^finados\/invitacion\/(?:creadores\/)?index\.html$/.test(htmlFile);
     if (accountPage) continue;
     const path = join(output, htmlFile);
     const html = await readFile(path, 'utf8');

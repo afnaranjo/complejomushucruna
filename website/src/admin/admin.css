@@ -983,3 +983,25 @@ body[data-shift-dragging="true"], body[data-shift-dragging="true"] * { cursor: g
   .campaign-calendar { overflow-x: auto; }
   .campaign-calendar__grid { min-width: 46rem; }
 }
+
+/* Influencers: invitaciones al lanzamiento */
+.inf-add { display: grid; gap: .75rem; }
+.inf-add textarea { width: 100%; min-height: 8rem; padding: .75rem .9rem; border: 1px solid #c3b6c7; border-radius: .6rem; background: #fff; resize: vertical; }
+.inf-add .button-primary { justify-self: start; }
+.inf-share { margin: 1.25rem 0; }
+.inf-event > summary { display: flex; align-items: center; min-height: 3.5rem; padding: .75rem 0; list-style: none; }
+.inf-event > summary::-webkit-details-marker { display: none; }
+.inf-event > summary small { display: block; color: #665771; font-size: .8rem; margin-top: .15rem; }
+.inf-note { margin: .5rem 0 0; color: #665771; font-size: .78rem; }
+.inf-filter { display: inline-flex; align-items: center; gap: .5rem; font-size: .8rem; color: #665771; }
+.inf-filter select, .inf-response, .inf-approval { min-height: 2.4rem; padding: .35rem .6rem; border: 1px solid #c3b6c7; border-radius: .45rem; background: #fff; }
+.inf-response[data-response="si"], .inf-approval[data-approval="aprobado"] { border-color: #2f8a6b; background: #e6f4ee; color: #174d3e; font-weight: 650; }
+.inf-response[data-response="no"], .inf-approval[data-approval="rechazado"] { border-color: #b3593f; background: #f8e6e0; color: #762d20; }
+.inf-approval[data-approval="pendiente"] { border-color: #c99a1f; background: #fdf3d6; color: #624609; }
+.inf-actions { display: flex; flex-wrap: wrap; gap: .4rem; justify-content: flex-end; }
+.inf-actions .button-primary, .inf-actions .button-quiet, .inf-actions .button-danger { min-height: 36px; padding: 7px 11px; font-size: .74rem; }
+@media (max-width: 700px) {
+  .inf-actions { justify-content: flex-start; grid-column: 1 / -1; }
+  .inf .us-link__row { flex-wrap: wrap; }
+  .inf-add .button-primary { justify-self: stretch; }
+}

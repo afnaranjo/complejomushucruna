@@ -16,10 +16,11 @@ const ADMIN_FORMS = Object.freeze([
   { module: 'emprendedores', route: '/admin/emprendedores/', label: 'Emprendedores', description: 'De emprendedor a influencer', marker: 'E' },
   { module: 'creadoras', route: '/admin/creadoras/', label: 'Creadoras', description: 'Calendario y edición', marker: 'C', children: [{ route: '/admin/creadoras/', label: 'Creadoras', description: 'Calendario por semanas y turnos' }, { route: '/admin/creadoras/edicion/', label: 'Edición', description: 'Videos grabados por editar' }] },
   { module: 'mfs', route: '/admin/mfs/', label: 'Mushuc Freestyle', description: 'Inscripciones y audiciones', marker: 'F' },
+  { module: 'influencers', route: '/admin/influencers/', label: 'Influencers', description: 'Invitaciones a creadores', marker: 'I', children: [{ route: '/admin/influencers/creadores/', label: 'Creadores', description: 'Invitación personal con su nombre' }, { route: '/admin/influencers/nuevos/', label: 'Nuevos creadores', description: 'Invitación abierta con registro' }] },
   { module: 'usuarios', route: '/admin/usuarios/', label: 'Usuarios', description: 'Cuentas, roles y actividad', marker: 'U' },
 ]);
 // Public landing that each panel returns to from its header.
-const PANEL_LANDINGS = Object.freeze({ '/admin/noticias/': ['/finados/', 'Volver a Finados'], '/admin/panel/': ['/finados/', 'Volver a Finados'], '/admin/voceros/': ['/finados/voceros/', 'Volver a Voceros'], '/admin/medios/': ['/finados/medios/', 'Volver a Medios'], '/admin/medios/eventos/': ['/finados/medios/', 'Volver a Medios'], '/admin/medios/calendario/': ['/finados/medios/', 'Volver a Medios'], '/admin/medios/gira/': ['/finados/medios/', 'Volver a Medios'], '/admin/produccion/activaciones/': ['/finados/', 'Volver a Finados'], '/admin/produccion/sol/': ['/finados/', 'Volver a Finados'], '/admin/produccion/luna/': ['/finados/', 'Volver a Finados'], '/admin/emprendedores/': ['/finados/emprendedores/', 'Volver a Emprendedores'], '/admin/creadoras/': ['/finados/creadoras/', 'Volver a Creadoras'], '/admin/creadoras/edicion/': ['/finados/creadoras/', 'Volver a Creadoras'], '/admin/mfs/': ['/finados/mfs/', 'Volver a Mushuc Freestyle'], '/admin/usuarios/': ['/finados/', 'Volver a Finados'] });
+const PANEL_LANDINGS = Object.freeze({ '/admin/noticias/': ['/finados/', 'Volver a Finados'], '/admin/panel/': ['/finados/', 'Volver a Finados'], '/admin/voceros/': ['/finados/voceros/', 'Volver a Voceros'], '/admin/medios/': ['/finados/medios/', 'Volver a Medios'], '/admin/medios/eventos/': ['/finados/medios/', 'Volver a Medios'], '/admin/medios/calendario/': ['/finados/medios/', 'Volver a Medios'], '/admin/medios/gira/': ['/finados/medios/', 'Volver a Medios'], '/admin/produccion/activaciones/': ['/finados/', 'Volver a Finados'], '/admin/produccion/sol/': ['/finados/', 'Volver a Finados'], '/admin/produccion/luna/': ['/finados/', 'Volver a Finados'], '/admin/emprendedores/': ['/finados/emprendedores/', 'Volver a Emprendedores'], '/admin/creadoras/': ['/finados/creadoras/', 'Volver a Creadoras'], '/admin/creadoras/edicion/': ['/finados/creadoras/', 'Volver a Creadoras'], '/admin/mfs/': ['/finados/mfs/', 'Volver a Mushuc Freestyle'], '/admin/influencers/creadores/': ['/finados/', 'Volver a Finados'], '/admin/influencers/nuevos/': ['/finados/', 'Volver a Finados'], '/admin/usuarios/': ['/finados/', 'Volver a Finados'] });
 const PROGRESS_LEVELS = ['En preparación', 'Primer paso', 'Gorra', 'Kit completo', 'Trae a los tuyos', 'Noche de concierto', 'Tope'];
 const VIDEO_SLOTS = Object.freeze([1, 2, 3, 4, 5]);
 const videoSlotControls = (prefix = 'video') => VIDEO_SLOTS.map(slot => `<label class="admin-video-control"><span class="admin-video-check"><input type="checkbox" name="${prefix}_${slot}_enabled" value="1"><strong>Video ${slot}</strong></span><span class="admin-video-date"><span>Habilitado desde</span><input type="date" name="${prefix}_${slot}_enabled_at" aria-label="Fecha de habilitación del video ${slot}"></span></label>`).join('');
@@ -77,7 +78,7 @@ function layout(page, content, script = '/assets/admin/admin.js?v=20261012-views
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' blob:; media-src blob:; font-src 'self'; connect-src ${connectSources}; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="admin-api-base" content="${api}">
 <link rel="icon" href="/assets/finados/favicon-finados.png">
-<link rel="stylesheet" href="/assets/admin/admin.css?v=20261001-mapa-4">
+<link rel="stylesheet" href="/assets/admin/admin.css?v=20261013-influencers-1">
 <script type="module" src="${script}"></script>
 </head><body class="admin-page">
 <a class="skip-link" href="#contenido">Ir al contenido</a>
@@ -675,7 +676,7 @@ export function renderAdminCreadorasEdicionPage(page) {
 </main></div>`, ADMIN_CREADORAS_EDICION_SCRIPT);
 }
 
-export const ADMIN_USUARIOS_SCRIPT = '/assets/admin/admin-usuarios.js?v=20261001-mapa-4';
+export const ADMIN_USUARIOS_SCRIPT = '/assets/admin/admin-usuarios.js?v=20261013-influencers-1';
 
 /** Usuarios: cada persona con su cuenta y su rol, los roles con sus módulos y quién hizo qué. */
 export function renderAdminUsuariosPage(page) {
@@ -797,4 +798,56 @@ export function renderAdminMfsPage(page) {
 <section class="admin-reset"><h3>Recuperar acceso</h3><button type="button" class="button-quiet" data-admin-reset disabled>Generar enlace temporal</button><div data-reset-output hidden><label>Enlace temporal<input type="text" readonly data-reset-url autocomplete="off" spellcheck="false"></label><button type="button" class="button-quiet" data-reset-copy>Copiar enlace</button></div><p class="feedback" data-reset-feedback role="status" aria-live="polite"></p></section>
 <div class="detail-danger-zone"><p>Retirar oculta la inscripción y desactiva el acceso; no borra nada y se puede deshacer.</p><button type="button" class="button-danger" data-admin-delete disabled>Retirar inscripción</button><button type="button" class="button-primary" data-admin-restore hidden>Restaurar inscripción</button></div>
 </dialog></main></div>`, ADMIN_MFS_SCRIPT);
+}
+
+// Influencers: invitaciones al lanzamiento. «Creadores» lleva el nombre de cada uno; «Nuevos creadores» es abierta.
+export const ADMIN_INFLUENCERS_SCRIPT = '/assets/admin/admin-influencers.js?v=20261013-influencers-1';
+
+export function renderAdminInfluencersPage(page) {
+  const personal = page.route === '/admin/influencers/creadores/';
+  const kind = personal ? 'creador' : 'nuevo';
+  const heading = personal
+    ? '<h1>Creadores</h1><p>Escribe los nombres de los creadores invitados. Cada uno recibe su propio enlace con una invitación personalizada para confirmar si asiste.</p>'
+    : '<h1>Nuevos creadores</h1><p>Un solo enlace para todos: la persona deja sus datos y confirma su asistencia. Tú decides a quién aprobar.</p>';
+  const intake = personal
+    ? `<section class="admin-panel-section" aria-labelledby="inf-add-title"><div class="records-heading"><div><h2 id="inf-add-title">Agregar creadores</h2><p>Un nombre por línea, tal como quieres que aparezca en su invitación.</p></div></div>
+<form class="inf-add" data-add-form><label class="sr-only" for="inf-names">Nombres de los creadores</label><textarea id="inf-names" name="names" rows="5" maxlength="20000" placeholder="Ana Pérez&#10;Carlos Ruiz&#10;…"></textarea><button type="submit" class="button-primary" disabled>Crear invitaciones</button></form></section>`
+    : `<section class="us-link inf-share" aria-labelledby="inf-share-title"><h2 id="inf-share-title">Enlace para nuevos creadores</h2><p>Compártelo donde quieras (WhatsApp, historias, grupos). Cada persona deja sus datos y confirma.</p>
+<div class="us-link__row"><input type="text" readonly data-open-link aria-label="Enlace para nuevos creadores" spellcheck="false"><button type="button" class="button-primary" data-open-copy>Copiar enlace</button><a class="button-quiet" data-open-preview target="_blank" rel="noopener">Ver invitación</a></div></section>`;
+  const head = personal
+    ? '<th scope="col">Creador</th><th scope="col">Abrió</th><th scope="col">Respuesta</th><th scope="col"><span class="sr-only">Acciones</span></th>'
+    : '<th scope="col">Creador</th><th scope="col">Cuenta</th><th scope="col">Respuesta</th><th scope="col">Aprobación</th><th scope="col"><span class="sr-only">Acciones</span></th>';
+  return layout(page, `<div class="admin-shell">${adminSidebar(page)}<main id="contenido" class="admin-workspace inf" data-admin-influencers data-kind="${kind}">${campaignBanner}
+<div class="workspace-heading"><div><p class="eyebrow">Finados 2026 · Influencers</p>${heading}<p data-admin-user>Comprobando acceso…</p></div>
+<div class="workspace-actions"><button type="button" class="button-quiet" data-export disabled>Exportar CSV</button></div></div>
+<p class="feedback" data-admin-feedback role="status" aria-live="polite" aria-atomic="true">Cargando invitaciones…</p>
+<button type="button" class="button-quiet" data-session-retry hidden>Reintentar conexión</button>
+<section aria-label="Resumen de respuestas" class="summary" data-summary aria-busy="true"></section>
+<details class="admin-panel-section inf-event" data-event-panel><summary><span><strong>Datos del evento</strong> <small data-event-summary>Lanzamiento Guaynaa</small></span></summary>
+<form class="record-form" data-event-form><fieldset disabled><div class="record-grid">
+<label class="record-grid__wide">Nombre del evento<input name="title" maxlength="160" required></label>
+<label>Fecha<input type="date" name="date" required></label>
+<label>Hora (vacía = «Hora por confirmar»)<input type="time" name="time"></label>
+<label class="record-grid__wide">Lugar<input name="place" maxlength="240" required></label>
+<label class="record-grid__wide">Detalles para los invitados (opcional)<textarea name="details" rows="3" maxlength="2000" placeholder="Ej.: Llega 15 minutos antes. Presenta tu invitación en la entrada."></textarea></label>
+</div><p class="feedback" data-event-feedback role="status" aria-live="polite"></p><button type="submit" class="button-primary">Guardar evento</button></fieldset></form>
+<p class="inf-note">Estos datos se muestran en las dos invitaciones (Creadores y Nuevos creadores).</p></details>
+${intake}
+<section class="records" aria-labelledby="inf-list-title" aria-busy="true" data-list-region><div class="records-heading"><h2 id="inf-list-title">${personal ? 'Invitados' : 'Registros'}</h2><label class="inf-filter">Mostrar<select data-filter><option value="">Todos</option><option value="si">Confirmaron que sí</option><option value="no">No asistirán</option><option value="pendiente">Sin respuesta</option>${personal ? '' : '<option value="por_aprobar">Por aprobar</option>'}</select></label></div>
+<p data-list-message role="status">Cargando…</p>
+<table><caption class="sr-only">${personal ? 'Creadores invitados y su respuesta' : 'Nuevos creadores registrados, su respuesta y su aprobación'}</caption><thead><tr>${head}</tr></thead><tbody data-rows></tbody></table></section>
+<dialog class="record-dialog record-dialog--compact" data-edit-dialog aria-label="Editar creador"><form method="dialog" class="record-form">
+<div class="records-heading"><div><h2>Editar creador</h2><p>Los datos de contacto solo los ve el equipo.</p></div></div>
+<div class="record-grid">
+<label class="record-grid__wide">Nombre (como aparece en la invitación)<input name="full_name" maxlength="160" required></label>
+<label>WhatsApp<input name="whatsapp" type="tel" maxlength="20" placeholder="09…"></label>
+<label>Cuenta principal<input name="social_link" maxlength="500" placeholder="@usuario o enlace https"></label>
+<label>Seguidores<input name="followers" type="number" min="0" step="1"></label>
+<label>Ciudad<input name="city" maxlength="120"></label>
+<label class="record-grid__wide">Nota interna<textarea name="note" rows="3" maxlength="2000"></textarea></label>
+</div>
+<p class="feedback" data-edit-feedback role="status" aria-live="polite"></p>
+<div class="record-form__actions"><button type="submit" value="cancel" class="button-quiet">Cancelar</button><button type="submit" value="save" class="button-primary">Guardar</button></div>
+</form></dialog>
+</main></div>`, ADMIN_INFLUENCERS_SCRIPT);
 }

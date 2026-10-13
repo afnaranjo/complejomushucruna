@@ -1,0 +1,99 @@
+@font-face { font-family: "Anton"; src: url("/assets/finados/fonts/anton-latin.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "DM Serif Display"; src: url("/assets/finados/fonts/dm-serif-display-italic-latin.woff2") format("woff2"); font-style: italic; font-display: swap; }
+@font-face { font-family: "Inter"; src: url("/assets/finados/fonts/inter-variable-latin.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
+
+:root {
+  --inv-night: #391f6f;
+  --inv-deep: #1f0f40;
+  --inv-purple: #6e2ce0;
+  --inv-fuchsia: #ff2e8a;
+  --inv-yellow: #ffc42e;
+  --inv-cyan: #00d2d6;
+  --inv-cream: #f4eada;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body.inv {
+  margin: 0; min-height: 100vh; overflow-x: hidden;
+  background:
+    radial-gradient(60rem 40rem at 110% -10%, rgba(255, 46, 138, .35), transparent 60%),
+    radial-gradient(50rem 36rem at -20% 30%, rgba(0, 210, 214, .18), transparent 60%),
+    linear-gradient(180deg, var(--inv-night), var(--inv-deep));
+  color: var(--inv-cream); font: 400 1rem/1.6 "Inter", "Helvetica Neue", Arial, sans-serif;
+}
+.inv-chumbi { position: fixed; inset: 0 0 auto; z-index: 5; height: 10px; background: repeating-linear-gradient(90deg, var(--inv-fuchsia) 0 28px, var(--inv-yellow) 28px 56px, var(--inv-cyan) 56px 84px, var(--inv-purple) 84px 112px); }
+main { width: min(100% - 32px, 46rem); margin: 0 auto; padding: 3.2rem 0 4rem; }
+
+/* Portada de la invitación */
+.inv-hero { padding: 1.4rem 0 2.2rem; animation: inv-rise .9s cubic-bezier(.2, .8, .3, 1) both; }
+.inv-logo { display: block; width: clamp(150px, 34vw, 210px); height: auto; margin-bottom: 2rem; }
+.inv-eyebrow { display: inline-block; margin: 0 0 1.1rem; padding: .35rem .8rem; border-radius: 999px; background: var(--inv-yellow); color: var(--inv-night); font: 800 .74rem/1.2 "Inter", sans-serif; letter-spacing: .16em; text-transform: uppercase; }
+.inv-title { margin: 0 0 1.2rem; font: 400 clamp(2.5rem, 9vw, 4.6rem)/1.08 "Anton", "Arial Narrow", sans-serif; text-transform: uppercase; letter-spacing: .01em; }
+.inv-title span { display: block; }
+.inv-name { color: var(--inv-fuchsia); font: italic 400 clamp(2.3rem, 8vw, 4.2rem)/1.05 "DM Serif Display", Georgia, serif; text-transform: none; margin-bottom: .2rem; overflow-wrap: anywhere; }
+.inv-lead { margin: 0 0 1rem; font-size: clamp(1.08rem, 2.6vw, 1.3rem); line-height: 1.55; }
+.inv-lead strong { color: var(--inv-yellow); }
+.inv-story { margin: 0; padding-left: 1rem; border-left: 4px solid var(--inv-cyan); font: italic 400 clamp(1.08rem, 2.6vw, 1.28rem)/1.5 "DM Serif Display", Georgia, serif; opacity: .95; }
+
+/* Tarjeta del evento */
+.inv-event { overflow: hidden; margin: 0 0 2rem; border: 3px solid var(--inv-cream); border-radius: 22px; background: rgba(31, 15, 64, .78); box-shadow: 8px 8px 0 var(--inv-fuchsia); animation: inv-rise .9s .15s cubic-bezier(.2, .8, .3, 1) both; }
+.inv-art { margin: 0; }
+.inv-art img { display: block; width: 100%; height: auto; }
+.inv-art figcaption { padding: .55rem 1rem; background: var(--inv-cyan); color: var(--inv-deep); font: 700 .8rem/1.3 "Inter", sans-serif; }
+.inv-event-body { padding: clamp(1.2rem, 4vw, 1.8rem); }
+.inv-kicker { margin: 0 0 .3rem; color: var(--inv-cyan); font: 800 .74rem/1.3 "Inter", sans-serif; letter-spacing: .16em; text-transform: uppercase; }
+.inv-event h2 { margin: 0 0 1.2rem; font: 400 clamp(1.9rem, 6vw, 2.8rem)/1 "Anton", sans-serif; text-transform: uppercase; }
+.inv-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem 1.6rem; margin: 0; }
+.inv-facts dt { color: var(--inv-yellow); font: 800 .72rem/1.3 "Inter", sans-serif; letter-spacing: .16em; text-transform: uppercase; }
+.inv-facts dd { margin: .3rem 0 0; font-weight: 700; font-size: 1.05rem; line-height: 1.4; }
+.inv-facts small { display: block; margin-top: .2rem; font-weight: 500; font-size: .92rem; opacity: .85; }
+.inv-map { display: table; margin-top: .45rem; color: var(--inv-cyan); font-weight: 700; font-size: .92rem; text-underline-offset: 4px; }
+.inv-details { margin: 1.2rem 0 0; white-space: pre-line; opacity: .9; }
+
+/* Confirmación */
+.inv-rsvp { padding: clamp(1.3rem, 4vw, 2rem); border-radius: 22px; background: var(--inv-cream); color: var(--inv-night); box-shadow: 8px 8px 0 var(--inv-cyan); animation: inv-rise .9s .3s cubic-bezier(.2, .8, .3, 1) both; }
+.inv-rsvp h2 { margin: 0 0 .6rem; font: 400 clamp(1.9rem, 6vw, 2.6rem)/1 "Anton", sans-serif; text-transform: uppercase; }
+.inv-status { min-height: 1.6em; margin: 0 0 1rem; font-weight: 600; }
+.inv-status[data-error="true"] { color: #b3123f; }
+.inv-choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .9rem; }
+.inv-yes, .inv-no { min-height: 3.6rem; padding: .9rem 1.2rem; border: 3px solid var(--inv-night); border-radius: 16px; font: 800 1.05rem/1.2 "Inter", sans-serif; cursor: pointer; transition: transform .15s, box-shadow .15s; }
+.inv-yes { background: var(--inv-fuchsia); color: #fff; box-shadow: 5px 5px 0 var(--inv-night); }
+.inv-no { background: transparent; color: var(--inv-night); }
+.inv-yes:hover, .inv-no:hover { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--inv-night); }
+.inv-yes:focus-visible, .inv-no:focus-visible, .inv-form input:focus-visible { outline: 3px solid var(--inv-purple); outline-offset: 3px; }
+.inv-yes:disabled, .inv-no:disabled { opacity: .6; cursor: wait; }
+.inv-choices [aria-pressed="true"].inv-no { background: var(--inv-night); color: var(--inv-cream); }
+.inv-choices [aria-pressed="true"].inv-yes { outline: 4px solid var(--inv-yellow); outline-offset: 3px; }
+
+/* Formulario de nuevos creadores */
+.inv-form { display: grid; gap: 1rem; }
+.inv-form label { display: grid; gap: .35rem; font-weight: 700; font-size: .95rem; }
+.inv-form input:not([type="radio"]):not([type="checkbox"]) { width: 100%; min-height: 3rem; padding: .7rem .9rem; border: 2px solid var(--inv-night); border-radius: 12px; background: #fff; color: var(--inv-night); font: 500 1rem/1.3 "Inter", sans-serif; }
+.inv-form-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.inv-answer { display: flex; flex-wrap: wrap; gap: .6rem 1.4rem; margin: 0; padding: 0; border: 0; }
+.inv-answer legend { margin-bottom: .4rem; font-weight: 800; }
+.inv-answer label, .inv-consent { display: flex !important; align-items: flex-start; gap: .55rem; font-weight: 600 !important; }
+.inv-answer input, .inv-consent input { width: 1.25rem; height: 1.25rem; margin-top: .15rem; accent-color: var(--inv-fuchsia); flex: none; }
+.inv-consent { font-size: .9rem !important; line-height: 1.45; }
+.inv-form .inv-yes { justify-self: start; min-width: 12rem; }
+.inv-thanks { padding: 1rem 0 .2rem; font: italic 400 clamp(1.3rem, 4vw, 1.7rem)/1.4 "DM Serif Display", Georgia, serif; outline: none; }
+
+.inv-noscript { width: min(100% - 32px, 46rem); margin: 0 auto 2rem; }
+
+/* Al confirmar que sí: un destello de celebración */
+body[data-celebrate="true"] .inv-rsvp { animation: inv-celebrate 1.2s cubic-bezier(.2, .8, .3, 1); }
+
+@keyframes inv-rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+@keyframes inv-celebrate { 0% { box-shadow: 8px 8px 0 var(--inv-cyan); } 35% { box-shadow: 0 0 0 10px var(--inv-yellow), 8px 8px 0 var(--inv-fuchsia); transform: scale(1.015); } 100% { box-shadow: 8px 8px 0 var(--inv-cyan); transform: none; } }
+
+@media (max-width: 560px) {
+  main { padding-top: 2.6rem; }
+  .inv-facts, .inv-choices, .inv-form-row { grid-template-columns: minmax(0, 1fr); }
+  .inv-form .inv-yes { justify-self: stretch; }
+  .inv-event { box-shadow: 5px 5px 0 var(--inv-fuchsia); }
+  .inv-rsvp { box-shadow: 5px 5px 0 var(--inv-cyan); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .inv-hero, .inv-event, .inv-rsvp, body[data-celebrate="true"] .inv-rsvp { animation: none; }
+  .inv-yes, .inv-no { transition: none; }
+}

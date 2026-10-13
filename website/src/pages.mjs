@@ -26,6 +26,7 @@ import { renderFinadosShowsPage } from './finados/shows-page.mjs';
 import { renderMfsPage } from './finados/mfs-page.mjs';
 import { renderMfsPortalPage } from './finados/mfs-portal-page.mjs';
 import { renderMfsVerificationPage } from './finados/mfs-verification-page.mjs';
+import { renderInfluencerOpenPage, renderInfluencerPersonalPage } from './finados/influencer-invitation-page.mjs';
 import { mfsLegalDocuments, mfsLegalRoutes, renderMfsLegalPage } from './finados/mfs-legal-page.mjs';
 import { renderStandsAccessPage } from './finados/stands-page.mjs';
 import { renderVocerosLegalPage } from './finados/voceros-legal-page.mjs';
@@ -39,7 +40,7 @@ import { renderCreadoraPortalPage } from './creadoras/portal-page.mjs';
 import { renderCreadoraLegalPage } from './creadoras/legal-page.mjs';
 import { renderAdminNoticiasPage,
   renderAdminCreadorasPage, renderAdminCreadorasEdicionPage, renderAdminMfsPage, renderAdminUsuariosPage, renderAdminActivarPage,
-  renderAdminEmprendedoresPage, renderAdminLoginPage, renderAdminMediosEventosPage, renderAdminMediosCalendarioPage, renderAdminMediosGiraPage, renderAdminProduccionPage, renderAdminMediosPage, renderAdminPanelPage, renderAdminVocerosPage } from './admin/page.mjs';
+  renderAdminEmprendedoresPage, renderAdminLoginPage, renderAdminMediosEventosPage, renderAdminMediosCalendarioPage, renderAdminMediosGiraPage, renderAdminProduccionPage, renderAdminMediosPage, renderAdminPanelPage, renderAdminVocerosPage, renderAdminInfluencersPage } from './admin/page.mjs';
 import { renderMediaLandingBody } from './medios/landing-page.mjs';
 import { renderMediaPortalPage } from './medios/portal-page.mjs';
 import { renderMediaAccreditationPage } from './medios/accreditation-page.mjs';
@@ -397,6 +398,10 @@ export const pages = Object.freeze([
   { route: '/admin/activar/', title: 'Elige tu contraseña · Administración', indexable: false, render: renderAdminActivarPage },
   { route: '/admin/noticias/', title: 'Noticias · Administración', indexable: false, render: renderAdminNoticiasPage },
   { route: '/admin/mfs/', title: 'Mushuc Freestyle · Administración', indexable: false, render: renderAdminMfsPage },
+  { route: '/admin/influencers/creadores/', title: 'Influencers · Creadores · Administración', indexable: false, render: renderAdminInfluencersPage },
+  { route: '/admin/influencers/nuevos/', title: 'Influencers · Nuevos creadores · Administración', indexable: false, render: renderAdminInfluencersPage },
+  { route: '/finados/invitacion/', title: 'Tu invitación al Lanzamiento Guaynaa', description: 'Invitación personal al Lanzamiento Guaynaa de Finados Mushuc Runa 2026.', indexable: false, render: renderInfluencerPersonalPage },
+  { route: '/finados/invitacion/creadores/', title: 'Invitación a creadores · Lanzamiento Guaynaa', description: 'Invitación abierta a creadores de contenido al Lanzamiento Guaynaa de Finados Mushuc Runa 2026.', indexable: false, render: renderInfluencerOpenPage },
   { route: '/finados/creadoras/', title: 'Creadoras de contenido · Finados 2026', indexable: false, render: renderCreadorasLandingPage },
   { route: '/finados/creadoras/acceso/', title: 'Tu cuenta de creadora', indexable: false, render: renderCreadoraPortalPage },
   { route: '/finados/creadoras/mi-registro/', title: 'Mi registro · Creadoras', indexable: false, render: renderCreadoraPortalPage },

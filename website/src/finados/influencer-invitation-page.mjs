@@ -1,0 +1,104 @@
+import { escapeHtml as esc } from '../render/html.mjs';
+import { apiBasesForCsp, LOCAL_API_BASE, PRIMARY_API_BASE } from './runtime-origins.mjs';
+
+// Lo que se ve antes de que responda la API; el panel puede cambiarlo (sobre todo la hora).
+export const influencerEventDefaults = Object.freeze({
+  title: 'Lanzamiento Guaynaa',
+  date: '2026-10-15',
+  dateLabel: 'Jueves 15 de octubre de 2026',
+  place: 'Juan Montalvo y 12 de Noviembre, Ambato, Ecuador',
+});
+export const influencerInvitationVersion = '20261013-invitacion-1';
+
+function shell(page, { api, body, kind }) {
+  const connect = apiBasesForCsp(api);
+  return `<!doctype html>
+<html lang="es"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${esc(page.title)} | Finados Mushuc Runa 2026</title>
+<meta name="description" content="${esc(page.description)}">
+<meta name="robots" content="noindex, nofollow, noarchive"><meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src ${connect}; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta name="invitation-api-base" content="${esc(api)}"><meta name="theme-color" content="#391f6f">
+<link rel="canonical" href="https://complejomushucruna.com${esc(page.route)}">
+<link rel="icon" href="/assets/finados/favicon-finados.png">
+<link rel="preload" href="/assets/finados/fonts/anton-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/finados/influencer-invitation.css?v=${influencerInvitationVersion}">
+<script type="module" src="/assets/finados/influencer-invitation.js?v=${influencerInvitationVersion}"></script>
+</head><body class="inv" data-invitation="${kind}">
+<div class="inv-chumbi" aria-hidden="true"></div>
+<main id="contenido">
+${body}
+</main>
+<noscript><p class="inv-noscript">Activa JavaScript para confirmar tu asistencia.</p></noscript>
+</body></html>`;
+}
+
+const eventCard = `<section class="inv-event" aria-labelledby="inv-event-title">
+<figure class="inv-art"><img src="/assets/finados/guaynaa-finados-960.webp" width="960" height="480" alt="Arte oficial de Guaynaa para el Megaescenario de Finados Mushuc Runa 2026" decoding="async"><figcaption>Guaynaa en el Megaescenario de Finados · domingo 1 de noviembre</figcaption></figure>
+<div class="inv-event-body">
+<p class="inv-kicker">Te esperamos en</p>
+<h2 id="inv-event-title" data-event-title>${esc(influencerEventDefaults.title)}</h2>
+<dl class="inv-facts">
+<div><dt>Cuándo</dt><dd><span data-event-date>${esc(influencerEventDefaults.dateLabel)}</span><small data-event-time>Hora por confirmar</small></dd></div>
+<div><dt>Dónde</dt><dd><span data-event-place>${esc(influencerEventDefaults.place)}</span><a class="inv-map" data-event-map href="https://www.google.com/maps/search/?api=1&amp;query=${encodeURIComponent(influencerEventDefaults.place)}" target="_blank" rel="noopener noreferrer">Cómo llegar →</a></dd></div>
+</dl>
+<p class="inv-details" data-event-details hidden></p>
+</div>
+</section>`;
+
+const pageApi = page => page.adminEnvironment === 'development' ? (page.adminApiBase ?? LOCAL_API_BASE) : PRIMARY_API_BASE;
+
+/** «Creadores»: invitación personal. El nombre llega desde el enlace (?c=…) que coordinación le envía. */
+export function renderInfluencerPersonalPage(page) {
+  const body = `<header class="inv-hero">
+<img class="inv-logo" src="/assets/finados/logo-finados.svg?v=20260903" width="766" height="449" alt="Finados Mushuc Runa 2026, legado que nos une">
+<p class="inv-eyebrow">Una invitación solo para ti</p>
+<h1 class="inv-title"><span class="inv-name" data-guest-name>Hola</span><span>queremos que estés aquí.</span></h1>
+<p class="inv-lead">Antes de que todo Ecuador lo sepa, queremos que tú lo vivas primero. Te invitamos al <strong>Lanzamiento Guaynaa</strong> de Finados Mushuc Runa 2026.</p>
+<p class="inv-story">Finados es tradición, es familia, es volver a casa. Y cada año esa tradición la cuentan voces como la tuya. Por eso no imaginamos este lanzamiento sin ti: tu manera de contar las cosas es parte de lo que Finados quiere ser.</p>
+</header>
+${eventCard}
+<section class="inv-rsvp" aria-labelledby="inv-rsvp-title" data-rsvp>
+<h2 id="inv-rsvp-title">¿Nos acompañas?</h2>
+<p class="inv-status" data-status role="status" aria-live="polite">Cargando tu invitación…</p>
+<div class="inv-choices" data-choices hidden>
+<button type="button" class="inv-yes" data-answer="si">Sí, ahí estaré</button>
+<button type="button" class="inv-no" data-answer="no">Esta vez no podré</button>
+</div>
+</section>`;
+  return shell(page, { api: pageApi(page), body, kind: 'creador' });
+}
+
+/** «Nuevos creadores»: invitación abierta; la persona deja sus datos y confirma. */
+export function renderInfluencerOpenPage(page) {
+  const body = `<header class="inv-hero">
+<img class="inv-logo" src="/assets/finados/logo-finados.svg?v=20260903" width="766" height="449" alt="Finados Mushuc Runa 2026, legado que nos une">
+<p class="inv-eyebrow">Invitación para creadores</p>
+<h1 class="inv-title"><span class="inv-name">Tu voz</span><span>también es parte de esta tradición.</span></h1>
+<p class="inv-lead">Queremos que vivas desde adentro el <strong>Lanzamiento Guaynaa</strong> de Finados Mushuc Runa 2026, junto a los creadores que cuentan nuestra tierra.</p>
+<p class="inv-story">Finados es tradición, es familia, es volver a casa. Y cada historia que se comparte la mantiene viva. Si creas contenido y quieres ser parte de este momento, déjanos tus datos y confirma tu asistencia.</p>
+</header>
+${eventCard}
+<section class="inv-rsvp" aria-labelledby="inv-form-title">
+<h2 id="inv-form-title">Confirma tu asistencia</h2>
+<form class="inv-form" data-open-form novalidate>
+<label>Nombre y apellido<input name="full_name" autocomplete="name" maxlength="160" required></label>
+<label>WhatsApp<input name="whatsapp" type="tel" inputmode="tel" autocomplete="tel" maxlength="20" placeholder="09…" required></label>
+<label>Tu cuenta principal<input name="social_link" maxlength="500" placeholder="@usuario o enlace de TikTok / Instagram" autocapitalize="none" spellcheck="false" required></label>
+<div class="inv-form-row">
+<label>Seguidores aproximados<input name="followers" type="number" inputmode="numeric" min="0" max="1000000000" step="1" required></label>
+<label>Ciudad<input name="city" autocomplete="address-level2" maxlength="120" required></label>
+</div>
+<fieldset class="inv-answer"><legend>¿Asistirás?</legend>
+<label><input type="radio" name="response" value="si" required> Sí, ahí estaré</label>
+<label><input type="radio" name="response" value="no"> Esta vez no podré</label>
+</fieldset>
+<label class="inv-consent"><input type="checkbox" name="consent" required> Autorizo a Finados Mushuc Runa a usar estos datos solo para coordinar mi asistencia a este evento.</label>
+<p class="inv-status" data-status role="status" aria-live="polite"></p>
+<button type="submit" class="inv-yes">Confirmar</button>
+</form>
+<div class="inv-thanks" data-thanks hidden tabindex="-1"></div>
+</section>`;
+  return shell(page, { api: pageApi(page), body, kind: 'nuevo' });
+}

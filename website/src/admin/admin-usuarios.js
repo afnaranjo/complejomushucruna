@@ -80,7 +80,7 @@ export function ecuadorTime(value) {
 const AREAS = Object.freeze({
   admin: 'Panel', admin_user: 'Usuarios', admin_role: 'Usuarios', campaign: 'Noticias', vocero: 'Voceros', vocero_account: 'Voceros',
   media: 'Medios', media_account: 'Medios', media_event: 'Medios', creadora: 'Creadoras', creadora_account: 'Creadoras',
-  emprendedor: 'Emprendedores', emprendedor_account: 'Emprendedores', mfs: 'Mushuc Freestyle', mfs_account: 'Mushuc Freestyle', production: 'Producción',
+  emprendedor: 'Emprendedores', emprendedor_account: 'Emprendedores', mfs: 'Mushuc Freestyle', mfs_account: 'Mushuc Freestyle', production: 'Producción', influencer: 'Influencers',
 });
 const ACTIONS = Object.freeze({
   login: 'entró al panel', created: 'creó un registro', created_by_admin: 'creó un registro', updated: 'editó un registro', updated_by_admin: 'editó un registro',
@@ -98,6 +98,7 @@ const ACTIONS = Object.freeze({
   tour_person_created: 'agregó una persona a la gira', tour_person_updated: 'editó una persona de la gira', tour_person_retired: 'retiró a una persona de la gira',
   video_added_by_admin: 'agregó un video', video_removed_by_admin: 'quitó un video', video_views_updated: 'registró visualizaciones', invitation_created: 'generó una invitación',
   claim_approved: 'aprobó una vinculación', claim_rejected: 'rechazó una vinculación', audition_corrected: 'corrigió una audición',
+  event_updated: 'cambió los datos del evento', responded: 'respondió su invitación', registered: 'se registró en la invitación abierta', link_created: 'generó un enlace de invitación',
 });
 
 /** Una línea legible de la auditoría: sección y qué hizo. */

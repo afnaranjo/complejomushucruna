@@ -274,6 +274,10 @@ final class Router
                 $response = $this->emprendedorAccount($method, $path, $query, $server, $rawBody, $post, $files, $origin, $ip, $token, $headers);
                 if ($response !== null) return $response;
             }
+            // Invitaciones de Influencers: públicas, sin sesión. Solo se aceptan envíos desde nuestros sitios.
+            if ($path === '/api/invitacion' || str_starts_with($path, '/api/invitacion/')) {
+                return $this->influencerInvitation($method, $path, $query, $server, $rawBody, $origin, $ip, $headers);
+            }
             // Media accounts use their own session scope, isolated from Voceros and administration.
             if (str_starts_with($path, '/api/media/')) {
                 $response = $this->mediaAccount($method, $path, $query, $server, $rawBody, $files, $origin, $ip, $token, $headers);
@@ -367,6 +371,9 @@ final class Router
             }
             if ($path === '/api/noticias' || str_starts_with($path, '/api/noticias/')) {
                 return $this->news($method, $path, $query, $server, $rawBody, $ip, $user, $headers);
+            }
+            if ($path === '/api/influencers' || str_starts_with($path, '/api/influencers/')) {
+                return $this->influencerAdmin($method, $path, $query, $server, $rawBody, $ip, $user, $headers);
             }
             if ($path === '/api/creadoras' || str_starts_with($path, '/api/creadoras/')) {
                 return $this->creadoraAdmin($method, $path, $query, $server, $rawBody, $ip, $user, $headers);
@@ -585,6 +592,94 @@ final class Router
     {
         require_once __DIR__ . '/MfsAuth.php';
         return $this->mfsAuthInstance ??= new MfsAuth($this->pdo, $this->config);
+    }
+
+    private function influencers(): InfluencerRepository
+    {
+        require_once __DIR__ . '/InfluencerRepository.php';
+        return new InfluencerRepository($this->pdo, $this->crypto, $this->audit);
+    }
+
+    /** La invitación que abre cada influencer: el evento, su enlace personal o el registro de nuevos creadores. */
+    private function influencerInvitation(string $method, string $path, array $query, array $server, string $rawBody, ?string $origin, mixed $ip, array $headers): Response
+    {
+        $notAllowed = fn (): Response => $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+        if ($query !== []) throw new InvalidArgumentException();
+        if ($method === 'POST') {
+            // Sin sesión: el envío debe venir de nuestros sitios (el JSON obliga además a la verificación previa del navegador).
+            if ($origin === null) throw new Forbidden();
+            if (!is_string($ip) || inet_pton($ip) === false) throw new Forbidden();
+        }
+        if ($path === '/api/invitacion/evento') {
+            if ($method !== 'GET') return $notAllowed();
+            return $this->json(200, ['ok' => true, 'event' => $this->influencers()->event()], $headers);
+        }
+        if ($path === '/api/invitacion/nuevo') {
+            if ($method !== 'POST') return $notAllowed();
+            $body = $this->body($server, $rawBody, ['full_name', 'whatsapp', 'social_link', 'followers', 'city', 'response', 'consent']);
+            return $this->json(201, ['ok' => true, 'guest' => $this->influencers()->register($body, (string) $ip)], $headers);
+        }
+        if (preg_match('~^/api/invitacion/c/([a-f0-9]{32})$~D', $path, $parts)) {
+            if ($method === 'GET') return $this->json(200, ['ok' => true, ...$this->influencers()->openInvitation($parts[1])], $headers);
+            if ($method !== 'POST') return $notAllowed();
+            $body = $this->body($server, $rawBody, ['response']);
+            return $this->json(200, ['ok' => true, 'guest' => $this->influencers()->respond($parts[1], $body['response'] ?? null, (string) $ip)], $headers);
+        }
+        return $this->error(404, 'not_found', 'Recurso no encontrado.', $headers);
+    }
+
+    /** Influencers → Creadores y Nuevos creadores: invitados, respuestas, aprobación y datos del evento. */
+    private function influencerAdmin(string $method, string $path, array $query, array $server, string $rawBody, mixed $ip, array $user, array $headers): Response
+    {
+        $repository = $this->influencers();
+        $notAllowed = fn (): Response => $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+        if ($path === '/api/influencers') {
+            if ($method === 'GET') {
+                if (array_diff(array_keys($query), ['kind']) !== []) throw new InvalidArgumentException();
+                return $this->json(200, $repository->list(InfluencerRepository::kind($query['kind'] ?? null)), $headers);
+            }
+            if ($method !== 'POST') return $notAllowed();
+            if ($query !== []) throw new InvalidArgumentException();
+            $body = $this->body($server, $rawBody, ['names']);
+            return $this->json(201, ['guests' => $repository->createCreators($body['names'] ?? null, $user['id'], (string) $ip)], $headers);
+        }
+        if ($path === '/api/influencers/export') {
+            if ($method !== 'GET') return $notAllowed();
+            if (array_diff(array_keys($query), ['kind']) !== []) throw new InvalidArgumentException();
+            $kind = InfluencerRepository::kind($query['kind'] ?? null);
+            $columns = ['full_name', 'whatsapp', 'social_link', 'followers', 'city', 'response', 'responded_at', 'opened_at', 'approval', 'note', 'created_at'];
+            $stream = fopen('php://temp', 'w+');
+            if ($stream === false) throw new \RuntimeException();
+            fwrite($stream, "\xEF\xBB\xBF");
+            fputcsv($stream, $columns, ',', '"', '', "\r\n");
+            foreach ($repository->list($kind)['guests'] as $guest) {
+                fputcsv($stream, array_map(static function (string $column) use ($guest): string {
+                    $value = (string) ($guest[$column] ?? '');
+                    return preg_match('/^[\x00-\x20]*[=+@-]/', $value) ? "'" . $value : $value;
+                }, $columns), ',', '"', '', "\r\n");
+            }
+            rewind($stream);
+            $csv = (string) stream_get_contents($stream);
+            fclose($stream);
+            $this->audit->log('influencer.exported', $user['id'], 'influencer', null, [], (string) $ip);
+            $headers['Content-Type'] = 'text/csv; charset=utf-8';
+            $headers['Content-Disposition'] = 'attachment; filename="influencers-' . $kind . '-' . gmdate('Y-m-d') . '.csv"';
+            return new Response(200, $headers, $csv);
+        }
+        if ($query !== []) throw new InvalidArgumentException();
+        if ($path === '/api/influencers/evento') {
+            if ($method !== 'PATCH') return $notAllowed();
+            return $this->json(200, ['event' => $repository->updateEvent($this->body($server, $rawBody, ['title', 'date', 'time', 'place', 'details']), $user['id'], (string) $ip)], $headers);
+        }
+        if (preg_match('~^/api/influencers/([a-f0-9]{32})(/archivar|/enlace)?$~D', $path, $parts)) {
+            $action = $parts[2] ?? '';
+            if ($action === '/archivar') { if ($method !== 'POST') return $notAllowed(); $repository->archive($parts[1], $user['id'], (string) $ip); return $this->json(200, ['ok' => true], $headers); }
+            if ($action === '/enlace') { if ($method !== 'POST') return $notAllowed(); return $this->json(200, ['guest' => $repository->newLink($parts[1], $user['id'], (string) $ip)], $headers); }
+            if ($method !== 'PATCH') return $notAllowed();
+            $body = $this->body($server, $rawBody, ['full_name', 'whatsapp', 'social_link', 'followers', 'city', 'note', 'approval', 'response']);
+            return $this->json(200, ['guest' => $repository->update($parts[1], $body, $user['id'], (string) $ip)], $headers);
+        }
+        return $this->error(404, 'not_found', 'Recurso no encontrado.', $headers);
     }
 
     /** Producción → Activaciones, Cronograma Sol y Cronograma Luna: biblioteca de piezas y bloques en el calendario. */

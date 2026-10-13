@@ -60,7 +60,7 @@ same([['*'], 'Administración', '/admin/panel/'], [$me['modules'], $me['role'], 
 $data = $decode($get('/api/admin-users'));
 same(['Administración', 'Community', 'Comunicación', 'Producción'], array_column($data['roles'], 'name'));
 same(true, $data['roles'][0]['system'] && $data['roles'][0]['all']);
-same(['panel', 'noticias', 'voceros', 'medios', 'produccion', 'emprendedores', 'creadoras', 'mfs', 'usuarios'], array_column($data['modules'], 'key'));
+same(['panel', 'noticias', 'voceros', 'medios', 'produccion', 'emprendedores', 'creadoras', 'mfs', 'influencers', 'usuarios'], array_column($data['modules'], 'key'));
 $roles = array_column($data['roles'], 'public_id', 'name');
 
 // Crear una cuenta: nace sin contraseña conocida y con un enlace para elegirla.
