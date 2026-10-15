@@ -121,15 +121,16 @@ export function createInvitationClient(baseUrl = API, fetchImplementation = glob
   };
 }
 
+export const DRESS_CODE = 'Blanco';
+
 function paintEvent(event) {
   if (!event) return;
-  const set = (selector, text) => { const node = document.querySelector(selector); if (node && text) node.textContent = text; };
+  const set = (selector, text) => { if (text) for (const node of document.querySelectorAll(selector)) node.textContent = text; };
   set('[data-event-title]', event.title);
   set('[data-event-date]', eventDateLabel(event.date));
   set('[data-event-time]', eventTimeLabel(event.time));
   set('[data-event-place]', event.place);
-  const map = document.querySelector('[data-event-map]');
-  if (map && event.place) map.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.place)}`;
+  if (event.place) for (const map of document.querySelectorAll('[data-event-map]')) map.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.place)}`;
   const details = document.querySelector('[data-event-details]');
   if (details) { details.textContent = event.details ?? ''; details.hidden = !event.details; }
 }
@@ -157,6 +158,7 @@ async function startPersonal(client) {
     mark(data.guest.response);
     const badgeLink = document.querySelector('[data-badge-link]');
     if (badgeLink && data.guest.badge) { badgeLink.querySelector('a').href = badgePath(token); badgeLink.hidden = false; }
+    if (data.guest.response === 'si') showConfirmed(client, token, data);
   } catch (error) { status.textContent = error.message; status.dataset.error = 'true'; return; }
   for (const button of buttons) {
     button.addEventListener('click', async () => {
@@ -171,6 +173,31 @@ async function startPersonal(client) {
         buttons.forEach(item => { item.disabled = false; });
       }
     });
+  }
+}
+
+/** Quien ya confirmó ve primero su confirmación, los datos del evento y su gafete listo para descargar. */
+async function showConfirmed(client, token, data) {
+  const card = document.querySelector('[data-confirmed]');
+  if (!card) return;
+  const first = String(data.guest.name ?? '').trim().split(/\s+/)[0] ?? '';
+  card.querySelector('[data-confirmed-name]').textContent = first ? `¡${first}, ya confirmaste!` : '¡Ya confirmaste!';
+  document.querySelector('main')?.prepend(card);
+  card.hidden = false;
+  document.body.dataset.celebrate = 'true';
+  if (!data.guest.badge) { card.querySelector('[data-confirmed-pending]').hidden = false; return; }
+  const box = card.querySelector('[data-confirmed-badge]');
+  box.hidden = false;
+  try {
+    const badge = await client.badge(token);
+    if (!badge.ready) { box.hidden = true; card.querySelector('[data-confirmed-pending]').hidden = false; return; }
+    await mountBadge(badge, {
+      status: box.querySelector('[data-confirmed-status]'), preview: box.querySelector('[data-confirmed-preview]'), actions: box.querySelector('[data-confirmed-actions]'),
+      download: box.querySelector('[data-confirmed-download]'), share: box.querySelector('[data-confirmed-share]'),
+    });
+  } catch (error) {
+    const status = box.querySelector('[data-confirmed-status]');
+    status.textContent = error.message || 'No se pudo preparar el gafete.'; status.dataset.error = 'true';
   }
 }
 
@@ -265,7 +292,7 @@ export async function influencerBadgeBlob(guest, event, siteOrigin) {
   const round = (x, y, width, height, radius) => { context.beginPath(); if (context.roundRect) context.roundRect(x, y, width, height, radius); else context.rect(x, y, width, height); };
   try { await Promise.all(['900 80px Inter', '800 30px Inter', '600 30px Inter'].map(font => document.fonts?.load(font))); } catch { /* fuente de respaldo */ }
   const [poster, finados] = await Promise.all([
-    loadImage('/assets/finados/guaynaa-lanzamiento-oficial-1122.webp').catch(() => null),
+    loadImage('/assets/finados/guaynaa-lanzamiento-hoy-1122.webp').catch(() => null),
     loadImage('/assets/finados/logo-finados.svg').catch(() => null),
   ]);
   context.fillStyle = '#0e0916'; context.fillRect(0, 0, W, H);
@@ -278,7 +305,7 @@ export async function influencerBadgeBlob(guest, event, siteOrigin) {
   context.fillStyle = glow; context.fillRect(0, 1100, W, 820);
 
   // Panel de vidrio con el nombre, los datos y el QR.
-  const panel = { x: 56, y: 1250, width: W - 112, height: 540 };
+  const panel = { x: 56, y: 1170, width: W - 112, height: 590 };
   context.fillStyle = 'rgba(35, 24, 51, .94)'; round(panel.x, panel.y, panel.width, panel.height, 40); context.fill();
   context.strokeStyle = 'rgba(196, 170, 255, .55)'; context.lineWidth = 3; round(panel.x, panel.y, panel.width, panel.height, 40); context.stroke();
   const left = panel.x + 48, textWidth = panel.width - 48 - 330;
@@ -305,6 +332,8 @@ export async function influencerBadgeBlob(guest, event, siteOrigin) {
   if (when) context.fillText(when, left, infoY + 46);
   const place = String(event?.place ?? '').split(',').slice(0, 2).join(',').trim();
   if (place) { let text = place; while (context.measureText(text).width > textWidth && text.length > 10) text = `${text.slice(0, -2)}…`; context.fillText(text, left, infoY + 88); }
+  context.font = '800 28px Inter, Arial, sans-serif'; context.fillStyle = '#ffffff';
+  context.fillText(`DRESS CODE: ${DRESS_CODE.toUpperCase()}`, left, infoY + 134);
   context.font = '600 22px Inter, Arial, sans-serif'; context.fillStyle = '#b9aecb';
   context.fillText('Presenta este QR en la entrada', left, panel.y + panel.height - 44);
   const qrSize = 270, qrX = panel.x + panel.width - qrSize - 48, qrY = panel.y + (panel.height - qrSize) / 2;
@@ -332,8 +361,14 @@ async function startBadge(client) {
       : 'Recibimos tu confirmación. Tu gafete estará listo cuando el equipo confirme tu lugar; te avisaremos por WhatsApp.';
     return;
   }
-  const preview = document.querySelector('[data-badge-preview]');
-  const actions = document.querySelector('[data-badge-actions]');
+  await mountBadge(data, {
+    status, preview: document.querySelector('[data-badge-preview]'), actions: document.querySelector('[data-badge-actions]'),
+    download: document.querySelector('[data-badge-download]'), share: document.querySelector('[data-badge-share]'),
+  });
+}
+
+/** Dibuja el gafete y conecta sus botones de descargar y compartir. */
+async function mountBadge(data, { status, preview, actions, download: downloadButton, share }) {
   let file = null, url = '';
   try {
     const blob = await influencerBadgeBlob(data.guest, data.event, resolveRuntimeOrigins(location).siteOrigin);
@@ -341,11 +376,11 @@ async function startBadge(client) {
     url = URL.createObjectURL(blob);
     file = new File([blob], 'gafete-lanzamiento-guaynaa.png', { type: 'image/png' });
     preview.src = url; preview.hidden = false; actions.hidden = false;
-    status.textContent = '¡Listo! Descárgalo y llévalo en tu teléfono.';
+    status.textContent = '¡Listo! Descárgalo y llévalo en tu teléfono.'; status.dataset.error = 'false';
   } catch { status.textContent = 'No se pudo preparar el gafete. Recarga la página para intentarlo de nuevo.'; status.dataset.error = 'true'; return; }
   const download = () => { const link = Object.assign(document.createElement('a'), { href: url, download: 'gafete-lanzamiento-guaynaa.png' }); document.body.append(link); link.click(); link.remove(); };
-  document.querySelector('[data-badge-download]').addEventListener('click', download);
-  document.querySelector('[data-badge-share]').addEventListener('click', async () => {
+  downloadButton.addEventListener('click', download);
+  share.addEventListener('click', async () => {
     try {
       if (navigator.share && navigator.canShare?.({ files: [file] })) await navigator.share({ title: 'Lanzamiento Guaynaa', text: '¡Nos vemos en el Lanzamiento Guaynaa! #FinadosMushucRuna', files: [file] });
       else { download(); status.textContent = 'Tu teléfono descargó el gafete para que lo compartas.'; }

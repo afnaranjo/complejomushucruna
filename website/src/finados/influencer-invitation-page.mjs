@@ -8,8 +8,9 @@ export const influencerEventDefaults = Object.freeze({
   dateLabel: 'Jueves 15 de octubre de 2026',
   time: '18:00',
   place: 'Juan Montalvo y 12 de Noviembre, Ambato, Ecuador',
+  dressCode: 'Blanco',
 });
-export const influencerInvitationVersion = '20261013-invitacion-5';
+export const influencerInvitationVersion = '20261015-invitacion-6';
 
 function shell(page, { api, body, kind }) {
   const connect = apiBasesForCsp(api);
@@ -23,7 +24,7 @@ function shell(page, { api, body, kind }) {
 <meta name="invitation-api-base" content="${esc(api)}"><meta name="theme-color" content="#140d1f">
 <link rel="canonical" href="https://complejomushucruna.com${esc(page.route)}">
 <link rel="icon" href="/assets/finados/favicon-finados.png">
-<link rel="preload" href="/assets/finados/guaynaa-lanzamiento-oficial-640.webp" as="image" media="(max-width: 700px)"><link rel="preload" href="/assets/finados/guaynaa-lanzamiento-oficial-1122.webp" as="image" media="(min-width: 701px)">
+<link rel="preload" href="/assets/finados/guaynaa-lanzamiento-hoy-640.webp" as="image" media="(max-width: 700px)"><link rel="preload" href="/assets/finados/guaynaa-lanzamiento-hoy-1122.webp" as="image" media="(min-width: 701px)">
 <link rel="stylesheet" href="/assets/finados/influencer-invitation.css?v=${influencerInvitationVersion}">
 <script type="module" src="/assets/finados/influencer-invitation.js?v=${influencerInvitationVersion}"></script>
 </head><body class="inv" data-invitation="${kind}">
@@ -43,6 +44,7 @@ const eventCard = `<section class="inv-event" aria-labelledby="inv-event-title">
 <dl class="inv-facts">
 <div><dt>Cuándo</dt><dd><span data-event-date>${esc(influencerEventDefaults.dateLabel)}</span><small data-event-time>${esc(influencerEventDefaults.time)} · hora de Ecuador</small></dd></div>
 <div><dt>Dónde</dt><dd><span data-event-place>${esc(influencerEventDefaults.place)}</span><a class="inv-map" data-event-map href="https://www.google.com/maps/search/?api=1&amp;query=${encodeURIComponent(influencerEventDefaults.place)}" target="_blank" rel="noopener noreferrer">Cómo llegar →</a></dd></div>
+<div class="inv-dress"><dt>Dress code</dt><dd><span class="inv-dress-swatch" aria-hidden="true"></span>${esc(influencerEventDefaults.dressCode)}<small>Ven vestido de blanco.</small></dd></div>
 </dl>
 <p class="inv-details" data-event-details hidden></p>
 </div>
@@ -68,12 +70,32 @@ const pageApi = page => page.adminEnvironment === 'development' ? (page.adminApi
 /** «Creadores»: invitación personal. El nombre llega desde el enlace (?c=…) que coordinación le envía. */
 export function renderInfluencerPersonalPage(page) {
   const body = `<header class="inv-hero">
-<figure class="inv-poster"><img src="/assets/finados/guaynaa-lanzamiento-oficial-1122.webp" srcset="/assets/finados/guaynaa-lanzamiento-oficial-640.webp 640w, /assets/finados/guaynaa-lanzamiento-oficial-1122.webp 1122w" sizes="(max-width: 700px) calc(100vw - 32px), 34rem" width="1122" height="1402" alt="SanFra te trae a Guaynaa. 15 de octubre, 18:00, Finados Mushuc Runa." fetchpriority="high" decoding="async"></figure>
+<figure class="inv-poster"><img src="/assets/finados/guaynaa-lanzamiento-hoy-1122.webp" srcset="/assets/finados/guaynaa-lanzamiento-hoy-640.webp 640w, /assets/finados/guaynaa-lanzamiento-hoy-1122.webp 1122w" sizes="(max-width: 700px) calc(100vw - 32px), 34rem" width="1122" height="1402" alt="SanFra te trae a Guaynaa. Hoy a las 18:00. Dress code: blanco. Finados Mushuc Runa 2026." fetchpriority="high" decoding="async"></figure>
 <p class="inv-eyebrow">Una invitación solo para ti</p>
 <h1 class="inv-title"><span class="inv-name" data-guest-name>Hola</span><span>queremos que estés aquí.</span></h1>
 <p class="inv-lead">Antes de que todo Ecuador lo sepa, queremos que tú lo vivas primero. <strong>SanFra</strong> y <strong>Finados Mushuc Runa</strong> te invitan al <strong>Lanzamiento Guaynaa</strong>.</p>
 <p class="inv-story">Finados es tradición, es familia, es volver a casa. Y cada año esa tradición la cuentan voces como la tuya. Por eso no imaginamos este lanzamiento sin ti: tu manera de contar las cosas es parte de lo que Finados quiere ser.</p>
 </header>
+<section class="inv-confirmed" aria-labelledby="inv-confirmed-title" data-confirmed hidden>
+<p class="inv-kicker"><span class="inv-eq" aria-hidden="true"><i></i><i></i><i></i></span>Asistencia confirmada</p>
+<h2 id="inv-confirmed-title"><span data-confirmed-name>¡Ya confirmaste!</span> Te esperamos.</h2>
+<dl class="inv-facts">
+<div><dt>Cuándo</dt><dd><span data-event-date>${esc(influencerEventDefaults.dateLabel)}</span><small data-event-time>${esc(influencerEventDefaults.time)} · hora de Ecuador</small></dd></div>
+<div><dt>Dónde</dt><dd><span data-event-place>${esc(influencerEventDefaults.place)}</span><a class="inv-map" data-event-map href="https://www.google.com/maps/search/?api=1&amp;query=${encodeURIComponent(influencerEventDefaults.place)}" target="_blank" rel="noopener noreferrer">Cómo llegar →</a></dd></div>
+<div class="inv-dress"><dt>Dress code</dt><dd><span class="inv-dress-swatch" aria-hidden="true"></span>${esc(influencerEventDefaults.dressCode)}<small>Ven vestido de blanco.</small></dd></div>
+</dl>
+<div class="inv-confirmed-badge" data-confirmed-badge hidden>
+<p class="inv-status" data-confirmed-status role="status" aria-live="polite">Preparando tu gafete…</p>
+<img class="inv-badge-preview" data-confirmed-preview alt="Tu gafete para el Lanzamiento Guaynaa con tu nombre y tu código QR" width="1080" height="1920" hidden>
+<div class="inv-choices" data-confirmed-actions hidden>
+<button type="button" class="inv-yes" data-confirmed-download>Descargar mi gafete</button>
+<button type="button" class="inv-no" data-confirmed-share>Compartir</button>
+</div>
+<p class="inv-confirmed-note">Presenta el código QR de tu gafete en la entrada.</p>
+</div>
+<p class="inv-confirmed-note" data-confirmed-pending hidden>Tu gafete estará listo cuando el equipo confirme tu lugar.</p>
+<p class="inv-change"><a href="#inv-rsvp-title" data-confirmed-change>Cambiar mi respuesta</a></p>
+</section>
 ${radarAndPerks}
 ${eventCard}
 <section class="inv-rsvp" aria-labelledby="inv-rsvp-title" data-rsvp>
@@ -91,7 +113,7 @@ ${eventCard}
 /** «Nuevos creadores»: invitación abierta; la persona deja sus datos y confirma. */
 export function renderInfluencerOpenPage(page) {
   const body = `<header class="inv-hero">
-<figure class="inv-poster"><img src="/assets/finados/guaynaa-lanzamiento-oficial-1122.webp" srcset="/assets/finados/guaynaa-lanzamiento-oficial-640.webp 640w, /assets/finados/guaynaa-lanzamiento-oficial-1122.webp 1122w" sizes="(max-width: 700px) calc(100vw - 32px), 34rem" width="1122" height="1402" alt="SanFra te trae a Guaynaa. 15 de octubre, 18:00, Finados Mushuc Runa." fetchpriority="high" decoding="async"></figure>
+<figure class="inv-poster"><img src="/assets/finados/guaynaa-lanzamiento-hoy-1122.webp" srcset="/assets/finados/guaynaa-lanzamiento-hoy-640.webp 640w, /assets/finados/guaynaa-lanzamiento-hoy-1122.webp 1122w" sizes="(max-width: 700px) calc(100vw - 32px), 34rem" width="1122" height="1402" alt="SanFra te trae a Guaynaa. Hoy a las 18:00. Dress code: blanco. Finados Mushuc Runa 2026." fetchpriority="high" decoding="async"></figure>
 <p class="inv-eyebrow">Invitación para creadores</p>
 <h1 class="inv-title"><span class="inv-name">Tu voz</span><span>también es parte de esta tradición.</span></h1>
 <p class="inv-lead"><strong>SanFra</strong> y <strong>Finados Mushuc Runa</strong> te invitan a vivir desde adentro el <strong>Lanzamiento Guaynaa</strong>, junto a los creadores que cuentan nuestra tierra.</p>
@@ -124,7 +146,7 @@ ${eventCard}
 /** La pantalla de «gracias» a la que pasa cada persona después de confirmar. */
 export function renderInfluencerThanksPage(page) {
   const body = `<header class="inv-hero inv-thanks-hero">
-<figure class="inv-poster inv-poster--small"><img src="/assets/finados/guaynaa-lanzamiento-oficial-640.webp" width="640" height="800" alt="SanFra te trae a Guaynaa. 15 de octubre, 18:00, Finados Mushuc Runa." decoding="async"></figure>
+<figure class="inv-poster inv-poster--small"><img src="/assets/finados/guaynaa-lanzamiento-hoy-640.webp" width="640" height="800" alt="SanFra te trae a Guaynaa. Hoy a las 18:00. Dress code: blanco. Finados Mushuc Runa 2026." decoding="async"></figure>
 <p class="inv-eyebrow" data-thanks-eyebrow>Confirmación recibida</p>
 <h1 class="inv-title"><span class="inv-name" data-thanks-title>¡Gracias!</span><span data-thanks-subtitle>Tu respuesta quedó registrada.</span></h1>
 <p class="inv-lead" data-thanks-message>Gracias por responder a la invitación al <strong>Lanzamiento Guaynaa</strong>.</p>
@@ -136,6 +158,7 @@ export function renderInfluencerThanksPage(page) {
 <dl class="inv-facts">
 <div><dt>Cuándo</dt><dd><span data-event-date>${esc(influencerEventDefaults.dateLabel)}</span><small data-event-time>${esc(influencerEventDefaults.time)} · hora de Ecuador</small></dd></div>
 <div><dt>Dónde</dt><dd><span data-event-place>${esc(influencerEventDefaults.place)}</span><a class="inv-map" data-event-map href="https://www.google.com/maps/search/?api=1&amp;query=${encodeURIComponent(influencerEventDefaults.place)}" target="_blank" rel="noopener noreferrer">Cómo llegar →</a></dd></div>
+<div class="inv-dress"><dt>Dress code</dt><dd><span class="inv-dress-swatch" aria-hidden="true"></span>${esc(influencerEventDefaults.dressCode)}<small>Ven vestido de blanco.</small></dd></div>
 </dl>
 <p class="inv-details" data-event-details hidden></p>
 </div>

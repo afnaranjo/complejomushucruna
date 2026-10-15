@@ -26,8 +26,9 @@ test('las dos invitaciones muestran el Lanzamiento Guaynaa, su fecha y su lugar 
     assert.ok(html.includes('Jueves 15 de octubre de 2026'));
     assert.ok(html.includes('Juan Montalvo y 12 de Noviembre, Ambato, Ecuador'));
     assert.doesNotMatch(html, /1494610251215623|data-cookie-consent/);
-    assert.ok(html.includes('guaynaa-lanzamiento-oficial-1122.webp'), route);
+    assert.ok(html.includes('guaynaa-lanzamiento-hoy-1122.webp'), route);
     assert.ok(html.includes('18:00 · hora de Ecuador'), route);
+    assert.match(html, /<dt>Dress code<\/dt><dd>[^<]*<span class="inv-dress-swatch"[^>]*><\/span>Blanco/, route);
     assert.ok(html.includes('estamos en busca de talentos para todas nuestras marcas amigas'), route);
     for (const zone of ['Zona VIP', 'Zona de creadores', 'Zona de cócteles']) assert.ok(html.includes(zone), `${route} ${zone}`);
   }
@@ -110,4 +111,14 @@ test('enlace corto, gafete con QR y validación en la puerta', () => {
     assert.match(html, /noindex, nofollow, noarchive/);
     assert.match(html, /img-src 'self' blob:/);
   }
+});
+
+test('la invitación personal trae la vista de quien ya confirmó con gafete y dress code', () => {
+  const html = render('/finados/invitacion/');
+  assert.match(html, /data-confirmed hidden/);
+  assert.match(html, /data-confirmed-download>Descargar mi gafete/);
+  assert.equal((html.match(/<dt>Dress code<\/dt>/g) ?? []).length, 2);
+  const thanks = render('/finados/invitacion/gracias/');
+  assert.ok(thanks.includes('guaynaa-lanzamiento-hoy-640.webp'));
+  assert.ok(thanks.includes('Dress code'));
 });

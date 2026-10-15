@@ -161,3 +161,17 @@ body[data-celebrate="true"] .inv-thanks-hero .inv-name { animation: inv-glow 2.4
 .inv-verify-result[data-valid="false"] .inv-verify-state { color: #fda4af; }
 .inv-verify-name { margin: 0 0 .4rem; font: italic 400 clamp(1.8rem, 7vw, 2.4rem)/1.15 "DM Serif Display", Georgia, serif; overflow-wrap: anywhere; }
 .inv-verify-meta { margin: .2rem 0 0; color: var(--inv-lilac); }
+
+/* Dress code y vista de quien ya confirmó */
+.inv-facts .inv-dress { grid-column: 1 / -1; }
+.inv-dress dd { display: flex; flex-wrap: wrap; align-items: center; gap: .2rem .6rem; text-transform: uppercase; letter-spacing: .08em; }
+.inv-dress small { flex-basis: 100%; text-transform: none; letter-spacing: 0; }
+.inv-dress-swatch { width: 1.3rem; height: 1.3rem; border-radius: 50%; background: #fff; box-shadow: 0 0 0 2px rgba(196, 170, 255, .7), 0 0 18px rgba(255, 255, 255, .55); }
+.inv-confirmed { margin: 0 0 1.6rem; padding: clamp(1.3rem, 4vw, 1.8rem); border: 2px solid rgba(134, 239, 172, .7); border-radius: 26px; background: linear-gradient(160deg, rgba(34, 197, 94, .16), rgba(35, 24, 51, .92) 55%); text-align: left; animation: inv-rise .8s cubic-bezier(.2, .8, .3, 1) both; }
+.inv-confirmed .inv-kicker { color: #86efac; }
+.inv-confirmed h2 { margin: .3rem 0 1rem; font: 800 clamp(1.6rem, 6vw, 2.1rem)/1.12 "Inter", sans-serif; letter-spacing: -.02em; }
+.inv-confirmed h2 span { display: block; }
+.inv-confirmed-badge { margin-top: 1.4rem; text-align: center; }
+.inv-confirmed-note { margin: .9rem 0 0; color: var(--inv-muted); font-size: .92rem; text-align: center; }
+.inv-confirmed .inv-change { margin: 1rem 0 0; }
+@media (prefers-reduced-motion: reduce) { .inv-confirmed { animation: none; } }
