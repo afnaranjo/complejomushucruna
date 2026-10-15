@@ -98,7 +98,14 @@ same([false, 'aprobacion', null], [$pending['ready'], $pending['reason'], $pendi
 $approved = $decode($send('PATCH', '/api/influencers/' . $mia['public_id'], ['approval' => 'aprobado', 'note' => 'Llamar el miércoles']))['guest'];
 same(['aprobado', 'Llamar el miércoles'], [$approved['approval'], $approved['note']]);
 same(422, $send('PATCH', '/api/influencers/' . $mia['public_id'], ['approval' => 'quizás'])->status);
-same(1, $decode($router->handle('GET', '/api/influencers?kind=nuevo', $origin))['totals']['aprobados_si']);
+// Al aprobarse pasa de Nuevos creadores a Creadores, con su enlace, su respuesta y su origen.
+same([0, 2], [$decode($router->handle('GET', '/api/influencers?kind=nuevo', $origin))['totals']['total'], $decode($router->handle('GET', '/api/influencers?kind=creador', $origin))['totals']['aprobados_si']]);
+same(['creador', true, $mia['invite_token']], [$approved['kind'], $approved['from_open'], $approved['invite_token']]);
+// Si vuelve a llenar el registro abierto no se duplica: solo cambia su respuesta.
+same(201, $router->handle('POST', '/api/invitacion/nuevo', $json, json_encode([...$newcomer, 'response' => 'no']))->status);
+$again = array_values(array_filter($decode($router->handle('GET', '/api/influencers?kind=creador', $origin))['guests'], static fn (array $guest): bool => $guest['public_id'] === $mia['public_id']));
+same([0, 'no'], [$decode($router->handle('GET', '/api/influencers?kind=nuevo', $origin))['totals']['total'], $again[0]['response']]);
+same('si', $decode($send('PATCH', '/api/influencers/' . $mia['public_id'], ['response' => 'si']))['guest']['response']);
 
 $badge = $decode($router->handle('GET', '/api/invitacion/gafete/' . $mia['invite_token'], $origin));
 same([true, $mia['public_id']], [$badge['ready'], $badge['guest']['public_id']]);
@@ -107,7 +114,7 @@ same(true, $decode($router->handle('GET', '/api/invitacion/gafete/' . $ana['invi
 same([false, 'respuesta'], array_values(array_intersect_key($decode($router->handle('GET', '/api/invitacion/gafete/' . $created[1]['invite_token'], $origin)), ['ready' => 0, 'reason' => 0])));
 // Al escanear el QR la puerta ve el nombre y si la invitación es válida, sin teléfono.
 $scan = $decode($router->handle('GET', '/api/invitacion/verificar/' . $mia['public_id'], $origin))['verification'];
-same([true, 'Mía Tapia', 'Nuevo creador'], [$scan['valid'], $scan['name'], $scan['kind']]);
+same([true, 'Mía Tapia', 'Creador invitado'], [$scan['valid'], $scan['name'], $scan['kind']]);
 same(false, array_key_exists('whatsapp', $scan));
 same(false, $decode($router->handle('GET', '/api/invitacion/verificar/' . $created[1]['public_id'], $origin))['verification']['valid']);
 same(404, $router->handle('GET', '/api/invitacion/verificar/' . str_repeat('a', 32), $origin)->status);
@@ -119,14 +126,14 @@ same(429, $router->handle('POST', '/api/invitacion/nuevo', $json, json_encode([.
 // Retirar archiva sin borrar y el enlace deja de abrir.
 same(200, $send('POST', '/api/influencers/' . $ana['public_id'] . '/archivar')->status);
 same(404, $router->handle('GET', '/api/invitacion/c/' . $ana['invite_token'], $origin)->status);
-same(2, $decode($router->handle('GET', '/api/influencers?kind=creador', $origin))['totals']['total']);
+same(3, $decode($router->handle('GET', '/api/influencers?kind=creador', $origin))['totals']['total']);
 same('1', (string) $pdo->query("SELECT COUNT(*) FROM influencer_guests WHERE archived_at IS NOT NULL")->fetchColumn());
 // Un gafete de alguien retirado deja de ser válido en la puerta.
 $retired = $decode($router->handle('GET', '/api/invitacion/verificar/' . $ana['public_id'], $origin))['verification'];
 same([false, true], [$retired['valid'], $retired['retired']]);
 
 // Exportar a CSV.
-$csv = $router->handle('GET', '/api/influencers/export?kind=nuevo', $origin);
+$csv = $router->handle('GET', '/api/influencers/export?kind=creador', $origin);
 same(200, $csv->status);
 same(true, str_contains($csv->body, 'Mía Tapia'));
 

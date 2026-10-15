@@ -187,6 +187,7 @@ export async function initializeInfluencers() {
     const contact = [guest.whatsapp, guest.city].filter(Boolean).join(' · ');
     if (contact) who.append(node('small', contact));
     if (guest.note) who.append(node('small', `Nota: ${guest.note}`));
+    if (guest.from_open) who.append(node('small', 'Vino de Nuevos creadores · aprobado', 'inf-from-open'));
     const cells = [who];
     if (kind === 'creador') {
       const opened = node('td', guest.opened_at ? `Sí · ${ecuadorTime(guest.opened_at)}` : 'Todavía no');
@@ -221,7 +222,7 @@ export async function initializeInfluencers() {
       approvalSelect.dataset.approval = guest.approval;
       approvalSelect.className = 'inf-approval';
       approvalSelect.addEventListener('change', async () => {
-        try { await client.update(guest.public_id, { approval: approvalSelect.value }); feedback(`${guest.full_name}: ${APPROVALS[approvalSelect.value].toLowerCase()}.`, 'success'); await refresh(); }
+        try { await client.update(guest.public_id, { approval: approvalSelect.value }); feedback(approvalSelect.value === 'aprobado' ? `${guest.full_name} fue aprobado y pasó a Creadores.` : `${guest.full_name}: ${APPROVALS[approvalSelect.value].toLowerCase()}.`, 'success'); await refresh(); }
         catch (error) { fail(error); await refresh(); }
       });
       approval.append(approvalSelect);

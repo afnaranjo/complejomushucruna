@@ -122,6 +122,8 @@ final class InfluencerRepository
             $sets[] = 'approval = ?'; $values[] = $input['approval'];
             // Al aprobar a un nuevo creador recibe su enlace propio, con el que descarga su gafete.
             if ($input['approval'] === 'aprobado' && ($row['invite_token'] ?? null) === null) { $sets[] = 'invite_token = ?'; $values[] = $this->newToken(); }
+            // Un nuevo creador aprobado pasa a la lista de Creadores; conserva sus datos, su respuesta y su enlace.
+            if ($input['approval'] === 'aprobado' && $row['kind'] === 'nuevo') { $sets[] = 'kind = ?'; $values[] = 'creador'; }
         }
         if (array_key_exists('response', $input)) {
             // Coordinación también registra la respuesta que le llega por teléfono o en persona.
@@ -235,6 +237,17 @@ final class InfluencerRepository
         $ipHash = $this->crypto->lookup($ip);
         $lookup = $this->crypto->lookup($phone);
 
+        // Si ya fue aprobado y pasó a Creadores, solo se actualiza su respuesta: no se duplica en Nuevos creadores.
+        $promoted = $this->pdo->prepare("SELECT id, public_id FROM influencer_guests WHERE kind = 'creador' AND consent_at IS NOT NULL AND whatsapp_lookup = ? AND archived_at IS NULL ORDER BY id DESC LIMIT 1");
+        $promoted->execute([$lookup]);
+        $moved = $promoted->fetch(PDO::FETCH_ASSOC);
+        if (is_array($moved)) {
+            $this->pdo->prepare('UPDATE influencer_guests SET response = ?, responded_at = ?, consent_at = ?, updated_at = ? WHERE id = ?')
+                ->execute([$response, $now, $now, $now, (int) $moved['id']]);
+            $this->audit->log('influencer.registered', null, 'influencer', (string) $moved['public_id'], [], $ip);
+            return ['name' => $name, 'response' => $response];
+        }
+
         $existing = $this->pdo->prepare("SELECT id, public_id FROM influencer_guests WHERE kind = 'nuevo' AND whatsapp_lookup = ? AND archived_at IS NULL ORDER BY id DESC LIMIT 1");
         $existing->execute([$lookup]);
         $found = $existing->fetch(PDO::FETCH_ASSOC);
@@ -245,10 +258,10 @@ final class InfluencerRepository
             return ['name' => $name, 'response' => $response];
         }
 
-        $recent = $this->pdo->prepare("SELECT COUNT(*) FROM influencer_guests WHERE kind = 'nuevo' AND ip_hash = ? AND created_at >= ?");
+        $recent = $this->pdo->prepare("SELECT COUNT(*) FROM influencer_guests WHERE ip_hash = ? AND created_at >= ?");
         $recent->execute([$ipHash, gmdate('Y-m-d H:i:s', time() - 600)]);
         if ((int) $recent->fetchColumn() >= 5) throw new RateLimitException();
-        $burst = $this->pdo->prepare("SELECT COUNT(*) FROM influencer_guests WHERE kind = 'nuevo' AND created_at >= ?");
+        $burst = $this->pdo->prepare("SELECT COUNT(*) FROM influencer_guests WHERE ip_hash IS NOT NULL AND created_at >= ?");
         $burst->execute([gmdate('Y-m-d H:i:s', time() - 600)]);
         if ((int) $burst->fetchColumn() >= 150) throw new RateLimitException();
 
@@ -306,6 +319,8 @@ final class InfluencerRepository
             'response' => (string) $row['response'], 'responded_at' => $row['responded_at'] === null ? null : (string) $row['responded_at'],
             'opened_at' => $row['opened_at'] === null ? null : (string) $row['opened_at'],
             'approval' => (string) $row['approval'], 'note' => (string) $row['note'], 'created_at' => (string) $row['created_at'],
+            // Creador que llegó por el registro abierto y fue aprobado.
+            'from_open' => $row['kind'] === 'creador' && $row['consent_at'] !== null,
         ];
     }
 
