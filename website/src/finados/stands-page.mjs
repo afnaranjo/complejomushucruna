@@ -273,7 +273,7 @@ export function renderStandsAccessPage(page) {
           <h2 id="mapa-accesos-title" class="stands-map-title mt-5 font-display uppercase">Mapa de accesos</h2>
         </header>
         <figure class="stands-map-frame mt-10" data-reveal>
-          <img src="/assets/finados/mapa-accesos.svg?v=20260911" width="3508" height="2481" loading="lazy" alt="Mapa oficial de accesos de la Feria Finados Mushuc Runa 2026">
+          <img src="/assets/finados/mapa-accesos-2400.webp?v=20261016-liviano-1" srcset="/assets/finados/mapa-accesos-1200.webp?v=20261016-liviano-1 1200w, /assets/finados/mapa-accesos-2400.webp?v=20261016-liviano-1 2400w" sizes="100vw" width="3508" height="2481" decoding="async" loading="lazy" alt="Mapa oficial de accesos de la Feria Finados Mushuc Runa 2026">
           <figcaption>Mapa de accesos · Feria Finados Mushuc Runa 2026</figcaption>
         </figure>
       </div>

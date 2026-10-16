@@ -101,11 +101,12 @@ test('la página abre con el carrusel de entradas y las imágenes oficiales son 
   assert.doesNotMatch(output, /class="shows-hero"/);
   assert.match(output, /entradas-2026-10-30-1200\.webp[^"]*"[^>]*fetchpriority="high"/);
   assert.match(output, /srcset="[^"]*600w, [^"]*1200w"/);
-  assert.match(output, /afiche-artistas-final\.svg\?v=20261012-shows-9/);
+  assert.match(output, /afiche-artistas-final-1600\.webp\?v=20261016-liviano-1"[^>]*800w[^>]*1600w[^>]*2400w/);
+  assert.doesNotMatch(output, /afiche-artistas-final\.svg/);
   assert.match(output, /width="3509" height="4961"/);
   assert.doesNotMatch(output, /cartel-shows-(?:1240|2481)/);
   assert.doesNotMatch(output, /data:image|R:\\|\.codex|base64/i);
-  for (const link of output.match(/<a [^>]*afiche-artistas-final\.svg[^>]*>/g) ?? []) {
+  for (const link of output.match(/<a [^>]*afiche-artistas-final-2400\.webp[^>]*>/g) ?? []) {
     assert.match(link, /target="_blank"/);
     assert.match(link, /rel="noopener noreferrer"/);
   }

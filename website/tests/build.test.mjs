@@ -374,11 +374,11 @@ test('genera las páginas de Finados y ordena sus subpáginas en un menú desple
   assert.match(landing, /id="william-luna"/);
   assert.match(landing, /William Luna celebra cuatro décadas en Finados/);
   assert.match(landing, /celebrará sus 40 años de vida artística en Finados Mushuc Runa 2026/);
-  assert.match(landing, /\/assets\/finados\/william-luna\.svg\?v=20260904/);
+  assert.match(landing, /\/assets\/finados\/william-luna-1600\.webp\?v=20261016-liviano-1[^>]*800w[^>]*1600w/);
   assert.match(landing, /id="las-nanas"/);
   assert.match(landing, /Las Ñañas: el grupo sensación/);
   assert.match(landing, /grupo sensación de la actualidad de la música nacional ecuatoriana/);
-  assert.match(landing, /\/assets\/finados\/las-nanas\.svg\?v=20260904/);
+  assert.match(landing, /\/assets\/finados\/las-nanas-1600\.webp\?v=20261016-liviano-1[^>]*800w[^>]*1600w/);
   assert.ok(landing.indexOf('id="kjarkas"') < landing.indexOf('id="william-luna"'));
   assert.ok(landing.indexOf('id="william-luna"') < landing.indexOf('id="las-nanas"'));
   assert.ok(landing.indexOf('id="las-nanas"') < landing.indexOf('id="canales"'));
@@ -434,7 +434,7 @@ test('genera las páginas de Finados y ordena sus subpáginas en un menú desple
   assert.match(stands, /Sanciones del 100% de la garantía/);
   assert.match(stands, /Falsificar, duplicar o dar mal uso al gafete/);
   assert.match(stands, /id="mapa-accesos"/);
-  assert.match(stands, /\/assets\/finados\/mapa-accesos\.svg\?v=20260911/);
+  assert.match(stands, /\/assets\/finados\/mapa-accesos-2400\.webp\?v=20261016-liviano-1[^>]*1200w[^>]*2400w/);
   assert.ok(stands.indexOf('Sé parte de nuestra historia') < stands.indexOf('id="politicas-generales"'));
   assert.ok(stands.indexOf('id="politicas-generales"') < stands.indexOf('id="mapa-accesos"'));
   assert.match(stands, /class="button-outline-light" href="\/finados\/" target="_blank" rel="noopener noreferrer"/);

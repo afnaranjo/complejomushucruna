@@ -11,6 +11,8 @@ const ticketsVersion = '20260928-entradas-1';
 const ticketImage = (iso, width) => `/assets/finados/shows/entradas-${iso}-${width}.webp?v=${ticketsVersion}`;
 const ticketFor = iso => showsTickets.find(ticket => ticket.iso === iso);
 const svgAsset = name => `/assets/finados/shows/${name}.svg?v=${svgVersion}`;
+const posterVersion = '20261016-liviano-1';
+const posterImage = width => `/assets/finados/shows/afiche-artistas-final-${width}.webp?v=${posterVersion}`;
 
 function renderTicketSlider() {
   const slides = showsTickets.map((ticket, index) => `<li class="shows-slide" id="noche-${ticket.iso}" aria-roledescription="diapositiva" aria-label="${index + 1} de ${showsTickets.length}: ${escapeHtml(ticket.day)} ${ticket.date} ${ticket.month}">
@@ -81,11 +83,11 @@ export function renderFinadosShowsPage(page) {
     <section id="shows" class="shows-cartel" aria-labelledby="shows-cartel-title">
       <header class="shows-section-heading">
         <div><p class="shows-kicker">El escenario nos reúne</p><h2 id="shows-cartel-title">Un cartel.<br>Muchas emociones.</h2></div>
-        <a class="shows-text-link" href="${svgAsset('afiche-artistas-final')}" target="_blank" rel="noopener noreferrer">Ampliar cartel <span aria-hidden="true">↗</span><span class="sr-only"> (se abre en otra pestaña)</span></a>
+        <a class="shows-text-link" href="${posterImage(2400)}" target="_blank" rel="noopener noreferrer">Ampliar cartel <span aria-hidden="true">↗</span><span class="sr-only"> (se abre en otra pestaña)</span></a>
       </header>
       <figure class="shows-poster">
-        <a href="${svgAsset('afiche-artistas-final')}" target="_blank" rel="noopener noreferrer" aria-label="Ampliar el cartel oficial de shows en otra pestaña">
-          <img src="${svgAsset('afiche-artistas-final')}" width="3509" height="4961" alt="Cartel oficial de Finados Mushuc Runa 2026. Artistas, fechas, atractivos y código QR de información; programación en texto debajo." loading="lazy" decoding="async">
+        <a href="${posterImage(2400)}" target="_blank" rel="noopener noreferrer" aria-label="Ampliar el cartel oficial de shows en otra pestaña">
+          <img src="${posterImage(1600)}" srcset="${posterImage(800)} 800w, ${posterImage(1600)} 1600w, ${posterImage(2400)} 2400w" sizes="100vw" width="3509" height="4961" alt="Cartel oficial de Finados Mushuc Runa 2026. Artistas, fechas, atractivos y código QR de información; programación en texto debajo." loading="lazy" decoding="async">
         </a>
         <figcaption>Organiza: Luis Alfonso Chango P. · Complejo Intercultural y Deportivo Mushuc Runa.<br>Diseño oficial y orden de artistas conservados.</figcaption>
       </figure>

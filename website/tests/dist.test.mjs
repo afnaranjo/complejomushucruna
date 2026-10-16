@@ -103,8 +103,8 @@ test('empaqueta la experiencia Finados con recursos locales y optimizados', asyn
   assert.match(landing, /\/assets\/finados\/kjarkas-finados\.webp/);
   assert.match(landing, /Kjarkas: la raíz que nos une/);
   assert.doesNotMatch(landing, /Los Kjarkas/i);
-  assert.match(landing, /\/assets\/finados\/william-luna\.svg\?v=20260904/);
-  assert.match(landing, /\/assets\/finados\/las-nanas\.svg\?v=20260904/);
+  assert.match(landing, /\/assets\/finados\/william-luna-1600\.webp\?v=20261016-liviano-1[^>]*800w[^>]*1600w/);
+  assert.match(landing, /\/assets\/finados\/las-nanas-1600\.webp\?v=20261016-liviano-1[^>]*800w[^>]*1600w/);
   assert.match(landing, /https:\/\/www\.facebook\.com\/FinadosMushucRunaEc/);
   assert.match(landing, /https:\/\/www\.tiktok\.com\/@finadosmushucruna/);
   assert.match(landing, /https:\/\/www\.instagram\.com\/finadosmushucruna\//);
@@ -142,7 +142,7 @@ test('empaqueta la experiencia Finados con recursos locales y optimizados', asyn
   assert.match(standsPage, /id="politicas-generales" class="stands-policies[^\"]*text-lienzo/);
   assert.match(finadosStyles, /\.stands-online-note\{[^}]*font-size:clamp\(1\.15rem/);
   assert.match(finadosStyles, /\.stands-policy-card--sanctions\{[^}]*color:#f4eada/);
-  assert.match(standsPage, /\/assets\/finados\/mapa-accesos\.svg\?v=20260911/);
+  assert.match(standsPage, /\/assets\/finados\/mapa-accesos-2400\.webp\?v=20261016-liviano-1[^>]*1200w[^>]*2400w/);
   assert.match(standsPage, /class="button-outline-light" href="\/finados\/" target="_blank" rel="noopener noreferrer"/);
   assert.match(standsPage, /class="footer-link" href="\/finados\/" target="_blank" rel="noopener noreferrer"/);
   assert.match(finadosScript, /data-stands-countdown/);

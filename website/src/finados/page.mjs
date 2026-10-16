@@ -178,7 +178,7 @@ export function renderFinadosPage(page) {
     <section id="william-luna" class="artist-section bg-night py-24 text-lienzo sm:py-32" aria-labelledby="william-luna-title">
       <div class="mx-auto grid w-[min(100%-2rem,88rem)] gap-10 lg:grid-cols-[1.28fr_0.72fr] lg:items-center">
         <figure class="artist-poster artist-poster-dark" data-reveal>
-          <img src="/assets/finados/william-luna.svg?v=20260904" width="1600" height="801" alt="Arte oficial de William Luna para Finados Mushuc Runa 2026" loading="lazy">
+          <img src="/assets/finados/william-luna-1600.webp?v=20261016-liviano-1" srcset="/assets/finados/william-luna-800.webp?v=20261016-liviano-1 800w, /assets/finados/william-luna-1600.webp?v=20261016-liviano-1 1600w" sizes="(min-width: 1024px) 56vw, 100vw" width="1600" height="801" decoding="async" alt="Arte oficial de William Luna para Finados Mushuc Runa 2026" loading="lazy">
           <figcaption>William Luna · Finados Mushuc Runa 2026</figcaption>
         </figure>
         <div class="artist-copy lg:pl-6">
@@ -197,7 +197,7 @@ export function renderFinadosPage(page) {
           <p class="mt-7 max-w-lg font-sans text-lg leading-relaxed text-night/75" data-reveal>Las Ñañas son el grupo sensación de la actualidad de la música nacional ecuatoriana y llegan a Finados Mushuc Runa 2026 con una propuesta fresca y cercana.</p>
         </div>
         <figure class="artist-poster artist-poster-light" data-reveal>
-          <img src="/assets/finados/las-nanas.svg?v=20260904" width="1600" height="801" alt="Arte oficial de Las Ñañas para Finados Mushuc Runa 2026" loading="lazy">
+          <img src="/assets/finados/las-nanas-1600.webp?v=20261016-liviano-1" srcset="/assets/finados/las-nanas-800.webp?v=20261016-liviano-1 800w, /assets/finados/las-nanas-1600.webp?v=20261016-liviano-1 1600w" sizes="(min-width: 1024px) 56vw, 100vw" width="1600" height="801" decoding="async" alt="Arte oficial de Las Ñañas para Finados Mushuc Runa 2026" loading="lazy">
           <figcaption>Las Ñañas · Finados Mushuc Runa 2026</figcaption>
         </figure>
       </div>
