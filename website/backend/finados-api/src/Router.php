@@ -125,6 +125,12 @@ final class Router
                 if ($verification === null) throw new OutOfBoundsException();
                 return $this->json(200, ['ok' => true, 'verification' => $verification], $headers);
             }
+            // QR del pase dorado: público y mínimo (válido o no, nombre y cédula enmascarada).
+            if (preg_match('~^/api/pase-dorado/verify/([a-f0-9]{32})$~D', $path, $parts)) {
+                if ($method !== 'GET') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+                if ($query !== []) throw new InvalidArgumentException();
+                return $this->json(200, ['ok' => true, 'verification' => $this->goldenPasses()->publicVerification($parts[1])], $headers);
+            }
             if (preg_match('~^/api/emprendedores/verify/([a-f0-9]{32})$~D', $path, $parts)) {
                 if ($method !== 'GET') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
                 if ($query !== []) throw new InvalidArgumentException();
@@ -372,6 +378,9 @@ final class Router
             if ($path === '/api/noticias' || str_starts_with($path, '/api/noticias/')) {
                 return $this->news($method, $path, $query, $server, $rawBody, $ip, $user, $headers);
             }
+            if ($path === '/api/pases-dorados' || str_starts_with($path, '/api/pases-dorados/')) {
+                return $this->goldenPassAdmin($method, $path, $query, $server, $rawBody, $ip, $user, $headers);
+            }
             if ($path === '/api/influencers' || str_starts_with($path, '/api/influencers/')) {
                 return $this->influencerAdmin($method, $path, $query, $server, $rawBody, $ip, $user, $headers);
             }
@@ -592,6 +601,43 @@ final class Router
     {
         require_once __DIR__ . '/MfsAuth.php';
         return $this->mfsAuthInstance ??= new MfsAuth($this->pdo, $this->config);
+    }
+
+    private function goldenPasses(): GoldenPassRepository
+    {
+        require_once __DIR__ . '/GoldenPassRepository.php';
+        return new GoldenPassRepository($this->pdo, $this->crypto, $this->audit);
+    }
+
+    /** Pase dorado: nombres y cédulas, validación por cédula en la puerta y QR de cada pase. */
+    private function goldenPassAdmin(string $method, string $path, array $query, array $server, string $rawBody, mixed $ip, array $user, array $headers): Response
+    {
+        $repository = $this->goldenPasses();
+        $notAllowed = fn (): Response => $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+        if ($query !== []) throw new InvalidArgumentException();
+        // POST para que la cédula no quede en la URL ni en los registros del servidor.
+        if ($path === '/api/pases-dorados/verificar') {
+            if ($method !== 'POST') return $notAllowed();
+            $body = $this->body($server, $rawBody, ['cedula']);
+            return $this->json(200, ['check' => $repository->checkCedula($body['cedula'] ?? null)], $headers);
+        }
+        if ($path === '/api/pases-dorados') {
+            if ($method === 'GET') return $this->json(200, $repository->list(), $headers);
+            if ($method !== 'POST') return $notAllowed();
+            $body = $this->body($server, $rawBody, ['lines']);
+            return $this->json(201, $repository->createMany($body['lines'] ?? null, $user['id'], (string) $ip), $headers);
+        }
+        if (preg_match('~^/api/pases-dorados/([a-f0-9]{32})(/archivar)?$~D', $path, $parts)) {
+            if (($parts[2] ?? '') === '/archivar') {
+                if ($method !== 'POST') return $notAllowed();
+                $repository->archive($parts[1], $user['id'], (string) $ip);
+                return $this->json(200, ['ok' => true], $headers);
+            }
+            if ($method !== 'PATCH') return $notAllowed();
+            $body = $this->body($server, $rawBody, ['full_name', 'cedula', 'status', 'note']);
+            return $this->json(200, ['pass' => $repository->update($parts[1], $body, $user['id'], (string) $ip)], $headers);
+        }
+        return $this->error(404, 'not_found', 'Recurso no encontrado.', $headers);
     }
 
     private function influencers(): InfluencerRepository

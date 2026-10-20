@@ -37,6 +37,7 @@ test('agrega Meta Pixel en páginas públicas y excluye áreas privadas', async 
     const html = await readFile(join(output, htmlFile), 'utf8');
     const privateArea = htmlFile.startsWith('admin/')
       || /^finados\/(?:voceros|emprendedores|creadoras|mfs)\/(acceso|mi-registro|restablecer|verificar)\//.test(htmlFile)
+      || /^finados\/pase-dorado\/verificar\//.test(htmlFile)
       || /^finados\/medios\/(acceso|mi-registro|restablecer|acreditacion)\//.test(htmlFile)
       || /^(?:finados\/invitacion|i)\//.test(htmlFile);
     if (privateArea) {

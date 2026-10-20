@@ -162,6 +162,8 @@ export async function buildSite(outputDirectory = join(websiteRoot, 'dist'), { a
 
   await cp(join(websiteRoot, 'src', 'finados', 'mfs-portal.css'), join(finadosAssets, 'mfs-portal.css'));
   await cp(join(websiteRoot, 'src', 'finados', 'mfs-verification.js'), join(finadosAssets, 'mfs-verification.js'));
+  await cp(join(websiteRoot, 'src', 'finados', 'pase-dorado-verification.js'), join(finadosAssets, 'pase-dorado-verification.js'));
+  await cp(join(websiteRoot, 'src', 'finados', 'pase-dorado.css'), join(finadosAssets, 'pase-dorado.css'));
   const mfsPortalScript = await readFile(join(websiteRoot, 'src', 'finados', 'mfs-portal.js'), 'utf8');
   await writeFile(join(finadosAssets, 'mfs-portal.js'), mfsPortalScript.replace(
     "const LOCAL_API = 'http://127.0.0.1:4174/api';",
@@ -263,6 +265,11 @@ export async function buildSite(outputDirectory = join(websiteRoot, 'dist'), { a
     "const LOCAL_API = 'http://127.0.0.1:4174/api';",
     adminEnvironment === 'production' ? 'const LOCAL_API = null;' : `const LOCAL_API = '${developmentApi}';`), 'utf8');
 
+  const adminPaseDoradoScript = await readFile(join(websiteRoot, 'src', 'admin', 'admin-pase-dorado.js'), 'utf8');
+  await writeFile(join(adminAssets, 'admin-pase-dorado.js'), adminPaseDoradoScript.replace(
+    "const LOCAL_API = 'http://127.0.0.1:4174/api';",
+    adminEnvironment === 'production' ? 'const LOCAL_API = null;' : `const LOCAL_API = '${developmentApi}';`), 'utf8');
+
   const htmlFiles = (await listFiles(output)).filter((file) => file.endsWith('.html'));
   for (const htmlFile of htmlFiles) {
     const accountPage = htmlFile.startsWith('admin/') || /^finados\/(?:voceros|medios|emprendedores|creadoras|mfs)\/(acceso|mi-registro|restablecer|acreditacion)\//.test(htmlFile) || /^(?:finados\/invitacion\/(?:creadores\/|gracias\/|gafete\/|verificar\/)?|i\/)index\.html$/.test(htmlFile);
@@ -271,7 +278,7 @@ export async function buildSite(outputDirectory = join(websiteRoot, 'dist'), { a
     const html = await readFile(path, 'utf8');
     const route = `/${htmlFile.replace(/index\.html$/, '')}`;
     let updatedHtml = injectFramedLinks(injectCookieConsent(injectInvitationOpeningHeader(html, route)));
-    if (!/^finados\/(?:voceros|emprendedores|mfs)\/verificar\//.test(htmlFile)) updatedHtml = injectMetaPixel(updatedHtml);
+    if (!/^finados\/(?:voceros|emprendedores|mfs|pase-dorado)\/verificar\//.test(htmlFile)) updatedHtml = injectMetaPixel(updatedHtml);
     await writeFile(path, updatedHtml, 'utf8');
   }
 

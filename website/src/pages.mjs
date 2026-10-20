@@ -26,6 +26,7 @@ import { renderFinadosShowsPage } from './finados/shows-page.mjs';
 import { renderMfsPage } from './finados/mfs-page.mjs';
 import { renderMfsPortalPage } from './finados/mfs-portal-page.mjs';
 import { renderMfsVerificationPage } from './finados/mfs-verification-page.mjs';
+import { renderPaseDoradoVerificationPage } from './finados/pase-dorado-verification-page.mjs';
 import { renderInfluencerBadgePage, renderInfluencerOpenPage, renderInfluencerPersonalPage, renderInfluencerThanksPage, renderInfluencerVerifyPage } from './finados/influencer-invitation-page.mjs';
 import { mfsLegalDocuments, mfsLegalRoutes, renderMfsLegalPage } from './finados/mfs-legal-page.mjs';
 import { renderStandsAccessPage } from './finados/stands-page.mjs';
@@ -40,7 +41,7 @@ import { renderCreadoraPortalPage } from './creadoras/portal-page.mjs';
 import { renderCreadoraLegalPage } from './creadoras/legal-page.mjs';
 import { renderAdminNoticiasPage,
   renderAdminCreadorasPage, renderAdminCreadorasEdicionPage, renderAdminMfsPage, renderAdminUsuariosPage, renderAdminActivarPage,
-  renderAdminEmprendedoresPage, renderAdminLoginPage, renderAdminMediosEventosPage, renderAdminMediosCalendarioPage, renderAdminMediosGiraPage, renderAdminProduccionPage, renderAdminMediosPage, renderAdminPanelPage, renderAdminVocerosPage, renderAdminInfluencersPage } from './admin/page.mjs';
+  renderAdminEmprendedoresPage, renderAdminLoginPage, renderAdminMediosEventosPage, renderAdminMediosCalendarioPage, renderAdminMediosGiraPage, renderAdminProduccionPage, renderAdminMediosPage, renderAdminPanelPage, renderAdminVocerosPage, renderAdminInfluencersPage, renderAdminPaseDoradoPage } from './admin/page.mjs';
 import { renderMediaLandingBody } from './medios/landing-page.mjs';
 import { renderMediaPortalPage } from './medios/portal-page.mjs';
 import { renderMediaAccreditationPage } from './medios/accreditation-page.mjs';
@@ -419,6 +420,8 @@ export const pages = Object.freeze([
   finadosMfsPage,
   ...['acceso', 'mi-registro', 'restablecer'].map(slug => ({ route: `/finados/mfs/${slug}/`, title: 'Cuenta de Mushuc Freestyle', indexable: false, render: renderMfsPortalPage })),
   { route: '/finados/mfs/verificar/', title: 'Validación de gafete · Mushuc Freestyle', indexable: false, render: renderMfsVerificationPage },
+  { route: '/finados/pase-dorado/verificar/', title: 'Validación de pase dorado · Finados 2026', indexable: false, render: renderPaseDoradoVerificationPage },
+  { route: '/admin/pase-dorado/', title: 'Pase dorado · Administración', indexable: false, render: renderAdminPaseDoradoPage },
   ...Object.entries(mfsLegalDocuments).map(([documentKey, document]) => ({ route: mfsLegalRoutes[documentKey], title: document.title, description: document.summary, documentKey, indexable: false, render: renderMfsLegalPage })),
   finadosVocerosPage,
   voceroVerificationPage,

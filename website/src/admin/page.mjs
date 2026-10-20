@@ -17,10 +17,11 @@ const ADMIN_FORMS = Object.freeze([
   { module: 'creadoras', route: '/admin/creadoras/', label: 'Creadoras', description: 'Calendario y edición', marker: 'C', children: [{ route: '/admin/creadoras/', label: 'Creadoras', description: 'Calendario por semanas y turnos' }, { route: '/admin/creadoras/edicion/', label: 'Edición', description: 'Videos grabados por editar' }] },
   { module: 'mfs', route: '/admin/mfs/', label: 'Mushuc Freestyle', description: 'Inscripciones y audiciones', marker: 'F' },
   { module: 'influencers', route: '/admin/influencers/', label: 'Influencers', description: 'Invitaciones a creadores', marker: 'I', children: [{ route: '/admin/influencers/creadores/', label: 'Creadores', description: 'Invitación personal con su nombre' }, { route: '/admin/influencers/nuevos/', label: 'Nuevos creadores', description: 'Invitación abierta con registro' }] },
+  { module: 'pasedorado', route: '/admin/pase-dorado/', label: 'Pase dorado', description: 'Validación por cédula y QR', marker: 'D' },
   { module: 'usuarios', route: '/admin/usuarios/', label: 'Usuarios', description: 'Cuentas, roles y actividad', marker: 'U' },
 ]);
 // Public landing that each panel returns to from its header.
-const PANEL_LANDINGS = Object.freeze({ '/admin/noticias/': ['/finados/', 'Volver a Finados'], '/admin/panel/': ['/finados/', 'Volver a Finados'], '/admin/voceros/': ['/finados/voceros/', 'Volver a Voceros'], '/admin/medios/': ['/finados/medios/', 'Volver a Medios'], '/admin/medios/eventos/': ['/finados/medios/', 'Volver a Medios'], '/admin/medios/calendario/': ['/finados/medios/', 'Volver a Medios'], '/admin/medios/gira/': ['/finados/medios/', 'Volver a Medios'], '/admin/produccion/activaciones/': ['/finados/', 'Volver a Finados'], '/admin/produccion/sol/': ['/finados/', 'Volver a Finados'], '/admin/produccion/luna/': ['/finados/', 'Volver a Finados'], '/admin/emprendedores/': ['/finados/emprendedores/', 'Volver a Emprendedores'], '/admin/creadoras/': ['/finados/creadoras/', 'Volver a Creadoras'], '/admin/creadoras/edicion/': ['/finados/creadoras/', 'Volver a Creadoras'], '/admin/mfs/': ['/finados/mfs/', 'Volver a Mushuc Freestyle'], '/admin/influencers/creadores/': ['/finados/', 'Volver a Finados'], '/admin/influencers/nuevos/': ['/finados/', 'Volver a Finados'], '/admin/usuarios/': ['/finados/', 'Volver a Finados'] });
+const PANEL_LANDINGS = Object.freeze({ '/admin/noticias/': ['/finados/', 'Volver a Finados'], '/admin/panel/': ['/finados/', 'Volver a Finados'], '/admin/voceros/': ['/finados/voceros/', 'Volver a Voceros'], '/admin/medios/': ['/finados/medios/', 'Volver a Medios'], '/admin/medios/eventos/': ['/finados/medios/', 'Volver a Medios'], '/admin/medios/calendario/': ['/finados/medios/', 'Volver a Medios'], '/admin/medios/gira/': ['/finados/medios/', 'Volver a Medios'], '/admin/produccion/activaciones/': ['/finados/', 'Volver a Finados'], '/admin/produccion/sol/': ['/finados/', 'Volver a Finados'], '/admin/produccion/luna/': ['/finados/', 'Volver a Finados'], '/admin/emprendedores/': ['/finados/emprendedores/', 'Volver a Emprendedores'], '/admin/creadoras/': ['/finados/creadoras/', 'Volver a Creadoras'], '/admin/creadoras/edicion/': ['/finados/creadoras/', 'Volver a Creadoras'], '/admin/mfs/': ['/finados/mfs/', 'Volver a Mushuc Freestyle'], '/admin/influencers/creadores/': ['/finados/', 'Volver a Finados'], '/admin/influencers/nuevos/': ['/finados/', 'Volver a Finados'], '/admin/pase-dorado/': ['/finados/', 'Volver a Finados'], '/admin/usuarios/': ['/finados/', 'Volver a Finados'] });
 const PROGRESS_LEVELS = ['En preparación', 'Primer paso', 'Gorra', 'Kit completo', 'Trae a los tuyos', 'Noche de concierto', 'Tope'];
 const VIDEO_SLOTS = Object.freeze([1, 2, 3, 4, 5]);
 const videoSlotControls = (prefix = 'video') => VIDEO_SLOTS.map(slot => `<label class="admin-video-control"><span class="admin-video-check"><input type="checkbox" name="${prefix}_${slot}_enabled" value="1"><strong>Video ${slot}</strong></span><span class="admin-video-date"><span>Habilitado desde</span><input type="date" name="${prefix}_${slot}_enabled_at" aria-label="Fecha de habilitación del video ${slot}"></span></label>`).join('');
@@ -78,7 +79,7 @@ function layout(page, content, script = '/assets/admin/admin.js?v=20261012-views
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' blob:; media-src blob:; font-src 'self'; connect-src ${connectSources}; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="admin-api-base" content="${api}">
 <link rel="icon" href="/assets/finados/favicon-finados.png">
-<link rel="stylesheet" href="/assets/admin/admin.css?v=20261013-influencers-1">
+<link rel="stylesheet" href="/assets/admin/admin.css?v=20261020-pase-dorado-1">
 <script type="module" src="${script}"></script>
 </head><body class="admin-page">
 <a class="skip-link" href="#contenido">Ir al contenido</a>
@@ -676,7 +677,7 @@ export function renderAdminCreadorasEdicionPage(page) {
 </main></div>`, ADMIN_CREADORAS_EDICION_SCRIPT);
 }
 
-export const ADMIN_USUARIOS_SCRIPT = '/assets/admin/admin-usuarios.js?v=20261013-influencers-1';
+export const ADMIN_USUARIOS_SCRIPT = '/assets/admin/admin-usuarios.js?v=20261020-pase-dorado-1';
 
 /** Usuarios: cada persona con su cuenta y su rol, los roles con sus módulos y quién hizo qué. */
 export function renderAdminUsuariosPage(page) {
@@ -850,4 +851,37 @@ ${intake}
 <div class="record-form__actions"><button type="submit" value="cancel" class="button-quiet">Cancelar</button><button type="submit" value="save" class="button-primary">Guardar</button></div>
 </form></dialog>
 </main></div>`, ADMIN_INFLUENCERS_SCRIPT);
+}
+
+// Pase dorado: nombres y cédulas, validación en la puerta y un QR por pase para imprimir.
+export const ADMIN_PASE_DORADO_SCRIPT = '/assets/admin/admin-pase-dorado.js?v=20261020-pase-dorado-1';
+
+export function renderAdminPaseDoradoPage(page) {
+  return layout(page, `<div class="admin-shell">${adminSidebar(page)}<main id="contenido" class="admin-workspace pd-admin" data-admin-pase-dorado>${campaignBanner}
+<div class="workspace-heading"><div><p class="eyebrow">Finados 2026</p><h1>Pase dorado</h1><p>Registra el nombre y la cédula de cada persona con pase dorado. Con la cédula sabes al instante si el pase es válido, y cada pase tiene su QR para imprimir.</p><p data-admin-user>Comprobando acceso…</p></div>
+<div class="workspace-actions"><button type="button" class="button-quiet" data-print-all disabled>Imprimir todos los QR</button></div></div>
+<p class="feedback" data-admin-feedback role="status" aria-live="polite" aria-atomic="true">Cargando pases…</p>
+<button type="button" class="button-quiet" data-session-retry hidden>Reintentar conexión</button>
+<section aria-label="Resumen de pases" class="summary" data-summary aria-busy="true"></section>
+<section class="admin-panel-section pd-check" aria-labelledby="pd-check-title"><div class="records-heading"><div><h2 id="pd-check-title">Verificar cédula</h2><p>Escribe la cédula de la persona en la entrada.</p></div></div>
+<form class="pd-check__form" data-check-form><fieldset disabled><label class="sr-only" for="pd-check-cedula">Número de cédula</label><input id="pd-check-cedula" name="cedula" inputmode="numeric" autocomplete="off" maxlength="12" placeholder="Ej.: 1801234567" required><button type="submit" class="button-primary">Verificar</button></fieldset></form>
+<div class="pd-check__result" data-check-result data-state="" role="status" aria-live="polite" aria-atomic="true" hidden><strong data-check-state></strong><span data-check-detail></span></div></section>
+<section class="admin-panel-section" aria-labelledby="pd-add-title"><div class="records-heading"><div><h2 id="pd-add-title">Agregar pases</h2><p>Una persona por línea: nombre y cédula (10 dígitos), en cualquier orden. Las cédulas que ya tienen pase no se duplican.</p></div></div>
+<form class="inf-add" data-add-form><label class="sr-only" for="pd-lines">Nombres y cédulas</label><textarea id="pd-lines" name="lines" rows="5" maxlength="14000" placeholder="Ana Pérez 1801234567&#10;Luis Toapanta, 1709876543&#10;…"></textarea><button type="submit" class="button-primary" disabled>Agregar pases</button></form></section>
+<section class="records" aria-labelledby="pd-list-title" aria-busy="true" data-list-region><div class="records-heading"><h2 id="pd-list-title">Pases registrados</h2>
+<div class="pd-filters"><label class="inf-filter">Buscar<input type="search" data-search maxlength="160" placeholder="Nombre o cédula"></label><label class="inf-filter">Mostrar<select data-filter><option value="">Todos</option><option value="valido">Válidos</option><option value="anulado">No permitidos</option></select></label></div></div>
+<p data-list-message role="status">Cargando…</p>
+<table><caption class="sr-only">Personas con pase dorado, su cédula, su estado y su QR</caption><thead><tr><th scope="col">Persona</th><th scope="col">QR</th><th scope="col">Estado</th><th scope="col"><span class="sr-only">Acciones</span></th></tr></thead><tbody data-rows></tbody></table></section>
+<dialog class="record-dialog record-dialog--compact" data-edit-dialog aria-label="Editar pase dorado"><form method="dialog" class="record-form">
+<div class="records-heading"><div><h2>Editar pase dorado</h2><p>El QR impreso sigue sirviendo aunque corrijas el nombre o la cédula.</p></div></div>
+<div class="record-grid">
+<label class="record-grid__wide">Nombre<input name="full_name" maxlength="160" required></label>
+<label>Cédula<input name="cedula" inputmode="numeric" maxlength="12" required></label>
+<label class="record-grid__wide">Nota interna<textarea name="note" rows="3" maxlength="2000"></textarea></label>
+</div>
+<p class="feedback" data-edit-feedback role="status" aria-live="polite"></p>
+<div class="record-form__actions"><button type="submit" value="cancel" class="button-quiet">Cancelar</button><button type="submit" value="save" class="button-primary">Guardar</button></div>
+</form></dialog>
+<section class="pd-print" data-print-sheet aria-hidden="true"></section>
+</main></div>`, ADMIN_PASE_DORADO_SCRIPT);
 }

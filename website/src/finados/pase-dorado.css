@@ -1,0 +1,24 @@
+@font-face { font-family: "Anton"; src: url("/assets/finados/fonts/anton-latin.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "Inter"; src: url("/assets/finados/fonts/inter-variable-latin.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
+
+/* Pase dorado: tarjeta oscura con oro; el resultado ocupa toda la vista para leerse de lejos en la puerta. */
+:root { --pd-ink: #1b0f2b; --pd-gold: #e8b931; --pd-gold-soft: #f6d77a; --pd-ok: #1f9d6b; --pd-no: #c8372d; --pd-text: #fbf5e6; }
+* { box-sizing: border-box; }
+body.pd-page { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 16px; background: radial-gradient(120% 80% at 50% 0%, #3a2152 0%, var(--pd-ink) 60%); color: var(--pd-text); font-family: "Inter", system-ui, sans-serif; }
+.pd-card { width: min(100%, 28rem); padding: 2rem 1.5rem 1.75rem; border: 2px solid var(--pd-gold); border-radius: 1.25rem; background: linear-gradient(180deg, rgba(232, 185, 49, .14), rgba(232, 185, 49, .03)); text-align: center; box-shadow: 0 0 0 6px rgba(232, 185, 49, .12), 0 24px 60px rgba(0, 0, 0, .45); }
+.pd-logo { width: 9rem; height: auto; }
+.pd-kicker { margin: 1rem 0 .25rem; color: var(--pd-gold-soft); font-size: .8rem; font-weight: 750; letter-spacing: .14em; text-transform: uppercase; }
+.pd-state { margin: .5rem 0 1rem; padding: .9rem .5rem; border-radius: .9rem; font-family: "Anton", "Inter", sans-serif; font-weight: 400; font-size: clamp(2.6rem, 14vw, 4.2rem); line-height: 1; letter-spacing: .02em; background: rgba(255, 255, 255, .06); }
+.pd-card[data-state="valid"] .pd-state { background: var(--pd-ok); color: #fff; }
+.pd-card[data-state="valid"] .pd-state::before { content: "✓ "; }
+.pd-card[data-state="invalid"] .pd-state { background: var(--pd-no); color: #fff; }
+.pd-card[data-state="invalid"] .pd-state::before { content: "✕ "; }
+.pd-card[data-state="invalid"] { border-color: var(--pd-no); box-shadow: 0 0 0 6px rgba(200, 55, 45, .18), 0 24px 60px rgba(0, 0, 0, .45); }
+.pd-card[data-state="error"] .pd-state { font-size: 2rem; }
+.pd-details[hidden] { display: none; }
+.pd-details { display: grid; gap: .6rem; margin: 0 0 1rem; text-align: left; }
+.pd-details div { padding: .7rem .9rem; border-radius: .7rem; background: rgba(255, 255, 255, .07); }
+.pd-details dt { color: var(--pd-gold-soft); font-size: .72rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+.pd-details dd { margin: .2rem 0 0; font-size: 1.2rem; font-weight: 700; overflow-wrap: anywhere; }
+.pd-note { margin: 0; color: rgba(251, 245, 230, .8); font-size: .9rem; line-height: 1.45; }
+.pd-noscript { color: var(--pd-text); text-align: center; }

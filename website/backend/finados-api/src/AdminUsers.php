@@ -33,6 +33,7 @@ final class AdminUsers
         'creadoras' => ['label' => 'Creadoras', 'description' => 'Calendario y edición', 'home' => '/admin/creadoras/'],
         'mfs' => ['label' => 'Mushuc Freestyle', 'description' => 'Inscripciones y audiciones', 'home' => '/admin/mfs/'],
         'influencers' => ['label' => 'Influencers', 'description' => 'Invitaciones a creadores y nuevos creadores', 'home' => '/admin/influencers/creadores/'],
+        'pasedorado' => ['label' => 'Pase dorado', 'description' => 'Nombres, cédulas, validación y QR', 'home' => '/admin/pase-dorado/'],
         'usuarios' => ['label' => 'Usuarios', 'description' => 'Cuentas, roles y actividad', 'home' => '/admin/usuarios/'],
     ];
     /** Qué módulo protege cada ruta administrativa de la API (por prefijo). */
@@ -46,6 +47,7 @@ final class AdminUsers
         '/api/creadoras' => 'creadoras',
         '/api/mfs-participants' => 'mfs', '/api/mfs-accounts' => 'mfs', '/api/mfs-dashboard' => 'mfs',
         '/api/influencers' => 'influencers',
+        '/api/pases-dorados' => 'pasedorado',
         '/api/admin-users' => 'usuarios', '/api/admin-roles' => 'usuarios', '/api/admin-activity' => 'usuarios',
     ];
     public const ADMIN_ROLE = 'a0000000000000000000000000000001';

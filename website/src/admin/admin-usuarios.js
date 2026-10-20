@@ -80,7 +80,7 @@ export function ecuadorTime(value) {
 const AREAS = Object.freeze({
   admin: 'Panel', admin_user: 'Usuarios', admin_role: 'Usuarios', campaign: 'Noticias', vocero: 'Voceros', vocero_account: 'Voceros',
   media: 'Medios', media_account: 'Medios', media_event: 'Medios', creadora: 'Creadoras', creadora_account: 'Creadoras',
-  emprendedor: 'Emprendedores', emprendedor_account: 'Emprendedores', mfs: 'Mushuc Freestyle', mfs_account: 'Mushuc Freestyle', production: 'Producción', influencer: 'Influencers',
+  emprendedor: 'Emprendedores', emprendedor_account: 'Emprendedores', mfs: 'Mushuc Freestyle', mfs_account: 'Mushuc Freestyle', production: 'Producción', influencer: 'Influencers', golden_pass: 'Pase dorado',
 });
 const ACTIONS = Object.freeze({
   login: 'entró al panel', created: 'creó un registro', created_by_admin: 'creó un registro', updated: 'editó un registro', updated_by_admin: 'editó un registro',
