@@ -2,7 +2,7 @@ import { routeOptions } from '../data/site.mjs';
 import { escapeHtml, externalAttributes } from '../render/html.mjs';
 import { PRESENTATION_AT, PRESENTATION_WELCOME } from './presentation.js';
 
-export const openingAssetVersion = '20260928-fair-start-4';
+export const openingAssetVersion = '20261020-official-opening-1';
 export const STAND_PURCHASE_URL = 'https://reserva.mushucticket.com/customers';
 export const TICKETS_URL = '/finados/shows/';
 
@@ -18,9 +18,9 @@ export function renderFairOpeningHeader({ compact = false, standalone = false, i
   return `<section id="${escapeHtml(id)}" class="presentation-hero${compact ? ' presentation-hero--compact' : ''}${standalone ? ' presentation-hero--standalone' : ''}" data-fair-opening aria-labelledby="${escapeHtml(titleId)}">
       <div class="presentation-shell">
         <div class="presentation-copy">
-          <p class="presentation-kicker">${compact ? 'Inicio de la feria · Edición 2026' : 'Mushuc Runa · ¡Legado que nos une!'}</p>
-          <${tag} id="${escapeHtml(titleId)}" class="presentation-title"><span>Bienvenidos a</span><span class="presentation-event-name">Finados Mushuc Runa <em>2026</em></span></${tag}>
-          <p class="presentation-date"><time datetime="${PRESENTATION_AT}">Viernes 30 de octubre de 2026</time><strong>10:30 <span>AM</span></strong><span class="presentation-timezone">Hora de Ecuador</span></p>
+          <p class="presentation-kicker">${compact ? 'Inauguración oficial · Edición 2026' : 'Mushuc Runa · ¡Legado que nos une!'}</p>
+          <${tag} id="${escapeHtml(titleId)}" class="presentation-title"><span>Inauguración Oficial de</span><span class="presentation-event-name">Finados Mushuc Runa</span></${tag}>
+          <p class="presentation-date"><time datetime="${PRESENTATION_AT}">Viernes 30 de octubre de 2026</time><strong>12:00 <span>PM</span></strong><span class="presentation-timezone">Hora de Ecuador</span></p>
           ${compact ? '' : '<p class="presentation-location">Complejo Intercultural y Deportivo <strong>MUSHUC RUNA</strong></p>'}
           <div class="presentation-actions">
             ${standCta ? `<a class="presentation-map presentation-map--tickets" href="${escapeHtml(TICKETS_URL)}">Comprar entradas <span class="presentation-arrow" aria-hidden="true">→</span></a>` : ''}
@@ -31,13 +31,13 @@ export function renderFairOpeningHeader({ compact = false, standalone = false, i
         <div class="presentation-timer-wrap">
           ${compact ? '' : '<img class="presentation-symbol" src="/assets/finados/icons/legado.svg?v=20260903" width="899" height="969" alt="" aria-hidden="true">'}
           <div class="presentation-countdown" data-presentation-countdown data-target="${PRESENTATION_AT}">
-            <p class="presentation-countdown-label" data-presentation-label>La feria comienza en</p>
+            <p class="presentation-countdown-label" data-presentation-label>La inauguración oficial comienza en</p>
             <div class="presentation-clock" data-presentation-clock aria-hidden="true" hidden>
               ${[['days', 'Días'], ['hours', 'Horas'], ['minutes', 'Minutos'], ['seconds', 'Segundos']].map(([key, label]) => `<div class="presentation-unit"><strong data-presentation-value="${key}">00</strong><span>${label}</span></div>`).join('')}
             </div>
-            <p class="presentation-fallback" data-presentation-fallback>30 de octubre de 2026 · 10:30 AM (hora de Ecuador)</p>
+            <p class="presentation-fallback" data-presentation-fallback>30 de octubre de 2026 · 12:00 PM (hora de Ecuador)</p>
             <p class="presentation-welcome" data-presentation-welcome hidden>${PRESENTATION_WELCOME}</p>
-            <span class="presentation-sr-only" aria-live="polite" aria-atomic="true" data-presentation-status>La feria Finados Mushuc Runa 2026 inicia el viernes 30 de octubre a las 10:30, hora de Ecuador.</span>
+            <span class="presentation-sr-only" aria-live="polite" aria-atomic="true" data-presentation-status>La Inauguración Oficial de Finados Mushuc Runa inicia el viernes 30 de octubre a las 12:00, hora de Ecuador.</span>
           </div>
         </div>
       </div>

@@ -11,8 +11,8 @@ if (!sourcePath || !sharpModule) throw new Error('Indica el SVG oficial y el mó
 const original = await readFile(sourcePath);
 const svg = original.toString('utf8');
 const digest = createHash('sha256').update(original).digest('hex');
-const approvedDigest = '851c5b8ec94390471523ae9d5d15ceafd23b0c169dc6e147076af7295b9037ea';
-// The October 12 master includes one small inert PNG and keeps the artwork otherwise vectorial.
+const approvedDigest = 'c94d88753f46258cebaf40e7cc1b55da646024ce2dd7b25cbb1c36c80a6b0215';
+// The October 20 master includes one small inert PNG and keeps the artwork otherwise vectorial.
 const references = [...svg.matchAll(/(?:xlink:)?href=["']([^"']*)["']/gi)].map(match => match[1]);
 const safeReference = value => {
   if (/^#[\w.-]+$/.test(value)) return true;

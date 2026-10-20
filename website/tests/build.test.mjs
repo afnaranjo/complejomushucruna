@@ -366,8 +366,7 @@ test('genera las páginas de Finados y ordena sus subpáginas en un menú desple
   assert.match(landing, /<meta name="robots" content="noindex, nofollow, noarchive">/);
   assert.match(landing, /\/assets\/finados\/finados\.css\?v=20260928-axis-2/);
   assert.match(landing, /\/assets\/finados\/finados\.js\?v=20260918-navigation-progress-1/);
-  assert.match(landing, /Finados 2026 · Venta de stands/);
-  assert.match(landing, /href="https:\/\/mushucticket\.com\/" data-stands-purchase-link/);
+  assert.doesNotMatch(landing, /id="venta-de-stands"|Finados 2026 · Venta de stands|stands-body-title|expositor-artesanias/);
   assert.doesNotMatch(landing, /reserva\.mushucticket\.com\/customers/);
   assert.match(landing, /Guaynaa enciende el Megaescenario/);
   assert.match(landing, /Kjarkas: la raíz que nos une/);

@@ -11,7 +11,6 @@ const finadosSocialLinks = [
   { label: 'Instagram', href: 'https://www.instagram.com/finadosmushucruna/' },
 ];
 
-const purchaseUrl = 'https://mushucticket.com/';
 const campaignAssetVersion = '20260903';
 const campaignRuntimeVersion = '20260928-axis-2';
 const campaignScriptVersion = '20260918-navigation-progress-1';
@@ -104,40 +103,6 @@ export function renderFinadosPage(page) {
 
   <main id="contenido">
     ${renderFairOpeningHeader()}
-
-    <section id="venta-de-stands" class="hero-stage hero-stands relative isolate min-h-[100svh] overflow-hidden bg-night text-lienzo" aria-labelledby="stands-body-title">
-      <div class="hero-stands-backdrop absolute inset-0 -z-30" aria-hidden="true"></div>
-      <img class="hero-paloma" src="/assets/finados/icons/paloma.svg" alt="" width="480" height="340" aria-hidden="true">
-
-      <div class="hero-stands-grid relative mx-auto grid min-h-[100svh] w-[min(100%-2rem,88rem)] gap-4 pt-36 lg:grid-cols-[minmax(0,1.06fr)_minmax(28rem,0.94fr)] lg:items-end lg:pt-32">
-        <div class="hero-stands-copy z-10 pb-12 sm:pb-16 lg:pb-16">
-          <p class="hero-enter inline-flex border-2 border-cyan bg-night/80 px-4 py-2 text-[0.64rem] font-black uppercase tracking-wide text-lienzo" data-hero-item>Finados 2026 · Venta de stands</p>
-          <h2 id="stands-body-title" class="stands-body-title hero-enter mt-5 font-display text-[clamp(4.1rem,8.7vw,8.5rem)] uppercase leading-[0.82] tracking-[-0.025em] text-lienzo" data-hero-item>
-            <span class="block">Haz crecer</span>
-            <span class="block text-fuchsia">tu negocio</span>
-            <span class="block">en Finados</span>
-          </h2>
-          <p class="hero-enter mt-6 max-w-xl font-serif text-xl italic leading-tight text-lienzo/90 sm:text-2xl" data-hero-item>Tu talento, tus productos y tu historia también hacen parte de esta tradición.</p>
-
-          <div class="hero-enter hero-offer-grid mt-7" data-hero-item>
-            <div class="hero-date-card">
-              <span>Fecha de venta</span>
-              <time datetime="2026-09-14">14 de septiembre</time>
-            </div>
-            <div class="hero-online-card" aria-label="Venta online">
-              <span>Venta</span>
-              <strong>Online</strong>
-              <a class="hero-online-action" href="${purchaseUrl}" data-stands-purchase-link${externalAttributes(purchaseUrl)}>Reservar mi stand <span aria-hidden="true">↗</span></a>
-            </div>
-          </div>
-        </div>
-
-        <figure class="hero-enter hero-expositor relative self-end" data-hero-item>
-          <img src="/assets/finados/expositor-artesanias.webp" width="743" height="1405" alt="Expositor de artesanías sosteniendo productos de madera" loading="lazy" decoding="async">
-          <figcaption>Participa como dueño de tu stand</figcaption>
-        </figure>
-      </div>
-    </section>
 
     <section id="artistas" class="artist-section bg-night py-24 text-lienzo sm:py-32" aria-labelledby="guaynaa-title">
       <div class="mx-auto grid w-[min(100%-2rem,88rem)] gap-10 lg:grid-cols-[1.28fr_0.72fr] lg:items-center">

@@ -39,8 +39,8 @@ function countdownFixture(initialTime) {
     setTime(time) { currentTime = time; }, tick() { tick(); }, get intervalCount() { return intervalCount; } };
 }
 
-test('la feria inicia el 30 de octubre a las 10:30 en Ecuador, sin valores negativos', () => {
-  assert.equal(target, Date.parse('2026-10-30T15:30:00Z'));
+test('la inauguración oficial inicia el 30 de octubre a las 12:00 en Ecuador, sin valores negativos', () => {
+  assert.equal(target, Date.parse('2026-10-30T17:00:00Z'));
   assert.deepEqual(presentationCountdown(target - (86_400_000 + 2 * 3_600_000 + 3 * 60_000 + 4_000)),
     { live: false, days: 1, hours: 2, minutes: 3, seconds: 4 });
   assert.deepEqual(presentationCountdown(target - 1_000), { live: false, days: 0, hours: 0, minutes: 0, seconds: 1 });
@@ -51,26 +51,25 @@ test('la feria inicia el 30 de octubre a las 10:30 en Ecuador, sin valores negat
   assert.throws(() => presentationCountdown(NaN), TypeError);
 });
 
-test('la bienvenida y la apertura encabezan Finados y la venta de stands conserva su contenido debajo', t => {
+test('la inauguración oficial encabeza Finados y la venta de stands queda oculta del body', t => {
   t.mock.method(Date, 'now', () => target - 3_600_000);
   const html = renderFinadosPage(page);
   assert.equal((html.match(/<h1\b/g) ?? []).length, 1);
-  assert.match(html, /<h1[^>]*id="presentation-title"[^>]*><span>Bienvenidos a<\/span><span[^>]*>Finados Mushuc Runa <em>2026<\/em>/);
+  assert.match(html, /<h1[^>]*id="presentation-title"[^>]*><span>Inauguración Oficial de<\/span><span[^>]*>Finados Mushuc Runa<\/span>/);
   assert.match(html, /Viernes 30 de octubre de 2026/);
-  assert.match(html, /<strong>10:30 <span>AM<\/span>/);
+  assert.match(html, /<strong>12:00 <span>PM<\/span>/);
   assert.match(html, /Complejo Intercultural y Deportivo <strong>MUSHUC RUNA<\/strong>/);
-  assert.match(html, /<h2 id="stands-body-title"[^>]*>[\s\S]*Haz crecer[\s\S]*tu negocio[\s\S]*en Finados[\s\S]*<\/h2>/);
-  assert.ok(html.indexOf('id="inicio"') < html.indexOf('id="venta-de-stands"'));
-  assert.ok(html.indexOf('id="venta-de-stands"') < html.indexOf('id="artistas"'));
-  for (const text of ['Tu talento, tus productos y tu historia', '14 de septiembre', 'Reservar mi stand', 'William Luna', 'Las Ñañas']) assert.ok(html.includes(text));
-  assert.match(html, /data-presentation-countdown data-target="2026-10-30T10:30:00-05:00"/);
+  assert.doesNotMatch(html, /id="venta-de-stands"|stands-body-title|Reservar mi stand|expositor-artesanias/);
+  assert.ok(html.indexOf('id="inicio"') < html.indexOf('id="artistas"'));
+  for (const text of ['William Luna', 'Las Ñañas']) assert.ok(html.includes(text));
+  assert.match(html, /data-presentation-countdown data-target="2026-10-30T12:00:00-05:00"/);
   for (const [key, label] of [['days', 'Días'], ['hours', 'Horas'], ['minutes', 'Minutos'], ['seconds', 'Segundos']]) {
     assert.match(html, new RegExp(`data-presentation-value="${key}">\\d{2}</strong><span>${label}</span>`));
   }
   const map = html.match(/<a class="presentation-map"[^>]*>/)[0];
   assert.ok(map.includes(`href="${routeOptions[0].href}"`));
   assert.match(map, /target="_blank" rel="noopener noreferrer"/);
-  assert.match(html, /data-presentation-welcome hidden>Bienvenidos a Finados Mushuc Runa 2026\./);
+  assert.match(html, /data-presentation-welcome hidden>Inauguración Oficial de Finados Mushuc Runa\./);
 });
 
 test('el HTML es determinista y ofrece la fecha real mientras se activa el reloj', t => {
@@ -81,8 +80,8 @@ test('el HTML es determinista y ofrece la fecha real mientras se activa el reloj
   const after = renderFinadosPage(page);
   assert.equal(before, after);
   assert.match(before, /data-presentation-clock aria-hidden="true" hidden/);
-  assert.match(before, /data-presentation-fallback>30 de octubre de 2026 · 10:30 AM \(hora de Ecuador\)/);
-  assert.match(before, /data-presentation-welcome hidden>Bienvenidos a Finados Mushuc Runa 2026\./);
+  assert.match(before, /data-presentation-fallback>30 de octubre de 2026 · 12:00 PM \(hora de Ecuador\)/);
+  assert.match(before, /data-presentation-welcome hidden>Inauguración Oficial de Finados Mushuc Runa\./);
 });
 
 test('el contador se actualiza sin deriva y cambia a bienvenida al cumplirse la hora', () => {

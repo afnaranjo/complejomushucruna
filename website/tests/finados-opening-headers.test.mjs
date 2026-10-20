@@ -16,10 +16,10 @@ test('las siete portadas públicas comparten la apertura y Voceros queda excluid
     const html = await readFile(join(output, file), 'utf8');
     assert.equal((html.match(/ data-fair-opening /g) ?? []).length, 1, file);
     assert.equal((html.match(/ data-presentation-countdown /g) ?? []).length, 1, file);
-    assert.match(html, /data-target="2026-10-30T10:30:00-05:00"/);
+    assert.match(html, /data-target="2026-10-30T12:00:00-05:00"/);
     assert.match(html, /Viernes 30 de octubre de 2026/);
-    assert.match(html, /<span>Bienvenidos a<\/span><span[^>]*>Finados Mushuc Runa <em>2026<\/em>/);
-    assert.match(html, /La feria comienza en/);
+    assert.match(html, /<span>Inauguración Oficial de<\/span><span[^>]*>Finados Mushuc Runa<\/span>/);
+    assert.match(html, /La inauguración oficial comienza en/);
     assert.match(html, /Hora de Ecuador/);
     assert.ok(html.includes(`/assets/finados/presentation.css?v=${openingAssetVersion}`));
     assert.equal((html.match(/<h1\b/g) ?? []).length, 1, file);
@@ -45,7 +45,7 @@ test('Invitaciones preserva el RSVP y traslada la cabecera al documento desempaq
   const result = injectInvitationOpeningHeader(original, '/invitaciones/');
   assert.equal(injectInvitationOpeningHeader(result, '/invitaciones/'), result);
   assert.match(result, /doc\.body\.prepend\(fairHeader\.cloneNode\(true\)\)/);
-  assert.match(result, /fairRuntime\.src = '\/assets\/finados\/presentation\.js\?v=20260928-fair-start-4'/);
+  assert.match(result, /fairRuntime\.src = '\/assets\/finados\/presentation\.js\?v=20261020-official-opening-1'/);
   assert.ok(result.indexOf('doc.body.prepend') < result.indexOf('document.documentElement.replaceWith'));
   const encodedApp = original.split(/\r?\n/).find(line => line.startsWith('"<!DOCTYPE html>'));
   assert.ok(encodedApp, 'La aplicación congelada debe existir');

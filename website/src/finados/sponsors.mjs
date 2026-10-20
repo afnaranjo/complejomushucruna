@@ -1,6 +1,6 @@
 import { escapeHtml } from '../render/html.mjs';
 
-export const sponsorAssetVersion = '20261012-sponsors-9';
+export const sponsorAssetVersion = '20261020-sponsors-10';
 export const finadosSponsors = Object.freeze([
   'Mushuc Runa Cooperativa de Ahorro y Crédito',
   'Pushak Ltda. Cooperativa de Ahorro y Crédito',
@@ -13,12 +13,15 @@ export const finadosSponsors = Object.freeze([
   'Textilana Cooperativa de Ahorro y Crédito',
   'Óptica Interandina',
   'Mutualista Ambato',
+  'Ron Flor de Caña',
+  'Aguardiente Antioqueño',
   'Pollos al Gusto',
   'Bogati',
   'Skybiz Travel',
   'INGCO',
   'Cayambe Import S.A.',
   'ENAG Escuela de Cocina',
+  'MashiWasi',
 ]);
 
 export function renderFinadosSponsors() {
