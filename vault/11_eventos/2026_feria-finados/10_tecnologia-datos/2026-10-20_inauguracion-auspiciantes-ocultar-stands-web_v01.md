@@ -1,7 +1,7 @@
 ---
 titulo: "Inauguración oficial, auspiciantes y retiro de venta de stands en Finados"
 responsable: "tecnología/diseño"
-estado: en-revision
+estado: publicado
 ultima_actualizacion: 2026-10-20
 fuente: "Solicitud expresa de Alex y SVG oficial recibido el 20 de octubre de 2026"
 confidencialidad: interno
@@ -31,4 +31,10 @@ Relacionado: [[2026-09-17_cabeceras-contador-apertura-finados-web_v01]], [[2026-
 
 - `npm run check` aprobado en Linux: 284 pruebas Node, 34 suites PHP, 11 pruebas de integración; build de 283 archivos, 91 HTML y 3.060 referencias válidas.
 - Las pruebas confirman el instante de Ecuador, el cambio accesible del contador, las siete cabeceras compartidas con Voceros excluido, la ausencia de la promoción de stands en el body de Finados y la integridad exacta de los nuevos activos de auspiciantes.
-- Publicación externa pendiente al crear esta versión de la nota.
+
+## Publicación
+
+- Commit funcional `f084516` enviado a `origin/main`. Durante el primer intento llegó el commit concurrente `0677303`; el publicador se detuvo antes del respaldo por divergencia, se hizo pull fast-forward y se repitió desde `main` limpia y sincronizada.
+- Frontend desplegado desde `0677303` con respaldo recuperable y sin eliminar archivos exclusivos del servidor. No se desplegó backend ni se ejecutaron migraciones o escrituras de datos.
+- Verificación HTTPS independiente aprobada en `complejomushucruna.com` y `finados.expoferiamushucruna.com`: landing y SHOWS correctos, promoción de stands ausente, versión de auspiciantes presente y SVG/WebP idénticos por SHA-256 al build.
+- Las APIs `finados.complejomushucruna.com` y `api.expoferiamushucruna.com` respondieron HTTP 200 y `ok: true`; cada una devolvió el origen CORS exacto para los dos dominios permitidos.

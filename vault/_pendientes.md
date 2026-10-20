@@ -12,7 +12,7 @@ tags:
 
 # Pendientes ejecutivos
 
-- [ ] Publicar el frontend de la [[11_eventos/2026_feria-finados/10_tecnologia-datos/2026-10-20_inauguracion-auspiciantes-ocultar-stands-web_v01|inauguración oficial, nueva composición de auspiciantes y retiro de la promoción de stands]]. Check completo aprobado; sin cambios de backend ni datos. Responsable: tecnología/diseño. Fecha: 2026-10-20.
+- [x] Publicar el frontend de la [[11_eventos/2026_feria-finados/10_tecnologia-datos/2026-10-20_inauguracion-auspiciantes-ocultar-stands-web_v01|inauguración oficial, nueva composición de auspiciantes y retiro de la promoción de stands]]. `f084516` en Git; frontend integrado desplegado desde `0677303` con respaldo y verificado en ambos dominios. Sin backend, migraciones ni datos. Responsable: tecnología/diseño. Completado: 2026-10-20.
 
 - [x] Publicar la [[11_eventos/2026_feria-finados/10_tecnologia-datos/2026-10-07_actualizacion-auspiciantes-skybiz-ingco-web_v01|nueva franja de auspiciantes con Skybiz Travel e INGCO]]: `8647ee7` y `24028d5` en Git; check completo, respaldo frontend y verificación HTTPS/SHA-256 en ambos dominios. Sin backend, migraciones ni cambios de datos. Responsable: tecnología/diseño. Completado: 2026-10-07.
 

@@ -2282,12 +2282,14 @@ Nota de relevo escrita a pedido de Alex para que otro agente (Codex) retome la s
 - No se crearon pases de prueba en producción ni se modificaron datos existentes, DNS, Google Sheets ni otros proyectos.
 - Pendiente: que Alex cargue los pases reales y pruebe un QR impreso con el celular en la puerta.
 
-### 2026-10-20 — Inauguración oficial, auspiciantes y venta de stands (local)
+### 2026-10-20 — Inauguración oficial, auspiciantes y venta de stands (publicado)
 
 - Alex pidió sincronizar `main`, cambiar la cabecera y el contador por la Inauguración Oficial de Finados Mushuc Runa del viernes 30 de octubre a las 12:00 de Ecuador, actualizar los auspiciantes con el SVG recibido y ocultar la promoción de venta de stands en la portada Finados.
 - La cabecera compartida usa `2026-10-30T12:00:00-05:00` y caché `20261020-official-opening-1`; Voceros permanece excluido. `/finados/` ya no renderiza el bloque `venta-de-stands`, pero conserva la página y la navegación de compra.
 - SHOWS usa la composición oficial `2321 × 650`: SVG SHA-256 `c94d88753f46258cebaf40e7cc1b55da646024ce2dd7b25cbb1c36c80a6b0215`, WebP SHA-256 `fd2a9e0f68a8cf36c75c53ff902f539a038b31f970cbfa47fc858b875c6d1b3b` y caché `20261020-sponsors-10`. La portada Finados continúa sin franja y Dignidades 2025 no cambia.
-- QA local: `npm run check` en verde (284 Node, 34 PHP, 11 integración; 283 archivos, 91 HTML, 3.060 referencias). Sin backend, migraciones ni datos. Pendiente de commit, push y despliegue frontend autorizado.
+- QA inicial: `npm run check` en verde (284 Node, 34 PHP, 11 integración; 283 archivos, 91 HTML, 3.060 referencias). Commit funcional `f084516` enviado a GitHub.
+- El primer despliegue se detuvo antes del respaldo porque `origin/main` avanzó concurrentemente a `0677303`. Se hizo pull fast-forward; la integración validó 288 Node, 34 PHP y 11 integraciones, con build de 285 archivos, 92 HTML y 3.114 referencias.
+- Frontend desplegado desde `0677303` con respaldo, sin backend, migraciones ni datos. En ambos dominios la landing y SHOWS son correctos, stands está oculto y los dos activos de auspiciantes coinciden por SHA-256. Ambas APIs conservan health 200/`ok` y CORS exacto para los dos orígenes.
 
 ### 2026-10-20 — Sección Invitaciones con vista previa del diseño (local)
 

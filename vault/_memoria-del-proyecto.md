@@ -12,12 +12,13 @@ tags:
 
 # Memoria del proyecto
 
-## 2026-10-20 — Inauguración oficial, auspiciantes y stands preparados para publicación
+## 2026-10-20 — Inauguración oficial, auspiciantes y retiro de stands publicados
 
 - La cabecera compartida anuncia «Inauguración Oficial de Finados Mushuc Runa» y cuenta hasta el viernes 30 de octubre de 2026 a las 12:00, hora de Ecuador.
 - `/finados/` deja de renderizar la promoción de venta de stands; la página específica y la entrada del menú permanecen disponibles. Voceros continúa excluido de la cabecera compartida.
 - SHOWS incorpora el nuevo SVG oficial de auspiciantes `2321 × 650` y su WebP optimizado con caché `20261020-sponsors-10`. La portada Finados sigue sin franja y Dignidades 2025 conserva su composición histórica.
-- Check completo en verde: 284 Node, 34 PHP, 11 integración; 283 archivos, 91 HTML y 3.060 referencias. Sin backend, migraciones ni datos. Evidencia: [[11_eventos/2026_feria-finados/10_tecnologia-datos/2026-10-20_inauguracion-auspiciantes-ocultar-stands-web_v01|Inauguración oficial, auspiciantes y retiro de stands]].
+- `f084516` quedó en GitHub. El frontend integrado se publicó desde `0677303` con respaldo; el pull concurrente añadió únicamente la vista previa administrativa de Invitaciones. Validación integrada en verde: 288 Node, 34 PHP, 11 integración; 285 archivos, 92 HTML y 3.114 referencias.
+- Ambos dominios entregan la cabecera, hora y composición nuevas; el SVG/WebP coincide con el build. Las dos APIs conservan health 200 y CORS correcto para ambos orígenes. Sin release de backend, migraciones ni cambios de datos. Evidencia: [[11_eventos/2026_feria-finados/10_tecnologia-datos/2026-10-20_inauguracion-auspiciantes-ocultar-stands-web_v01|Inauguración oficial, auspiciantes y retiro de stands]].
 
 ## 2026-10-13 — Plaza, auspiciantes y backend publicados tras renovar la identidad SSH
 
