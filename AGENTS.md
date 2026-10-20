@@ -2274,3 +2274,10 @@ Nota de relevo escrita a pedido de Alex para que otro agente (Codex) retome la s
 - QA: `npm run check` en verde (284 Node, PHP con `golden_pass_test.php`, 11 integración; 283 archivos, 91 HTML, 3063 referencias). Prueba en navegador con el entorno local: alta de 3 pases con una repetida omitida, verificación válida y no permitida, tarjeta PNG y respuesta de la API pública.
 - Publicación externa: solo GitHub. **No está desplegado**; requiere autorización de Alex para backend (migración 037) → frontend.
 - Pendientes: decidir si los QR impresos deben apuntar siempre al dominio principal o al espejo; confirmar el texto de la tarjeta impresa.
+
+### 2026-10-20 — Publicación de Pase dorado
+
+- Alex autorizó con «sí, sube a producción». Desde `main` limpia y sincronizada en `ed0177e`: backend primero (verificación completa, respaldo y migración aditiva `037_golden_pass`), después frontend (respaldo, sin borrar archivos exclusivos del servidor).
+- Verificación en ambos dominios: `/admin/pase-dorado/`, `/finados/pase-dorado/verificar/`, sus tres archivos, Voceros y Finados en 200; archivos publicados idénticos al build por SHA-256, incluido `vocero-portal.js` sin cambios. En las dos APIs: `health` 200, `/api/pases-dorados` sin sesión 401 y validación de un QR inexistente 404.
+- No se crearon pases de prueba en producción ni se modificaron datos existentes, DNS, Google Sheets ni otros proyectos.
+- Pendiente: que Alex cargue los pases reales y pruebe un QR impreso con el celular en la puerta.
