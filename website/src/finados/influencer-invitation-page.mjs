@@ -10,7 +10,7 @@ export const influencerEventDefaults = Object.freeze({
   place: 'Juan Montalvo y 12 de Noviembre, Ambato, Ecuador',
   dressCode: 'Blanco',
 });
-export const influencerInvitationVersion = '20261015-invitacion-6';
+export const influencerInvitationVersion = '20261020-invitacion-7';
 
 function shell(page, { api, body, kind }) {
   const connect = apiBasesForCsp(api);

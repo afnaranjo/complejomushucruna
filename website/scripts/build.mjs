@@ -225,6 +225,11 @@ export async function buildSite(outputDirectory = join(websiteRoot, 'dist'), { a
     "const LOCAL_API = 'http://127.0.0.1:4174/api';",
     adminEnvironment === 'production' ? 'const LOCAL_API = null;' : `const LOCAL_API = '${developmentApi}';`), 'utf8');
 
+  const adminInvitacionesScript = await readFile(join(websiteRoot, 'src', 'admin', 'admin-invitaciones.js'), 'utf8');
+  await writeFile(join(adminAssets, 'admin-invitaciones.js'), adminInvitacionesScript.replace(
+    "const LOCAL_API = 'http://127.0.0.1:4174/api';",
+    adminEnvironment === 'production' ? 'const LOCAL_API = null;' : `const LOCAL_API = '${developmentApi}';`), 'utf8');
+
   const adminInfluencersScript = await readFile(join(websiteRoot, 'src', 'admin', 'admin-influencers.js'), 'utf8');
   await writeFile(join(adminAssets, 'admin-influencers.js'), adminInfluencersScript.replace(
     "const LOCAL_API = 'http://127.0.0.1:4174/api';",

@@ -16,12 +16,13 @@ const ADMIN_FORMS = Object.freeze([
   { module: 'emprendedores', route: '/admin/emprendedores/', label: 'Emprendedores', description: 'De emprendedor a influencer', marker: 'E' },
   { module: 'creadoras', route: '/admin/creadoras/', label: 'Creadoras', description: 'Calendario y edición', marker: 'C', children: [{ route: '/admin/creadoras/', label: 'Creadoras', description: 'Calendario por semanas y turnos' }, { route: '/admin/creadoras/edicion/', label: 'Edición', description: 'Videos grabados por editar' }] },
   { module: 'mfs', route: '/admin/mfs/', label: 'Mushuc Freestyle', description: 'Inscripciones y audiciones', marker: 'F' },
+  { module: 'influencers', route: '/admin/invitaciones/', label: 'Invitaciones', description: 'Diseños y a quién se envían', marker: 'In' },
   { module: 'influencers', route: '/admin/influencers/', label: 'Influencers', description: 'Invitaciones a creadores', marker: 'I', children: [{ route: '/admin/influencers/creadores/', label: 'Creadores', description: 'Invitación personal con su nombre' }, { route: '/admin/influencers/nuevos/', label: 'Nuevos creadores', description: 'Invitación abierta con registro' }] },
   { module: 'pasedorado', route: '/admin/pase-dorado/', label: 'Pase dorado', description: 'Validación por cédula y QR', marker: 'D' },
   { module: 'usuarios', route: '/admin/usuarios/', label: 'Usuarios', description: 'Cuentas, roles y actividad', marker: 'U' },
 ]);
 // Public landing that each panel returns to from its header.
-const PANEL_LANDINGS = Object.freeze({ '/admin/noticias/': ['/finados/', 'Volver a Finados'], '/admin/panel/': ['/finados/', 'Volver a Finados'], '/admin/voceros/': ['/finados/voceros/', 'Volver a Voceros'], '/admin/medios/': ['/finados/medios/', 'Volver a Medios'], '/admin/medios/eventos/': ['/finados/medios/', 'Volver a Medios'], '/admin/medios/calendario/': ['/finados/medios/', 'Volver a Medios'], '/admin/medios/gira/': ['/finados/medios/', 'Volver a Medios'], '/admin/produccion/activaciones/': ['/finados/', 'Volver a Finados'], '/admin/produccion/sol/': ['/finados/', 'Volver a Finados'], '/admin/produccion/luna/': ['/finados/', 'Volver a Finados'], '/admin/emprendedores/': ['/finados/emprendedores/', 'Volver a Emprendedores'], '/admin/creadoras/': ['/finados/creadoras/', 'Volver a Creadoras'], '/admin/creadoras/edicion/': ['/finados/creadoras/', 'Volver a Creadoras'], '/admin/mfs/': ['/finados/mfs/', 'Volver a Mushuc Freestyle'], '/admin/influencers/creadores/': ['/finados/', 'Volver a Finados'], '/admin/influencers/nuevos/': ['/finados/', 'Volver a Finados'], '/admin/pase-dorado/': ['/finados/', 'Volver a Finados'], '/admin/usuarios/': ['/finados/', 'Volver a Finados'] });
+const PANEL_LANDINGS = Object.freeze({ '/admin/noticias/': ['/finados/', 'Volver a Finados'], '/admin/panel/': ['/finados/', 'Volver a Finados'], '/admin/voceros/': ['/finados/voceros/', 'Volver a Voceros'], '/admin/medios/': ['/finados/medios/', 'Volver a Medios'], '/admin/medios/eventos/': ['/finados/medios/', 'Volver a Medios'], '/admin/medios/calendario/': ['/finados/medios/', 'Volver a Medios'], '/admin/medios/gira/': ['/finados/medios/', 'Volver a Medios'], '/admin/produccion/activaciones/': ['/finados/', 'Volver a Finados'], '/admin/produccion/sol/': ['/finados/', 'Volver a Finados'], '/admin/produccion/luna/': ['/finados/', 'Volver a Finados'], '/admin/emprendedores/': ['/finados/emprendedores/', 'Volver a Emprendedores'], '/admin/creadoras/': ['/finados/creadoras/', 'Volver a Creadoras'], '/admin/creadoras/edicion/': ['/finados/creadoras/', 'Volver a Creadoras'], '/admin/mfs/': ['/finados/mfs/', 'Volver a Mushuc Freestyle'], '/admin/invitaciones/': ['/finados/', 'Volver a Finados'], '/admin/influencers/creadores/': ['/finados/', 'Volver a Finados'], '/admin/influencers/nuevos/': ['/finados/', 'Volver a Finados'], '/admin/pase-dorado/': ['/finados/', 'Volver a Finados'], '/admin/usuarios/': ['/finados/', 'Volver a Finados'] });
 const PROGRESS_LEVELS = ['En preparación', 'Primer paso', 'Gorra', 'Kit completo', 'Trae a los tuyos', 'Noche de concierto', 'Tope'];
 const VIDEO_SLOTS = Object.freeze([1, 2, 3, 4, 5]);
 const videoSlotControls = (prefix = 'video') => VIDEO_SLOTS.map(slot => `<label class="admin-video-control"><span class="admin-video-check"><input type="checkbox" name="${prefix}_${slot}_enabled" value="1"><strong>Video ${slot}</strong></span><span class="admin-video-date"><span>Habilitado desde</span><input type="date" name="${prefix}_${slot}_enabled_at" aria-label="Fecha de habilitación del video ${slot}"></span></label>`).join('');
@@ -68,6 +69,8 @@ const campaignBanner = '<section class="campaign-banner" data-campaign-banner da
 function layout(page, content, script = '/assets/admin/admin.js?v=20261012-views-suma-1') {
   const api = page.adminEnvironment === 'development' ? (page.adminApiBase ?? LOCAL_API_BASE) : PRIMARY_API_BASE;
   const connectSources = apiBasesForCsp(api);
+  // Solo Invitaciones muestra páginas del propio sitio dentro del panel (la vista previa de cada diseño).
+  const frames = page.route === '/admin/invitaciones/' ? " frame-src 'self';" : '';
   return `<!doctype html>
 <html lang="es"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
@@ -76,10 +79,10 @@ function layout(page, content, script = '/assets/admin/admin.js?v=20261012-views
 <link rel="canonical" href="https://complejomushucruna.com${esc(page.route)}">
 <meta name="robots" content="noindex, nofollow, noarchive">
 <meta name="referrer" content="no-referrer">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' blob:; media-src blob:; font-src 'self'; connect-src ${connectSources}; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' blob:; media-src blob:;${frames} font-src 'self'; connect-src ${connectSources}; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="admin-api-base" content="${api}">
 <link rel="icon" href="/assets/finados/favicon-finados.png">
-<link rel="stylesheet" href="/assets/admin/admin.css?v=20261020-pase-dorado-1">
+<link rel="stylesheet" href="/assets/admin/admin.css?v=20261020-invitaciones-1">
 <script type="module" src="${script}"></script>
 </head><body class="admin-page">
 <a class="skip-link" href="#contenido">Ir al contenido</a>
@@ -799,6 +802,18 @@ export function renderAdminMfsPage(page) {
 <section class="admin-reset"><h3>Recuperar acceso</h3><button type="button" class="button-quiet" data-admin-reset disabled>Generar enlace temporal</button><div data-reset-output hidden><label>Enlace temporal<input type="text" readonly data-reset-url autocomplete="off" spellcheck="false"></label><button type="button" class="button-quiet" data-reset-copy>Copiar enlace</button></div><p class="feedback" data-reset-feedback role="status" aria-live="polite"></p></section>
 <div class="detail-danger-zone"><p>Retirar oculta la inscripción y desactiva el acceso; no borra nada y se puede deshacer.</p><button type="button" class="button-danger" data-admin-delete disabled>Retirar inscripción</button><button type="button" class="button-primary" data-admin-restore hidden>Restaurar inscripción</button></div>
 </dialog></main></div>`, ADMIN_MFS_SCRIPT);
+}
+
+// Invitaciones: cada invitación con su diseño a la vista, a quién se envía y cómo van las respuestas.
+export const ADMIN_INVITACIONES_SCRIPT = '/assets/admin/admin-invitaciones.js?v=20261020-invitaciones-1';
+
+export function renderAdminInvitacionesPage(page) {
+  return layout(page, `<div class="admin-shell">${adminSidebar(page)}<main id="contenido" class="admin-workspace ivt" data-admin-invitaciones>${campaignBanner}
+<div class="workspace-heading"><div><p class="eyebrow">Finados 2026</p><h1>Invitaciones</h1><p>Mira el diseño de cada invitación tal como la ve la persona en su celular, a quién se envió y cómo van las respuestas.</p><p data-admin-user>Comprobando acceso…</p></div></div>
+<p class="feedback" data-admin-feedback role="status" aria-live="polite" aria-atomic="true">Cargando invitaciones…</p>
+<button type="button" class="button-quiet" data-session-retry hidden>Reintentar conexión</button>
+<div class="ivt-list" data-invitations aria-busy="true"></div>
+</main></div>`, ADMIN_INVITACIONES_SCRIPT);
 }
 
 // Influencers: invitaciones al lanzamiento. «Creadores» lleva el nombre de cada uno; «Nuevos creadores» es abierta.

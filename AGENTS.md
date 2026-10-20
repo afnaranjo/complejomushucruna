@@ -2288,3 +2288,12 @@ Nota de relevo escrita a pedido de Alex para que otro agente (Codex) retome la s
 - La cabecera compartida usa `2026-10-30T12:00:00-05:00` y caché `20261020-official-opening-1`; Voceros permanece excluido. `/finados/` ya no renderiza el bloque `venta-de-stands`, pero conserva la página y la navegación de compra.
 - SHOWS usa la composición oficial `2321 × 650`: SVG SHA-256 `c94d88753f46258cebaf40e7cc1b55da646024ce2dd7b25cbb1c36c80a6b0215`, WebP SHA-256 `fd2a9e0f68a8cf36c75c53ff902f539a038b31f970cbfa47fc858b875c6d1b3b` y caché `20261020-sponsors-10`. La portada Finados continúa sin franja y Dignidades 2025 no cambia.
 - QA local: `npm run check` en verde (284 Node, 34 PHP, 11 integración; 283 archivos, 91 HTML, 3.060 referencias). Sin backend, migraciones ni datos. Pendiente de commit, push y despliegue frontend autorizado.
+
+### 2026-10-20 — Sección Invitaciones con vista previa del diseño (local)
+
+- Alex pidió una sección en el menú lateral para ver las invitaciones generadas y su diseño, antes de crear la siguiente, que podrá enviarse a creadores, a medios o a ambos.
+- Nueva página `/admin/invitaciones/` («Invitaciones», módulo de rol `influencers`, encima de Influencers). Cada invitación muestra su estado (Ya pasó / Es hoy / Próxima), fecha, lugar, a quién se envió, totales (invitados, confirmaron, no asistirán, sin respuesta, abrieron su enlace, por aprobar) y un celular con la vista previa de sus cinco pantallas: invitación personal, invitación abierta, gracias, gafete y validación en la puerta. Hoy muestra el Lanzamiento Guaynaa y una tarjeta «Nueva invitación · En preparación».
+- Las pantallas públicas aceptan `?vista=1`: muestran «Tu nombre» y un QR de muestra, con botones y formulario desactivados; no abren, responden ni registran ninguna invitación. Solo esta página del panel permite `frame-src 'self'`. Caché de la invitación `20261020-invitacion-7` y `admin.css` `20261020-invitaciones-1`. Sin cambios de backend ni de datos; el cliente del panel solo lee.
+- QA: `npm run check` en verde (288 Node, PHP, 11 integración; 285 archivos, 92 HTML, 3114 referencias) y revisión en Chrome sin interfaz a 1440 y 390 px.
+- Publicación externa: solo GitHub. **No está desplegado**; requiere autorización de Alex para el frontend.
+- Pendiente: datos y arte de la próxima invitación y decidir si va a creadores, medios o ambos.

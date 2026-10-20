@@ -25,7 +25,7 @@ test('el panel es la primera pantalla tras iniciar sesión y trae sus tres secci
   assert.match(panel, /href="\/admin\/panel\/" aria-current="page"/);
   // Noticias abre el menú porque manda sobre todo lo demás; el panel va justo después.
   const order = [...panel.matchAll(/class="admin-nav-link(?: admin-nav-link--child)?" href="([^"]+)"/g)].map(match => match[1]);
-  assert.deepEqual(order, ['/admin/panel/', '/admin/noticias/', '/admin/voceros/', '/admin/medios/', '/admin/medios/eventos/', '/admin/medios/calendario/', '/admin/medios/gira/', '/admin/produccion/activaciones/', '/admin/produccion/sol/', '/admin/produccion/luna/', '/admin/emprendedores/', '/admin/creadoras/', '/admin/creadoras/edicion/', '/admin/mfs/', '/admin/influencers/creadores/', '/admin/influencers/nuevos/', '/admin/pase-dorado/', '/admin/usuarios/']);
+  assert.deepEqual(order, ['/admin/panel/', '/admin/noticias/', '/admin/voceros/', '/admin/medios/', '/admin/medios/eventos/', '/admin/medios/calendario/', '/admin/medios/gira/', '/admin/produccion/activaciones/', '/admin/produccion/sol/', '/admin/produccion/luna/', '/admin/emprendedores/', '/admin/creadoras/', '/admin/creadoras/edicion/', '/admin/mfs/', '/admin/invitaciones/', '/admin/influencers/creadores/', '/admin/influencers/nuevos/', '/admin/pase-dorado/', '/admin/usuarios/']);
   // Al iniciar sesión se llega al panel, no a Voceros.
   const login = await readFile(join(output, 'assets/admin/admin.js'), 'utf8');
   // Tras entrar, cada rol va a su portada; quien no tiene portada válida cae en el Panel.

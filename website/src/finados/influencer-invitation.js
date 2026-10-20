@@ -27,6 +27,13 @@ export function invitationToken(search) {
   return TOKEN.test(token) ? token : '';
 }
 
+/** «?vista=1»: el panel muestra el diseño con datos de muestra, sin abrir ni responder ninguna invitación. */
+export function isPreview(search) {
+  return new URLSearchParams(search).get('vista') === '1';
+}
+export const PREVIEW_NAME = 'Tu nombre';
+const PREVIEW_ID = '0'.repeat(32);
+
 export function responseMessage(response, name = '') {
   const who = name ? `${name}, ` : '';
   if (response === 'si') return `¡${who}te esperamos! Gracias por confirmar. Guardaremos un lugar para ti.`;
@@ -139,6 +146,14 @@ async function startPersonal(client) {
   const status = document.querySelector('[data-status]');
   const choices = document.querySelector('[data-choices]');
   const buttons = [...choices.querySelectorAll('[data-answer]')];
+  if (isPreview(location.search)) {
+    client.event().then(data => paintEvent(data?.event)).catch(() => {});
+    document.querySelector('[data-guest-name]').textContent = `${PREVIEW_NAME},`;
+    buttons.forEach(button => { button.disabled = true; });
+    choices.hidden = false;
+    status.textContent = 'Vista previa: cada invitado ve aquí su propio nombre.';
+    return;
+  }
   const token = invitationToken(location.search);
   if (!token) { status.textContent = 'Este enlace está incompleto. Ábrelo tal como te lo enviamos.'; status.dataset.error = 'true'; return; }
   let name = '';
@@ -205,6 +220,11 @@ async function startOpen(client) {
   client.event().then(data => paintEvent(data?.event)).catch(() => {});
   const form = document.querySelector('[data-open-form]');
   const status = form.querySelector('[data-status]');
+  if (isPreview(location.search)) {
+    form.querySelector('button[type="submit"]').disabled = true;
+    status.textContent = 'Vista previa: el formulario no envía datos.';
+    return;
+  }
   form.addEventListener('submit', async event => {
     event.preventDefault();
     const values = Object.fromEntries(new FormData(form));
@@ -231,7 +251,7 @@ async function startOpen(client) {
 }
 
 function startThanks(client) {
-  const answer = readAnswer() ?? {};
+  const answer = isPreview(location.search) ? { kind: 'creador', name: PREVIEW_NAME, response: 'si' } : readAnswer() ?? {};
   const content = thanksContent(answer);
   const set = (selector, text) => { const node = document.querySelector(selector); if (node) node.textContent = text; };
   set('[data-thanks-eyebrow]', content.eyebrow);
@@ -350,6 +370,17 @@ export async function influencerBadgeBlob(guest, event, siteOrigin) {
 
 async function startBadge(client) {
   const status = document.querySelector('[data-status]');
+  const elements = () => ({
+    status, preview: document.querySelector('[data-badge-preview]'), actions: document.querySelector('[data-badge-actions]'),
+    download: document.querySelector('[data-badge-download]'), share: document.querySelector('[data-badge-share]'),
+  });
+  if (isPreview(location.search)) {
+    const event = await client.event().then(data => data?.event).catch(() => null);
+    document.querySelector('[data-badge-name]').textContent = PREVIEW_NAME;
+    await mountBadge({ guest: { name: PREVIEW_NAME, kind: 'creador', public_id: PREVIEW_ID }, event }, elements());
+    status.textContent = 'Vista previa: el QR de muestra no corresponde a ningún invitado.';
+    return;
+  }
   const token = invitationToken(location.search);
   if (!token) { status.textContent = 'Este enlace está incompleto. Ábrelo tal como te lo enviamos.'; status.dataset.error = 'true'; return; }
   let data;
@@ -361,10 +392,7 @@ async function startBadge(client) {
       : 'Recibimos tu confirmación. Tu gafete estará listo cuando el equipo confirme tu lugar; te avisaremos por WhatsApp.';
     return;
   }
-  await mountBadge(data, {
-    status, preview: document.querySelector('[data-badge-preview]'), actions: document.querySelector('[data-badge-actions]'),
-    download: document.querySelector('[data-badge-download]'), share: document.querySelector('[data-badge-share]'),
-  });
+  await mountBadge(data, elements());
 }
 
 /** Dibuja el gafete y conecta sus botones de descargar y compartir. */
@@ -393,9 +421,10 @@ async function startVerify(client) {
   const result = document.querySelector('[data-verify-result]');
   const id = new URLSearchParams(location.search).get('id') ?? '';
   try {
-    if (!/^[a-f0-9]{32}$/.test(id)) throw new Error('Este código no es un gafete válido.');
-    const data = await client.verify(id);
-    const view = describeVerification(data.verification);
+    const preview = isPreview(location.search);
+    if (!preview && !/^[a-f0-9]{32}$/.test(id)) throw new Error('Este código no es un gafete válido.');
+    const verification = preview ? { valid: true, name: PREVIEW_NAME, kind: 'Creador invitado', social_link: '@tu_usuario' } : (await client.verify(id)).verification;
+    const view = describeVerification(verification);
     document.querySelector('[data-verify-state]').textContent = view.state;
     document.querySelector('[data-verify-name]').textContent = view.name;
     document.querySelector('[data-verify-kind]').textContent = view.kind;
