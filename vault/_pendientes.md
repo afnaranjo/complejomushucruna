@@ -12,7 +12,7 @@ tags:
 
 # Pendientes ejecutivos
 
-- [ ] Revisar y aprobar internamente el PDF v07 del plan de cobertura, con `Plaza Streaming · Plaza del Sol` como cuarto frente operativo, Iván Solano como coordinador y Paul Lema como soporte técnico; después mover la versión aprobada al almacenamiento controlado del equipo, sin subir el documento interno al repositorio público. Responsable: Alex/dirección/producción. Fecha: antes del 2026-10-30.
+- [ ] Revisar y aprobar internamente el PDF v08 del plan de cobertura, con `STREAMING` como cuarta columna, Iván Solano como coordinador y Paul Lema como soporte técnico; después mover la versión aprobada al almacenamiento controlado del equipo, sin subir el documento interno al repositorio público. Responsable: Alex/dirección/producción. Fecha: antes del 2026-10-30.
 
 - [x] Publicar el frontend de la [[11_eventos/2026_feria-finados/10_tecnologia-datos/2026-10-20_inauguracion-auspiciantes-ocultar-stands-web_v01|inauguración oficial, nueva composición de auspiciantes y retiro de la promoción de stands]]. `f084516` en Git; frontend integrado desplegado desde `0677303` con respaldo y verificado en ambos dominios. Sin backend, migraciones ni datos. Responsable: tecnología/diseño. Completado: 2026-10-20.
 

@@ -12,11 +12,11 @@ tags:
 
 # Memoria del proyecto
 
-## 2026-10-22 — Plaza Streaming separada en Plaza del Sol
+## 2026-10-22 — Columna Streaming en el plan de cobertura
 
-- Alex confirmó que el plan de cobertura debe tratar `Plaza Streaming · Plaza del Sol` como un cuarto frente operativo independiente de las tres áreas editoriales. Iván Solano queda como coordinador y Paul Lema como soporte técnico.
-- Se generó localmente el PDF v07 de diez páginas A4. El ajuste se refleja en el organigrama, la matriz de funciones, el calendario personal, el crono de inauguración y la hoja de streaming; no se creó ni entregó un Excel.
-- QA: las diez páginas se renderizaron e inspeccionaron; el archivo abre en lectura estricta, conserva medidas A4 y su SHA-256 es `545cc68270426fecaf5aa6353a138bcfcc4328ac9caaf50c1cd9e5649659363e`.
+- Alex confirmó que el organigrama del plan de cobertura debe mostrar `STREAMING` como una cuarta columna al mismo nivel que Plaza del Sol, Plaza de la Luna y Mega Escenario. Dentro de ella, Iván Solano queda como coordinador y Paul Lema como soporte técnico.
+- Se generó localmente el PDF v08 de diez páginas A4. Además de conservar las funciones, calendario, crono y hoja de streaming, la página 1 muestra la columna solicitada y la flecha de refuerzo termina correctamente en Mega Escenario; no se creó ni entregó un Excel.
+- QA: las diez páginas se renderizaron e inspeccionaron; el archivo abre en lectura estricta, conserva medidas A4 y su SHA-256 es `6cd91af1bffac7163dcba305c1178811521a07454ccaf1722332c4a6c4f61027`.
 - El PDF se mantiene fuera del repositorio público porque está rotulado para uso interno y contiene programación nominal. No hubo publicación, despliegue ni cambio en cuentas externas.
 - Pendiente: aprobación interna de Alex y traslado posterior al almacenamiento controlado que defina el equipo.
 
