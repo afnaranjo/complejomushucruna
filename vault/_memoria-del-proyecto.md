@@ -12,11 +12,11 @@ tags:
 
 # Memoria del proyecto
 
-## 2026-10-22 — Unidad de streaming separada en Plaza del Sol
+## 2026-10-22 — Plaza Streaming separada en Plaza del Sol
 
-- Alex confirmó que el plan de cobertura debe tratar `Streaming · Plaza del Sol` como una unidad independiente de las tres áreas editoriales. Iván Solano queda como coordinador de streaming y Paul Lema como ayudante técnico.
-- Se generó localmente el PDF v06 de diez páginas A4. El ajuste se refleja en el organigrama, la matriz de funciones, el calendario personal, el crono de inauguración y la hoja de streaming; no se creó ni entregó un Excel.
-- QA: las diez páginas se renderizaron e inspeccionaron; el archivo abre en lectura estricta, conserva medidas A4 y su SHA-256 es `4184be29444bdf8d6d3d11a3f5fa5cd16c25046ff3a0bc87845f8872de197df1`.
+- Alex confirmó que el plan de cobertura debe tratar `Plaza Streaming · Plaza del Sol` como un cuarto frente operativo independiente de las tres áreas editoriales. Iván Solano queda como coordinador y Paul Lema como soporte técnico.
+- Se generó localmente el PDF v07 de diez páginas A4. El ajuste se refleja en el organigrama, la matriz de funciones, el calendario personal, el crono de inauguración y la hoja de streaming; no se creó ni entregó un Excel.
+- QA: las diez páginas se renderizaron e inspeccionaron; el archivo abre en lectura estricta, conserva medidas A4 y su SHA-256 es `545cc68270426fecaf5aa6353a138bcfcc4328ac9caaf50c1cd9e5649659363e`.
 - El PDF se mantiene fuera del repositorio público porque está rotulado para uso interno y contiene programación nominal. No hubo publicación, despliegue ni cambio en cuentas externas.
 - Pendiente: aprobación interna de Alex y traslado posterior al almacenamiento controlado que defina el equipo.
 
