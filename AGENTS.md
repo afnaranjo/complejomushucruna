@@ -2299,3 +2299,12 @@ Nota de relevo escrita a pedido de Alex para que otro agente (Codex) retome la s
 - QA: `npm run check` en verde (288 Node, PHP, 11 integración; 285 archivos, 92 HTML, 3114 referencias) y revisión en Chrome sin interfaz a 1440 y 390 px.
 - Publicación externa: solo GitHub. **No está desplegado**; requiere autorización de Alex para el frontend.
 - Pendiente: datos y arte de la próxima invitación y decidir si va a creadores, medios o ambos.
+
+### 2026-10-22 — Streaming separado en el plan de cobertura de Plaza del Sol
+
+- Se revisó el PDF interno v05 y se creó una versión v06 de diez páginas A4 que separa `Streaming · Plaza del Sol` de las tres áreas editoriales.
+- Iván Solano quedó identificado como coordinador de streaming y Paul Lema como ayudante técnico en el organigrama, funciones, calendario, crono de inauguración y hoja de streaming. No se creó ni entregó un Excel.
+- QA: diez páginas renderizadas e inspeccionadas, lectura estricta correcta, medidas A4 consistentes y SHA-256 `4184be29444bdf8d6d3d11a3f5fa5cd16c25046ff3a0bc87845f8872de197df1`.
+- Commit: incluido en `Registrar ajuste de streaming del plan de cobertura`.
+- Publicación externa: ninguna; no se desplegó ni modificó ninguna cuenta. El PDF no se versionó porque está rotulado para uso interno y contiene programación nominal; el remoto es público.
+- Riesgos/pendientes: Alex debe aprobar la versión y definir su almacenamiento controlado antes del inicio de la feria.
