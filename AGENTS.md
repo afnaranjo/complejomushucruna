@@ -2328,3 +2328,13 @@ Nota de relevo escrita a pedido de Alex para que otro agente (Codex) retome la s
 - Commit: incluido en `Simplificar guía operativa del viernes y protocolo backstage`.
 - Publicación externa: ninguna; no se desplegó ni se modificó ninguna cuenta. El PDF y su constructor no se versionaron porque contienen nombres y asignaciones internas y el remoto es público.
 - Riesgos/pendientes: Dirección debe aprobar la guía, validar las cuatro personas, confirmar convocatoria/horarios/permisos/suplentes y mover el PDF aprobado al almacenamiento controlado.
+
+### 2026-10-23 — Corrección de disponibilidad y relevo operativo del viernes
+
+- Se generó localmente la guía de campo v03 para reflejar que una persona asignada originalmente a Community deja la cobertura a las 15:30 y desde las 16:00 se dedica exclusivamente a animación en el Megaescenario.
+- Se retiraron todas sus responsabilidades nocturnas de cámara, backstage, live, publicación y cierre. La sustitución se dividió entre cámara interna, operación móvil, edición, historias y publicación para evitar otro cuello de botella.
+- La publicación desde las 16:00 queda como propuesta condicionada a acceso legítimo confirmado por Dirección; el documento prohíbe compartir credenciales personales. La célula de backstage conserva cuatro puestos y requiere validación antes de imprimir.
+- QA: siete páginas A4 renderizadas e inspeccionadas a 150 dpi; texto extraíble en todas, sin cifrado, formularios ni JavaScript. SHA-256 `e2422329d1ab506bd09a24f0ee6caece6804a3810429d9ef8adeafbe44f96c85`.
+- Commit: incluido en `Corregir relevo operativo del viernes desde las 16:00`.
+- Publicación externa: ninguna; no se desplegó ni se modificó ninguna cuenta. El PDF y su constructor no se versionaron porque contienen nombres y asignaciones internas y el remoto es público.
+- Riesgos/pendientes: confirmar el acceso de publicación nocturna, validar los cuatro accesos de backstage, cerrar permisos/horarios y trasladar la versión aprobada al almacenamiento controlado.

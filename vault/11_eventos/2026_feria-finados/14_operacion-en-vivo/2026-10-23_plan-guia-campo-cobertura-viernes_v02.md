@@ -14,6 +14,8 @@ Registro sanitizado de la segunda versión del documento operativo del viernes 3
 
 Relacionado con [[2026-10-23_plan-proyecto-diario-cobertura-viernes_v01|Proyecto diario v01]], [[README|Operación en vivo]], [[run-of-show|Run of show maestro]] y [[_memoria-del-proyecto|Memoria del proyecto]].
 
+Actualización: esta versión fue reemplazada para revisión e impresión por la [[2026-10-23_plan-guia-campo-cobertura-viernes_v03|v03]], que incorpora un cambio confirmado de disponibilidad desde las 16:00 y redistribuye backstage, live, edición y publicación.
+
 ## Cambio principal
 
 La v02 convierte el proyecto de ocho páginas en una guía de campo de siete páginas, con menos texto y navegación directa por lugar. Si Dirección la aprueba, reemplaza a la v01 para la ejecución del viernes; la v01 se conserva como antecedente.

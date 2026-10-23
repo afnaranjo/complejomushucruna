@@ -12,6 +12,16 @@ tags:
 
 # Memoria del proyecto
 
+## 2026-10-23 — Relevo operativo del viernes desde las 16:00
+
+- Alex confirmó que una persona asignada originalmente a Community no estará disponible para cobertura desde las 16:00 porque asumirá exclusivamente la animación del Megaescenario. La v03 elimina todas sus tareas nocturnas de cámara, backstage, live, publicación y cierre.
+- Se fijó un relevo preventivo a las 15:30 y se dividió la sustitución: cámara interna de backstage, operación móvil del live, edición, historias y publicación quedan en funciones separadas para no crear un nuevo cuello de botella.
+- La persona propuesta para publicación nocturna queda condicionada a confirmación de acceso legítimo. El documento prohíbe compartir credenciales personales y exige designar otra persona autorizada si el acceso no se confirma.
+- La célula de backstage continúa con cuatro puestos y debe validarse antes de imprimir. Plaza de la Luna sigue sin operación el viernes y el sábado continúa fuera del alcance.
+- QA: siete páginas A4 renderizadas e inspeccionadas a 150 dpi; texto extraíble en todas, sin cifrado, formularios ni JavaScript. SHA-256: `e2422329d1ab506bd09a24f0ee6caece6804a3810429d9ef8adeafbe44f96c85`.
+- El PDF v03 y su constructor permanecen fuera de Git por contener asignaciones nominales de uso interno. No hubo despliegue, publicación ni modificación de cuentas externas.
+- Pendiente: confirmar el acceso de la persona propuesta para publicar, validar los cuatro accesos de backstage, cerrar permisos/horarios y mover el PDF aprobado al almacenamiento controlado.
+
 ## 2026-10-23 — Guía de campo simplificada del viernes y célula de backstage
 
 - La segunda versión del proyecto diario del viernes se reorganizó como una guía de campo de siete páginas A4: equipos en portada, asignación general, cronogramas independientes de Plaza del Sol, feria/stands y Megaescenario, protocolo de backstage, streaming y cierre.
