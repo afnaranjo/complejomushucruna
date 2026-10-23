@@ -22,7 +22,7 @@ export function createInfluencersClient(baseUrl = API, fetchImplementation = fet
   if (![API, MIRROR_API_BASE, LOCAL_API].filter(Boolean).includes(baseUrl)) throw new Error('Origen de API no permitido.');
   let csrf = '';
   async function request(path, options = {}) {
-    if (!/^\/(?:auth\/(?:session|logout)|influencers(?:\?kind=(?:creador|nuevo))?|influencers\/evento|influencers\/export\?kind=(?:creador|nuevo)|influencers\/[a-f0-9]{32}(?:\/archivar|\/enlace)?)$/.test(path)) throw new Error('Ruta de API no permitida.');
+    if (!/^\/(?:auth\/(?:session|logout)|influencers(?:\?kind=(?:creador|nuevo)|\?kind=(?:creador|vocero)&event=inauguracion|\?event=inauguracion)?|influencers\/evento(?:\?event=inauguracion)?|influencers\/export\?kind=(?:creador|nuevo)|influencers\/export\?kind=(?:creador|vocero)&event=inauguracion|influencers\/[a-f0-9]{32}(?:\/archivar|\/enlace)?)$/.test(path)) throw new Error('Ruta de API no permitida.');
     const method = (options.method ?? 'GET').toUpperCase();
     const headers = { Accept: options.csv ? 'text/csv' : 'application/json' };
     if (method !== 'GET') {
@@ -47,29 +47,50 @@ export function createInfluencersClient(baseUrl = API, fetchImplementation = fet
   return {
     session: () => request('/auth/session'),
     logout: () => request('/auth/logout', { method: 'POST' }),
-    list: kind => request(`/influencers?kind=${kind}`),
-    create: names => request('/influencers', { method: 'POST', body: { names } }),
+    list: (kind, event = '') => request(`/influencers?kind=${kind}${event ? `&event=${event}` : ''}`),
+    create: (names, options = {}) => request(`/influencers${options.event ? `?event=${options.event}` : ''}`, {
+      method: 'POST',
+      body: options.event ? { names, kind: options.kind, message_variant: options.variant } : { names },
+    }),
     update: (id, body) => request(`/influencers/${id}`, { method: 'PATCH', body }),
     archive: id => request(`/influencers/${id}/archivar`, { method: 'POST', body: {} }),
     newLink: id => request(`/influencers/${id}/enlace`, { method: 'POST', body: {} }),
-    saveEvent: body => request('/influencers/evento', { method: 'PATCH', body }),
-    exportCsv: kind => request(`/influencers/export?kind=${kind}`, { csv: true }),
+    saveEvent: (body, event = '') => request(`/influencers/evento${event ? `?event=${event}` : ''}`, { method: 'PATCH', body }),
+    exportCsv: (kind, event = '') => request(`/influencers/export?kind=${kind}${event ? `&event=${event}` : ''}`, { csv: true }),
   };
 }
 
 /* ---------- Funciones puras (probadas) ---------- */
 
+/** Configura el mismo panel para Guaynaa o para la invitación independiente de Inauguración. */
+export function adminInvitationContext(dataset = {}) {
+  const event = dataset.event || 'guaynaa';
+  if (!['guaynaa', 'inauguracion'].includes(event)) throw new Error('Invitación no permitida.');
+  const allowedKinds = event === 'inauguracion' ? ['vocero', 'creador'] : ['creador', 'nuevo'];
+  const kind = dataset.kind || allowedKinds[0];
+  if (!allowedKinds.includes(kind)) throw new Error('Audiencia no permitida.');
+  const variant = dataset.variant || 'apoyo';
+  if (!['apoyo', 'registro'].includes(variant)) throw new Error('Variante de invitación no permitida.');
+  return { event, eventQuery: event === 'inauguracion' ? event : '', kind, variant, personal: event === 'inauguracion' || kind === 'creador' };
+}
+
 /** El enlace personal de un creador, siempre del mismo sitio donde se abrió el panel. */
-export function personalInvitationUrl(origin, token) {
-  return `${origin}/i/?c=${encodeURIComponent(token)}`;
+export function personalInvitationUrl(origin, token, event = 'guaynaa', variant = 'apoyo') {
+  if (event === 'guaynaa') return `${origin}/i/?c=${encodeURIComponent(token)}`;
+  if (event !== 'inauguracion' || !['apoyo', 'registro'].includes(variant)) throw new Error('Invitación no permitida.');
+  return `${origin}/finados/invitacion/inauguracion/?c=${encodeURIComponent(token)}&variante=${variant}`;
 }
 
 /** El gafete con QR, para quien confirmó y está aprobado. */
-export function badgeUrl(origin, token) {
-  return `${origin}/finados/invitacion/gafete/?c=${encodeURIComponent(token)}`;
+export function badgeUrl(origin, token, event = 'guaynaa') {
+  if (event === 'guaynaa') return `${origin}/finados/invitacion/gafete/?c=${encodeURIComponent(token)}`;
+  if (event !== 'inauguracion') throw new Error('Invitación no permitida.');
+  return `${origin}/finados/invitacion/inauguracion/gafete/?c=${encodeURIComponent(token)}`;
 }
 
-export function badgeMessage(name, url) {
+export function badgeMessage(name, url, event = 'guaynaa') {
+  if (event === 'inauguracion') return `Hola, ${name}. ¡Tu lugar en la Inauguración Oficial de Finados Mushuc Runa está confirmado! Presenta en la entrada tu gafete con código QR: ${url}`;
+  if (event !== 'guaynaa') throw new Error('Invitación no permitida.');
   return `Hola, ${name}. ¡Tu lugar en el Lanzamiento Guaynaa está confirmado! Descarga aquí tu gafete con tu código QR y preséntalo en la entrada: ${url}`;
 }
 
@@ -84,7 +105,13 @@ export function whatsappNumber(phone) {
   return /^\d{9,15}$/.test(digits) ? digits : '';
 }
 
-export function invitationMessage(name, url) {
+export function invitationMessage(name, url, event = 'guaynaa', variant = 'apoyo') {
+  if (event === 'inauguracion') {
+    if (variant === 'apoyo') return `Hola, ${name}. Hemos visto tu apoyo a Finados 2026 y queremos que estés en el inicio. Esta es tu invitación personal a la Inauguración Oficial: ${url}`;
+    if (variant === 'registro') return `Hola, ${name}. Te sumaste a Finados 2026 y queremos que estés en el inicio. Esta es tu invitación personal a la Inauguración Oficial: ${url}`;
+    throw new Error('Variante de invitación no permitida.');
+  }
+  if (event !== 'guaynaa') throw new Error('Invitación no permitida.');
   return `Hola, ${name}. Tenemos una invitación especial para ti: el Lanzamiento Guaynaa de Finados Mushuc Runa 2026. Ábrela aquí y confírmanos si nos acompañas: ${url}`;
 }
 
@@ -130,7 +157,12 @@ function selectOf(values, current, label) {
 export async function initializeInfluencers() {
   const panel = document.querySelector('[data-admin-influencers]');
   if (!panel) return;
-  const kind = panel.dataset.kind === 'creador' ? 'creador' : 'nuevo';
+  const context = adminInvitationContext(panel.dataset);
+  const invitationEvent = context.event;
+  const eventQuery = context.eventQuery;
+  let kind = context.kind;
+  let messageVariant = context.variant;
+  const isInauguration = invitationEvent === 'inauguracion';
   const navigation = document.querySelector('[data-admin-navigation]');
   const compact = globalThis.matchMedia?.('(max-width: 1120px)');
   const applyNavigation = value => { if (navigation) navigation.open = !value; };
@@ -152,6 +184,39 @@ export async function initializeInfluencers() {
   const rows = query('[data-rows]');
   const listMessage = query('[data-list-message]');
   const summary = query('[data-summary]');
+  const kindSelect = query('[data-invitation-kind]');
+  const variantSelect = query('[data-invitation-variant]');
+  if (kindSelect) kindSelect.value = kind;
+  if (variantSelect) variantSelect.value = messageVariant;
+
+  function renderAudienceLabels() {
+    if (!isInauguration) return;
+    const singular = kind === 'vocero' ? 'Vocero' : 'Creador';
+    const plural = kind === 'vocero' ? 'Voceros' : 'Creadores';
+    const title = query('[data-audience-title]');
+    const caption = query('[data-table-caption]');
+    const heading = query('[data-guest-heading]');
+    if (title) title.textContent = `${plural} invitados`;
+    if (caption) caption.textContent = `${plural} invitados a la inauguración y su respuesta`;
+    if (heading) heading.textContent = singular;
+  }
+
+  const preview = query('[data-invitation-previews]');
+  if (preview) {
+    const frame = preview.querySelector('[data-preview-frame]');
+    const note = preview.querySelector('[data-preview-note]');
+    const open = preview.querySelector('[data-preview-open]');
+    const buttons = [...preview.querySelectorAll('[data-preview-path]')];
+    for (const button of buttons) button.addEventListener('click', () => {
+      const path = button.dataset.previewPath;
+      if (!/^\/finados\/invitacion\/inauguracion\//.test(path)) return;
+      for (const candidate of buttons) candidate.setAttribute('aria-selected', String(candidate === button));
+      frame.src = path;
+      frame.title = `Vista previa: ${button.textContent}`;
+      note.textContent = button.dataset.previewNote;
+      open.href = path;
+    });
+  }
 
   const copy = async (text, done) => {
     try { await navigator.clipboard.writeText(text); feedback(done, 'success'); }
@@ -160,7 +225,7 @@ export async function initializeInfluencers() {
 
   function renderSummary() {
     const totals = state.totals;
-    const metrics = kind === 'creador'
+    const metrics = context.personal
       ? [['Invitados', totals.total], ['Confirmaron que sí', totals.si], ['No asistirán', totals.no], ['Sin respuesta', totals.pendiente], ['Abrieron la invitación', totals.abrieron]]
       : [['Registros', totals.total], ['Dijeron que sí', totals.si], ['Por aprobar', totals.por_aprobar], ['Aprobados que asisten', totals.aprobados_si], ['No asistirán', totals.no]];
     summary.replaceChildren(...metrics.map(([label, value]) => { const block = node('dl'); block.append(node('dt', label), node('dd', String(value ?? 0))); return block; }));
@@ -175,21 +240,21 @@ export async function initializeInfluencers() {
     form.elements.date.value = event.date;
     form.elements.time.value = event.time;
     form.elements.place.value = event.place;
-    form.elements.details.value = event.details;
+    form.elements.details.value = event.details ?? '';
     query('[data-event-summary]').textContent = `${event.title} · ${event.date.split('-').reverse().join('/')} · ${event.time || 'hora por confirmar'}`;
   }
 
   function guestRow(guest) {
     const row = node('tr');
     const who = node('td');
-    who.dataset.label = 'Creador';
+    who.dataset.label = kind === 'vocero' ? 'Vocero' : 'Creador';
     who.append(node('strong', guest.full_name, 'record-name'));
     const contact = [guest.whatsapp, guest.city].filter(Boolean).join(' · ');
     if (contact) who.append(node('small', contact));
     if (guest.note) who.append(node('small', `Nota: ${guest.note}`));
-    if (guest.from_open) who.append(node('small', 'Vino de Nuevos creadores · aprobado', 'inf-from-open'));
+    if (!isInauguration && guest.from_open) who.append(node('small', 'Vino de Nuevos creadores · aprobado', 'inf-from-open'));
     const cells = [who];
-    if (kind === 'creador') {
+    if (context.personal) {
       const opened = node('td', guest.opened_at ? `Sí · ${ecuadorTime(guest.opened_at)}` : 'Todavía no');
       opened.dataset.label = 'Abrió';
       cells.push(opened);
@@ -215,7 +280,7 @@ export async function initializeInfluencers() {
     answer.append(responseSelect);
     if (guest.responded_at) answer.append(node('small', ecuadorTime(guest.responded_at)));
     cells.push(answer);
-    if (kind === 'nuevo') {
+    if (!isInauguration && kind === 'nuevo') {
       const approval = node('td');
       approval.dataset.label = 'Aprobación';
       const approvalSelect = selectOf(APPROVALS, guest.approval, `Aprobación de ${guest.full_name}`);
@@ -229,9 +294,10 @@ export async function initializeInfluencers() {
       cells.push(approval);
     }
     const actions = node('td', undefined, 'inf-actions');
-    if (kind === 'creador' && guest.invite_token) {
-      const url = personalInvitationUrl(location.origin, guest.invite_token);
-      const send = Object.assign(node('a', 'Enviar por WhatsApp', 'button-primary'), { href: whatsappLink(guest.whatsapp, invitationMessage(guest.full_name, url)), target: '_blank', rel: 'noopener noreferrer' });
+    if (context.personal && guest.invite_token) {
+      const guestVariant = isInauguration ? (guest.message_variant || messageVariant) : 'apoyo';
+      const url = personalInvitationUrl(location.origin, guest.invite_token, invitationEvent, guestVariant);
+      const send = Object.assign(node('a', 'Enviar por WhatsApp', 'button-primary'), { href: whatsappLink(guest.whatsapp, invitationMessage(guest.full_name, url, invitationEvent, guestVariant)), target: '_blank', rel: 'noopener noreferrer' });
       const copyLink = node('button', 'Copiar enlace', 'button-quiet');
       copyLink.type = 'button';
       copyLink.addEventListener('click', () => copy(url, `Enlace de ${guest.full_name} copiado.`));
@@ -242,15 +308,15 @@ export async function initializeInfluencers() {
       actions.append(chat);
     }
     if (guest.invite_token && guest.response === 'si' && guest.approval === 'aprobado') {
-      const badge = badgeUrl(location.origin, guest.invite_token);
-      const sendBadge = Object.assign(node('a', 'Enviar gafete', kind === 'nuevo' ? 'button-primary' : 'button-quiet'), { href: whatsappLink(guest.whatsapp, badgeMessage(guest.full_name, badge)), target: '_blank', rel: 'noopener noreferrer' });
+      const badge = badgeUrl(location.origin, guest.invite_token, invitationEvent);
+      const sendBadge = Object.assign(node('a', 'Enviar gafete', !context.personal ? 'button-primary' : 'button-quiet'), { href: whatsappLink(guest.whatsapp, badgeMessage(guest.full_name, badge, invitationEvent)), target: '_blank', rel: 'noopener noreferrer' });
       actions.append(sendBadge);
     }
     const edit = node('button', 'Editar', 'button-quiet');
     edit.type = 'button';
     edit.addEventListener('click', () => openEdit(guest));
     actions.append(edit);
-    if (kind === 'creador') {
+    if (context.personal) {
       const relink = node('button', 'Nuevo enlace', 'button-quiet');
       relink.type = 'button';
       relink.addEventListener('click', async () => {
@@ -275,13 +341,13 @@ export async function initializeInfluencers() {
     const visible = state.guests.filter(guest => matchesFilter(guest, state.filter));
     rows.replaceChildren(...visible.map(guestRow));
     listMessage.textContent = state.guests.length === 0
-      ? (kind === 'creador' ? 'Todavía no hay creadores. Escribe sus nombres arriba para crear sus invitaciones.' : 'Todavía no hay registros. Comparte el enlace de arriba.')
+      ? (context.personal ? `Todavía no hay ${kind === 'vocero' ? 'voceros' : 'creadores'}. Escribe sus nombres arriba para crear sus invitaciones.` : 'Todavía no hay registros. Comparte el enlace de arriba.')
       : `${visible.length} de ${state.guests.length}`;
     query('[data-list-region]').setAttribute('aria-busy', 'false');
   }
 
   async function refresh() {
-    const data = await client.list(kind);
+    const data = await client.list(kind, eventQuery);
     state.guests = data.guests ?? [];
     state.totals = data.totals ?? {};
     state.event = data.event ?? null;
@@ -291,6 +357,17 @@ export async function initializeInfluencers() {
   }
 
   query('[data-filter]').addEventListener('change', event => { state.filter = event.target.value; renderRows(); });
+  kindSelect?.addEventListener('change', async () => {
+    kind = adminInvitationContext({ event: invitationEvent, kind: kindSelect.value, variant: messageVariant }).kind;
+    panel.dataset.kind = kind;
+    renderAudienceLabels();
+    query('[data-list-region]').setAttribute('aria-busy', 'true');
+    try { await refresh(); feedback(''); } catch (error) { fail(error); }
+  });
+  variantSelect?.addEventListener('change', () => {
+    messageVariant = adminInvitationContext({ event: invitationEvent, kind, variant: variantSelect.value }).variant;
+    panel.dataset.variant = messageVariant;
+  });
 
   const eventForm = query('[data-event-form]');
   eventForm.addEventListener('submit', async event => {
@@ -298,7 +375,7 @@ export async function initializeInfluencers() {
     const message = eventForm.querySelector('[data-event-feedback]');
     const values = Object.fromEntries(new FormData(eventForm));
     try {
-      const data = await client.saveEvent({ title: values.title.trim(), date: values.date, time: values.time, place: values.place.trim(), details: values.details.trim() });
+      const data = await client.saveEvent({ title: values.title.trim(), date: values.date, time: values.time, place: values.place.trim(), details: values.details.trim() }, eventQuery);
       state.event = data.event;
       renderEvent();
       message.textContent = 'Evento guardado. Las invitaciones ya muestran estos datos.';
@@ -309,13 +386,19 @@ export async function initializeInfluencers() {
   const addForm = query('[data-add-form]');
   addForm?.addEventListener('submit', async event => {
     event.preventDefault();
-    const names = addForm.elements.names.value;
+    const values = Object.fromEntries(new FormData(addForm));
+    const names = String(values.names ?? '');
     if (!names.trim()) { feedback('Escribe al menos un nombre.', 'error'); addForm.elements.names.focus(); return; }
     const button = addForm.querySelector('button');
     button.disabled = true;
     try {
-      const data = await client.create(names);
+      const createContext = adminInvitationContext({ event: invitationEvent, kind: values.kind || kind, variant: values.message_variant || messageVariant });
+      kind = createContext.kind;
+      messageVariant = createContext.variant;
+      const data = await client.create(names, eventQuery ? { event: eventQuery, kind, variant: messageVariant } : {});
       addForm.reset();
+      if (kindSelect) kindSelect.value = kind;
+      if (variantSelect) variantSelect.value = messageVariant;
       await refresh();
       feedback(`${data.guests.length === 1 ? 'Se creó 1 invitación' : `Se crearon ${data.guests.length} invitaciones`}. Envía cada una con «Enviar por WhatsApp».`, 'success');
     } catch (error) { fail(error); }
@@ -341,6 +424,7 @@ export async function initializeInfluencers() {
     editForm.elements.followers.value = guest.followers ?? '';
     editForm.elements.city.value = guest.city;
     editForm.elements.note.value = guest.note;
+    if (editForm.elements.message_variant) editForm.elements.message_variant.value = guest.message_variant || messageVariant;
     editFeedback.textContent = '';
     dialog.showModal();
     editForm.elements.full_name.focus();
@@ -350,10 +434,12 @@ export async function initializeInfluencers() {
     event.preventDefault();
     const values = Object.fromEntries(new FormData(editForm));
     try {
-      await client.update(editing.public_id, {
+      const changes = {
         full_name: values.full_name.trim(), whatsapp: values.whatsapp.trim(), social_link: values.social_link.trim(),
         followers: values.followers === '' ? null : Number(values.followers), city: values.city.trim(), note: values.note.trim(),
-      });
+      };
+      if (isInauguration) changes.message_variant = values.message_variant;
+      await client.update(editing.public_id, changes);
       dialog.close();
       feedback(`Datos de ${values.full_name.trim()} guardados.`, 'success');
       await refresh();
@@ -367,8 +453,9 @@ export async function initializeInfluencers() {
   const exportButton = query('[data-export]');
   exportButton.addEventListener('click', async () => {
     try {
-      const blob = await client.exportCsv(kind);
-      const link = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: `influencers-${kind === 'creador' ? 'creadores' : 'nuevos'}.csv` });
+      const blob = await client.exportCsv(kind, eventQuery);
+      const fileKind = kind === 'creador' ? 'creadores' : kind === 'vocero' ? 'voceros' : 'nuevos';
+      const link = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: `influencers-${eventQuery ? `${eventQuery}-` : ''}${fileKind}.csv` });
       document.body.append(link); link.click(); link.remove();
       setTimeout(() => URL.revokeObjectURL(link.href), 1000);
     } catch (error) { fail(error); }
@@ -386,6 +473,7 @@ export async function initializeInfluencers() {
       if (!session.authenticated) { location.replace('/admin/'); return; }
       query('[data-admin-user]').textContent = `Sesión de ${session.user.full_name ?? session.user.username}`;
       if (logout) logout.disabled = false;
+      renderAudienceLabels();
       await refresh();
       eventForm.querySelector('fieldset').disabled = false;
       if (addForm) addForm.querySelector('button').disabled = false;

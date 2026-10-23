@@ -175,3 +175,177 @@ body[data-celebrate="true"] .inv-thanks-hero .inv-name { animation: inv-glow 2.4
 .inv-confirmed-note { margin: .9rem 0 0; color: var(--inv-muted); font-size: .92rem; text-align: center; }
 .inv-confirmed .inv-change { margin: 1rem 0 0; }
 @media (prefers-reduced-motion: reduce) { .inv-confirmed { animation: none; } }
+
+/* Inauguración Oficial: interpretación HTML/CSS del afiche ceremonial aprobado. */
+body.inv--inauguracion {
+  --inv-ink: #4921ad;
+  --inv-night: #f6ecda;
+  --inv-plum: #6b2de1;
+  --inv-violet: #6b2de1;
+  --inv-glow: #00c8cc;
+  --inv-lilac: #4921ad;
+  --inv-muted: #6e527f;
+  --inv-glass: #fff7e9;
+  --inv-line: rgba(73, 33, 173, .28);
+  color-scheme: light;
+  color: #4921ad;
+  background:
+    radial-gradient(ellipse 48rem 62rem at 18% 28%, rgba(255, 218, 126, .8) 0 42%, transparent 42.5%),
+    radial-gradient(ellipse 54rem 66rem at 94% 86%, rgba(255, 218, 126, .72) 0 42%, transparent 42.5%),
+    #f6ecda;
+}
+body.inv--inauguracion::before {
+  height: 100%; opacity: .3;
+  background: repeating-linear-gradient(128deg, transparent 0 34px, rgba(73, 33, 173, .045) 35px 36px);
+}
+.inv--inauguracion .inv-chumbi {
+  position: relative; z-index: 5; display: block; height: 18px;
+  background: repeating-linear-gradient(90deg, #ff2b86 0 34px, #ffc43d 34px 68px, #00c8cc 68px 102px, #6b2de1 102px 136px);
+}
+.inv--inauguracion main { width: min(100% - 32px, 46rem); padding-top: 1.25rem; }
+.inv-opening-art {
+  position: relative; isolation: isolate; min-height: clamp(40rem, 118vw, 52rem); margin: 0 0 2.4rem; overflow: hidden;
+  display: grid; place-items: center; align-content: start; gap: 1rem; padding: 5.8rem clamp(1.2rem, 5vw, 2.6rem) 2.6rem;
+  background: #f6ecda; border: 0; border-radius: 0; box-shadow: none;
+  animation: inv-rise .9s cubic-bezier(.2, .8, .3, 1) both;
+}
+.inv-opening-art::before {
+  content: ""; position: absolute; z-index: -2; width: 112%; height: 60%; top: 3.4rem; left: -8%;
+  background: #ffdb83; clip-path: polygon(9% 39%, 35% 9%, 69% 0, 94% 21%, 100% 55%, 84% 71%, 59% 68%, 35% 80%, 12% 67%, 0 46%);
+}
+.inv-opening-art::after {
+  content: ""; position: absolute; z-index: -1; width: 68%; aspect-ratio: 1; left: 16%; bottom: -19%; border: clamp(3.4rem, 10vw, 6.4rem) solid rgba(255, 218, 126, .82); border-radius: 46% 54% 57% 43%; transform: rotate(-9deg);
+}
+.inv-opening-art__halo { position: absolute; z-index: -1; width: 55%; aspect-ratio: 1; right: -14%; top: 24%; border-radius: 48% 52% 34% 66%; background: rgba(255, 196, 61, .2); transform: rotate(16deg); }
+.inv-opening-art__organizer {
+  position: absolute; top: 1.15rem; left: 1.25rem; width: 13rem; color: #4921ad; text-align: left;
+  transform: rotate(-1.5deg); transform-origin: left center;
+}
+.inv-opening-art__organizer span { display: block; margin: 0 0 .12rem; font: 700 .53rem/1.1 "Inter", sans-serif; letter-spacing: .03em; }
+.inv-opening-art__organizer strong { display: block; white-space: nowrap; font: italic 400 clamp(.9rem, 2.5vw, 1.2rem)/1 "DM Serif Display", Georgia, serif; }
+.inv-opening-art__brand {
+  position: absolute; top: 1rem; right: 1.2rem; width: 7rem; height: 4rem; object-fit: contain;
+  /* El archivo oficial conserva su forma; el filtro lo unifica al morado ceremonial del arte de referencia. */
+  filter: brightness(0) saturate(100%) invert(18%) sepia(65%) saturate(3515%) hue-rotate(255deg) brightness(77%) contrast(109%);
+}
+.inv-opening-art__invites {
+  width: 100%; margin: 3.5rem 0 .25rem; color: #4921ad; text-align: center; text-transform: uppercase;
+  font: 400 clamp(1.55rem, 5.6vw, 2.75rem)/.98 "Anton", sans-serif; letter-spacing: -.015em;
+}
+.inv-opening-art__invites strong { color: #ff2b86; font: inherit; }
+.inv-opening-art__logo {
+  display: block; width: min(78%, 25rem); height: auto; margin: 0 auto 1.2rem;
+  /* El arte maestro es blanco para fondos oscuros; aquí toma el morado del
+     afiche ceremonial para conservar contraste sin rasterizar el logotipo. */
+  filter: brightness(0) saturate(100%) invert(18%) sepia(65%) saturate(3515%) hue-rotate(255deg) brightness(77%) contrast(109%);
+}
+.inv-opening-art__schedule { width: calc(100% + clamp(2.4rem, 9vw, 6rem)); margin-inline: calc(clamp(1.2rem, 4.5vw, 3rem) * -1); display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: .8rem; align-items: center; }
+.inv-opening-card {
+  min-height: 11rem; display: grid; align-content: center; gap: .45rem; padding: 1.25rem; color: #4921ad; background: #ffc43d;
+  filter: drop-shadow(.55rem .7rem 0 #00c8cc);
+}
+.inv-opening-card--date { clip-path: polygon(0 0, 91% 8%, 100% 100%, 0 94%); padding-right: 1.8rem; }
+.inv-opening-card--place { clip-path: polygon(9% 8%, 100% 0, 100% 94%, 0 100%); padding-left: 1.8rem; }
+.inv-opening-card span { font: 800 .7rem/1.2 "Inter", sans-serif; letter-spacing: .12em; text-transform: uppercase; }
+.inv-opening-card strong { font: 400 clamp(1.2rem, 3.8vw, 1.85rem)/1.04 "Anton", sans-serif; text-transform: uppercase; }
+.inv-opening-card--place strong { font-size: clamp(1rem, 2.8vw, 1.4rem); }
+.inv-opening-card--date > div { display: grid; justify-items: start; align-content: center; row-gap: .1rem; }
+.inv-opening-card--date .inv-opening-date__save { font: 850 clamp(.72rem, 1.7vw, .95rem)/1 "Inter", sans-serif; letter-spacing: .015em; }
+.inv-opening-card--date .inv-opening-date__title { margin-top: .06em; font: 400 clamp(2.4rem, 6.2vw, 3.75rem)/.86 "Anton", sans-serif; letter-spacing: -.035em; }
+.inv-opening-date__dayline { display: flex; align-items: baseline; gap: .3rem; margin: .34rem 0 0; }
+.inv-opening-date__dayline span { color: #ff2b86; font: 850 clamp(.85rem, 2vw, 1.15rem)/1 "Inter", sans-serif; letter-spacing: .02em; }
+.inv-opening-date__dayline b { color: #ff2b86; font: 400 clamp(2.45rem, 6.5vw, 4rem)/.78 "Anton", sans-serif; letter-spacing: -.035em; }
+.inv-opening-card--date .inv-opening-date__month { font: 400 clamp(2.3rem, 6vw, 3.65rem)/.82 "Anton", sans-serif; letter-spacing: -.025em; }
+.inv-opening-art__time { text-align: center; color: #6b2de1; transform: translateY(.45rem); }
+.inv-opening-art__time strong { display: block; font: 400 clamp(3.2rem, 11vw, 5.9rem)/.84 "Anton", sans-serif; letter-spacing: -.035em; }
+.inv-opening-art__time em { display: block; color: #ff2b86; font: italic 400 clamp(1.1rem, 3.5vw, 1.65rem)/1 "DM Serif Display", Georgia, serif; text-transform: uppercase; }
+.inv-opening-art--small { min-height: 34rem; width: min(100%, 34rem); padding-top: 4rem; margin: .25rem auto 1.8rem; }
+.inv-opening-art--small .inv-opening-art__brand { width: 5rem; }
+.inv-opening-art--small .inv-opening-art__organizer { width: 8.8rem; }
+.inv-opening-art--small .inv-opening-art__invites { margin-top: 2.7rem; font-size: clamp(1.35rem, 5vw, 2rem); }
+.inv-opening-art--small .inv-opening-art__logo { width: min(68%, 18rem); margin-bottom: .35rem; }
+.inv-opening-art--small .inv-opening-card { min-height: 8rem; padding-block: .9rem; }
+.inv-opening-art--small .inv-opening-art__time strong { font-size: clamp(2.7rem, 9vw, 4.2rem); }
+
+.inv-opening-hero .inv-eyebrow { border: 0; border-radius: 0; color: #4921ad; background: transparent; padding: 0; backdrop-filter: none; }
+.inv-opening-hero .inv-name { color: #ff2b86; font: 850 clamp(2.6rem, 9vw, 4.5rem)/.98 "Inter", sans-serif; letter-spacing: -.045em; text-shadow: none; }
+.inv-opening-role { display: block; margin: .55rem 0 .9rem; color: #6b2de1; font: italic 400 clamp(1.35rem, 4.5vw, 2rem)/1.05 "DM Serif Display", Georgia, serif; letter-spacing: 0; }
+.inv-opening-hero .inv-title span:last-child { color: #4921ad; font-family: "Anton", sans-serif; font-weight: 400; letter-spacing: 0; text-transform: uppercase; }
+.inv--inauguracion .inv-lead { color: #42245d; }
+.inv--inauguracion .inv-lead strong { color: #4921ad; }
+.inv--inauguracion .inv-story { color: #6e527f; }
+
+.inv--inauguracion .inv-event,
+.inv--inauguracion .inv-rsvp,
+.inv--inauguracion .inv-radar,
+.inv--inauguracion .inv-perks,
+.inv--inauguracion .inv-confirmed {
+  color: #4921ad; background: #ffc43d; border: 0; border-radius: 0; box-shadow: none; backdrop-filter: none;
+  filter: drop-shadow(.55rem .7rem 0 #00c8cc); clip-path: polygon(0 0, 97% 3%, 100% 96%, 3% 100%);
+}
+.inv--inauguracion .inv-radar--opening { background: #fff7e9; outline: 3px solid #6b2de1; outline-offset: -3px; }
+.inv--inauguracion .inv-perks--opening { background: #ffdb83; }
+.inv--inauguracion .inv-rsvp--opening { background: #fff7e9; outline: 3px solid #ff2b86; outline-offset: -3px; }
+.inv--inauguracion .inv-confirmed--opening { background: #dff8ed; outline: 3px solid #00a78d; outline-offset: -3px; }
+.inv--inauguracion .inv-kicker { color: #ff2b86; }
+.inv--inauguracion .inv-eq i { background: #ff2b86; }
+.inv--inauguracion .inv-event h2,
+.inv--inauguracion .inv-rsvp h2,
+.inv--inauguracion .inv-radar h2,
+.inv--inauguracion .inv-perks h2,
+.inv--inauguracion .inv-confirmed h2 { color: #4921ad; font-family: "Anton", sans-serif; font-weight: 400; text-transform: uppercase; }
+.inv--inauguracion .inv-facts { border-color: rgba(73, 33, 173, .25); }
+.inv--inauguracion .inv-facts dt,
+.inv--inauguracion .inv-facts small,
+.inv--inauguracion .inv-details,
+.inv--inauguracion .inv-perks small,
+.inv--inauguracion .inv-radar p:not(.inv-kicker),
+.inv--inauguracion .inv-status,
+.inv--inauguracion .inv-confirmed-note,
+.inv--inauguracion .inv-badge-cta p { color: #654a76; }
+.inv--inauguracion .inv-radar strong { color: #4921ad; }
+.inv--inauguracion .inv-map,
+.inv--inauguracion .inv-change a { color: #4921ad; }
+.inv--inauguracion .inv-perks li { color: #4921ad; background: #fff7e9; border: 2px solid #6b2de1; border-radius: 0; }
+.inv--inauguracion .inv-perk-icon { width: 2.7rem; height: 2.7rem; border-radius: 0; background: #ff2b86; color: #fff7e9; box-shadow: .28rem .28rem 0 #00c8cc; font-size: .74rem; }
+.inv--inauguracion .inv-yes { border-radius: 0; background: #ff2b86; color: #fff; box-shadow: .38rem .38rem 0 #00c8cc; clip-path: polygon(0 0, 96% 4%, 100% 100%, 4% 96%); }
+.inv--inauguracion .inv-yes:hover { box-shadow: .5rem .5rem 0 #00c8cc; }
+.inv--inauguracion .inv-no { border-radius: 0; border: 2px solid #6b2de1; background: #f6ecda; color: #4921ad; }
+.inv--inauguracion .inv-choices [aria-pressed="true"].inv-no { background: #6b2de1; color: #fff; }
+.inv--inauguracion .inv-badge-preview { border-radius: 0; box-shadow: .6rem .7rem 0 #00c8cc; }
+.inv--inauguracion .inv-verify-result { border-radius: 0; }
+.inv--inauguracion .inv-footer img { opacity: 1; }
+.inv-opening-signature { margin: 2.8rem auto 3rem; color: #4921ad; text-align: center; }
+.inv-opening-signature span,
+.inv-opening-signature strong,
+.inv-opening-signature small { display: block; }
+.inv-opening-signature span { font: italic 400 1.25rem/1.2 "DM Serif Display", Georgia, serif; }
+.inv-opening-signature strong { margin-top: .2rem; color: #ff2b86; font: 850 clamp(1.45rem, 5vw, 2rem)/1.1 "Inter", sans-serif; }
+.inv-opening-signature small { margin-top: .25rem; font: 800 .78rem/1.25 "Inter", sans-serif; text-transform: uppercase; letter-spacing: .08em; }
+
+@media (max-width: 620px) {
+  .inv-opening-art { min-height: 42rem; padding-inline: .8rem; }
+  .inv-opening-art__brand { width: 5.2rem; right: .7rem; }
+  .inv-opening-art__organizer { left: .75rem; width: 11rem; }
+  .inv-opening-art__organizer strong { font-size: .82rem; }
+  .inv-opening-art__schedule { width: calc(100% + 1.6rem); margin-inline: -.8rem; grid-template-columns: minmax(0, 1fr) minmax(5.6rem, .58fr) minmax(0, 1fr); gap: .25rem; }
+  .inv-opening-card { min-height: 10.5rem; padding: .85rem; }
+  .inv-opening-card--date { padding-right: 1.15rem; }
+  .inv-opening-card--place { padding-left: 1.15rem; }
+  .inv-opening-card strong { font-size: clamp(1rem, 4vw, 1.4rem); }
+  .inv-opening-card--place strong { font-size: clamp(.78rem, 3vw, 1rem); }
+  .inv-opening-card span { font-size: .57rem; }
+  .inv-opening-card--date .inv-opening-date__save { font-size: clamp(.54rem, 2vw, .7rem); }
+  .inv-opening-card--date .inv-opening-date__title { font-size: clamp(1.8rem, 8vw, 2.75rem); }
+  .inv-opening-date__dayline span { font-size: clamp(.58rem, 2.6vw, .8rem); }
+  .inv-opening-date__dayline b { font-size: clamp(1.9rem, 9vw, 3rem); }
+  .inv-opening-card--date .inv-opening-date__month { font-size: clamp(1.75rem, 8vw, 2.65rem); }
+  .inv-opening-art__time strong { font-size: clamp(2.7rem, 12vw, 4.3rem); }
+  .inv-opening-art__time em { font-size: .92rem; }
+}
+@media (max-width: 390px) {
+  .inv-opening-art { min-height: 40rem; }
+  .inv-opening-art__invites { font-size: 1.45rem; }
+  .inv-opening-art__schedule { grid-template-columns: minmax(0, 1fr) 5.2rem minmax(0, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) { .inv-opening-art { animation: none; } }

@@ -9,14 +9,20 @@ use OutOfBoundsException;
 use PDO;
 
 /**
- * Influencers: invitaciones digitales a un evento (hoy, el Lanzamiento Guaynaa).
+ * Invitaciones digitales separadas por evento. Las rutas anteriores siguen apuntando a Guaynaa.
  *  - «Creadores»: coordinación escribe los nombres y cada uno recibe su enlace personal para confirmar.
  *  - «Nuevos creadores»: un enlace general; la persona deja sus datos, confirma y coordinación la aprueba.
  * Nada se borra: retirar una invitación la archiva y conserva su respuesta.
  */
 final class InfluencerRepository
 {
-    public const KINDS = ['creador', 'nuevo'];
+    public const DEFAULT_EVENT = 'guaynaa';
+    public const KINDS = ['creador', 'nuevo', 'vocero'];
+    public const MESSAGE_VARIANTS = ['apoyo', 'registro'];
+    private const EVENT_KINDS = [
+        'guaynaa' => ['creador', 'nuevo'],
+        'inauguracion' => ['vocero', 'creador'],
+    ];
     public const RESPONSES = ['pendiente', 'si', 'no'];
     public const APPROVALS = ['aprobado', 'pendiente', 'rechazado'];
     private const MAX_BULK = 200;
@@ -28,18 +34,18 @@ final class InfluencerRepository
 
     /* ---------- Evento ---------- */
 
-    public function event(): array
+    public function event(string $slug = self::DEFAULT_EVENT): array
     {
-        $row = $this->pdo->query('SELECT title, event_date, event_time, place, details, updated_at FROM influencer_event WHERE id = 1')->fetch(PDO::FETCH_ASSOC);
-        if (!is_array($row)) throw new OutOfBoundsException();
+        $row = $this->eventRow($slug);
         return [
-            'title' => (string) $row['title'], 'date' => substr((string) $row['event_date'], 0, 10), 'time' => (string) $row['event_time'],
+            'slug' => (string) $row['slug'], 'title' => (string) $row['title'], 'date' => substr((string) $row['event_date'], 0, 10), 'time' => (string) $row['event_time'],
             'place' => (string) $row['place'], 'details' => (string) $row['details'],
         ];
     }
 
-    public function updateEvent(array $input, int $actorId, string $ip): array
+    public function updateEvent(array $input, int $actorId, string $ip, string $slug = self::DEFAULT_EVENT): array
     {
+        $event = $this->eventRow($slug);
         $title = self::text($input['title'] ?? null, 1, 160);
         $date = $input['date'] ?? null;
         if (!is_string($date) || preg_match('/^(\d{4})-(\d{2})-(\d{2})$/D', $date, $parts) !== 1 || !checkdate((int) $parts[2], (int) $parts[3], (int) $parts[1])) throw new InvalidArgumentException();
@@ -47,23 +53,24 @@ final class InfluencerRepository
         if (!is_string($time) || ($time !== '' && preg_match('/^([01]\d|2[0-3]):[0-5]\d$/D', $time) !== 1)) throw new InvalidArgumentException();
         $place = self::text($input['place'] ?? null, 1, 240);
         $details = self::text($input['details'] ?? '', 0, 2000);
-        $this->pdo->prepare('UPDATE influencer_event SET title = ?, event_date = ?, event_time = ?, place = ?, details = ?, updated_at = ? WHERE id = 1')
-            ->execute([$title, $date, $time, $place, $details, gmdate('Y-m-d H:i:s')]);
+        $this->pdo->prepare('UPDATE influencer_event SET title = ?, event_date = ?, event_time = ?, place = ?, details = ?, updated_at = ? WHERE id = ?')
+            ->execute([$title, $date, $time, $place, $details, gmdate('Y-m-d H:i:s'), (int) $event['id']]);
         $this->audit->log('influencer.event_updated', $actorId, 'influencer', null, [], $ip);
-        return $this->event();
+        return $this->event((string) $event['slug']);
     }
 
     /* ---------- Panel ---------- */
 
-    public function list(string $kind): array
+    public function list(string $kind, string $eventSlug = self::DEFAULT_EVENT): array
     {
-        $kind = self::kind($kind);
-        $query = $this->pdo->prepare('SELECT * FROM influencer_guests WHERE kind = ? AND archived_at IS NULL ORDER BY created_at DESC, id DESC');
-        $query->execute([$kind]);
+        $event = $this->eventRow($eventSlug);
+        $kind = self::kind($kind, (string) $event['slug']);
+        $query = $this->pdo->prepare('SELECT g.*, e.slug AS event_slug FROM influencer_guests g JOIN influencer_event e ON e.id = g.event_id WHERE g.event_id = ? AND g.kind = ? AND g.archived_at IS NULL ORDER BY g.created_at DESC, g.id DESC');
+        $query->execute([(int) $event['id'], $kind]);
         $guests = array_map(fn (array $row): array => $this->projection($row), $query->fetchAll(PDO::FETCH_ASSOC));
         $count = static fn (callable $test): int => count(array_filter($guests, $test));
         return [
-            'event' => $this->event(),
+            'event' => $this->event((string) $event['slug']),
             'guests' => $guests,
             'totals' => [
                 'total' => count($guests),
@@ -77,21 +84,30 @@ final class InfluencerRepository
         ];
     }
 
-    /** Coordinación pega los nombres, uno por línea: cada uno recibe su enlace personal. */
+    /** Compatibilidad: la creación sin evento explícito conserva el flujo de creadores de Guaynaa. */
     public function createCreators(mixed $names, int $actorId, string $ip): array
     {
+        return $this->createGuests($names, 'creador', 'registro', self::DEFAULT_EVENT, $actorId, $ip);
+    }
+
+    /** Coordinación pega los nombres, uno por línea: cada persona recibe su enlace personal. */
+    public function createGuests(mixed $names, mixed $kind, mixed $messageVariant, string $eventSlug, int $actorId, string $ip): array
+    {
+        $event = $this->eventRow($eventSlug);
+        $kind = self::kind($kind, (string) $event['slug']);
+        $messageVariant = self::messageVariant($messageVariant);
         if (!is_string($names)) throw new InvalidArgumentException();
         $lines = array_values(array_filter(array_map(static fn (string $line): string => trim(preg_replace('/\s+/u', ' ', $line) ?? ''), preg_split('/\R/u', $names) ?: []), static fn (string $line): bool => $line !== ''));
         if ($lines === [] || count($lines) > self::MAX_BULK) throw new InvalidArgumentException();
         foreach ($lines as $line) self::text($line, 1, 160);
         $created = [];
         $now = gmdate('Y-m-d H:i:s');
-        $insert = $this->pdo->prepare("INSERT INTO influencer_guests (public_id, kind, invite_token, full_name, approval, note, created_by_admin_id, created_at, updated_at) VALUES (?, 'creador', ?, ?, 'aprobado', '', ?, ?, ?)");
+        $insert = $this->pdo->prepare("INSERT INTO influencer_guests (event_id, public_id, kind, message_variant, invite_token, full_name, approval, note, created_by_admin_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, 'aprobado', '', ?, ?, ?)");
         $this->pdo->beginTransaction();
         try {
             foreach ($lines as $line) {
                 $publicId = bin2hex(random_bytes(16));
-                $insert->execute([$publicId, $this->newToken(), $line, $actorId, $now, $now]);
+                $insert->execute([(int) $event['id'], $publicId, $kind, $messageVariant, $this->newToken(), $line, $actorId, $now, $now]);
                 $this->audit->log('influencer.created', $actorId, 'influencer', $publicId, [], $ip);
                 $created[] = $publicId;
             }
@@ -117,6 +133,7 @@ final class InfluencerRepository
         if (array_key_exists('followers', $input)) { $sets[] = 'followers = ?'; $values[] = self::followers($input['followers'], true); }
         if (array_key_exists('city', $input)) { $sets[] = 'city = ?'; $values[] = self::text($input['city'], 0, 120); }
         if (array_key_exists('note', $input)) { $sets[] = 'note = ?'; $values[] = self::text($input['note'], 0, 2000); }
+        if (array_key_exists('message_variant', $input)) { $sets[] = 'message_variant = ?'; $values[] = self::messageVariant($input['message_variant']); }
         if (array_key_exists('approval', $input)) {
             if (!in_array($input['approval'], self::APPROVALS, true)) throw new InvalidArgumentException();
             $sets[] = 'approval = ?'; $values[] = $input['approval'];
@@ -163,57 +180,59 @@ final class InfluencerRepository
     /* ---------- Invitación pública ---------- */
 
     /** Lo que ve un creador al abrir su enlace: el evento, su nombre y su respuesta. */
-    public function openInvitation(string $token): array
+    public function openInvitation(string $token, string $eventSlug = self::DEFAULT_EVENT): array
     {
-        $row = $this->byToken($token);
+        $row = $this->byToken($token, $eventSlug);
         if ($row['opened_at'] === null) {
             $this->pdo->prepare('UPDATE influencer_guests SET opened_at = ? WHERE id = ? AND opened_at IS NULL')->execute([gmdate('Y-m-d H:i:s'), (int) $row['id']]);
         }
-        return ['event' => $this->event(), 'guest' => ['name' => (string) $row['full_name'], 'response' => (string) $row['response'], 'kind' => (string) $row['kind'], 'badge' => self::badgeReady($row)]];
+        return ['event' => $this->event((string) $row['event_slug']), 'guest' => ['name' => (string) $row['full_name'], 'response' => (string) $row['response'], 'kind' => (string) $row['kind'], 'message_variant' => (string) $row['message_variant'], 'badge' => self::badgeReady($row)]];
     }
 
-    public function respond(string $token, mixed $response, string $ip): array
+    public function respond(string $token, mixed $response, string $ip, string $eventSlug = self::DEFAULT_EVENT): array
     {
         if (!in_array($response, ['si', 'no'], true)) throw new InvalidArgumentException();
-        $row = $this->byToken($token);
+        $row = $this->byToken($token, $eventSlug);
         $now = gmdate('Y-m-d H:i:s');
         $this->pdo->prepare('UPDATE influencer_guests SET response = ?, responded_at = ?, opened_at = COALESCE(opened_at, ?), updated_at = ? WHERE id = ?')
             ->execute([$response, $now, $now, $now, (int) $row['id']]);
         $this->audit->log('influencer.responded', null, 'influencer', (string) $row['public_id'], [], $ip);
-        return ['name' => (string) $row['full_name'], 'response' => $response, 'kind' => (string) $row['kind'], 'badge' => self::badgeReady([...$row, 'response' => $response])];
+        return ['name' => (string) $row['full_name'], 'response' => $response, 'kind' => (string) $row['kind'], 'message_variant' => (string) $row['message_variant'], 'badge' => self::badgeReady([...$row, 'response' => $response])];
     }
 
     /** El gafete existe cuando la persona confirmó que asiste y su lugar está aprobado. */
-    public function badge(string $token): array
+    public function badge(string $token, string $eventSlug = self::DEFAULT_EVENT): array
     {
-        $row = $this->byToken($token);
+        $row = $this->byToken($token, $eventSlug);
         $ready = self::badgeReady($row);
         return [
-            'event' => $this->event(),
+            'event' => $this->event((string) $row['event_slug']),
             'ready' => $ready,
             'reason' => $ready ? null : ($row['response'] !== 'si' ? 'respuesta' : 'aprobacion'),
-            'guest' => ['name' => (string) $row['full_name'], 'kind' => (string) $row['kind'], 'public_id' => $ready ? (string) $row['public_id'] : null, 'social_link' => (string) $row['social_link']],
+            'guest' => ['name' => (string) $row['full_name'], 'kind' => (string) $row['kind'], 'message_variant' => (string) $row['message_variant'], 'public_id' => $ready ? (string) $row['public_id'] : null, 'social_link' => (string) $row['social_link']],
         ];
     }
 
     /** Lo que ve el equipo al escanear el QR del gafete en la puerta. Sin teléfonos ni datos privados. */
-    public function verification(string $publicId): array
+    public function verification(string $publicId, string $eventSlug = self::DEFAULT_EVENT): array
     {
         if (preg_match('/^[a-f0-9]{32}$/D', $publicId) !== 1) throw new OutOfBoundsException();
-        $query = $this->pdo->prepare('SELECT * FROM influencer_guests WHERE public_id = ?');
-        $query->execute([$publicId]);
+        $event = $this->eventRow($eventSlug);
+        $query = $this->pdo->prepare('SELECT g.*, e.slug AS event_slug FROM influencer_guests g JOIN influencer_event e ON e.id = g.event_id WHERE g.public_id = ? AND g.event_id = ?');
+        $query->execute([$publicId, (int) $event['id']]);
         $row = $query->fetch(PDO::FETCH_ASSOC);
         if (!is_array($row)) throw new OutOfBoundsException();
         $active = $row['archived_at'] === null;
         return [
             'valid' => $active && self::badgeReady($row),
             'name' => (string) $row['full_name'],
-            'kind' => $row['kind'] === 'creador' ? 'Creador invitado' : 'Nuevo creador',
-            'social_link' => (string) $row['social_link'],
+            'kind' => match ($row['kind']) { 'creador' => 'Creador invitado', 'vocero' => 'Vocero invitado', default => 'Nuevo creador' },
+            // Guaynaa ya publicaba este dato y conserva su contrato; los eventos nuevos no lo exponen en el QR.
+            ...((string) $row['event_slug'] === self::DEFAULT_EVENT ? ['social_link' => (string) $row['social_link']] : []),
             'response' => (string) $row['response'],
             'approval' => (string) $row['approval'],
             'retired' => !$active,
-            'event' => $this->event()['title'],
+            'event' => $this->event((string) $row['event_slug'])['title'],
         ];
     }
 
@@ -223,8 +242,10 @@ final class InfluencerRepository
     }
 
     /** Nuevo creador: deja sus datos y confirma; si vuelve con el mismo WhatsApp se actualiza su registro. */
-    public function register(array $input, string $ip): array
+    public function register(array $input, string $ip, string $eventSlug = self::DEFAULT_EVENT): array
     {
+        $event = $this->eventRow($eventSlug);
+        self::kind('nuevo', (string) $event['slug']);
         if (($input['consent'] ?? null) !== true) throw new InvalidArgumentException();
         $response = $input['response'] ?? null;
         if (!in_array($response, ['si', 'no'], true)) throw new InvalidArgumentException();
@@ -238,8 +259,8 @@ final class InfluencerRepository
         $lookup = $this->crypto->lookup($phone);
 
         // Si ya fue aprobado y pasó a Creadores, solo se actualiza su respuesta: no se duplica en Nuevos creadores.
-        $promoted = $this->pdo->prepare("SELECT id, public_id FROM influencer_guests WHERE kind = 'creador' AND consent_at IS NOT NULL AND whatsapp_lookup = ? AND archived_at IS NULL ORDER BY id DESC LIMIT 1");
-        $promoted->execute([$lookup]);
+        $promoted = $this->pdo->prepare("SELECT id, public_id FROM influencer_guests WHERE event_id = ? AND kind = 'creador' AND consent_at IS NOT NULL AND whatsapp_lookup = ? AND archived_at IS NULL ORDER BY id DESC LIMIT 1");
+        $promoted->execute([(int) $event['id'], $lookup]);
         $moved = $promoted->fetch(PDO::FETCH_ASSOC);
         if (is_array($moved)) {
             $this->pdo->prepare('UPDATE influencer_guests SET response = ?, responded_at = ?, consent_at = ?, updated_at = ? WHERE id = ?')
@@ -248,8 +269,8 @@ final class InfluencerRepository
             return ['name' => $name, 'response' => $response];
         }
 
-        $existing = $this->pdo->prepare("SELECT id, public_id FROM influencer_guests WHERE kind = 'nuevo' AND whatsapp_lookup = ? AND archived_at IS NULL ORDER BY id DESC LIMIT 1");
-        $existing->execute([$lookup]);
+        $existing = $this->pdo->prepare("SELECT id, public_id FROM influencer_guests WHERE event_id = ? AND kind = 'nuevo' AND whatsapp_lookup = ? AND archived_at IS NULL ORDER BY id DESC LIMIT 1");
+        $existing->execute([(int) $event['id'], $lookup]);
         $found = $existing->fetch(PDO::FETCH_ASSOC);
         if (is_array($found)) {
             $this->pdo->prepare('UPDATE influencer_guests SET full_name = ?, whatsapp_enc = ?, social_link = ?, followers = ?, city = ?, response = ?, responded_at = ?, consent_at = ?, updated_at = ? WHERE id = ?')
@@ -266,8 +287,8 @@ final class InfluencerRepository
         if ((int) $burst->fetchColumn() >= 150) throw new RateLimitException();
 
         $publicId = bin2hex(random_bytes(16));
-        $this->pdo->prepare("INSERT INTO influencer_guests (public_id, kind, invite_token, full_name, whatsapp_enc, whatsapp_lookup, social_link, followers, city, response, responded_at, approval, note, consent_at, ip_hash, created_at, updated_at) VALUES (?, 'nuevo', ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pendiente', '', ?, ?, ?, ?)")
-            ->execute([$publicId, $this->newToken(), $name, $this->crypto->encrypt($phone), $lookup, $social, $followers, $city, $response, $now, $now, $ipHash, $now, $now]);
+        $this->pdo->prepare("INSERT INTO influencer_guests (event_id, public_id, kind, message_variant, invite_token, full_name, whatsapp_enc, whatsapp_lookup, social_link, followers, city, response, responded_at, approval, note, consent_at, ip_hash, created_at, updated_at) VALUES (?, ?, 'nuevo', 'registro', ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pendiente', '', ?, ?, ?, ?)")
+            ->execute([(int) $event['id'], $publicId, $this->newToken(), $name, $this->crypto->encrypt($phone), $lookup, $social, $followers, $city, $response, $now, $now, $ipHash, $now, $now]);
         $this->audit->log('influencer.registered', null, 'influencer', $publicId, [], $ip);
         return ['name' => $name, 'response' => $response];
     }
@@ -288,18 +309,19 @@ final class InfluencerRepository
     private function row(string $publicId): array
     {
         if (preg_match('/^[a-f0-9]{32}$/D', $publicId) !== 1) throw new OutOfBoundsException();
-        $query = $this->pdo->prepare('SELECT * FROM influencer_guests WHERE public_id = ? AND archived_at IS NULL');
+        $query = $this->pdo->prepare('SELECT g.*, e.slug AS event_slug FROM influencer_guests g JOIN influencer_event e ON e.id = g.event_id WHERE g.public_id = ? AND g.archived_at IS NULL');
         $query->execute([$publicId]);
         $row = $query->fetch(PDO::FETCH_ASSOC);
         if (!is_array($row)) throw new OutOfBoundsException();
         return $row;
     }
 
-    private function byToken(string $token): array
+    private function byToken(string $token, string $eventSlug): array
     {
         if (preg_match(self::TOKEN_PATTERN, $token) !== 1) throw new OutOfBoundsException();
-        $query = $this->pdo->prepare('SELECT * FROM influencer_guests WHERE invite_token = ? AND archived_at IS NULL');
-        $query->execute([$token]);
+        $event = $this->eventRow($eventSlug);
+        $query = $this->pdo->prepare('SELECT g.*, e.slug AS event_slug FROM influencer_guests g JOIN influencer_event e ON e.id = g.event_id WHERE g.invite_token = ? AND g.event_id = ? AND g.archived_at IS NULL');
+        $query->execute([$token, (int) $event['id']]);
         $row = $query->fetch(PDO::FETCH_ASSOC);
         if (!is_array($row)) throw new OutOfBoundsException();
         return $row;
@@ -312,7 +334,7 @@ final class InfluencerRepository
             try { $phone = $this->crypto->decrypt($row['whatsapp_enc']); } catch (\Throwable) { $phone = ''; }
         }
         return [
-            'public_id' => (string) $row['public_id'], 'kind' => (string) $row['kind'],
+            'public_id' => (string) $row['public_id'], 'event' => (string) $row['event_slug'], 'kind' => (string) $row['kind'], 'message_variant' => (string) $row['message_variant'],
             'invite_token' => $row['invite_token'] === null ? null : (string) $row['invite_token'],
             'full_name' => (string) $row['full_name'], 'whatsapp' => $phone, 'social_link' => (string) $row['social_link'],
             'followers' => $row['followers'] === null ? null : (int) $row['followers'], 'city' => (string) $row['city'],
@@ -324,10 +346,33 @@ final class InfluencerRepository
         ];
     }
 
-    public static function kind(mixed $kind): string
+    public static function eventSlug(mixed $slug): string
     {
-        if (!in_array($kind, self::KINDS, true)) throw new InvalidArgumentException();
+        if ($slug === null || $slug === '') return self::DEFAULT_EVENT;
+        if (!is_string($slug) || preg_match('/^[a-z0-9]+(?:-[a-z0-9]+)*$/D', $slug) !== 1 || strlen($slug) > 64) throw new InvalidArgumentException();
+        return $slug;
+    }
+
+    public static function kind(mixed $kind, string $eventSlug = self::DEFAULT_EVENT): string
+    {
+        $eventSlug = self::eventSlug($eventSlug);
+        if (!is_string($kind) || !in_array($kind, self::EVENT_KINDS[$eventSlug] ?? [], true)) throw new InvalidArgumentException();
         return $kind;
+    }
+
+    public static function messageVariant(mixed $variant): string
+    {
+        if (!is_string($variant) || !in_array($variant, self::MESSAGE_VARIANTS, true)) throw new InvalidArgumentException();
+        return $variant;
+    }
+
+    private function eventRow(string $slug): array
+    {
+        $query = $this->pdo->prepare('SELECT id, slug, title, event_date, event_time, place, details, updated_at FROM influencer_event WHERE slug = ?');
+        $query->execute([self::eventSlug($slug)]);
+        $row = $query->fetch(PDO::FETCH_ASSOC);
+        if (!is_array($row)) throw new OutOfBoundsException();
+        return $row;
     }
 
     private static function text(mixed $value, int $min, int $max): string

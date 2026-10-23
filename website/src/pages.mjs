@@ -27,7 +27,7 @@ import { renderMfsPage } from './finados/mfs-page.mjs';
 import { renderMfsPortalPage } from './finados/mfs-portal-page.mjs';
 import { renderMfsVerificationPage } from './finados/mfs-verification-page.mjs';
 import { renderPaseDoradoVerificationPage } from './finados/pase-dorado-verification-page.mjs';
-import { renderInfluencerBadgePage, renderInfluencerOpenPage, renderInfluencerPersonalPage, renderInfluencerThanksPage, renderInfluencerVerifyPage } from './finados/influencer-invitation-page.mjs';
+import { renderInaugurationBadgePage, renderInaugurationPersonalPage, renderInaugurationThanksPage, renderInaugurationVerifyPage, renderInfluencerBadgePage, renderInfluencerOpenPage, renderInfluencerPersonalPage, renderInfluencerThanksPage, renderInfluencerVerifyPage } from './finados/influencer-invitation-page.mjs';
 import { mfsLegalDocuments, mfsLegalRoutes, renderMfsLegalPage } from './finados/mfs-legal-page.mjs';
 import { renderStandsAccessPage } from './finados/stands-page.mjs';
 import { renderVocerosLegalPage } from './finados/voceros-legal-page.mjs';
@@ -400,6 +400,7 @@ export const pages = Object.freeze([
   { route: '/admin/noticias/', title: 'Noticias · Administración', indexable: false, render: renderAdminNoticiasPage },
   { route: '/admin/mfs/', title: 'Mushuc Freestyle · Administración', indexable: false, render: renderAdminMfsPage },
   { route: '/admin/invitaciones/', title: 'Invitaciones · Administración', indexable: false, render: renderAdminInvitacionesPage },
+  { route: '/admin/invitaciones/inauguracion/', title: 'Inauguración · Invitaciones · Administración', indexable: false, render: renderAdminInvitacionesPage },
   { route: '/admin/influencers/creadores/', title: 'Influencers · Creadores · Administración', indexable: false, render: renderAdminInfluencersPage },
   { route: '/admin/influencers/nuevos/', title: 'Influencers · Nuevos creadores · Administración', indexable: false, render: renderAdminInfluencersPage },
   { route: '/finados/invitacion/', title: 'Tu invitación al Lanzamiento Guaynaa', description: 'Invitación personal al Lanzamiento Guaynaa de Finados Mushuc Runa 2026.', indexable: false, render: renderInfluencerPersonalPage },
@@ -408,6 +409,11 @@ export const pages = Object.freeze([
   { route: '/finados/invitacion/verificar/', title: 'Validación de gafete · Lanzamiento Guaynaa', description: 'Validación del gafete del Lanzamiento Guaynaa.', indexable: false, render: renderInfluencerVerifyPage },
   { route: '/finados/invitacion/gracias/', title: 'Gracias por confirmar · Lanzamiento Guaynaa', description: 'Confirmación de asistencia al Lanzamiento Guaynaa de Finados Mushuc Runa 2026.', indexable: false, render: renderInfluencerThanksPage },
   { route: '/finados/invitacion/creadores/', title: 'Invitación a creadores · Lanzamiento Guaynaa', description: 'Invitación abierta a creadores de contenido al Lanzamiento Guaynaa de Finados Mushuc Runa 2026.', indexable: false, render: renderInfluencerOpenPage },
+  { route: '/finados/invitacion/inauguracion/', title: 'Invitación · Inauguración Oficial de Finados Mushuc Runa', description: 'Invitación personal a la Inauguración Oficial de Finados Mushuc Runa 2026.', indexable: false, render: renderInaugurationPersonalPage },
+  { route: '/ii/', title: 'Invitación · Inauguración Oficial de Finados Mushuc Runa', description: 'Invitación personal a la Inauguración Oficial de Finados Mushuc Runa 2026.', indexable: false, render: renderInaugurationPersonalPage },
+  { route: '/finados/invitacion/inauguracion/gracias/', title: 'Gracias por confirmar · Inauguración Oficial', description: 'Confirmación de asistencia a la Inauguración Oficial de Finados Mushuc Runa 2026.', indexable: false, render: renderInaugurationThanksPage },
+  { route: '/finados/invitacion/inauguracion/gafete/', title: 'Tu gafete · Inauguración Oficial', description: 'Gafete con código QR para la Inauguración Oficial de Finados Mushuc Runa 2026.', indexable: false, render: renderInaugurationBadgePage },
+  { route: '/finados/invitacion/inauguracion/verificar/', title: 'Validación de gafete · Inauguración Oficial', description: 'Validación del gafete de la Inauguración Oficial de Finados Mushuc Runa 2026.', indexable: false, render: renderInaugurationVerifyPage },
   { route: '/finados/creadoras/', title: 'Creadoras de contenido · Finados 2026', indexable: false, render: renderCreadorasLandingPage },
   { route: '/finados/creadoras/acceso/', title: 'Tu cuenta de creadora', indexable: false, render: renderCreadoraPortalPage },
   { route: '/finados/creadoras/mi-registro/', title: 'Mi registro · Creadoras', indexable: false, render: renderCreadoraPortalPage },

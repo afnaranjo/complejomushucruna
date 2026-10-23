@@ -280,3 +280,4 @@ Todo pendiente debe tener acción concreta, responsable y fecha. Si todavía no 
 - [ ] Revisar localmente y aprobar el texto final de consentimiento y la decisión sobre URL corta para el QR de nombres en pantalla antes de publicar `/finados/nombre/` y `/finados/pantalla/`. Responsable: Alex/dirección. Fecha: por definir.
 - [x] Publicar la sección Redes sociales del Panel e instalar `metricool-config.json` en el servidor (2026-09-24).
 - [ ] Regenerar el token de Metricool, porque se compartió en el chat, y actualizarlo en el archivo privado del servidor. Responsable: Alex. Fecha: después de publicar.
+- [ ] Revisar y aprobar el diseño y los textos de la invitación digital de la Inauguración Oficial; si Alex autoriza su publicación, desplegar primero backend con respaldo y migración `038`, luego frontend, y verificar Guaynaa e Inauguración en los dos dominios. Responsable: Alex/comunicación/tecnología. Fecha: por definir.

@@ -553,3 +553,9 @@ El 28 de agosto quedó confirmado `¡LEGADO QUE NOS UNE!` como eslogan gráfico 
 - Alex entregó los SVG oficiales y autorizó Git y producción. El logo de Plaza recibido coincide con el maestro ya revisado y ahora fuerza caché nueva en SHOWS y MFS; la franja `2321 × 650` añade Cayambe Import S.A. y ENAG Escuela de Cocina. `/finados/` conserva la franja retirada y SHOWS mantiene la composición en el footer.
 - `caabfdc` está en `origin/main`. QA completo en verde: 266 Node, 34 PHP, 11 integración, 243 archivos, 81 HTML y 2.805 referencias.
 - Producción no cambió: el probe remoto detectó que las tres claves SSH actuales difieren de las conocidas en Windows y WSL. SSH y cPanel responden por red y cPanel tiene HTTPS válido, pero no hay sesión autenticada ni SSHFP; no se aceptó una identidad nueva sin confirmación del proveedor. Sin transferencia parcial, migraciones ni escrituras de datos. Ver [[11_eventos/2026_feria-finados/10_tecnologia-datos/2026-10-12_actualizacion-plaza-auspiciantes-web_v01|estado y hashes]].
+
+### 2026-10-23 — Invitación web para la Inauguración Oficial
+
+- Alex confirmó `4_5_91.png` como referencia de la invitación. La versión web reproduce su lenguaje marfil, amarillo, morado, fucsia y turquesa, con cenefa, formas orgánicas, sello del organizador, `SAVE THE DATE`, tarjetas inclinadas, hora y personalización dinámica.
+- El flujo es independiente de Guaynaa: admite Voceros y Creadores, dos narrativas, confirmación, gafete QR, validación y gestión desde Invitaciones. La migración `038_influencer_events` es aditiva y no se ejecutó en producción.
+- QA local completo en verde: 299 Node, PHP completo, 11 integraciones; 291 archivos y 3.213 referencias. No hubo despliegue ni cambios en datos reales. Detalle: [[11_eventos/2026_feria-finados/10_tecnologia-datos/2026-10-23_invitacion-inauguracion-web_v01|Invitación digital para la inauguración]].

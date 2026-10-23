@@ -25,7 +25,12 @@ $migrations = glob(__DIR__ . '/../migrations/*_sqlite.sql');
 sort($migrations, SORT_STRING);
 foreach ($migrations as $migration) $pdo->exec(file_get_contents($migration));
 $pdo->exec(file_get_contents(__DIR__ . '/../migrations/036_influencer_invitations_sqlite.sql')); // aplicarla dos veces no duplica el evento
-same('1', (string) $pdo->query('SELECT COUNT(*) FROM influencer_event')->fetchColumn());
+same('2', (string) $pdo->query('SELECT COUNT(*) FROM influencer_event')->fetchColumn());
+$events = $pdo->query('SELECT id, slug, title, event_date, event_time, place FROM influencer_event ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+same([
+    ['id' => 1, 'slug' => 'guaynaa', 'title' => 'Lanzamiento Guaynaa', 'event_date' => '2026-10-15', 'event_time' => '', 'place' => 'Juan Montalvo y 12 de Noviembre, Ambato, Ecuador'],
+    ['id' => 2, 'slug' => 'inauguracion', 'title' => 'Inauguración Oficial de Finados Mushuc Runa', 'event_date' => '2026-10-30', 'event_time' => '12:00', 'place' => 'Complejo Intercultural y Deportivo Mushuc Runa · Santa Lucía, Tisaleo · Panamericana Sur km 12, vía Ambato–Riobamba'],
+], array_map(static fn (array $row): array => [...$row, 'id' => (int) $row['id']], $events));
 $secret = bin2hex(random_bytes(16));
 $pdo->prepare('INSERT INTO admin_users (public_id, username, password_hash, created_at, updated_at) VALUES (?, ?, ?, ?, ?)')->execute([str_repeat('f', 32), 'admin', Auth::hashPassword($secret), gmdate('Y-m-d H:i:s'), gmdate('Y-m-d H:i:s')]);
 
@@ -40,6 +45,9 @@ $decode = static fn ($response): array => json_decode($response->body, true, 64,
 // El evento es público y trae lo que dio Alex: Lanzamiento Guaynaa, jueves 15 de octubre, hora por confirmar.
 $event = $decode($router->handle('GET', '/api/invitacion/evento', $origin))['event'];
 same(['Lanzamiento Guaynaa', '2026-10-15', '', 'Juan Montalvo y 12 de Noviembre, Ambato, Ecuador'], [$event['title'], $event['date'], $event['time'], $event['place']]);
+$inauguration = $decode($router->handle('GET', '/api/invitacion/inauguracion/evento', $origin))['event'];
+same(['inauguracion', 'Inauguración Oficial de Finados Mushuc Runa', '2026-10-30', '12:00', 'Complejo Intercultural y Deportivo Mushuc Runa · Santa Lucía, Tisaleo · Panamericana Sur km 12, vía Ambato–Riobamba'], [$inauguration['slug'], $inauguration['title'], $inauguration['date'], $inauguration['time'], $inauguration['place']]);
+same(404, $router->handle('GET', '/api/invitacion/no-existe/evento', $origin)->status);
 
 // El panel exige sesión.
 same(401, $router->handle('GET', '/api/influencers?kind=creador', $origin)->status);
@@ -55,9 +63,36 @@ foreach ($created as $guest) same(1, preg_match('/^[a-hjkmnp-z2-9]{10}$/D', $gue
 same(422, $send('POST', '/api/influencers', ['names' => " \n "])->status);
 same(422, $send('POST', '/api/influencers', ['names' => str_repeat("Nombre\n", 201)])->status);
 
+// Inauguración tiene sus propios invitados, tipos y variantes de mensaje; no comparte filas con Guaynaa.
+$inaugurationVocero = $decode($send('POST', '/api/influencers?event=inauguracion', ['names' => 'Vocera Inauguración', 'kind' => 'vocero', 'message_variant' => 'apoyo']))['guests'][0];
+$inaugurationCreator = $decode($send('POST', '/api/influencers?event=inauguracion', ['names' => 'Creador Inauguración', 'kind' => 'creador', 'message_variant' => 'registro']))['guests'][0];
+same(['inauguracion', 'vocero', 'apoyo'], [$inaugurationVocero['event'], $inaugurationVocero['kind'], $inaugurationVocero['message_variant']]);
+same(['inauguracion', 'creador', 'registro'], [$inaugurationCreator['event'], $inaugurationCreator['kind'], $inaugurationCreator['message_variant']]);
+same(422, $send('POST', '/api/influencers?event=inauguracion', ['names' => 'No permitido', 'kind' => 'nuevo', 'message_variant' => 'registro'])->status);
+same(422, $send('POST', '/api/influencers?event=inauguracion', ['names' => 'No permitido', 'kind' => 'vocero', 'message_variant' => 'otro'])->status);
+same(404, $send('POST', '/api/influencers?event=no-existe', ['names' => 'No permitido', 'kind' => 'vocero', 'message_variant' => 'apoyo'])->status);
+same(3, $decode($router->handle('GET', '/api/influencers?kind=creador', $origin))['totals']['total']);
+same(1, $decode($router->handle('GET', '/api/influencers?event=inauguracion&kind=vocero', $origin))['totals']['total']);
+same(1, $decode($router->handle('GET', '/api/influencers?event=inauguracion&kind=creador', $origin))['totals']['total']);
+
+// Cada ruta pública comprueba el evento: un token de inauguración no se abre como Guaynaa ni al revés.
+same(404, $router->handle('GET', '/api/invitacion/c/' . $inaugurationVocero['invite_token'], $origin)->status);
+$openedInauguration = $decode($router->handle('GET', '/api/invitacion/inauguracion/c/' . $inaugurationVocero['invite_token'], $origin));
+same(['inauguracion', 'Vocera Inauguración', 'vocero', 'apoyo'], [$openedInauguration['event']['slug'], $openedInauguration['guest']['name'], $openedInauguration['guest']['kind'], $openedInauguration['guest']['message_variant']]);
+same(404, $router->handle('GET', '/api/invitacion/inauguracion/c/' . $created[0]['invite_token'], $origin)->status);
+same('si', $decode($router->handle('POST', '/api/invitacion/inauguracion/c/' . $inaugurationVocero['invite_token'], $json, json_encode(['response' => 'si'])))['guest']['response']);
+$decode($send('PATCH', '/api/influencers/' . $inaugurationVocero['public_id'], ['social_link' => 'vocera.inauguracion']));
+$inaugurationBadge = $decode($router->handle('GET', '/api/invitacion/inauguracion/gafete/' . $inaugurationVocero['invite_token'], $origin));
+same(['inauguracion', true], [$inaugurationBadge['event']['slug'], $inaugurationBadge['ready']]);
+$inaugurationScan = $decode($router->handle('GET', '/api/invitacion/inauguracion/verificar/' . $inaugurationVocero['public_id'], $origin))['verification'];
+same(['Inauguración Oficial de Finados Mushuc Runa', 'Vocero invitado'], [$inaugurationScan['event'], $inaugurationScan['kind']]);
+same(false, array_key_exists('social_link', $inaugurationScan), 'la validación pública de inauguración no expone la red social');
+
 // La hora se completa desde el panel.
 same(422, $send('PATCH', '/api/influencers/evento', ['title' => 'Lanzamiento Guaynaa', 'date' => '2026-10-15', 'time' => '25:00', 'place' => 'Ambato'])->status);
 same('19:30', $decode($send('PATCH', '/api/influencers/evento', ['title' => 'Lanzamiento Guaynaa', 'date' => '2026-10-15', 'time' => '19:30', 'place' => $event['place'], 'details' => '']))['event']['time']);
+same('12:30', $decode($send('PATCH', '/api/influencers/evento?event=inauguracion', ['title' => $inauguration['title'], 'date' => $inauguration['date'], 'time' => '12:30', 'place' => $inauguration['place'], 'details' => 'Ingreso por invitación.']))['event']['time']);
+same('19:30', $decode($router->handle('GET', '/api/invitacion/evento', $origin))['event']['time']);
 
 // El creador abre su invitación: ve su nombre y queda marcado como «abrió»; luego confirma.
 $ana = $created[0];
@@ -116,6 +151,7 @@ same([false, 'respuesta'], array_values(array_intersect_key($decode($router->han
 $scan = $decode($router->handle('GET', '/api/invitacion/verificar/' . $mia['public_id'], $origin))['verification'];
 same([true, 'Mía Tapia', 'Creador invitado'], [$scan['valid'], $scan['name'], $scan['kind']]);
 same(false, array_key_exists('whatsapp', $scan));
+same('@mia.crea', $scan['social_link'], 'Guaynaa conserva la red social en su validación pública por compatibilidad');
 same(false, $decode($router->handle('GET', '/api/invitacion/verificar/' . $created[1]['public_id'], $origin))['verification']['valid']);
 same(404, $router->handle('GET', '/api/invitacion/verificar/' . str_repeat('a', 32), $origin)->status);
 
@@ -135,7 +171,13 @@ same([false, true], [$retired['valid'], $retired['retired']]);
 // Exportar a CSV.
 $csv = $router->handle('GET', '/api/influencers/export?kind=creador', $origin);
 same(200, $csv->status);
+same('attachment; filename="influencers-creador-' . gmdate('Y-m-d') . '.csv"', $csv->headers['Content-Disposition']);
 same(true, str_contains($csv->body, 'Mía Tapia'));
+$inaugurationCsv = $router->handle('GET', '/api/influencers/export?event=inauguracion&kind=creador', $origin);
+same(200, $inaugurationCsv->status);
+same('attachment; filename="influencers-inauguracion-creador-' . gmdate('Y-m-d') . '.csv"', $inaugurationCsv->headers['Content-Disposition']);
+same(true, str_contains($inaugurationCsv->body, 'Creador Inauguración'));
+same(false, str_contains($inaugurationCsv->body, 'Mía Tapia'));
 
 // Solo existen las dos listas: Creadores y Nuevos creadores.
 same(422, $router->handle('GET', '/api/influencers?kind=otro', $origin)->status);

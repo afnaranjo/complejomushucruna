@@ -22,18 +22,19 @@ const ADMIN_FORMS = Object.freeze([
   { module: 'usuarios', route: '/admin/usuarios/', label: 'Usuarios', description: 'Cuentas, roles y actividad', marker: 'U' },
 ]);
 // Public landing that each panel returns to from its header.
-const PANEL_LANDINGS = Object.freeze({ '/admin/noticias/': ['/finados/', 'Volver a Finados'], '/admin/panel/': ['/finados/', 'Volver a Finados'], '/admin/voceros/': ['/finados/voceros/', 'Volver a Voceros'], '/admin/medios/': ['/finados/medios/', 'Volver a Medios'], '/admin/medios/eventos/': ['/finados/medios/', 'Volver a Medios'], '/admin/medios/calendario/': ['/finados/medios/', 'Volver a Medios'], '/admin/medios/gira/': ['/finados/medios/', 'Volver a Medios'], '/admin/produccion/activaciones/': ['/finados/', 'Volver a Finados'], '/admin/produccion/sol/': ['/finados/', 'Volver a Finados'], '/admin/produccion/luna/': ['/finados/', 'Volver a Finados'], '/admin/emprendedores/': ['/finados/emprendedores/', 'Volver a Emprendedores'], '/admin/creadoras/': ['/finados/creadoras/', 'Volver a Creadoras'], '/admin/creadoras/edicion/': ['/finados/creadoras/', 'Volver a Creadoras'], '/admin/mfs/': ['/finados/mfs/', 'Volver a Mushuc Freestyle'], '/admin/invitaciones/': ['/finados/', 'Volver a Finados'], '/admin/influencers/creadores/': ['/finados/', 'Volver a Finados'], '/admin/influencers/nuevos/': ['/finados/', 'Volver a Finados'], '/admin/pase-dorado/': ['/finados/', 'Volver a Finados'], '/admin/usuarios/': ['/finados/', 'Volver a Finados'] });
+const PANEL_LANDINGS = Object.freeze({ '/admin/noticias/': ['/finados/', 'Volver a Finados'], '/admin/panel/': ['/finados/', 'Volver a Finados'], '/admin/voceros/': ['/finados/voceros/', 'Volver a Voceros'], '/admin/medios/': ['/finados/medios/', 'Volver a Medios'], '/admin/medios/eventos/': ['/finados/medios/', 'Volver a Medios'], '/admin/medios/calendario/': ['/finados/medios/', 'Volver a Medios'], '/admin/medios/gira/': ['/finados/medios/', 'Volver a Medios'], '/admin/produccion/activaciones/': ['/finados/', 'Volver a Finados'], '/admin/produccion/sol/': ['/finados/', 'Volver a Finados'], '/admin/produccion/luna/': ['/finados/', 'Volver a Finados'], '/admin/emprendedores/': ['/finados/emprendedores/', 'Volver a Emprendedores'], '/admin/creadoras/': ['/finados/creadoras/', 'Volver a Creadoras'], '/admin/creadoras/edicion/': ['/finados/creadoras/', 'Volver a Creadoras'], '/admin/mfs/': ['/finados/mfs/', 'Volver a Mushuc Freestyle'], '/admin/invitaciones/': ['/finados/', 'Volver a Finados'], '/admin/invitaciones/inauguracion/': ['/finados/', 'Volver a Finados'], '/admin/influencers/creadores/': ['/finados/', 'Volver a Finados'], '/admin/influencers/nuevos/': ['/finados/', 'Volver a Finados'], '/admin/pase-dorado/': ['/finados/', 'Volver a Finados'], '/admin/usuarios/': ['/finados/', 'Volver a Finados'] });
 const PROGRESS_LEVELS = ['En preparación', 'Primer paso', 'Gorra', 'Kit completo', 'Trae a los tuyos', 'Noche de concierto', 'Tope'];
 const VIDEO_SLOTS = Object.freeze([1, 2, 3, 4, 5]);
 const videoSlotControls = (prefix = 'video') => VIDEO_SLOTS.map(slot => `<label class="admin-video-control"><span class="admin-video-check"><input type="checkbox" name="${prefix}_${slot}_enabled" value="1"><strong>Video ${slot}</strong></span><span class="admin-video-date"><span>Habilitado desde</span><input type="date" name="${prefix}_${slot}_enabled_at" aria-label="Fecha de habilitación del video ${slot}"></span></label>`).join('');
 
 function adminSidebar(page) {
-  const currentForm = ADMIN_FORMS.find(item => item.route === page.route || (item.children ?? []).some(child => child.route === page.route));
+  const belongsToInvitation = item => item.route === '/admin/invitaciones/' && page.route.startsWith(item.route);
+  const currentForm = ADMIN_FORMS.find(item => item.route === page.route || belongsToInvitation(item) || (item.children ?? []).some(child => child.route === page.route));
   // «Panel» es la portada de la administración: va sola, arriba de la lista de formularios.
   const home = ADMIN_FORMS.find(item => item.route === '/admin/panel/');
   const homeLink = home ? `<a class="admin-nav-link" href="${esc(home.route)}"${home.route === page.route ? ' aria-current="page"' : ''} data-nav-home data-module="${esc(home.module)}"><span class="admin-nav-marker" aria-hidden="true">${esc(home.marker)}</span><span><strong>${esc(home.label)}</strong><small>${esc(home.description)}</small></span></a>` : '';
   const links = ADMIN_FORMS.filter(item => item !== home).map((item) => {
-    const current = item.route === page.route ? ' aria-current="page"' : '';
+    const current = item.route === page.route || belongsToInvitation(item) ? ' aria-current="page"' : '';
     // A submenu (e.g. Medios → Seguimiento, Eventos y Calendario) opens and closes from its section button.
     const children = item.children ?? [];
     const panel = `admin-nav-${esc(item.route.replace(/\/+$/, '').split('/').pop())}`;
@@ -70,7 +71,7 @@ function layout(page, content, script = '/assets/admin/admin.js?v=20261012-views
   const api = page.adminEnvironment === 'development' ? (page.adminApiBase ?? LOCAL_API_BASE) : PRIMARY_API_BASE;
   const connectSources = apiBasesForCsp(api);
   // Solo Invitaciones muestra páginas del propio sitio dentro del panel (la vista previa de cada diseño).
-  const frames = page.route === '/admin/invitaciones/' ? " frame-src 'self';" : '';
+  const frames = page.route.startsWith('/admin/invitaciones/') ? " frame-src 'self';" : '';
   return `<!doctype html>
 <html lang="es"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
@@ -805,9 +806,70 @@ export function renderAdminMfsPage(page) {
 }
 
 // Invitaciones: cada invitación con su diseño a la vista, a quién se envía y cómo van las respuestas.
-export const ADMIN_INVITACIONES_SCRIPT = '/assets/admin/admin-invitaciones.js?v=20261020-invitaciones-1';
+export const ADMIN_INVITACIONES_SCRIPT = '/assets/admin/admin-invitaciones.js?v=20261023-inauguracion-1';
+export const ADMIN_INFLUENCERS_SCRIPT = '/assets/admin/admin-influencers.js?v=20261023-inauguracion-1';
+
+const INAUGURATION_PREVIEWS = Object.freeze([
+  { label: 'Personal · Apoyo', note: 'Para quien ya publicó videos o historias apoyando a Finados.', path: '/finados/invitacion/inauguracion/?vista=1&amp;variante=apoyo' },
+  { label: 'Personal · Registro', note: 'Para quien se registró y todavía no ha publicado un video.', path: '/finados/invitacion/inauguracion/?vista=1&amp;variante=registro' },
+  { label: 'Gracias', note: 'La pantalla posterior a la confirmación de asistencia.', path: '/finados/invitacion/inauguracion/gracias/?vista=1' },
+  { label: 'Gafete', note: 'El pase personal con QR que recibe quien confirma.', path: '/finados/invitacion/inauguracion/gafete/?vista=1' },
+  { label: 'Verificación', note: 'La validación que ve el equipo al escanear el QR.', path: '/finados/invitacion/inauguracion/verificar/?vista=1' },
+]);
+
+function inaugurationPreviews() {
+  const [first] = INAUGURATION_PREVIEWS;
+  const tabs = INAUGURATION_PREVIEWS.map((preview, index) => `<button type="button" role="tab" aria-selected="${index === 0}" data-preview-path="${preview.path}" data-preview-note="${esc(preview.note)}">${esc(preview.label)}</button>`).join('');
+  return `<details class="admin-panel-section ivt-card" data-invitation-previews><summary><span><strong>Vistas previas</strong> <small>Revisa las cinco pantallas antes de enviar una invitación.</small></span></summary>
+<div class="ivt-tabs" role="tablist" aria-label="Pantallas de la invitación de inauguración">${tabs}</div>
+<div class="ivt-preview__stage"><div class="ivt-phone"><iframe class="ivt-phone__screen" title="Vista previa: ${esc(first.label)}" src="${first.path}" loading="lazy" referrerpolicy="no-referrer" tabindex="-1" data-preview-frame></iframe></div>
+<div class="ivt-preview__side"><p class="ivt-note" data-preview-note>${esc(first.note)}</p><p class="ivt-hint">La vista previa usa datos de muestra y no modifica ninguna invitación real.</p><a class="button-quiet" href="${first.path}" target="_blank" rel="noopener" data-preview-open>Abrir vista previa</a></div></div></details>`;
+}
+
+function renderAdminInaugurationInvitationPage(page) {
+  return layout(page, `<div class="admin-shell">${adminSidebar(page)}<main id="contenido" class="admin-workspace inf ivt" data-admin-influencers data-event="inauguracion" data-kind="vocero" data-variant="apoyo">${campaignBanner}
+<div class="workspace-heading"><div><p class="eyebrow">Finados 2026 · Invitaciones</p><h1>Invitación de la Inauguración Oficial</h1><p>Gestiona en un solo lugar las invitaciones de Voceros y Creadores, con un mensaje para quienes ya apoyaron y otro para quienes solo se registraron.</p><p><a class="button-quiet" href="/admin/invitaciones/">← Todas las invitaciones</a></p><p data-admin-user>Comprobando acceso…</p></div>
+<div class="workspace-actions"><button type="button" class="button-quiet" data-export disabled>Exportar CSV</button></div></div>
+<p class="feedback" data-admin-feedback role="status" aria-live="polite" aria-atomic="true">Cargando invitaciones…</p>
+<button type="button" class="button-quiet" data-session-retry hidden>Reintentar conexión</button>
+<section aria-label="Resumen de respuestas" class="summary" data-summary aria-busy="true"></section>
+${inaugurationPreviews()}
+<details class="admin-panel-section inf-event" data-event-panel><summary><span><strong>Datos del evento</strong> <small data-event-summary>Inauguración Oficial de Finados Mushuc Runa</small></span></summary>
+<form class="record-form" data-event-form><fieldset disabled><div class="record-grid">
+<label class="record-grid__wide">Nombre del evento<input name="title" maxlength="160" required></label>
+<label>Fecha<input type="date" name="date" required></label>
+<label>Hora (vacía = «Hora por confirmar»)<input type="time" name="time"></label>
+<label class="record-grid__wide">Lugar<input name="place" maxlength="240" required></label>
+<label class="record-grid__wide">Detalles para los invitados (opcional)<textarea name="details" rows="3" maxlength="2000" placeholder="Ej.: Llega 15 minutos antes. Presenta tu invitación en la entrada."></textarea></label>
+</div><p class="feedback" data-event-feedback role="status" aria-live="polite"></p><button type="submit" class="button-primary">Guardar evento</button></fieldset></form>
+<p class="inf-note">Estos datos se muestran en las invitaciones de Voceros y Creadores, sin cambiar el Lanzamiento Guaynaa.</p></details>
+<section class="admin-panel-section" aria-labelledby="inf-add-title"><div class="records-heading"><div><h2 id="inf-add-title">Agregar invitados</h2><p>Elige la audiencia y el mensaje; luego escribe un nombre por línea.</p></div></div>
+<form class="inf-add" data-add-form><div class="record-grid">
+<label>Audiencia<select name="kind" data-invitation-kind><option value="vocero">Voceros</option><option value="creador">Creadores</option></select></label>
+<label>Motivo del mensaje<select name="message_variant" data-invitation-variant><option value="apoyo">Ya apoyó a Finados</option><option value="registro">Se registró, sin video</option></select></label>
+<label class="record-grid__wide" for="inf-inauguration-names">Nombres<textarea id="inf-inauguration-names" name="names" rows="5" maxlength="20000" placeholder="Ana Pérez&#10;Carlos Ruiz&#10;…"></textarea></label>
+</div><button type="submit" class="button-primary" disabled>Crear invitaciones</button></form></section>
+<section class="records" aria-labelledby="inf-list-title" aria-busy="true" data-list-region><div class="records-heading"><h2 id="inf-list-title" data-audience-title>Voceros invitados</h2><label class="inf-filter">Mostrar<select data-filter><option value="">Todos</option><option value="si">Confirmaron que sí</option><option value="no">No asistirán</option><option value="pendiente">Sin respuesta</option></select></label></div>
+<p data-list-message role="status">Cargando…</p>
+<table><caption class="sr-only" data-table-caption>Voceros invitados a la inauguración y su respuesta</caption><thead><tr><th scope="col" data-guest-heading>Vocero</th><th scope="col">Abrió</th><th scope="col">Respuesta</th><th scope="col"><span class="sr-only">Acciones</span></th></tr></thead><tbody data-rows></tbody></table></section>
+<dialog class="record-dialog record-dialog--compact" data-edit-dialog aria-label="Editar invitado"><form method="dialog" class="record-form">
+<div class="records-heading"><div><h2>Editar invitado</h2><p>Los datos de contacto solo los ve el equipo.</p></div></div>
+<div class="record-grid">
+<label class="record-grid__wide">Nombre (como aparece en la invitación)<input name="full_name" maxlength="160" required></label>
+<label>WhatsApp<input name="whatsapp" type="tel" maxlength="20" placeholder="09…"></label>
+<label>Cuenta principal<input name="social_link" maxlength="500" placeholder="@usuario o enlace https"></label>
+<label>Seguidores<input name="followers" type="number" min="0" step="1"></label>
+<label>Ciudad<input name="city" maxlength="120"></label>
+<label>Motivo del mensaje<select name="message_variant"><option value="apoyo">Ya apoyó a Finados</option><option value="registro">Se registró, sin video</option></select></label>
+<label class="record-grid__wide">Nota interna<textarea name="note" rows="3" maxlength="2000"></textarea></label>
+</div><p class="feedback" data-edit-feedback role="status" aria-live="polite"></p>
+<div class="record-form__actions"><button type="submit" value="cancel" class="button-quiet">Cancelar</button><button type="submit" value="save" class="button-primary">Guardar</button></div>
+</form></dialog>
+</main></div>`, ADMIN_INFLUENCERS_SCRIPT);
+}
 
 export function renderAdminInvitacionesPage(page) {
+  if (page.route === '/admin/invitaciones/inauguracion/') return renderAdminInaugurationInvitationPage(page);
   return layout(page, `<div class="admin-shell">${adminSidebar(page)}<main id="contenido" class="admin-workspace ivt" data-admin-invitaciones>${campaignBanner}
 <div class="workspace-heading"><div><p class="eyebrow">Finados 2026</p><h1>Invitaciones</h1><p>Mira el diseño de cada invitación tal como la ve la persona en su celular, a quién se envió y cómo van las respuestas.</p><p data-admin-user>Comprobando acceso…</p></div></div>
 <p class="feedback" data-admin-feedback role="status" aria-live="polite" aria-atomic="true">Cargando invitaciones…</p>
@@ -817,8 +879,6 @@ export function renderAdminInvitacionesPage(page) {
 }
 
 // Influencers: invitaciones al lanzamiento. «Creadores» lleva el nombre de cada uno; «Nuevos creadores» es abierta.
-export const ADMIN_INFLUENCERS_SCRIPT = '/assets/admin/admin-influencers.js?v=20261014-influencers-3';
-
 export function renderAdminInfluencersPage(page) {
   const personal = page.route === '/admin/influencers/creadores/';
   const kind = personal ? 'creador' : 'nuevo';

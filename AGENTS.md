@@ -2338,3 +2338,13 @@ Nota de relevo escrita a pedido de Alex para que otro agente (Codex) retome la s
 - Commit: incluido en `Corregir relevo operativo del viernes desde las 16:00`.
 - Publicación externa: ninguna; no se desplegó ni se modificó ninguna cuenta. El PDF y su constructor no se versionaron porque contienen nombres y asignaciones internas y el remoto es público.
 - Riesgos/pendientes: confirmar el acceso de publicación nocturna, validar los cuatro accesos de backstage, cerrar permisos/horarios y trasladar la versión aprobada al almacenamiento controlado.
+
+### 2026-10-23 — Invitación digital de la Inauguración Oficial (local)
+
+- La propuesta se encontró en los materiales locales de Descargas y Alex confirmó `4_5_91.png` como la referencia correcta. Se estudió su composición sin versionar el binario ni copiar nombres personales de muestra: fondo marfil, forma amarilla, cenefa modular, jerarquía morado/fucsia, sello del organizador, bloque `SAVE THE DATE`, tarjetas diagonales, hora central y firma.
+- Se creó una invitación independiente del Lanzamiento Guaynaa para Voceros y Creadores, con variantes de mensaje, confirmación, gracias, gafete QR, validación en puerta y administración completa en `/admin/invitaciones/inauguracion/`. La migración aditiva `038_influencer_events` separa ambos eventos y conserva los registros existentes.
+- Se mantuvo el dato canónico `Panamericana Sur km 12`, aunque el arte de referencia decía `km 1/2`. La validación pública de Inauguración no devuelve la red social del invitado y Guaynaa conserva su contrato anterior.
+- QA: 299 pruebas Node, todas las suites PHP, 11 integraciones, build de 291 archivos y validación de 3.213 referencias. La revisión visual en 1440 × 1100 y 390 × 844 no mostró desbordamiento.
+- Commit: se registrará en el cierre técnico de esta tarea.
+- Publicación externa: ninguna; no se desplegó ni se ejecutó la migración en la base real.
+- Riesgos/pendientes: Alex debe aprobar visual y textos; después, con autorización expresa, desplegar backend primero y frontend después, con respaldo y verificación de ambos dominios.

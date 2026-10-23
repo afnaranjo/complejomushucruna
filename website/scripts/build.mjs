@@ -12,6 +12,8 @@ import { injectInvitationOpeningHeader } from '../src/finados/opening-header.mjs
 
 const websiteRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const execFileAsync = promisify(execFile);
+const isPrivateInvitationRoute = route => route.startsWith('/finados/invitacion/') || route === '/i/' || route === '/ii/';
+const isPrivateInvitationFile = file => file.startsWith('finados/invitacion/') || /^(?:i|ii)\/index\.html$/.test(file);
 
 const cookieConsentMarkup = `  <aside class="cookie-consent" data-cookie-consent hidden role="region" aria-label="Preferencias de cookies">
     <p class="cookie-consent__message">Nuestro sitio web utiliza cookies para mejorar tu navegación.</p>
@@ -89,7 +91,7 @@ export async function buildSite(outputDirectory = join(websiteRoot, 'dist'), { a
     const relativePath = page.route === '/' ? 'index.html' : `${page.route.slice(1)}index.html`;
     const target = join(output, relativePath);
     await mkdir(dirname(target), { recursive: true });
-    const accountPage = page.route.startsWith('/admin/') || /^\/finados\/(?:voceros|medios|emprendedores|creadoras|mfs)\/(acceso|mi-registro|restablecer|acreditacion)\/$/.test(page.route) || (/^\/finados\/invitacion\/(?:creadores\/|gracias\/|gafete\/|verificar\/)?$/.test(page.route) || page.route === '/i/');
+    const accountPage = page.route.startsWith('/admin/') || /^\/finados\/(?:voceros|medios|emprendedores|creadoras|mfs)\/(acceso|mi-registro|restablecer|acreditacion)\/$/.test(page.route) || isPrivateInvitationRoute(page.route);
     const html = page.render ? page.render(accountPage ? { ...page, adminEnvironment, adminApiBase: developmentApi } : page) : renderLayout(page);
     await writeFile(target, `${html}\n`, 'utf8');
   }
@@ -277,7 +279,7 @@ export async function buildSite(outputDirectory = join(websiteRoot, 'dist'), { a
 
   const htmlFiles = (await listFiles(output)).filter((file) => file.endsWith('.html'));
   for (const htmlFile of htmlFiles) {
-    const accountPage = htmlFile.startsWith('admin/') || /^finados\/(?:voceros|medios|emprendedores|creadoras|mfs)\/(acceso|mi-registro|restablecer|acreditacion)\//.test(htmlFile) || /^(?:finados\/invitacion\/(?:creadores\/|gracias\/|gafete\/|verificar\/)?|i\/)index\.html$/.test(htmlFile);
+    const accountPage = htmlFile.startsWith('admin/') || /^finados\/(?:voceros|medios|emprendedores|creadoras|mfs)\/(acceso|mi-registro|restablecer|acreditacion)\//.test(htmlFile) || isPrivateInvitationFile(htmlFile);
     if (accountPage) continue;
     const path = join(output, htmlFile);
     const html = await readFile(path, 'utf8');

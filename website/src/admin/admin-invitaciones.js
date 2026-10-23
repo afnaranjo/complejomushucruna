@@ -20,7 +20,7 @@ export class InvitacionesAdminError extends Error {
 export function createInvitacionesClient(baseUrl = API, fetchImplementation = fetch) {
   if (![API, MIRROR_API_BASE, LOCAL_API].filter(Boolean).includes(baseUrl)) throw new Error('Origen de API no permitido.');
   async function request(path) {
-    if (!/^\/(?:auth\/session|influencers\?kind=(?:creador|nuevo))$/.test(path)) throw new Error('Ruta de API no permitida.');
+    if (!/^\/(?:auth\/session|influencers\?kind=(?:creador|nuevo)|influencers\?kind=(?:creador|vocero)&event=inauguracion)$/.test(path)) throw new Error('Ruta de API no permitida.');
     let response;
     try {
       response = await fetchImplementation(`${baseUrl}${path}`, { method: 'GET', credentials: 'include', cache: 'no-store', redirect: 'error', referrerPolicy: 'no-referrer', headers: { Accept: 'application/json' } });
@@ -28,7 +28,10 @@ export function createInvitacionesClient(baseUrl = API, fetchImplementation = fe
     if (!response.ok) throw new InvitacionesAdminError(response.status);
     try { return await response.json(); } catch { throw new InvitacionesAdminError(502); }
   }
-  return { session: () => request('/auth/session'), list: kind => request(`/influencers?kind=${kind}`) };
+  return {
+    session: () => request('/auth/session'),
+    list: (kind, event = '') => request(`/influencers?kind=${kind}${event ? `&event=${event}` : ''}`),
+  };
 }
 
 /* ---------- Funciones puras (probadas) ---------- */
@@ -37,12 +40,30 @@ export function createInvitacionesClient(baseUrl = API, fetchImplementation = fe
 export const INVITATIONS = Object.freeze([
   {
     id: 'guaynaa', fallbackTitle: 'Lanzamiento Guaynaa', audiences: ['Creadores', 'Nuevos creadores'], manage: '/admin/influencers/creadores/',
+    sources: [{ kind: 'creador' }, { kind: 'nuevo' }],
     screens: [
       { key: 'personal', label: 'Invitación personal', note: 'La que recibe cada creador por WhatsApp, con su nombre.', path: '/i/?vista=1' },
       { key: 'abierta', label: 'Invitación abierta', note: 'Un solo enlace: la persona deja sus datos y confirma.', path: '/finados/invitacion/creadores/?vista=1' },
       { key: 'gracias', label: 'Pantalla de gracias', note: 'Lo que ve después de confirmar.', path: '/finados/invitacion/gracias/?vista=1' },
       { key: 'gafete', label: 'Gafete', note: 'Su gafete con QR para la entrada.', path: '/finados/invitacion/gafete/?vista=1' },
       { key: 'verificar', label: 'Validación en la puerta', note: 'Lo que ve el equipo al escanear el gafete.', path: '/finados/invitacion/verificar/?vista=1' },
+    ],
+  },
+  {
+    id: 'inauguracion', event: 'inauguracion', fallbackTitle: 'Inauguración Oficial de Finados Mushuc Runa', audiences: ['Voceros', 'Creadores'], manage: '/admin/invitaciones/inauguracion/',
+    fallbackEvent: {
+      title: 'Inauguración Oficial de Finados Mushuc Runa',
+      date: '2026-10-30',
+      time: '12:00',
+      place: 'Complejo Mushuc Runa · Santa Lucía, Tisaleo · Panamericana Sur km 12, vía Ambato–Riobamba',
+    },
+    sources: [{ kind: 'vocero', event: 'inauguracion' }, { kind: 'creador', event: 'inauguracion' }],
+    screens: [
+      { key: 'personal-apoyo', label: 'Personal · Apoyo', note: 'Para quien ya publicó videos o historias apoyando a Finados.', path: '/finados/invitacion/inauguracion/?vista=1&variante=apoyo' },
+      { key: 'personal-registro', label: 'Personal · Registro', note: 'Para quien se registró y todavía no ha publicado un video.', path: '/finados/invitacion/inauguracion/?vista=1&variante=registro' },
+      { key: 'gracias', label: 'Pantalla de gracias', note: 'Lo que ve después de confirmar si asistirá.', path: '/finados/invitacion/inauguracion/gracias/?vista=1' },
+      { key: 'gafete', label: 'Gafete', note: 'Su pase personal con QR para confirmar la llegada.', path: '/finados/invitacion/inauguracion/gafete/?vista=1' },
+      { key: 'verificar', label: 'Validación en la entrada', note: 'Lo que ve el equipo al escanear el QR individual.', path: '/finados/invitacion/inauguracion/verificar/?vista=1' },
     ],
   },
 ]);
@@ -80,6 +101,19 @@ export function combineTotals(creadores = {}, nuevos = {}) {
   };
 }
 
+/** Suma audiencias de una invitación sin mezclar sus eventos. */
+export function combineInvitationTotals(...audiences) {
+  const value = (data, key) => Number(data?.totals?.[key] ?? 0);
+  return audiences.reduce((totals, data) => ({
+    invitados: totals.invitados + value(data, 'total'),
+    si: totals.si + value(data, 'si'),
+    no: totals.no + value(data, 'no'),
+    pendiente: totals.pendiente + value(data, 'pendiente'),
+    abrieron: totals.abrieron + value(data, 'abrieron'),
+    porAprobar: totals.porAprobar + value(data, 'por_aprobar'),
+  }), { invitados: 0, si: 0, no: 0, pendiente: 0, abrieron: 0, porAprobar: 0 });
+}
+
 /* ---------- Pantalla ---------- */
 
 function element(tag, attributes = {}, children = []) {
@@ -105,7 +139,7 @@ function renderInvitation(invitation, event, totals, today) {
       element('p', { className: 'ivt-meta', text: [dateLabel(event?.date, event?.time), event?.place].filter(Boolean).join(' · ') }),
       element('p', { className: 'ivt-audience' }, [element('span', { text: 'Enviada a: ' }), ...invitation.audiences.map(name => element('strong', { className: 'ivt-chip', text: name }))]),
     ]),
-    element('a', { className: 'button-quiet', href: invitation.manage, text: 'Ver invitados' }),
+    element('a', { className: 'button-quiet', href: invitation.manage, text: invitation.id === 'inauguracion' ? 'Abrir invitación' : 'Ver invitados' }),
   ]);
   card.append(facts);
 
@@ -153,13 +187,20 @@ export async function initializeInvitaciones() {
     const session = await client.session();
     if (!session.authenticated) { location.replace('/admin/'); return; }
     root.querySelector('[data-admin-user]').textContent = `Sesión de ${session.user.full_name ?? session.user.username}`;
-    const [creadores, nuevos] = await Promise.all([client.list('creador'), client.list('nuevo').catch(() => null)]);
     const today = ecuadorToday();
-    list.replaceChildren(...INVITATIONS.map(invitation => renderInvitation(invitation, creadores?.event, combineTotals(creadores, nuevos ?? {}), today)));
+    const cards = await Promise.all(INVITATIONS.map(async invitation => {
+      const audiences = await Promise.all(invitation.sources.map(source => client.list(source.kind, source.event).catch(() => null)));
+      const event = audiences.find(data => data?.event)?.event ?? invitation.fallbackEvent;
+      const totals = invitation.id === 'guaynaa'
+        ? combineTotals(audiences[0] ?? {}, audiences[1] ?? {})
+        : combineInvitationTotals(...audiences);
+      return renderInvitation(invitation, event, totals, today);
+    }));
+    list.replaceChildren(...cards);
     list.append(element('article', { className: 'ivt-card ivt-card--new' }, [
       element('p', { className: 'ivt-state', 'data-state': 'proxima', text: 'En preparación' }),
       element('h2', { text: 'Nueva invitación' }),
-      element('p', { text: 'La próxima invitación aparecerá aquí con su diseño para revisarlo antes de enviarlo. Podrás mandarla a creadores, a medios o a los dos.' }),
+      element('p', { text: 'La próxima invitación aparecerá aquí con su diseño para revisarlo antes de enviarlo.' }),
     ]));
     feedback.textContent = '';
   } catch (error) {

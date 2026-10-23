@@ -649,8 +649,16 @@ final class Router
     /** La invitación que abre cada influencer: el evento, su enlace personal o el registro de nuevos creadores. */
     private function influencerInvitation(string $method, string $path, array $query, array $server, string $rawBody, ?string $origin, mixed $ip, array $headers): Response
     {
+        $repository = $this->influencers();
         $notAllowed = fn (): Response => $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
         if ($query !== []) throw new InvalidArgumentException();
+        $eventSlug = InfluencerRepository::DEFAULT_EVENT;
+        // Las rutas históricas quedan ligadas a Guaynaa. Los demás eventos declaran su slug en la URL.
+        if (preg_match('~^/api/invitacion/([a-z0-9]+(?:-[a-z0-9]+)*)(/.*)?$~D', $path, $eventPath) === 1
+            && !in_array($eventPath[1], ['evento', 'nuevo', 'gafete', 'verificar', 'c'], true)) {
+            $eventSlug = InfluencerRepository::eventSlug($eventPath[1]);
+            $path = '/api/invitacion' . ($eventPath[2] ?? '');
+        }
         if ($method === 'POST') {
             // Sin sesión: el envío debe venir de nuestros sitios (el JSON obliga además a la verificación previa del navegador).
             if ($origin === null) throw new Forbidden();
@@ -658,26 +666,26 @@ final class Router
         }
         if ($path === '/api/invitacion/evento') {
             if ($method !== 'GET') return $notAllowed();
-            return $this->json(200, ['ok' => true, 'event' => $this->influencers()->event()], $headers);
+            return $this->json(200, ['ok' => true, 'event' => $repository->event($eventSlug)], $headers);
         }
         if ($path === '/api/invitacion/nuevo') {
             if ($method !== 'POST') return $notAllowed();
             $body = $this->body($server, $rawBody, ['full_name', 'whatsapp', 'social_link', 'followers', 'city', 'response', 'consent']);
-            return $this->json(201, ['ok' => true, 'guest' => $this->influencers()->register($body, (string) $ip)], $headers);
+            return $this->json(201, ['ok' => true, 'guest' => $repository->register($body, (string) $ip, $eventSlug)], $headers);
         }
         if (preg_match('~^/api/invitacion/gafete/([a-z0-9]{10}|[a-f0-9]{32})$~D', $path, $parts)) {
             if ($method !== 'GET') return $notAllowed();
-            return $this->json(200, ['ok' => true, ...$this->influencers()->badge($parts[1])], $headers);
+            return $this->json(200, ['ok' => true, ...$repository->badge($parts[1], $eventSlug)], $headers);
         }
         if (preg_match('~^/api/invitacion/verificar/([a-f0-9]{32})$~D', $path, $parts)) {
             if ($method !== 'GET') return $notAllowed();
-            return $this->json(200, ['ok' => true, 'verification' => $this->influencers()->verification($parts[1])], $headers);
+            return $this->json(200, ['ok' => true, 'verification' => $repository->verification($parts[1], $eventSlug)], $headers);
         }
         if (preg_match('~^/api/invitacion/c/([a-z0-9]{10}|[a-f0-9]{32})$~D', $path, $parts)) {
-            if ($method === 'GET') return $this->json(200, ['ok' => true, ...$this->influencers()->openInvitation($parts[1])], $headers);
+            if ($method === 'GET') return $this->json(200, ['ok' => true, ...$repository->openInvitation($parts[1], $eventSlug)], $headers);
             if ($method !== 'POST') return $notAllowed();
             $body = $this->body($server, $rawBody, ['response']);
-            return $this->json(200, ['ok' => true, 'guest' => $this->influencers()->respond($parts[1], $body['response'] ?? null, (string) $ip)], $headers);
+            return $this->json(200, ['ok' => true, 'guest' => $repository->respond($parts[1], $body['response'] ?? null, (string) $ip, $eventSlug)], $headers);
         }
         return $this->error(404, 'not_found', 'Recurso no encontrado.', $headers);
     }
@@ -688,25 +696,30 @@ final class Router
         $repository = $this->influencers();
         $notAllowed = fn (): Response => $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
         if ($path === '/api/influencers') {
+            if (array_diff(array_keys($query), ['event', 'kind']) !== []) throw new InvalidArgumentException();
+            $eventSlug = InfluencerRepository::eventSlug($query['event'] ?? null);
             if ($method === 'GET') {
-                if (array_diff(array_keys($query), ['kind']) !== []) throw new InvalidArgumentException();
-                return $this->json(200, $repository->list(InfluencerRepository::kind($query['kind'] ?? null)), $headers);
+                return $this->json(200, $repository->list((string) ($query['kind'] ?? ''), $eventSlug), $headers);
             }
             if ($method !== 'POST') return $notAllowed();
-            if ($query !== []) throw new InvalidArgumentException();
-            $body = $this->body($server, $rawBody, ['names']);
-            return $this->json(201, ['guests' => $repository->createCreators($body['names'] ?? null, $user['id'], (string) $ip)], $headers);
+            $fields = $eventSlug === InfluencerRepository::DEFAULT_EVENT ? ['names'] : ['names', 'kind', 'message_variant'];
+            $body = $this->body($server, $rawBody, $fields);
+            if ($eventSlug === InfluencerRepository::DEFAULT_EVENT) {
+                return $this->json(201, ['guests' => $repository->createCreators($body['names'] ?? null, $user['id'], (string) $ip)], $headers);
+            }
+            return $this->json(201, ['guests' => $repository->createGuests($body['names'] ?? null, $body['kind'] ?? null, $body['message_variant'] ?? null, $eventSlug, $user['id'], (string) $ip)], $headers);
         }
         if ($path === '/api/influencers/export') {
             if ($method !== 'GET') return $notAllowed();
-            if (array_diff(array_keys($query), ['kind']) !== []) throw new InvalidArgumentException();
-            $kind = InfluencerRepository::kind($query['kind'] ?? null);
+            if (array_diff(array_keys($query), ['event', 'kind']) !== []) throw new InvalidArgumentException();
+            $eventSlug = InfluencerRepository::eventSlug($query['event'] ?? null);
+            $kind = (string) ($query['kind'] ?? '');
             $columns = ['full_name', 'whatsapp', 'social_link', 'followers', 'city', 'response', 'responded_at', 'opened_at', 'approval', 'note', 'created_at'];
             $stream = fopen('php://temp', 'w+');
             if ($stream === false) throw new \RuntimeException();
             fwrite($stream, "\xEF\xBB\xBF");
             fputcsv($stream, $columns, ',', '"', '', "\r\n");
-            foreach ($repository->list($kind)['guests'] as $guest) {
+            foreach ($repository->list($kind, $eventSlug)['guests'] as $guest) {
                 fputcsv($stream, array_map(static function (string $column) use ($guest): string {
                     $value = (string) ($guest[$column] ?? '');
                     return preg_match('/^[\x00-\x20]*[=+@-]/', $value) ? "'" . $value : $value;
@@ -717,20 +730,23 @@ final class Router
             fclose($stream);
             $this->audit->log('influencer.exported', $user['id'], 'influencer', null, [], (string) $ip);
             $headers['Content-Type'] = 'text/csv; charset=utf-8';
-            $headers['Content-Disposition'] = 'attachment; filename="influencers-' . $kind . '-' . gmdate('Y-m-d') . '.csv"';
+            $eventPart = $eventSlug === InfluencerRepository::DEFAULT_EVENT ? '' : $eventSlug . '-';
+            $headers['Content-Disposition'] = 'attachment; filename="influencers-' . $eventPart . $kind . '-' . gmdate('Y-m-d') . '.csv"';
             return new Response(200, $headers, $csv);
         }
-        if ($query !== []) throw new InvalidArgumentException();
         if ($path === '/api/influencers/evento') {
             if ($method !== 'PATCH') return $notAllowed();
-            return $this->json(200, ['event' => $repository->updateEvent($this->body($server, $rawBody, ['title', 'date', 'time', 'place', 'details']), $user['id'], (string) $ip)], $headers);
+            if (array_diff(array_keys($query), ['event']) !== []) throw new InvalidArgumentException();
+            $eventSlug = InfluencerRepository::eventSlug($query['event'] ?? null);
+            return $this->json(200, ['event' => $repository->updateEvent($this->body($server, $rawBody, ['title', 'date', 'time', 'place', 'details']), $user['id'], (string) $ip, $eventSlug)], $headers);
         }
+        if ($query !== []) throw new InvalidArgumentException();
         if (preg_match('~^/api/influencers/([a-f0-9]{32})(/archivar|/enlace)?$~D', $path, $parts)) {
             $action = $parts[2] ?? '';
             if ($action === '/archivar') { if ($method !== 'POST') return $notAllowed(); $repository->archive($parts[1], $user['id'], (string) $ip); return $this->json(200, ['ok' => true], $headers); }
             if ($action === '/enlace') { if ($method !== 'POST') return $notAllowed(); return $this->json(200, ['guest' => $repository->newLink($parts[1], $user['id'], (string) $ip)], $headers); }
             if ($method !== 'PATCH') return $notAllowed();
-            $body = $this->body($server, $rawBody, ['full_name', 'whatsapp', 'social_link', 'followers', 'city', 'note', 'approval', 'response']);
+            $body = $this->body($server, $rawBody, ['full_name', 'whatsapp', 'social_link', 'followers', 'city', 'note', 'approval', 'response', 'message_variant']);
             return $this->json(200, ['guest' => $repository->update($parts[1], $body, $user['id'], (string) $ip)], $headers);
         }
         return $this->error(404, 'not_found', 'Recurso no encontrado.', $headers);

@@ -5,6 +5,92 @@ const API = PRIMARY_API_BASE;
 const LOCAL_API = 'http://127.0.0.1:4174/api';
 const DAYS = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
 const MONTHS = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+const SHORT_DAYS = ['DOM', 'LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB'];
+const SHORT_MONTHS = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
+
+/**
+ * Configuración pública de cada invitación. Guaynaa conserva sus rutas históricas;
+ * los eventos nuevos viven en un namespace propio para no mezclar respuestas ni QR.
+ */
+export const INVITATION_EVENTS = Object.freeze({
+  guaynaa: Object.freeze({
+    key: 'guaynaa', title: 'Lanzamiento Guaynaa', apiPrefix: '/invitacion', dressCode: 'Blanco',
+    paths: Object.freeze({
+      personal: '/finados/invitacion/', personalShort: '/i/', open: '/finados/invitacion/creadores/',
+      thanks: '/finados/invitacion/gracias/', badge: '/finados/invitacion/gafete/', verify: '/finados/invitacion/verificar/',
+    }),
+    storageKey: 'finados-invitacion-respuesta', badgeFile: 'gafete-lanzamiento-guaynaa.png',
+    shareTitle: 'Lanzamiento Guaynaa', shareText: '¡Nos vemos en el Lanzamiento Guaynaa! #FinadosMushucRuna',
+    confirmedMessage: 'Nos emociona contar contigo en el Lanzamiento Guaynaa. Te esperamos: prepárate para vivirlo y contarlo a tu manera.',
+    pendingMessage: 'El equipo revisará tu registro y te escribirá por WhatsApp para confirmar tu lugar en el Lanzamiento Guaynaa.',
+    declinedMessage: 'Gracias por avisarnos. Sigues en nuestro radar para lo que viene con SanFra y Finados Mushuc Runa. Si cambias de opinión, puedes volver a tu invitación.',
+    defaultMessage: 'Gracias por responder a la invitación al Lanzamiento Guaynaa.',
+    badgeHero: '/assets/finados/guaynaa-lanzamiento-hoy-1122.webp',
+  }),
+  inauguracion: Object.freeze({
+    key: 'inauguracion', title: 'Inauguración Oficial de Finados Mushuc Runa', apiPrefix: '/invitacion/inauguracion', dressCode: '',
+    paths: Object.freeze({
+      personal: '/finados/invitacion/inauguracion/', personalShort: '/ii/',
+      thanks: '/finados/invitacion/inauguracion/gracias/', badge: '/finados/invitacion/inauguracion/gafete/', verify: '/finados/invitacion/inauguracion/verificar/',
+    }),
+    storageKey: 'finados-invitacion-inauguracion-respuesta', badgeFile: 'gafete-inauguracion-finados-2026.png',
+    shareTitle: 'Inauguración Oficial · Finados Mushuc Runa 2026', shareText: 'Nos encontramos en la Inauguración Oficial de Finados Mushuc Runa 2026. ¡Legado que nos une!',
+    confirmedMessage: 'Nos honra contar contigo en la Inauguración Oficial de Finados Mushuc Runa. Te esperamos para abrir juntos esta edición 2026.',
+    pendingMessage: 'El equipo revisará tu registro y te escribirá por WhatsApp para confirmar tu lugar en la Inauguración Oficial de Finados Mushuc Runa.',
+    declinedMessage: 'Gracias por avisarnos. Esperamos encontrarnos contigo en otro momento de Finados Mushuc Runa 2026.',
+    defaultMessage: 'Gracias por responder a la invitación a la Inauguración Oficial de Finados Mushuc Runa.',
+    badgeHero: '',
+  }),
+});
+
+export function invitationEvent(eventKey = 'guaynaa') {
+  const event = INVITATION_EVENTS[eventKey];
+  if (!event) throw new TypeError('Invitación no disponible.');
+  return event;
+}
+
+export function invitationPaths(eventKey = 'guaynaa') {
+  return { ...invitationEvent(eventKey).paths };
+}
+
+export function invitationStorageKey(eventKey = 'guaynaa') {
+  return invitationEvent(eventKey).storageKey;
+}
+
+const INAUGURATION_NARRATIVES = Object.freeze({
+  apoyo: Object.freeze({
+    eyebrow: 'Una invitación personal',
+    title: 'Hemos visto tu apoyo a Finados 2026.',
+    lead: 'Queremos que estés en el momento que abre esta edición: la Inauguración Oficial de Finados Mushuc Runa.',
+    story: 'Por primera vez abriremos la feria junto a quienes ya están ayudando a contarla. Tu presencia hará parte de este primer capítulo.',
+  }),
+  registro: Object.freeze({
+    eyebrow: 'Tu primer capítulo empieza aquí',
+    title: 'Te sumaste a Finados 2026.',
+    lead: 'Esta será tu primera vez en la feria y queremos recibirte desde el inicio, en la Inauguración Oficial de Finados Mushuc Runa.',
+    story: 'Queremos que conozcas desde adentro el legado, la comunidad y la tradición que dan vida a Finados. Tu historia comienza en esta apertura.',
+  }),
+});
+
+export function inaugurationNarrative(variant = 'apoyo') {
+  return { ...(INAUGURATION_NARRATIVES[variant] ?? INAUGURATION_NARRATIVES.apoyo) };
+}
+
+/** La API decide la variante real; ?variante= se admite únicamente en la vista previa administrativa. */
+export function resolveInvitationVariant({ eventKey = 'guaynaa', search = '', apiVariant = '', preview = false } = {}) {
+  if (eventKey !== 'inauguracion') return '';
+  const requested = preview ? new URLSearchParams(search).get('variante') : apiVariant;
+  return requested === 'registro' ? 'registro' : 'apoyo';
+}
+
+export function invitationRoleLabel(kind, eventKey = 'guaynaa') {
+  if (eventKey === 'inauguracion') {
+    if (kind === 'vocero') return 'VOCERO/A FINADOS 2026';
+    if (kind === 'creador') return 'CREADOR/A DE CONTENIDO';
+    return 'INVITADO/A FINADOS 2026';
+  }
+  return kind === 'nuevo' ? 'CREADOR INVITADO' : 'INVITADO ESPECIAL';
+}
 
 /** «2026-10-15» → «Jueves 15 de octubre de 2026», sin depender de la zona horaria del teléfono. */
 export function eventDateLabel(value) {
@@ -14,6 +100,15 @@ export function eventDateLabel(value) {
   const date = new Date(Date.UTC(year, month - 1, day));
   const label = `${DAYS[date.getUTCDay()]} ${day} de ${MONTHS[month - 1]} de ${year}`;
   return label.charAt(0).toUpperCase() + label.slice(1);
+}
+
+/** Partes breves para el bloque ceremonial «SAVE THE DATE», sin depender de la zona horaria. */
+export function eventDateParts(value) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value ?? ''));
+  if (!match) return { weekday: '', day: '', month: '' };
+  const [, year, month, day] = match.map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  return { weekday: SHORT_DAYS[date.getUTCDay()], day: String(day).padStart(2, '0'), month: SHORT_MONTHS[month - 1] };
 }
 
 export function eventTimeLabel(value) {
@@ -62,41 +157,44 @@ export function validateOpenForm(values) {
   return { data: { ...data, followers: Number(data.followers) } };
 }
 
-const THANKS_KEY = 'finados-invitacion-respuesta';
-export const THANKS_PATH = '/finados/invitacion/gracias/';
+export const THANKS_PATH = INVITATION_EVENTS.guaynaa.paths.thanks;
 
 /** Lo que dice la pantalla de gracias según quién respondió y qué respondió. */
-export function thanksContent({ kind, name = '', response } = {}) {
+export function thanksContent({ kind, name = '', response, badge = false } = {}, eventKey = 'guaynaa') {
+  const invitation = invitationEvent(eventKey);
   const first = String(name).trim().split(/\s+/)[0] ?? '';
   const hello = first ? `, ${first}` : '';
-  if (response === 'si' && kind === 'creador') return {
+  const confirmed = kind === 'creador' || badge === true;
+  if (response === 'si' && confirmed) return {
     eyebrow: 'Asistencia confirmada', title: `¡Gracias${hello}!`, subtitle: 'Tu lugar está confirmado.',
-    message: 'Nos emociona contar contigo en el Lanzamiento Guaynaa. Te esperamos: prepárate para vivirlo y contarlo a tu manera.', perks: true,
+    message: invitation.confirmedMessage, perks: true,
   };
   if (response === 'si') return {
     eyebrow: 'Registro recibido', title: `¡Gracias${hello}!`, subtitle: 'Recibimos tu confirmación.',
-    message: 'El equipo revisará tu registro y te escribirá por WhatsApp para confirmar tu lugar en el Lanzamiento Guaynaa.', perks: true,
+    message: invitation.pendingMessage, perks: true,
   };
   if (response === 'no') return {
     eyebrow: 'Respuesta recibida', title: `Gracias${hello}`, subtitle: 'Te vamos a extrañar.',
-    message: 'Gracias por avisarnos. Sigues en nuestro radar para lo que viene con SanFra y Finados Mushuc Runa. Si cambias de opinión, puedes volver a tu invitación.', perks: false,
+    message: invitation.declinedMessage, perks: false,
   };
-  return { eyebrow: 'Confirmación', title: '¡Gracias!', subtitle: 'Tu respuesta quedó registrada.', message: 'Gracias por responder a la invitación al Lanzamiento Guaynaa.', perks: true };
+  return { eyebrow: 'Confirmación', title: '¡Gracias!', subtitle: 'Tu respuesta quedó registrada.', message: invitation.defaultMessage, perks: true };
 }
 
 /** La respuesta viaja a la pantalla de gracias dentro de la pestaña, nunca en la dirección. */
-function rememberAnswer(answer) {
-  try { sessionStorage.setItem(THANKS_KEY, JSON.stringify(answer)); } catch { /* sin almacenamiento: la pantalla muestra un gracias general */ }
+function rememberAnswer(eventKey, answer) {
+  try { sessionStorage.setItem(invitationStorageKey(eventKey), JSON.stringify(answer)); } catch { /* sin almacenamiento: la pantalla muestra un gracias general */ }
 }
 
-function readAnswer() {
-  try { return JSON.parse(sessionStorage.getItem(THANKS_KEY) ?? 'null'); } catch { return null; }
+function readAnswer(eventKey) {
+  try { return JSON.parse(sessionStorage.getItem(invitationStorageKey(eventKey)) ?? 'null'); } catch { return null; }
 }
 
-export function createInvitationClient(baseUrl = API, fetchImplementation = globalThis.fetch) {
+export function createInvitationClient(baseUrl = API, fetchImplementation = globalThis.fetch, eventKey = 'guaynaa') {
   if (![API, MIRROR_API_BASE, LOCAL_API].filter(Boolean).includes(baseUrl)) throw new Error('Origen de API no permitido.');
-  async function request(path, body) {
-    if (!/^\/invitacion\/(?:evento|nuevo|(?:c|gafete)\/(?:[a-f0-9]{32}|[a-hjkmnp-z2-9]{10})|verificar\/[a-f0-9]{32})$/.test(path)) throw new Error('Ruta de API no permitida.');
+  const invitation = invitationEvent(eventKey);
+  async function request(resource, body) {
+    if (!/^(?:evento|nuevo|(?:c|gafete)\/(?:[a-f0-9]{32}|[a-hjkmnp-z2-9]{10})|verificar\/[a-f0-9]{32})$/.test(resource)) throw new Error('Ruta de API no permitida.');
+    const path = `${invitation.apiPrefix}/${resource}`;
     let response;
     try {
       response = await fetchImplementation(`${baseUrl}${path}`, {
@@ -119,34 +217,53 @@ export function createInvitationClient(baseUrl = API, fetchImplementation = glob
     return data;
   }
   return {
-    event: () => request('/invitacion/evento'),
-    open: token => request(`/invitacion/c/${token}`),
-    respond: (token, response) => request(`/invitacion/c/${token}`, { response }),
-    register: body => request('/invitacion/nuevo', body),
-    badge: token => request(`/invitacion/gafete/${token}`),
-    verify: id => request(`/invitacion/verificar/${id}`),
+    event: () => request('evento'),
+    open: token => request(`c/${token}`),
+    respond: (token, response) => request(`c/${token}`, { response }),
+    register: body => request('nuevo', body),
+    badge: token => request(`gafete/${token}`),
+    verify: id => request(`verificar/${id}`),
   };
 }
 
-export const DRESS_CODE = 'Blanco';
+export const DRESS_CODE = INVITATION_EVENTS.guaynaa.dressCode;
 
 function paintEvent(event) {
   if (!event) return;
   const set = (selector, text) => { if (text) for (const node of document.querySelectorAll(selector)) node.textContent = text; };
+  const dateParts = eventDateParts(event.date);
   set('[data-event-title]', event.title);
   set('[data-event-date]', eventDateLabel(event.date));
+  set('[data-event-weekday]', dateParts.weekday);
+  set('[data-event-day]', dateParts.day);
+  set('[data-event-month]', dateParts.month);
   set('[data-event-time]', eventTimeLabel(event.time));
+  set('[data-event-time-short]', /^\d{2}:\d{2}$/.test(String(event.time ?? '')) ? event.time : 'Por confirmar');
   set('[data-event-place]', event.place);
+  if (/^\d{4}-\d{2}-\d{2}$/.test(String(event.date ?? ''))) {
+    for (const node of document.querySelectorAll('time[data-event-date]')) node.dateTime = event.date;
+  }
   if (event.place) for (const map of document.querySelectorAll('[data-event-map]')) map.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.place)}`;
   const details = document.querySelector('[data-event-details]');
   if (details) { details.textContent = event.details ?? ''; details.hidden = !event.details; }
 }
 
-async function startPersonal(client) {
+function paintOpeningNarrative(eventKey, variant) {
+  if (eventKey !== 'inauguracion') return;
+  const content = inaugurationNarrative(variant);
+  for (const [key, value] of Object.entries(content)) {
+    const node = document.querySelector(`[data-opening-${key}]`);
+    if (node) node.textContent = value;
+  }
+}
+
+async function startPersonal(client, eventKey = 'guaynaa') {
+  const paths = invitationPaths(eventKey);
   const status = document.querySelector('[data-status]');
   const choices = document.querySelector('[data-choices]');
   const buttons = [...choices.querySelectorAll('[data-answer]')];
   if (isPreview(location.search)) {
+    paintOpeningNarrative(eventKey, resolveInvitationVariant({ eventKey, search: location.search, preview: true }));
     client.event().then(data => paintEvent(data?.event)).catch(() => {});
     document.querySelector('[data-guest-name]').textContent = `${PREVIEW_NAME},`;
     buttons.forEach(button => { button.disabled = true; });
@@ -165,15 +282,18 @@ async function startPersonal(client) {
   try {
     const data = await client.open(token);
     paintEvent(data.event);
+    paintOpeningNarrative(eventKey, resolveInvitationVariant({ eventKey, apiVariant: data.guest.message_variant }));
     name = data.guest.name;
     const nameNode = document.querySelector('[data-guest-name]');
     nameNode.textContent = `${name},`;
+    const roleNode = document.querySelector('[data-guest-role]');
+    if (roleNode) roleNode.textContent = invitationRoleLabel(data.guest.kind, eventKey);
     document.title = `${name}, te invitamos | Finados Mushuc Runa 2026`;
     choices.hidden = false;
     mark(data.guest.response);
     const badgeLink = document.querySelector('[data-badge-link]');
-    if (badgeLink && data.guest.badge) { badgeLink.querySelector('a').href = badgePath(token); badgeLink.hidden = false; }
-    if (data.guest.response === 'si') showConfirmed(client, token, data);
+    if (badgeLink && data.guest.badge) { badgeLink.querySelector('a').href = badgePath(token, eventKey); badgeLink.hidden = false; }
+    if (data.guest.response === 'si') showConfirmed(client, token, data, eventKey);
   } catch (error) { status.textContent = error.message; status.dataset.error = 'true'; return; }
   for (const button of buttons) {
     button.addEventListener('click', async () => {
@@ -181,8 +301,9 @@ async function startPersonal(client) {
       status.textContent = 'Guardando tu respuesta…';
       try {
         const data = await client.respond(token, button.dataset.answer);
-        rememberAnswer({ kind: data.guest.kind ?? 'creador', name: data.guest.name, response: data.guest.response, token, badge: data.guest.badge === true });
-        location.assign(THANKS_PATH);
+        rememberAnswer(eventKey, { kind: data.guest.kind ?? 'creador', name: data.guest.name, response: data.guest.response, token, badge: data.guest.badge === true });
+        if (eventKey === 'guaynaa') location.assign(THANKS_PATH);
+        else location.assign(paths.thanks);
       } catch (error) {
         status.textContent = error.message; status.dataset.error = 'true';
         buttons.forEach(item => { item.disabled = false; });
@@ -192,7 +313,7 @@ async function startPersonal(client) {
 }
 
 /** Quien ya confirmó ve primero su confirmación, los datos del evento y su gafete listo para descargar. */
-async function showConfirmed(client, token, data) {
+async function showConfirmed(client, token, data, eventKey = 'guaynaa') {
   const card = document.querySelector('[data-confirmed]');
   if (!card) return;
   const first = String(data.guest.name ?? '').trim().split(/\s+/)[0] ?? '';
@@ -209,14 +330,15 @@ async function showConfirmed(client, token, data) {
     await mountBadge(badge, {
       status: box.querySelector('[data-confirmed-status]'), preview: box.querySelector('[data-confirmed-preview]'), actions: box.querySelector('[data-confirmed-actions]'),
       download: box.querySelector('[data-confirmed-download]'), share: box.querySelector('[data-confirmed-share]'),
-    });
+    }, eventKey);
   } catch (error) {
     const status = box.querySelector('[data-confirmed-status]');
     status.textContent = error.message || 'No se pudo preparar el gafete.'; status.dataset.error = 'true';
   }
 }
 
-async function startOpen(client) {
+async function startOpen(client, eventKey = 'guaynaa') {
+  const paths = invitationPaths(eventKey);
   client.event().then(data => paintEvent(data?.event)).catch(() => {});
   const form = document.querySelector('[data-open-form]');
   const status = form.querySelector('[data-status]');
@@ -241,8 +363,9 @@ async function startOpen(client) {
     status.textContent = 'Enviando tu confirmación…'; status.dataset.error = 'false';
     try {
       const data = await client.register(checked.data);
-      rememberAnswer({ kind: 'nuevo', name: data.guest.name, response: data.guest.response });
-      location.assign(THANKS_PATH);
+      rememberAnswer(eventKey, { kind: 'nuevo', name: data.guest.name, response: data.guest.response });
+      if (eventKey === 'guaynaa') location.assign(THANKS_PATH);
+      else location.assign(paths.thanks);
     } catch (error) {
       status.textContent = error.message; status.dataset.error = 'true';
       submit.disabled = false;
@@ -250,34 +373,36 @@ async function startOpen(client) {
   });
 }
 
-function startThanks(client) {
-  const answer = isPreview(location.search) ? { kind: 'creador', name: PREVIEW_NAME, response: 'si' } : readAnswer() ?? {};
-  const content = thanksContent(answer);
+function startThanks(client, eventKey = 'guaynaa') {
+  const invitation = invitationEvent(eventKey);
+  const paths = invitationPaths(eventKey);
+  const answer = isPreview(location.search) ? { kind: 'creador', name: PREVIEW_NAME, response: 'si' } : readAnswer(eventKey) ?? {};
+  const content = thanksContent(answer, eventKey);
   const set = (selector, text) => { const node = document.querySelector(selector); if (node) node.textContent = text; };
   set('[data-thanks-eyebrow]', content.eyebrow);
   set('[data-thanks-title]', content.title);
   set('[data-thanks-subtitle]', content.subtitle);
   set('[data-thanks-message]', content.message);
   document.querySelector('[data-thanks-perks]').hidden = !content.perks;
-  document.title = `${content.title} | Lanzamiento Guaynaa`;
+  document.title = `${content.title} | ${invitation.title}`;
   if (answer.response === 'si') document.body.dataset.celebrate = 'true';
   const badgeBox = document.querySelector('[data-thanks-badge]');
-  if (answer.badge && TOKEN.test(answer.token ?? '')) { badgeBox.querySelector('[data-thanks-badge-link]').href = badgePath(answer.token); badgeBox.hidden = false; }
+  if (answer.badge && TOKEN.test(answer.token ?? '')) { badgeBox.querySelector('[data-thanks-badge-link]').href = badgePath(answer.token, eventKey); badgeBox.hidden = false; }
   const back = document.querySelector('[data-thanks-back]');
-  if (TOKEN.test(answer.token ?? '')) { back.href = `/i/?c=${answer.token}`; back.hidden = false; }
-  else if (answer.kind === 'nuevo') { back.href = '/finados/invitacion/creadores/'; back.hidden = false; }
+  if (TOKEN.test(answer.token ?? '')) { back.href = `${paths.personalShort}?c=${answer.token}`; back.hidden = false; }
+  else if (answer.kind === 'nuevo' && paths.open) { back.href = paths.open; back.hidden = false; }
   client.event().then(data => paintEvent(data?.event)).catch(() => {});
 }
 
-export function badgePath(token) {
-  return `/finados/invitacion/gafete/?c=${encodeURIComponent(token)}`;
+export function badgePath(token, eventKey = 'guaynaa') {
+  return `${invitationPaths(eventKey).badge}?c=${encodeURIComponent(token)}`;
 }
 
 /** El QR del gafete lleva a la validación de esa persona, en el mismo sitio donde se abrió. */
-export function badgeVerificationUrl(publicId, siteOrigin = PRIMARY_SITE_ORIGIN) {
+export function badgeVerificationUrl(publicId, siteOrigin = PRIMARY_SITE_ORIGIN, eventKey = 'guaynaa') {
   if (!/^[a-f0-9]{32}$/.test(String(publicId ?? ''))) throw new TypeError('Identificador inválido.');
   const origin = isAllowedSiteOrigin(siteOrigin) ? siteOrigin : PRIMARY_SITE_ORIGIN;
-  return `${origin}/finados/invitacion/verificar/?id=${publicId}`;
+  return `${origin}${invitationPaths(eventKey).verify}?id=${publicId}`;
 }
 
 /** Lo que muestra la puerta al escanear. */
@@ -301,37 +426,60 @@ function loadImage(source) {
 }
 
 /** Gafete en formato historia (1080 × 1920): el arte del lanzamiento, el nombre y un QR único. */
-export async function influencerBadgeBlob(guest, event, siteOrigin) {
+export async function influencerBadgeBlob(guest, event, siteOrigin, eventKey = 'guaynaa') {
+  const invitation = invitationEvent(eventKey);
+  const inauguration = eventKey === 'inauguracion';
   if (!globalThis.document?.createElement) return null;
-  const matrix = qrMatrix(badgeVerificationUrl(guest.public_id, siteOrigin));
+  const matrix = qrMatrix(badgeVerificationUrl(guest.public_id, siteOrigin, eventKey));
   const canvas = document.createElement('canvas');
   canvas.width = 1080; canvas.height = 1920;
   const context = canvas.getContext('2d');
   if (!context) return null;
   const W = canvas.width, H = canvas.height;
   const round = (x, y, width, height, radius) => { context.beginPath(); if (context.roundRect) context.roundRect(x, y, width, height, radius); else context.rect(x, y, width, height); };
-  try { await Promise.all(['900 80px Inter', '800 30px Inter', '600 30px Inter'].map(font => document.fonts?.load(font))); } catch { /* fuente de respaldo */ }
+  try { await Promise.all(['900 80px Inter', '800 30px Inter', '600 30px Inter', '400 90px Anton', 'italic 400 54px DM Serif Display'].map(font => document.fonts?.load(font))); } catch { /* fuente de respaldo */ }
   const [poster, finados] = await Promise.all([
-    loadImage('/assets/finados/guaynaa-lanzamiento-hoy-1122.webp').catch(() => null),
+    invitation.badgeHero ? loadImage(invitation.badgeHero).catch(() => null) : null,
     loadImage('/assets/finados/logo-finados.svg').catch(() => null),
   ]);
-  context.fillStyle = '#0e0916'; context.fillRect(0, 0, W, H);
-  if (poster) { const height = W * poster.height / poster.width; context.drawImage(poster, 0, 0, W, height); }
-  const fade = context.createLinearGradient(0, 980, 0, 1400);
-  fade.addColorStop(0, 'rgba(14, 9, 22, 0)'); fade.addColorStop(1, 'rgba(14, 9, 22, 1)');
-  context.fillStyle = fade; context.fillRect(0, 980, W, 940);
-  const glow = context.createRadialGradient(W / 2, H, 50, W / 2, H, 900);
-  glow.addColorStop(0, 'rgba(139, 92, 246, .45)'); glow.addColorStop(1, 'rgba(139, 92, 246, 0)');
-  context.fillStyle = glow; context.fillRect(0, 1100, W, 820);
+  if (inauguration) {
+    context.fillStyle = '#f6ecda'; context.fillRect(0, 0, W, H);
+    const colors = ['#ff2b86', '#ffc43d', '#00c8cc', '#6b2de1'];
+    for (let x = 0, index = 0; x < W; x += 54, index += 1) { context.fillStyle = colors[index % colors.length]; context.fillRect(x, 0, 54, 42); }
+    context.fillStyle = '#ffdb83';
+    context.beginPath(); context.moveTo(38, 445); context.quadraticCurveTo(350, 115, 760, 110); context.quadraticCurveTo(1080, 180, 1030, 540); context.quadraticCurveTo(785, 685, 505, 590); context.quadraticCurveTo(220, 760, 38, 445); context.fill();
+    context.strokeStyle = 'rgba(107,45,225,.14)'; context.lineWidth = 72; context.beginPath(); context.ellipse(540, 1750, 470, 610, -.15, 0, Math.PI * 2); context.stroke();
+    if (finados) {
+      const width = 430, height = width * finados.height / finados.width;
+      context.save();
+      context.filter = 'brightness(0) saturate(100%) invert(18%) sepia(65%) saturate(3515%) hue-rotate(255deg) brightness(77%) contrast(109%)';
+      context.drawImage(finados, (W - width) / 2, 170, width, height);
+      context.restore();
+    }
+    context.textAlign = 'center'; context.fillStyle = '#4921ad'; context.font = '400 48px Anton, sans-serif'; context.fillText('TE INVITAMOS A LA', W / 2, 620);
+    context.fillStyle = '#ff2b86'; context.font = '400 78px Anton, sans-serif'; context.fillText('INAUGURACIÓN OFICIAL', W / 2, 702);
+    context.fillStyle = '#6b2de1'; context.font = '400 112px Anton, sans-serif'; context.fillText(/^[0-9]{2}:[0-9]{2}$/.test(event?.time ?? '') ? event.time : '12:00', W / 2, 855);
+    context.fillStyle = '#ff2b86'; context.font = 'italic 400 42px DM Serif Display, Georgia, serif'; context.fillText('EN PUNTO', W / 2, 908);
+  } else {
+    context.fillStyle = '#0e0916'; context.fillRect(0, 0, W, H);
+    if (poster) { const height = W * poster.height / poster.width; context.drawImage(poster, 0, 0, W, height); }
+    const fade = context.createLinearGradient(0, 980, 0, 1400);
+    fade.addColorStop(0, 'rgba(14, 9, 22, 0)'); fade.addColorStop(1, 'rgba(14, 9, 22, 1)');
+    context.fillStyle = fade; context.fillRect(0, 980, W, 940);
+    const glow = context.createRadialGradient(W / 2, H, 50, W / 2, H, 900);
+    glow.addColorStop(0, 'rgba(139, 92, 246, .45)'); glow.addColorStop(1, 'rgba(139, 92, 246, 0)');
+    context.fillStyle = glow; context.fillRect(0, 1100, W, 820);
+  }
 
-  // Panel de vidrio con el nombre, los datos y el QR.
-  const panel = { x: 56, y: 1170, width: W - 112, height: 590 };
-  context.fillStyle = 'rgba(35, 24, 51, .94)'; round(panel.x, panel.y, panel.width, panel.height, 40); context.fill();
-  context.strokeStyle = 'rgba(196, 170, 255, .55)'; context.lineWidth = 3; round(panel.x, panel.y, panel.width, panel.height, 40); context.stroke();
+  // Panel con el nombre, los datos y el QR. Guaynaa conserva su vidrio; Inauguración usa marfil y offset turquesa.
+  const panel = inauguration ? { x: 56, y: 1010, width: W - 112, height: 700 } : { x: 56, y: 1170, width: W - 112, height: 590 };
+  if (inauguration) { context.fillStyle = '#00c8cc'; round(panel.x + 16, panel.y + 18, panel.width, panel.height, 12); context.fill(); }
+  context.fillStyle = inauguration ? '#fff7e9' : 'rgba(35, 24, 51, .94)'; round(panel.x, panel.y, panel.width, panel.height, inauguration ? 12 : 40); context.fill();
+  context.strokeStyle = inauguration ? '#6b2de1' : 'rgba(196, 170, 255, .55)'; context.lineWidth = inauguration ? 5 : 3; round(panel.x, panel.y, panel.width, panel.height, inauguration ? 12 : 40); context.stroke();
   const left = panel.x + 48, textWidth = panel.width - 48 - 330;
   context.textAlign = 'left'; context.textBaseline = 'alphabetic';
-  context.fillStyle = '#b892ff'; context.font = '800 26px Inter, Arial, sans-serif';
-  context.fillText(guest.kind === 'nuevo' ? 'CREADOR INVITADO' : 'INVITADO ESPECIAL', left, panel.y + 76);
+  context.fillStyle = inauguration ? '#6b2de1' : '#b892ff'; context.font = inauguration ? 'italic 400 31px DM Serif Display, Georgia, serif' : '800 26px Inter, Arial, sans-serif';
+  context.fillText(invitationRoleLabel(guest.kind, eventKey), left, panel.y + 76);
   const name = String(guest.name ?? '').trim().slice(0, 60);
   const words = name.split(/\s+/);
   let size = 76; const lines = [];
@@ -342,33 +490,39 @@ export async function influencerBadgeBlob(guest, event, siteOrigin) {
     lines.push(line);
     if (lines.length <= 2 && lines.every(text => context.measureText(text).width <= textWidth)) break;
   }
-  context.fillStyle = '#ffffff';
+  context.fillStyle = inauguration ? '#ff2b86' : '#ffffff';
   lines.slice(0, 2).forEach((text, index) => context.fillText(text, left, panel.y + 156 + index * (size + 8)));
   const infoY = panel.y + 156 + Math.min(lines.length, 2) * (size + 8) + 30;
-  context.fillStyle = '#d9c8ff'; context.font = '800 30px Inter, Arial, sans-serif';
-  context.fillText(String(event?.title ?? 'Lanzamiento Guaynaa').toUpperCase(), left, infoY);
-  context.font = '600 28px Inter, Arial, sans-serif'; context.fillStyle = '#ece6f7';
+  context.fillStyle = inauguration ? '#4921ad' : '#d9c8ff'; context.font = inauguration ? '400 28px Anton, sans-serif' : '800 30px Inter, Arial, sans-serif';
+  context.fillText(inauguration ? 'INAUGURACIÓN OFICIAL · FINADOS 2026' : String(event?.title ?? invitation.title).toUpperCase(), left, infoY);
+  context.font = '600 28px Inter, Arial, sans-serif'; context.fillStyle = inauguration ? '#4921ad' : '#ece6f7';
   const when = [eventDateLabel(event?.date), /^\d{2}:\d{2}$/.test(event?.time ?? '') ? event.time : ''].filter(Boolean).join(' · ');
   if (when) context.fillText(when, left, infoY + 46);
   const place = String(event?.place ?? '').split(',').slice(0, 2).join(',').trim();
   if (place) { let text = place; while (context.measureText(text).width > textWidth && text.length > 10) text = `${text.slice(0, -2)}…`; context.fillText(text, left, infoY + 88); }
-  context.font = '800 28px Inter, Arial, sans-serif'; context.fillStyle = '#ffffff';
-  context.fillText(`DRESS CODE: ${DRESS_CODE.toUpperCase()}`, left, infoY + 134);
-  context.font = '600 22px Inter, Arial, sans-serif'; context.fillStyle = '#b9aecb';
+  if (invitation.dressCode) {
+    context.font = '800 28px Inter, Arial, sans-serif'; context.fillStyle = '#ffffff';
+    context.fillText(`DRESS CODE: ${invitation.dressCode.toUpperCase()}`, left, infoY + 134);
+  }
+  context.font = '600 22px Inter, Arial, sans-serif'; context.fillStyle = inauguration ? '#6e527f' : '#b9aecb';
   context.fillText('Presenta este QR en la entrada', left, panel.y + panel.height - 44);
   const qrSize = 270, qrX = panel.x + panel.width - qrSize - 48, qrY = panel.y + (panel.height - qrSize) / 2;
-  context.fillStyle = '#ffffff'; round(qrX - 16, qrY - 16, qrSize + 32, qrSize + 32, 22); context.fill();
+  context.fillStyle = '#ffffff'; round(qrX - 16, qrY - 16, qrSize + 32, qrSize + 32, inauguration ? 8 : 22); context.fill();
   const quiet = 1, cell = qrSize / (matrix.length + quiet * 2);
   context.fillStyle = '#150d22';
   for (let row = 0; row < matrix.length; row += 1) for (let column = 0; column < matrix.length; column += 1) {
     if (matrix[row][column]) context.fillRect(qrX + (column + quiet) * cell, qrY + (row + quiet) * cell, cell + .4, cell + .4);
   }
-  // Pie con Finados.
-  if (finados) { const width = 190, height = width * finados.height / finados.width; context.drawImage(finados, (W - width) / 2, H - height - 34, width, height); }
+  if (inauguration) {
+    context.textAlign = 'center'; context.fillStyle = '#ff2b86'; context.font = '800 28px Inter, Arial, sans-serif'; context.fillText('AB. LUIS ALFONSO CHANGO', W / 2, 1810);
+    context.fillStyle = '#4921ad'; context.font = '800 20px Inter, Arial, sans-serif'; context.fillText('MENTALIZADOR FERIA FINADOS MUSHUC RUNA', W / 2, 1846);
+  } else if (finados) {
+    const width = 190, height = width * finados.height / finados.width; context.drawImage(finados, (W - width) / 2, H - height - 34, width, height);
+  }
   return new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
 }
 
-async function startBadge(client) {
+async function startBadge(client, eventKey = 'guaynaa') {
   const status = document.querySelector('[data-status]');
   const elements = () => ({
     status, preview: document.querySelector('[data-badge-preview]'), actions: document.querySelector('[data-badge-actions]'),
@@ -377,7 +531,7 @@ async function startBadge(client) {
   if (isPreview(location.search)) {
     const event = await client.event().then(data => data?.event).catch(() => null);
     document.querySelector('[data-badge-name]').textContent = PREVIEW_NAME;
-    await mountBadge({ guest: { name: PREVIEW_NAME, kind: 'creador', public_id: PREVIEW_ID }, event }, elements());
+    await mountBadge({ guest: { name: PREVIEW_NAME, kind: 'creador', public_id: PREVIEW_ID }, event }, elements(), eventKey);
     status.textContent = 'Vista previa: el QR de muestra no corresponde a ningún invitado.';
     return;
   }
@@ -392,25 +546,26 @@ async function startBadge(client) {
       : 'Recibimos tu confirmación. Tu gafete estará listo cuando el equipo confirme tu lugar; te avisaremos por WhatsApp.';
     return;
   }
-  await mountBadge(data, elements());
+  await mountBadge(data, elements(), eventKey);
 }
 
 /** Dibuja el gafete y conecta sus botones de descargar y compartir. */
-async function mountBadge(data, { status, preview, actions, download: downloadButton, share }) {
+async function mountBadge(data, { status, preview, actions, download: downloadButton, share }, eventKey = 'guaynaa') {
+  const invitation = invitationEvent(eventKey);
   let file = null, url = '';
   try {
-    const blob = await influencerBadgeBlob(data.guest, data.event, resolveRuntimeOrigins(location).siteOrigin);
+    const blob = await influencerBadgeBlob(data.guest, data.event, resolveRuntimeOrigins(location).siteOrigin, eventKey);
     if (!blob) throw new Error();
     url = URL.createObjectURL(blob);
-    file = new File([blob], 'gafete-lanzamiento-guaynaa.png', { type: 'image/png' });
+    file = new File([blob], invitation.badgeFile, { type: 'image/png' });
     preview.src = url; preview.hidden = false; actions.hidden = false;
     status.textContent = '¡Listo! Descárgalo y llévalo en tu teléfono.'; status.dataset.error = 'false';
   } catch { status.textContent = 'No se pudo preparar el gafete. Recarga la página para intentarlo de nuevo.'; status.dataset.error = 'true'; return; }
-  const download = () => { const link = Object.assign(document.createElement('a'), { href: url, download: 'gafete-lanzamiento-guaynaa.png' }); document.body.append(link); link.click(); link.remove(); };
+  const download = () => { const link = Object.assign(document.createElement('a'), { href: url, download: invitation.badgeFile }); document.body.append(link); link.click(); link.remove(); };
   downloadButton.addEventListener('click', download);
   share.addEventListener('click', async () => {
     try {
-      if (navigator.share && navigator.canShare?.({ files: [file] })) await navigator.share({ title: 'Lanzamiento Guaynaa', text: '¡Nos vemos en el Lanzamiento Guaynaa! #FinadosMushucRuna', files: [file] });
+      if (navigator.share && navigator.canShare?.({ files: [file] })) await navigator.share({ title: invitation.shareTitle, text: invitation.shareText, files: [file] });
       else { download(); status.textContent = 'Tu teléfono descargó el gafete para que lo compartas.'; }
     } catch (error) { if (error?.name !== 'AbortError') status.textContent = 'No se pudo compartir. Descarga el gafete y súbelo desde tu red social.'; }
   });
@@ -436,13 +591,14 @@ async function startVerify(client) {
 }
 
 if (typeof document !== 'undefined') {
+  const eventKey = document.body.dataset.invitationEvent || 'guaynaa';
   const configured = document.querySelector('meta[name="invitation-api-base"]')?.content;
   const runtime = resolveRuntimeOrigins(location);
   const base = location.hostname === 'finados.expoferiamushucruna.com' ? runtime.apiBase : configured || runtime.apiBase;
-  const client = createInvitationClient(base);
-  if (document.body.dataset.invitation === 'creador') startPersonal(client);
-  else if (document.body.dataset.invitation === 'gracias') startThanks(client);
-  else if (document.body.dataset.invitation === 'gafete') startBadge(client);
-  else if (document.body.dataset.invitation === 'verificar') startVerify(client);
-  else startOpen(client);
+  const client = createInvitationClient(base, globalThis.fetch, eventKey);
+  if (document.body.dataset.invitation === 'creador') startPersonal(client, eventKey);
+  else if (document.body.dataset.invitation === 'gracias') startThanks(client, eventKey);
+  else if (document.body.dataset.invitation === 'gafete') startBadge(client, eventKey);
+  else if (document.body.dataset.invitation === 'verificar') startVerify(client, eventKey);
+  else startOpen(client, eventKey);
 }

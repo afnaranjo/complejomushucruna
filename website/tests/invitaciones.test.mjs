@@ -2,7 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { pages } from '../src/pages.mjs';
-import { combineTotals, createInvitacionesClient, dateLabel, ecuadorToday, INVITATIONS, invitationState } from '../src/admin/admin-invitaciones.js';
+import { combineInvitationTotals, combineTotals, createInvitacionesClient, dateLabel, ecuadorToday, INVITATIONS, invitationState } from '../src/admin/admin-invitaciones.js';
+import { adminInvitationContext, createInfluencersClient } from '../src/admin/admin-influencers.js';
 import { isPreview } from '../src/finados/influencer-invitation.js';
 
 const render = route => { const page = pages.find(item => item.route === route); return page.render(page); };
@@ -17,11 +18,101 @@ test('Invitaciones aparece en el menú y permite la vista previa solo en su pág
 
 test('cada pantalla de la invitación se abre en modo vista previa del propio sitio', () => {
   for (const invitation of INVITATIONS) for (const screen of invitation.screens) {
-    assert.match(screen.path, /^\/[^/].*\?vista=1$/);
-    assert.ok(pages.some(page => page.route === screen.path.split('?')[0]), screen.path);
+    const preview = new URL(screen.path, 'https://complejomushucruna.com');
+    assert.equal(preview.searchParams.get('vista'), '1');
+    if (invitation.id === 'guaynaa') assert.ok(pages.some(page => page.route === preview.pathname), screen.path);
   }
   assert.equal(isPreview('?vista=1'), true);
   assert.equal(isPreview('?c=abcdefghjk'), false);
+});
+
+test('Inauguración es una invitación separada para Voceros y Creadores', () => {
+  const invitation = INVITATIONS.find(item => item.id === 'inauguracion');
+  assert.ok(invitation);
+  assert.equal(invitation.event, 'inauguracion');
+  assert.deepEqual(invitation.audiences, ['Voceros', 'Creadores']);
+  assert.equal(invitation.manage, '/admin/invitaciones/inauguracion/');
+  assert.deepEqual(invitation.sources, [
+    { kind: 'vocero', event: 'inauguracion' },
+    { kind: 'creador', event: 'inauguracion' },
+  ]);
+  assert.deepEqual(invitation.screens.map(screen => screen.key), ['personal-apoyo', 'personal-registro', 'gracias', 'gafete', 'verificar']);
+  assert.match(invitation.screens[0].path, /^\/finados\/invitacion\/inauguracion\/\?vista=1&variante=apoyo$/);
+  assert.match(invitation.screens[1].path, /^\/finados\/invitacion\/inauguracion\/\?vista=1&variante=registro$/);
+  for (const screen of invitation.screens.slice(2)) assert.match(screen.path, /^\/finados\/invitacion\/inauguracion\/(?:gracias|gafete|verificar)\/\?vista=1$/);
+});
+
+test('la ruta administrativa de Inauguración permite gestionar invitados y revisar todas sus pantallas', () => {
+  const html = render('/admin/invitaciones/inauguracion/');
+  assert.match(html, /frame-src 'self'/);
+  assert.match(html, /data-admin-influencers/);
+  assert.match(html, /data-event="inauguracion"/);
+  assert.match(html, /data-kind="vocero"/);
+  assert.match(html, /Invitación de la Inauguración Oficial/);
+  assert.match(html, /href="\/admin\/invitaciones\/"/);
+  assert.match(html, /data-invitation-kind/);
+  assert.match(html, /<option value="vocero">Voceros<\/option>/);
+  assert.match(html, /<option value="creador">Creadores<\/option>/);
+  assert.match(html, /data-invitation-variant/);
+  assert.match(html, /<option value="apoyo">Ya apoyó a Finados<\/option>/);
+  assert.match(html, /<option value="registro">Se registró, sin video<\/option>/);
+  assert.match(html, /data-add-form/);
+  assert.match(html, /data-event-form/);
+  assert.match(html, /data-rows/);
+  for (const path of INVITATIONS.find(item => item.id === 'inauguracion').screens.map(screen => screen.path)) {
+    assert.ok(html.includes(path.replaceAll('&', '&amp;')), path);
+  }
+});
+
+test('el contexto administrativo aísla Inauguración y deja Guaynaa como flujo predeterminado', () => {
+  assert.deepEqual(adminInvitationContext({ event: 'inauguracion', kind: 'vocero', variant: 'apoyo' }), {
+    event: 'inauguracion', eventQuery: 'inauguracion', kind: 'vocero', variant: 'apoyo', personal: true,
+  });
+  assert.deepEqual(adminInvitationContext({ event: 'inauguracion', kind: 'creador', variant: 'registro' }), {
+    event: 'inauguracion', eventQuery: 'inauguracion', kind: 'creador', variant: 'registro', personal: true,
+  });
+  assert.deepEqual(adminInvitationContext({ kind: 'creador' }), {
+    event: 'guaynaa', eventQuery: '', kind: 'creador', variant: 'apoyo', personal: true,
+  });
+  assert.throws(() => adminInvitationContext({ event: 'inauguracion', kind: 'nuevo', variant: 'apoyo' }));
+  assert.throws(() => adminInvitationContext({ event: 'inauguracion', kind: 'vocero', variant: 'otra' }));
+});
+
+test('el cliente gestiona Inauguración con event=inauguracion sin alterar las rutas de Guaynaa', async () => {
+  const calls = [];
+  const fakeFetch = async (url, options) => {
+    calls.push({ url, method: options.method, body: options.body });
+    return {
+      ok: true,
+      json: async () => ({ csrf: 'csrf-prueba', guests: [], event: {} }),
+      blob: async () => new Blob(['csv']),
+    };
+  };
+  const client = createInfluencersClient(undefined, fakeFetch);
+  await client.session();
+  await client.list('vocero', 'inauguracion');
+  await client.create('Ana\nLuis', { event: 'inauguracion', kind: 'vocero', variant: 'apoyo' });
+  await client.saveEvent({ title: 'Inauguración', date: '2026-10-30', time: '12:00', place: 'Mushuc Runa', details: '' }, 'inauguracion');
+  await client.exportCsv('creador', 'inauguracion');
+  await client.list('creador');
+  await client.create('Mía');
+  await client.saveEvent({ title: 'Lanzamiento Guaynaa', date: '2026-10-15', time: '18:00', place: 'Ambato', details: '' });
+  await client.exportCsv('nuevo');
+  assert.deepEqual(calls.map(call => [call.url.replace(/^https?:\/\/[^/]+\/api/, ''), call.method]), [
+    ['/auth/session', 'GET'],
+    ['/influencers?kind=vocero&event=inauguracion', 'GET'],
+    ['/influencers?event=inauguracion', 'POST'],
+    ['/influencers/evento?event=inauguracion', 'PATCH'],
+    ['/influencers/export?kind=creador&event=inauguracion', 'GET'],
+    ['/influencers?kind=creador', 'GET'],
+    ['/influencers', 'POST'],
+    ['/influencers/evento', 'PATCH'],
+    ['/influencers/export?kind=nuevo', 'GET'],
+  ]);
+  assert.deepEqual(JSON.parse(calls[2].body), { names: 'Ana\nLuis', kind: 'vocero', message_variant: 'apoyo' });
+  assert.deepEqual(JSON.parse(calls[3].body), { title: 'Inauguración', date: '2026-10-30', time: '12:00', place: 'Mushuc Runa', details: '' });
+  assert.deepEqual(JSON.parse(calls[6].body), { names: 'Mía' });
+  assert.deepEqual(JSON.parse(calls[7].body), { title: 'Lanzamiento Guaynaa', date: '2026-10-15', time: '18:00', place: 'Ambato', details: '' });
 });
 
 test('estado, fecha y totales de la invitación', () => {
@@ -32,11 +123,24 @@ test('estado, fecha y totales de la invitación', () => {
   assert.equal(dateLabel('2026-10-15', '18:00'), '15 de octubre de 2026 · 18:00');
   assert.deepEqual(combineTotals({ totals: { total: 10, si: 6, no: 1, pendiente: 3, abrieron: 8 } }, { totals: { total: 4, si: 3, no: 0, pendiente: 1, por_aprobar: 2 } }),
     { invitados: 14, si: 9, no: 1, pendiente: 4, abrieron: 8, porAprobar: 2 });
+  assert.deepEqual(combineInvitationTotals(
+    { totals: { total: 8, si: 5, no: 1, pendiente: 2, abrieron: 7 } },
+    { totals: { total: 3, si: 2, no: 0, pendiente: 1, abrieron: 3 } },
+  ), { invitados: 11, si: 7, no: 1, pendiente: 3, abrieron: 10, porAprobar: 0 });
 });
 
-test('el cliente solo lee la sesión y las listas', async () => {
-  const client = createInvitacionesClient(undefined, async () => ({ ok: true, json: async () => ({ authenticated: true }) }));
+test('el cliente solo lee la sesión y las listas, separando los conteos por evento', async () => {
+  const requested = [];
+  const client = createInvitacionesClient(undefined, async url => {
+    requested.push(url);
+    return { ok: true, json: async () => ({ authenticated: true }) };
+  });
   assert.deepEqual(await client.session(), { authenticated: true });
+  await client.list('creador');
+  await client.list('vocero', 'inauguracion');
+  assert.ok(requested.some(url => url.endsWith('/influencers?kind=creador')));
+  assert.ok(requested.some(url => url.endsWith('/influencers?kind=vocero&event=inauguracion')));
+  await assert.rejects(() => client.list('vocero', 'guaynaa'), /Ruta de API no permitida/);
   const source = await readFile(new URL('../src/admin/admin-invitaciones.js', import.meta.url), 'utf8');
   assert.doesNotMatch(source, /method: '(?:POST|PATCH|DELETE)'/);
 });
