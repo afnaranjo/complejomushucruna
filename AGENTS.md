@@ -2345,6 +2345,6 @@ Nota de relevo escrita a pedido de Alex para que otro agente (Codex) retome la s
 - Se creó una invitación independiente del Lanzamiento Guaynaa para Voceros y Creadores, con variantes de mensaje, confirmación, gracias, gafete QR, validación en puerta y administración completa en `/admin/invitaciones/inauguracion/`. La migración aditiva `038_influencer_events` separa ambos eventos y conserva los registros existentes.
 - Se mantuvo el dato canónico `Panamericana Sur km 12`, aunque el arte de referencia decía `km 1/2`. La validación pública de Inauguración no devuelve la red social del invitado y Guaynaa conserva su contrato anterior.
 - QA: 299 pruebas Node, todas las suites PHP, 11 integraciones, build de 291 archivos y validación de 3.213 referencias. La revisión visual en 1440 × 1100 y 390 × 844 no mostró desbordamiento.
-- Commit: se registrará en el cierre técnico de esta tarea.
+- Commit: `0baf168` (`Crear invitación digital de inauguración`).
 - Publicación externa: ninguna; no se desplegó ni se ejecutó la migración en la base real.
 - Riesgos/pendientes: Alex debe aprobar visual y textos; después, con autorización expresa, desplegar backend primero y frontend después, con respaldo y verificación de ambos dominios.
