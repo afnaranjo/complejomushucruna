@@ -2318,3 +2318,13 @@ Nota de relevo escrita a pedido de Alex para que otro agente (Codex) retome la s
 - Commit: incluido en `Documentar proyecto diario de cobertura del viernes`.
 - Publicación externa: ninguna; no se desplegó ni modificó ninguna cuenta. El PDF y su constructor no se versionaron porque contienen programación y responsables nominales de uso interno y el remoto es público.
 - Riesgos/pendientes: aprobación interna, cierre de los gates marcados, resolución de cargas simultáneas y traslado del archivo aprobado al almacenamiento controlado del equipo.
+
+### 2026-10-23 — Guía de campo simplificada del viernes y protocolo backstage
+
+- Se refactorizó localmente el proyecto diario en una guía de campo de siete páginas A4, diseñada para consulta rápida: equipos en portada, asignación general y cronogramas independientes de Plaza del Sol, feria/stands y Megaescenario.
+- Plaza de la Luna permanece sin operación el viernes. El sábado no se planificó en esta entrega. Streaming continúa como función itinerante, con coordinación y soporte separados.
+- Se añadió una célula interna de cuatro funciones para backstage —acceso, presentación, entrevista y captura/publicación—, una capacitación de 20 minutos antes del preflight, refuerzo de cinco minutos antes de cada ingreso y un plan alterno desde zona pública si no existe autorización.
+- QA: siete páginas renderizadas e inspeccionadas; PDF A4, texto extraíble, sin cifrado, formularios ni JavaScript. SHA-256 `85d0d4022a2fd08104bf8bb5b169e5081bce7b4fc0b2df24da371b308151e96c`.
+- Commit: incluido en `Simplificar guía operativa del viernes y protocolo backstage`.
+- Publicación externa: ninguna; no se desplegó ni se modificó ninguna cuenta. El PDF y su constructor no se versionaron porque contienen nombres y asignaciones internas y el remoto es público.
+- Riesgos/pendientes: Dirección debe aprobar la guía, validar las cuatro personas, confirmar convocatoria/horarios/permisos/suplentes y mover el PDF aprobado al almacenamiento controlado.

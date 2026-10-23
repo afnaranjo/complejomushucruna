@@ -12,6 +12,15 @@ tags:
 
 # Memoria del proyecto
 
+## 2026-10-23 — Guía de campo simplificada del viernes y célula de backstage
+
+- La segunda versión del proyecto diario del viernes se reorganizó como una guía de campo de siete páginas A4: equipos en portada, asignación general, cronogramas independientes de Plaza del Sol, feria/stands y Megaescenario, protocolo de backstage, streaming y cierre.
+- La lectura operativa queda reducida a tres instrucciones: reportarse en Plaza del Sol, seguir la página del lugar asignado y entregar/confirmar el material. Plaza de la Luna continúa sin operación el viernes y el sábado permanece fuera del alcance de esta entrega.
+- Se propuso una célula nominal de cuatro personas para backstage con funciones separadas de acceso, presentación, entrevista y captura/publicación. Dirección debe validar los nombres antes de imprimir. La guía exige 20 minutos de capacitación antes del preflight y un refuerzo de cinco minutos antes de cada ingreso.
+- QA: siete páginas renderizadas e inspeccionadas; PDF A4 con texto extraíble, sin cifrado, formularios ni JavaScript. SHA-256: `85d0d4022a2fd08104bf8bb5b169e5081bce7b4fc0b2df24da371b308151e96c`.
+- El PDF y el constructor se mantienen fuera de Git por contener responsables nominales de uso interno. No hubo despliegue, publicación ni modificación de cuentas externas.
+- Pendiente: aprobación interna, validación de las cuatro personas de backstage, cierre de permisos/horarios/suplentes y traslado de la versión aprobada al almacenamiento controlado.
+
 ## 2026-10-23 — Proyecto diario de cobertura del viernes de inauguración
 
 - Alex decidió que el plan de cobertura se presente como un proyecto independiente por día. Se preparó localmente la primera entrega: viernes 30 de octubre, inauguración oficial, en ocho páginas A4 listas para presentación e impresión.
