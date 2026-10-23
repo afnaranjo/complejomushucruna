@@ -1,7 +1,7 @@
 ---
 titulo: "Invitación digital para la inauguración de Finados 2026"
 responsable: "tecnología / comunicación"
-estado: en-revision
+estado: publicado
 ultima_actualizacion: 2026-10-23
 fuente: interna
 confidencialidad: interno
@@ -37,9 +37,11 @@ La implementación reconstruye la pieza como HTML y CSS adaptable con activos of
 
 ## Estado y pendientes
 
-- Estado: listo en local para revisión de Alex.
-- Publicación externa: ninguna. No se desplegó ni se ejecutó la migración.
-- Pendiente: aprobación visual y de textos; después, si Alex lo autoriza expresamente, desplegar primero backend y luego frontend con los scripts seguros y verificar ambos dominios.
+- Estado: publicado el 2026-10-23 con autorización expresa de Alex.
+- Publicación externa: backend primero con respaldo y migración aditiva `038_influencer_events`; frontend después con respaldo y transferencia sin borrado.
+- Verificación: invitación, panel y Guaynaa en HTTP 200 en los dominios principal y espejo; ambas APIs saludables, evento `inauguracion` disponible y caché `20261023-invitacion-9` entregada por ambos sitios.
+- Datos: no se crearon invitados de prueba ni se borraron o modificaron registros existentes.
+- Pendiente: probar una invitación real de cada rol antes del envío masivo y confirmar los mensajes finales de WhatsApp.
 
 ## Relaciones
 

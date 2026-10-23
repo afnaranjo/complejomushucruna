@@ -2339,12 +2339,13 @@ Nota de relevo escrita a pedido de Alex para que otro agente (Codex) retome la s
 - Publicación externa: ninguna; no se desplegó ni se modificó ninguna cuenta. El PDF y su constructor no se versionaron porque contienen nombres y asignaciones internas y el remoto es público.
 - Riesgos/pendientes: confirmar el acceso de publicación nocturna, validar los cuatro accesos de backstage, cerrar permisos/horarios y trasladar la versión aprobada al almacenamiento controlado.
 
-### 2026-10-23 — Invitación digital de la Inauguración Oficial (local)
+### 2026-10-23 — Invitación digital de la Inauguración Oficial (publicada)
 
 - La propuesta se encontró en los materiales locales de Descargas y Alex confirmó `4_5_91.png` como la referencia correcta. Se estudió su composición sin versionar el binario ni copiar nombres personales de muestra: fondo marfil, forma amarilla, cenefa modular, jerarquía morado/fucsia, sello del organizador, bloque `SAVE THE DATE`, tarjetas diagonales, hora central y firma.
 - Se creó una invitación independiente del Lanzamiento Guaynaa para Voceros y Creadores, con variantes de mensaje, confirmación, gracias, gafete QR, validación en puerta y administración completa en `/admin/invitaciones/inauguracion/`. La migración aditiva `038_influencer_events` separa ambos eventos y conserva los registros existentes.
 - Se mantuvo el dato canónico `Panamericana Sur km 12`, aunque el arte de referencia decía `km 1/2`. La validación pública de Inauguración no devuelve la red social del invitado y Guaynaa conserva su contrato anterior.
 - QA: 299 pruebas Node, todas las suites PHP, 11 integraciones, build de 291 archivos y validación de 3.213 referencias. La revisión visual en 1440 × 1100 y 390 × 844 no mostró desbordamiento.
 - Commit: `0baf168` (`Crear invitación digital de inauguración`).
-- Publicación externa: ninguna; no se desplegó ni se ejecutó la migración en la base real.
-- Riesgos/pendientes: Alex debe aprobar visual y textos; después, con autorización expresa, desplegar backend primero y frontend después, con respaldo y verificación de ambos dominios.
+- Publicación externa: Alex autorizó con «despliega». Desde `main` sincronizada se ejecutó primero `npm run backend:deploy`, que volvió a validar 299 pruebas Node, todas las suites PHP, 11 integraciones, creó respaldo, aplicó la migración aditiva `038_influencer_events` y verificó la API. Después `npm run deploy` creó respaldo y publicó los 291 archivos sin borrar archivos exclusivos.
+- Verificación: Inauguración, su panel y Guaynaa responden HTTP 200 en `complejomushucruna.com` y `finados.expoferiamushucruna.com`; ambas APIs responden `ok`, devuelven el evento `inauguracion` con fecha, hora y lugar canónicos, y los dos dominios sirven la caché `20261023-invitacion-9`. No se crearon invitados ni se borraron o editaron registros existentes.
+- Riesgos/pendientes: revisar una invitación real de cada rol antes del envío masivo y confirmar con comunicación el texto final de los mensajes de WhatsApp.
