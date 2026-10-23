@@ -2308,3 +2308,13 @@ Nota de relevo escrita a pedido de Alex para que otro agente (Codex) retome la s
 - Commit: incluido en `Agregar columna Streaming al plan de cobertura`.
 - Publicación externa: ninguna; no se desplegó ni modificó ninguna cuenta. El PDF no se versionó porque está rotulado para uso interno y contiene programación nominal; el remoto es público.
 - Riesgos/pendientes: Alex debe aprobar la versión y definir su almacenamiento controlado antes del inicio de la feria.
+
+### 2026-10-23 — Proyecto diario de cobertura del viernes de inauguración
+
+- Alex decidió presentar la cobertura como un proyecto independiente por día. Se generó localmente el proyecto del viernes en ocho páginas A4: dirección por fases, células y relevos, 27 acciones, cuatro transmisiones, cronogramas de mañana/tarde/noche, streaming itinerante, gates y cierre.
+- La regla operativa del viernes queda explícita: todo el equipo se reporta primero en Plaza del Sol; Plaza de la Luna no tiene operación programada; después de la inauguración el equipo se redistribuye y refuerza progresivamente Mega desde las 17:00, con convergencia nocturna desde las 19:00.
+- La ruta del creador se corrigió para no pasar por Plaza de la Luna. También se documentaron conflictos de capacidad, datos por confirmar, permisos y planes alternos antes de imprimir o ejecutar.
+- QA: ocho páginas renderizadas e inspeccionadas; PDF A4 válido, texto extraíble, sin cifrado ni JavaScript. SHA-256 `d4abb04d95d3c5cff9f32595b4e7c929a87a9bbfb6956ad0138accb87a49707b`.
+- Commit: incluido en `Documentar proyecto diario de cobertura del viernes`.
+- Publicación externa: ninguna; no se desplegó ni modificó ninguna cuenta. El PDF y su constructor no se versionaron porque contienen programación y responsables nominales de uso interno y el remoto es público.
+- Riesgos/pendientes: aprobación interna, cierre de los gates marcados, resolución de cargas simultáneas y traslado del archivo aprobado al almacenamiento controlado del equipo.

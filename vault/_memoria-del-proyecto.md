@@ -2,7 +2,7 @@
 titulo: "Memoria del proyecto"
 responsable: "dirección integral de la feria"
 estado: en-revision
-ultima_actualizacion: 2026-10-22
+ultima_actualizacion: 2026-10-23
 fuente: interna
 confidencialidad: interno
 tags:
@@ -11,6 +11,15 @@ tags:
 ---
 
 # Memoria del proyecto
+
+## 2026-10-23 — Proyecto diario de cobertura del viernes de inauguración
+
+- Alex decidió que el plan de cobertura se presente como un proyecto independiente por día. Se preparó localmente la primera entrega: viernes 30 de octubre, inauguración oficial, en ocho páginas A4 listas para presentación e impresión.
+- La arquitectura del viernes reemplaza para ese día la distribución general del PDF v08: todo el equipo se reporta primero en Plaza del Sol; Plaza de la Luna queda sin operación programada; después de la inauguración hay redistribución por feria y stands, preparación progresiva de Mega desde las 17:00 y convergencia nocturna desde las 19:00.
+- El documento conserva las 27 acciones y cuatro transmisiones del XLSX operativo, corrige la ruta móvil para excluir Plaza de la Luna y presenta células, relevos, cadena de entrega, cronogramas de mañana/tarde/noche, streaming itinerante, gates y alertas de sobrecarga.
+- QA: ocho páginas renderizadas e inspeccionadas; PDF A4 válido, sin cifrado ni JavaScript, con fuentes de trabajo incrustadas y texto extraíble. SHA-256: `d4abb04d95d3c5cff9f32595b4e7c929a87a9bbfb6956ad0138accb87a49707b`.
+- El PDF y su constructor se mantienen fuera de Git porque el remoto es público y el documento contiene responsables y programación nominal de uso interno. No hubo despliegue, publicación ni modificación de cuentas externas.
+- Pendiente: aprobación interna, confirmación de los datos todavía marcados como `POR DEFINIR`, resolución de cargas simultáneas y traslado de la versión aprobada al almacenamiento controlado del equipo.
 
 ## 2026-10-22 — Columna Streaming en el plan de cobertura
 
