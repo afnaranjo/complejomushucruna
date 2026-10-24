@@ -229,13 +229,15 @@ final class InfluencerRepository
     /**
      * Enlace único para voceros: con su sesión, el vocero recibe el código de su invitación personal a la inauguración.
      * Se busca por número de WhatsApp (mismo número aunque el nombre esté escrito distinto) o por nombre idéntico.
+     * Si tiene ficha pero aún no tiene invitación (se registró después del envío), se crea en ese momento.
+     * Devuelve ['token' => …] o ['missing' => 'ficha' | 'invitacion'].
      */
-    public function voceroInvitationToken(int $accountId): ?string
+    public function voceroInvitation(int $accountId, string $ip = ''): array
     {
-        $query = $this->pdo->prepare("SELECT v.full_name, v.whatsapp_enc FROM vocero_account_links l JOIN voceros v ON v.id = l.vocero_id WHERE l.account_id = ? AND v.status IN ('Aprobado', 'Nuevo') LIMIT 1");
+        $query = $this->pdo->prepare("SELECT v.id, v.full_name, v.whatsapp_enc FROM vocero_account_links l JOIN voceros v ON v.id = l.vocero_id WHERE l.account_id = ? AND v.status IN ('Aprobado', 'Nuevo') LIMIT 1");
         $query->execute([$accountId]);
         $vocero = $query->fetch(PDO::FETCH_ASSOC);
-        if (!is_array($vocero)) return null;
+        if (!is_array($vocero)) return ['missing' => 'ficha'];
         $phoneKey = function (?string $encrypted): string {
             if ($encrypted === null || $encrypted === '') return '';
             try { $digits = preg_replace('/\D/', '', $this->crypto->decrypt($encrypted)) ?? ''; } catch (\Throwable) { return ''; }
@@ -248,10 +250,27 @@ final class InfluencerRepository
         $guests->execute([(int) $event['id']]);
         $byName = null;
         foreach ($guests->fetchAll(PDO::FETCH_ASSOC) as $guest) {
-            if ($phone !== '' && $phoneKey($guest['whatsapp_enc'] ?? null) === $phone) return (string) $guest['invite_token'];
+            if ($phone !== '' && $phoneKey($guest['whatsapp_enc'] ?? null) === $phone) return ['token' => (string) $guest['invite_token']];
             if ($byName === null && $name((string) $guest['full_name']) === $name((string) $vocero['full_name'])) $byName = (string) $guest['invite_token'];
         }
-        return $byName;
+        if ($byName !== null) return ['token' => $byName];
+        // Después del cierre ya no se crean invitaciones nuevas.
+        if ($this->rsvpClosed('inauguracion')) return ['missing' => 'invitacion'];
+        $videos = $this->pdo->prepare("SELECT COUNT(*) FROM vocero_videos WHERE vocero_id = ? AND status = 'submitted'");
+        $videos->execute([(int) $vocero['id']]);
+        $variant = (int) $videos->fetchColumn() > 0 ? 'apoyo' : 'registro';
+        $plainPhone = '';
+        try { $plainPhone = $vocero['whatsapp_enc'] ? $this->crypto->decrypt((string) $vocero['whatsapp_enc']) : ''; } catch (\Throwable) { $plainPhone = ''; }
+        $normalized = preg_replace('/[\s().-]/', '', $plainPhone) ?? '';
+        $validPhone = preg_match('/^\+?\d{9,15}$/D', $normalized) === 1;
+        $publicId = bin2hex(random_bytes(16));
+        $token = $this->newToken();
+        $now = gmdate('Y-m-d H:i:s');
+        $this->pdo->prepare("INSERT INTO influencer_guests (event_id, public_id, kind, message_variant, invite_token, full_name, whatsapp_enc, whatsapp_lookup, approval, note, created_by_admin_id, created_at, updated_at) VALUES (?, ?, 'vocero', ?, ?, ?, ?, ?, 'aprobado', 'Creada al iniciar sesión en el enlace de voceros.', NULL, ?, ?)")
+            ->execute([(int) $event['id'], $publicId, $variant, $token, self::text(trim(preg_replace('/\s+/u', ' ', (string) $vocero['full_name']) ?? ''), 1, 160),
+                $validPhone ? $this->crypto->encrypt($normalized) : null, $validPhone ? $this->crypto->lookup($normalized) : null, $now, $now]);
+        $this->audit->log('influencer.created', null, 'influencer', $publicId, [], $ip);
+        return ['token' => $token];
     }
 
     /** El gafete existe cuando la persona confirmó que asiste y su lugar está aprobado. */

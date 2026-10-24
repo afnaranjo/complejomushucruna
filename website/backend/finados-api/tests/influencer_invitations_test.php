@@ -111,12 +111,29 @@ $gateVocero = (int) $pdo->lastInsertId();
 $pdo->prepare('INSERT INTO vocero_accounts (public_id,email_enc,email_idx,password_hash,privacy_version,privacy_hash,privacy_acknowledged_at,active,created_at,updated_at) VALUES (?,?,?,?,?,?,?,1,?,?)')
     ->execute([str_repeat('9', 32), 'c', 'gate-account', 'x', 'v', 'h', $now, $now, $now]);
 $gateAccount = (int) $pdo->lastInsertId();
-same(null, $gate->voceroInvitationToken($gateAccount), 'sin ficha vinculada no hay invitación');
+same(['missing' => 'ficha'], $gate->voceroInvitation($gateAccount), 'sin ficha vinculada se pide completar el registro');
 $pdo->prepare('INSERT INTO vocero_account_links (account_id, vocero_id, created_at) VALUES (?, ?, ?)')->execute([$gateAccount, $gateVocero, $now]);
-same(null, $gate->voceroInvitationToken($gateAccount), 'sin invitación creada no hay enlace');
 $gateGuest = $decode($send('POST', '/api/influencers?event=inauguracion', ['names' => 'Vocera Nombre Corto', 'kind' => 'vocero', 'message_variant' => 'registro']))['guests'][0];
 $decode($send('PATCH', '/api/influencers/' . $gateGuest['public_id'], ['whatsapp' => '+593991234567']));
-same($gateGuest['invite_token'], $gate->voceroInvitationToken($gateAccount), 'el número encuentra la invitación aunque el nombre esté escrito distinto');
+same(['token' => $gateGuest['invite_token']], $gate->voceroInvitation($gateAccount), 'el número encuentra la invitación aunque el nombre esté escrito distinto');
+// Un vocero con ficha pero sin invitación (registrado después del envío) la recibe al iniciar sesión, una sola vez.
+$pdo->prepare('INSERT INTO voceros (public_id,submission_id,status,full_name,cedula_enc,cedula_idx,birth_date_enc,age_at_submission,whatsapp_enc,whatsapp_idx,email_enc,email_idx,city,main_network,previous_participation,community_source,kit_pickup,submitted_at,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)')
+    ->execute([str_repeat('7', 32), str_repeat('8', 32), 'Nuevo', 'Vocero Tardío', 'c', 'late-ced', 'c', 30, $clockCrypto->encrypt('0987770000'), 'late-tel', 'c', 'late-mail', 'Ambato', 'TikTok', 'No', 'Otro', 'Oficina', $now, $now, $now]);
+$lateVocero = (int) $pdo->lastInsertId();
+$pdo->prepare('INSERT INTO vocero_accounts (public_id,email_enc,email_idx,password_hash,privacy_version,privacy_hash,privacy_acknowledged_at,active,created_at,updated_at) VALUES (?,?,?,?,?,?,?,1,?,?)')
+    ->execute([str_repeat('6', 32), 'c', 'late-account', 'x', 'v', 'h', $now, $now, $now]);
+$lateAccount = (int) $pdo->lastInsertId();
+$pdo->prepare('INSERT INTO vocero_account_links (account_id, vocero_id, created_at) VALUES (?, ?, ?)')->execute([$lateAccount, $lateVocero, $now]);
+$late = $gate->voceroInvitation($lateAccount, '192.0.2.81');
+same(true, isset($late['token']), 'la invitación se crea al iniciar sesión');
+same($late, $gate->voceroInvitation($lateAccount, '192.0.2.81'), 'la segunda vez no se duplica');
+$lateRow = $pdo->prepare('SELECT kind, message_variant, full_name, whatsapp_enc IS NOT NULL AS tel FROM influencer_guests WHERE invite_token = ?');
+$lateRow->execute([$late['token']]);
+same(['vocero', 'registro', 'Vocero Tardío', 1], array_map(static fn ($v) => is_numeric($v) ? (int) $v : $v, array_values($lateRow->fetch(PDO::FETCH_ASSOC))));
+$closedGate = new InfluencerRepository($pdo, $clockCrypto, new Audit($pdo, $clockCrypto), strtotime('2026-10-26 14:00:00 UTC'));
+$pdo->prepare("UPDATE influencer_guests SET archived_at = ? WHERE invite_token = ?")->execute([$now, $late['token']]);
+same(['missing' => 'invitacion'], $closedGate->voceroInvitation($lateAccount), 'después del cierre no se crean invitaciones nuevas');
+$pdo->prepare('DELETE FROM influencer_guests WHERE invite_token = ?')->execute([$late['token']]); // solo en la base de prueba: no altera los conteos siguientes
 if (session_status() === PHP_SESSION_ACTIVE) session_write_close();
 $adminSession = session_id(); session_id(''); $_SESSION = [];
 same(401, $router->handle('GET', '/api/vocero/inauguracion', $origin)->status, 'sin sesión de vocero no se entrega el enlace');

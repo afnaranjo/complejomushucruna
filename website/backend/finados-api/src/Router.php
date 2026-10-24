@@ -193,9 +193,10 @@ final class Router
                 if ($method !== 'GET') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
                 if ($query !== []) throw new InvalidArgumentException();
                 $user = $this->voceroAuth->requireUser();
-                $invitation = $this->influencers()->voceroInvitationToken((int) $user['id']);
-                if ($invitation === null) return $this->error(404, 'invitation_not_found', 'No encontramos tu invitación con esta cuenta.', $headers);
-                return $this->json(200, ['ok' => true, 'token' => $invitation], $headers);
+                $invitation = $this->influencers()->voceroInvitation((int) $user['id'], is_string($ip) ? $ip : '');
+                if (($invitation['missing'] ?? '') === 'ficha') return $this->error(404, 'profile_missing', 'Primero completa tu registro de vocero.', $headers);
+                if (!isset($invitation['token'])) return $this->error(404, 'invitation_not_found', 'No encontramos tu invitación con esta cuenta.', $headers);
+                return $this->json(200, ['ok' => true, 'token' => $invitation['token']], $headers);
             }
             if (in_array($path, ['/api/vocero/auth/register', '/api/vocero/auth/login', '/api/vocero/auth/logout'], true) && $method === 'POST') {
                 if (!$this->config->isAllowedOrigin($origin)) throw new Forbidden();

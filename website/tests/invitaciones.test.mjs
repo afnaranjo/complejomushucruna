@@ -195,6 +195,8 @@ test('el enlace único de voceros muestra la invitación y pide iniciar sesión 
   const html = page.render(page);
   assert.match(html, /data-invitation="vocero-acceso"/);
   assert.match(html, /data-gate-form/);
+  assert.match(html, /data-gate-missing hidden/);
+  assert.match(html, /href="\/finados\/voceros\/mi-registro\/">Completar mi registro</);
   assert.match(html, /autocomplete="current-password"/);
   assert.match(html, /data-deadline-at="2026-10-26T09:00:00-05:00"/);
   assert.match(html, /noindex/);

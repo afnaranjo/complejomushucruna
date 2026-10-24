@@ -412,3 +412,8 @@ body.inv--inauguracion::before {
 .inv-gate .inv-form input:focus-visible { outline: 3px solid #ff2b86; outline-offset: 2px; }
 .inv-gate .inv-status { color: #4921ad; }
 .inv-gate .inv-status[data-error="true"] { color: #c0185e; }
+
+.inv-gate-missing { display: grid; gap: .9rem; padding: 1rem; color: #4921ad; background: #fff; border: 2px dashed #ff2b86; text-align: center; }
+.inv-gate-missing[hidden], .inv-gate .inv-form[hidden] { display: none; }
+.inv-gate-missing p { margin: 0; line-height: 1.5; }
+.inv-gate-missing a { text-decoration: none; }

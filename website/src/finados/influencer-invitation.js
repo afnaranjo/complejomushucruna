@@ -327,6 +327,7 @@ export function createVoceroGateClient(baseUrl = API, fetchImplementation = glob
         429: 'Hay demasiados intentos. Espera 15 minutos antes de volver a intentar.',
       })[response.status] ?? 'No se pudo completar. Intenta de nuevo en un momento.');
       error.status = response.status;
+      error.code = typeof data?.code === 'string' ? data.code : '';
       throw error;
     }
     return data;
@@ -345,6 +346,12 @@ async function startVoceroGate(base) {
   const status = form.querySelector('[data-status]');
   const client = createVoceroGateClient(base);
   const say = (text, error = false) => { status.textContent = text; status.dataset.error = String(error); };
+  const missing = document.querySelector('[data-gate-missing]');
+  const handle = error => {
+    if (error.code === 'profile_missing') { form.hidden = true; missing.hidden = false; return; }
+    say(error.status === 401 ? '' : error.message, error.status !== 401);
+    fields.disabled = false;
+  };
   const openInvitation = async () => {
     say('Abriendo tu invitación…');
     const data = await client.invitation();
@@ -356,7 +363,7 @@ async function startVoceroGate(base) {
     if (session?.authenticated && session.user?.role === 'vocero') { await openInvitation(); return; }
     fields.disabled = false;
     say('');
-  } catch (error) { fields.disabled = false; say(error.status === 401 ? '' : error.message, error.status !== 401); }
+  } catch (error) { handle(error); }
   form.addEventListener('submit', async event => {
     event.preventDefault();
     const email = form.elements.email.value.trim();
@@ -368,7 +375,7 @@ async function startVoceroGate(base) {
       const result = await client.login(email, password);
       if (result?.authenticated !== true || result.user?.role !== 'vocero') throw Object.assign(new Error('El correo o la contraseña no coinciden. Revisa e intenta de nuevo.'), { status: 401 });
       await openInvitation();
-    } catch (error) { say(error.message, true); fields.disabled = false; }
+    } catch (error) { if (error.status === 401) { say(error.message, true); fields.disabled = false; } else handle(error); }
   });
 }
 
