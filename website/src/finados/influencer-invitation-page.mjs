@@ -19,7 +19,7 @@ export const inaugurationEventDefaults = Object.freeze({
   place: 'Complejo Intercultural y Deportivo Mushuc Runa · Santa Lucía, Tisaleo · Panamericana Sur km 12, vía Ambato–Riobamba',
   dressCode: '',
 });
-export const influencerInvitationVersion = '20261023-invitacion-9';
+export const influencerInvitationVersion = '20261024-invitacion-10';
 
 function shell(page, { api, body, kind, eventKey = 'guaynaa' }) {
   const connect = apiBasesForCsp(api);
@@ -262,8 +262,20 @@ const inaugurationMoments = `<section class="inv-perks inv-perks--opening" aria-
 <ul>
 <li><span class="inv-perk-icon" aria-hidden="true">01</span><strong>Bienvenida</strong><small>El encuentro que abre las puertas de nuestra feria.</small></li>
 <li><span class="inv-perk-icon" aria-hidden="true">02</span><strong>Acto inaugural</strong><small>La ceremonia oficial que da inicio a esta edición.</small></li>
-<li><span class="inv-perk-icon" aria-hidden="true">03</span><strong>Legado compartido</strong><small>Un espacio para celebrar identidad, comunidad y tradición.</small></li>
+<li><span class="inv-perk-icon" aria-hidden="true">03</span><strong>Recorrido en el tren</strong><small>Conoce el Complejo a bordo de nuestro tren, junto a los demás invitados especiales.</small></li>
+<li><span class="inv-perk-icon" aria-hidden="true">04</span><strong>Break para compartir</strong><small>Un momento para conversar, celebrar y conocernos.</small></li>
 </ul>
+</section>`;
+
+/** Lo que solo viven quienes nos acompañan: el tren del Complejo y un break para compartir. */
+const inaugurationSpecialGuests = `<section class="inv-special" aria-labelledby="inv-special-title">
+<figure class="inv-special__photo"><img src="/assets/finados/tren-complejo-752.webp" srcset="/assets/finados/tren-complejo-480.webp 480w, /assets/finados/tren-complejo-752.webp 752w" sizes="(max-width: 700px) calc(100vw - 32px), 34rem" width="752" height="666" alt="El tren del Complejo Mushuc Runa con visitantes saludando desde el piso superior" loading="lazy" decoding="async"></figure>
+<div class="inv-special__body">
+<p class="inv-kicker"><span class="inv-eq" aria-hidden="true"><i></i><i></i><i></i></span>Solo para nuestros invitados especiales</p>
+<h2 id="inv-special-title">Ese día, eres parte del recorrido</h2>
+<p>Quienes nos acompañen en la inauguración serán nuestros invitados especiales: recorrerán el Complejo a bordo del <strong>tren del Complejo Mushuc Runa</strong> y compartiremos juntos un <strong>pequeño break</strong>.</p>
+<p>Queremos que vivas la apertura de Finados 2026 desde adentro, como alguien de casa.</p>
+</div>
 </section>`;
 
 const inaugurationSignature = `<footer class="inv-opening-signature"><span>Atentamente,</span><strong>Ab. Luis Alfonso Chango</strong><small>Mentalizador Feria Finados Mushuc Runa</small></footer>`;
@@ -300,6 +312,7 @@ ${inaugurationConfirmed}
 <h2 id="inv-opening-story-title">La tradición abre sus puertas</h2>
 <p>Este viernes comienza una nueva edición de un encuentro construido por generaciones. Nos honra recibirte para compartir la bienvenida, el acto inaugural y el inicio de cinco días de feria.</p>
 </section>
+${inaugurationSpecialGuests}
 ${inaugurationEventCard}
 ${inaugurationMoments}
 ${inaugurationSignature}

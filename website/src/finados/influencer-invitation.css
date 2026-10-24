@@ -349,3 +349,15 @@ body.inv--inauguracion::before {
   .inv-opening-art__schedule { grid-template-columns: minmax(0, 1fr) 5.2rem minmax(0, 1fr); }
 }
 @media (prefers-reduced-motion: reduce) { .inv-opening-art { animation: none; } }
+
+/* Invitados especiales: el tren del Complejo y el break, con la foto en primer plano. */
+.inv-special { margin: 0 0 1.6rem; color: #4921ad; background: #fff7e9; outline: 3px solid #ff2b86; outline-offset: -3px; filter: drop-shadow(.55rem .7rem 0 #6b2de1); clip-path: polygon(0 0, 97% 2%, 100% 97%, 2% 100%); overflow: hidden; }
+.inv-special__photo { margin: 0; }
+.inv-special__photo img { display: block; width: 100%; height: auto; aspect-ratio: 752 / 666; object-fit: cover; }
+.inv-special__body { padding: clamp(1.2rem, 4vw, 1.7rem); }
+.inv-special h2 { margin: .3rem 0 .7rem; color: #4921ad; font-family: "Anton", sans-serif; font-weight: 400; font-size: clamp(1.7rem, 7vw, 2.4rem); line-height: 1.02; text-transform: uppercase; }
+.inv-special p { margin: 0 0 .7rem; line-height: 1.55; }
+.inv-special p:last-child { margin: 0; }
+.inv-special strong { color: #ff2b86; }
+.inv--inauguracion .inv-perks--opening ul { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (max-width: 560px) { .inv--inauguracion .inv-perks--opening ul { grid-template-columns: minmax(0, 1fr); } }

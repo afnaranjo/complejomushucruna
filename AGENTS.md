@@ -2349,3 +2349,10 @@ Nota de relevo escrita a pedido de Alex para que otro agente (Codex) retome la s
 - Publicación externa: Alex autorizó con «despliega». Desde `main` sincronizada se ejecutó primero `npm run backend:deploy`, que volvió a validar 299 pruebas Node, todas las suites PHP, 11 integraciones, creó respaldo, aplicó la migración aditiva `038_influencer_events` y verificó la API. Después `npm run deploy` creó respaldo y publicó los 291 archivos sin borrar archivos exclusivos.
 - Verificación: Inauguración, su panel y Guaynaa responden HTTP 200 en `complejomushucruna.com` y `finados.expoferiamushucruna.com`; ambas APIs responden `ok`, devuelven el evento `inauguracion` con fecha, hora y lugar canónicos, y los dos dominios sirven la caché `20261023-invitacion-9`. No se crearon invitados ni se borraron o editaron registros existentes.
 - Riesgos/pendientes: revisar una invitación real de cada rol antes del envío masivo y confirmar con comunicación el texto final de los mensajes de WhatsApp.
+
+### 2026-10-24 — Tren y break para invitados especiales en la invitación de inauguración
+
+- Alex pidió que la invitación de inauguración haga sentir especiales a quienes acompañen: recorrido en el tren del Complejo y un pequeño break para compartir. Entregó una foto del tren.
+- Nueva sección «Solo para nuestros invitados especiales · Ese día, eres parte del recorrido» con la foto del tren (WebP 480/752, 27 y 54 KB, sin el globo recortado arriba) antes de los datos del evento. «Vivamos juntos el primer momento» pasa a cuatro pasos: Bienvenida, Acto inaugural, Recorrido en el tren y Break para compartir (también en la pantalla de gracias). Caché `20261024-invitacion-10`. Solo frontend; sin cambios de backend ni de datos.
+- QA: `npm run check` en verde (299 Node, PHP, 11 integración; 293 archivos, 98 HTML, 3215 referencias) y revisión en celular de la vista previa.
+- Publicación externa: solo GitHub; pendiente de autorización para el frontend.
