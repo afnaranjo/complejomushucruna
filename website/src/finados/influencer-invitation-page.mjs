@@ -19,7 +19,7 @@ export const inaugurationEventDefaults = Object.freeze({
   place: 'Complejo Intercultural y Deportivo Mushuc Runa · Santa Lucía, Tisaleo · Panamericana Sur km 12, vía Ambato–Riobamba',
   dressCode: '',
 });
-export const influencerInvitationVersion = '20261024-invitacion-12';
+export const influencerInvitationVersion = '20261024-invitacion-13';
 
 function shell(page, { api, body, kind, eventKey = 'guaynaa' }) {
   const connect = apiBasesForCsp(api);
@@ -322,7 +322,7 @@ export function renderInaugurationPersonalPage(page) {
   const body = `<header class="inv-hero inv-opening-hero">
 ${inaugurationVisual()}
 <p class="inv-eyebrow" data-opening-eyebrow>${esc(narrative.eyebrow)}</p>
-<h1 class="inv-title"><span class="inv-name" data-guest-name>Hola</span><small class="inv-opening-role" data-guest-role>VOCERO/A · CREADOR/A</small><span data-opening-title>${esc(narrative.title)}</span></h1>
+<h1 class="inv-title"><span class="inv-name" data-guest-name>Hola</span><span data-opening-title>${esc(narrative.title)}</span></h1>
 <p class="inv-lead" data-opening-lead>${esc(narrative.lead)}</p>
 <p class="inv-story" data-opening-story>${esc(narrative.story)}</p>
 </header>

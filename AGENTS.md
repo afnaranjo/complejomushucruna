@@ -2379,3 +2379,7 @@ Nota de relevo escrita a pedido de Alex para que otro agente (Codex) retome la s
 - Backend: `InfluencerRepository::RSVP_DEADLINES` (`inauguracion` → `2026-10-26 14:00:00` UTC). El evento expone `rsvp_deadline` y `rsvp_closed`; responder después del cierre devuelve 410 `invitation_closed`, aunque la página siga abierta. Guaynaa no tiene plazo. El panel puede seguir registrando respuestas a mano. Sin migraciones. Caché `20261024-invitacion-12`.
 - QA: `npm run check` en verde (301 Node, PHP con el cierre a las 13:59:59 y 14:00:00 UTC, 11 integración; 294 archivos).
 - Publicación: Alex autorizó con «sube a producción». El backend con el cierre ya se había publicado (respaldo previo, sin migraciones; la API expone `rsvp_deadline` 2026-10-26T09:00:00-05:00 y `rsvp_closed` false). El frontend se publicó después con respaldo y sin borrar archivos exclusivos; por el espejo, la invitación, su CSS y su JS coinciden con el build por SHA-256 y entregan el contador con la caché `20261024-invitacion-12`.
+
+### 2026-10-24 — Sin rol debajo del nombre en la invitación de inauguración
+
+- Alex pidió quitar «Vocero/a · Creador/a» debajo del nombre. La invitación pasa del nombre directo al titular («Hemos visto tu apoyo…»). El gafete conserva el rol para la entrada. Caché `20261024-invitacion-13`. Solo frontend; `npm run check` en verde (302 Node, PHP, 11 integración). Pendiente de autorización para publicar.

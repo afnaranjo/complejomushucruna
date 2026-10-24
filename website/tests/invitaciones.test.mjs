@@ -172,3 +172,8 @@ test('la inauguración muestra el plazo para confirmar con un contador que cierr
   assert.deepEqual(deadlineParts(deadline, Date.parse('2026-10-26T08:59:59-05:00')), { closed: false, days: 0, hours: 0, minutes: 0, seconds: 1 });
   assert.equal(deadlineParts(deadline, Date.parse('2026-10-26T09:00:00-05:00')).closed, true);
 });
+
+test('la invitación de inauguración no muestra el rol debajo del nombre', () => {
+  const page = pages.find(item => item.route === '/finados/invitacion/inauguracion/');
+  assert.doesNotMatch(page.render(page), /data-guest-role|VOCERO\/A · CREADOR\/A/);
+});
