@@ -12,8 +12,8 @@ import { injectInvitationOpeningHeader } from '../src/finados/opening-header.mjs
 
 const websiteRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const execFileAsync = promisify(execFile);
-const isPrivateInvitationRoute = route => route.startsWith('/finados/invitacion/') || route === '/i/' || route === '/ii/';
-const isPrivateInvitationFile = file => file.startsWith('finados/invitacion/') || /^(?:i|ii)\/index\.html$/.test(file);
+const isPrivateInvitationRoute = route => route.startsWith('/finados/invitacion/') || ['/i/', '/ii/', '/inauguracion/'].includes(route);
+const isPrivateInvitationFile = file => file.startsWith('finados/invitacion/') || /^(?:i|ii|inauguracion)\/index\.html$/.test(file);
 
 const cookieConsentMarkup = `  <aside class="cookie-consent" data-cookie-consent hidden role="region" aria-label="Preferencias de cookies">
     <p class="cookie-consent__message">Nuestro sitio web utiliza cookies para mejorar tu navegación.</p>

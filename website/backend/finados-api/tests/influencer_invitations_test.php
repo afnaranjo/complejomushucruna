@@ -101,6 +101,27 @@ try { $afterClose->respond($inaugurationVocero['invite_token'], 'si', '192.0.2.8
 same(true, $closedError instanceof InvitationClosed, 'después del plazo no se aceptan respuestas');
 same(null, $afterClose->event('guaynaa')['rsvp_deadline']);
 $beforeClose->respond($inaugurationVocero['invite_token'], 'si', '192.0.2.81', 'inauguracion');
+
+// Enlace único de voceros: con su cuenta, el vocero recibe el código de su invitación (por número, aunque el nombre cambie).
+$gate = new InfluencerRepository($pdo, $clockCrypto, new Audit($pdo, $clockCrypto));
+$now = gmdate('Y-m-d H:i:s');
+$pdo->prepare('INSERT INTO voceros (public_id,submission_id,status,full_name,cedula_enc,cedula_idx,birth_date_enc,age_at_submission,whatsapp_enc,whatsapp_idx,email_enc,email_idx,city,main_network,previous_participation,community_source,kit_pickup,submitted_at,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)')
+    ->execute([str_repeat('d', 32), str_repeat('e', 32), 'Aprobado', 'Vocera Con Nombre Largo', 'c', 'gate-ced', 'c', 22, $clockCrypto->encrypt('0991234567'), 'gate-tel', 'c', 'gate-mail', 'Ambato', 'TikTok', 'No', 'Otro', 'Oficina', $now, $now, $now]);
+$gateVocero = (int) $pdo->lastInsertId();
+$pdo->prepare('INSERT INTO vocero_accounts (public_id,email_enc,email_idx,password_hash,privacy_version,privacy_hash,privacy_acknowledged_at,active,created_at,updated_at) VALUES (?,?,?,?,?,?,?,1,?,?)')
+    ->execute([str_repeat('9', 32), 'c', 'gate-account', 'x', 'v', 'h', $now, $now, $now]);
+$gateAccount = (int) $pdo->lastInsertId();
+same(null, $gate->voceroInvitationToken($gateAccount), 'sin ficha vinculada no hay invitación');
+$pdo->prepare('INSERT INTO vocero_account_links (account_id, vocero_id, created_at) VALUES (?, ?, ?)')->execute([$gateAccount, $gateVocero, $now]);
+same(null, $gate->voceroInvitationToken($gateAccount), 'sin invitación creada no hay enlace');
+$gateGuest = $decode($send('POST', '/api/influencers?event=inauguracion', ['names' => 'Vocera Nombre Corto', 'kind' => 'vocero', 'message_variant' => 'registro']))['guests'][0];
+$decode($send('PATCH', '/api/influencers/' . $gateGuest['public_id'], ['whatsapp' => '+593991234567']));
+same($gateGuest['invite_token'], $gate->voceroInvitationToken($gateAccount), 'el número encuentra la invitación aunque el nombre esté escrito distinto');
+if (session_status() === PHP_SESSION_ACTIVE) session_write_close();
+$adminSession = session_id(); session_id(''); $_SESSION = [];
+same(401, $router->handle('GET', '/api/vocero/inauguracion', $origin)->status, 'sin sesión de vocero no se entrega el enlace');
+if (session_status() === PHP_SESSION_ACTIVE) session_write_close();
+session_name('finados_admin'); session_id($adminSession); $_SESSION = [];
 $decode($send('PATCH', '/api/influencers/' . $inaugurationVocero['public_id'], ['social_link' => 'vocera.inauguracion']));
 $inaugurationBadge = $decode($router->handle('GET', '/api/invitacion/inauguracion/gafete/' . $inaugurationVocero['invite_token'], $origin));
 same(['inauguracion', true], [$inaugurationBadge['event']['slug'], $inaugurationBadge['ready']]);

@@ -19,7 +19,7 @@ export const inaugurationEventDefaults = Object.freeze({
   place: 'Complejo Intercultural y Deportivo Mushuc Runa · Santa Lucía, Tisaleo · Panamericana Sur km 12, vía Ambato–Riobamba',
   dressCode: '',
 });
-export const influencerInvitationVersion = '20261024-invitacion-14';
+export const influencerInvitationVersion = '20261024-invitacion-15';
 
 function shell(page, { api, body, kind, eventKey = 'guaynaa' }) {
   const connect = apiBasesForCsp(api);
@@ -408,4 +408,38 @@ export function renderInaugurationTermsPage(page) {
 <section><h2>6. Si no puedes asistir</h2><p>Si respondes «Esta vez no podré» no aceptas estas condiciones ni recibes los beneficios. Puedes cambiar tu respuesta desde el mismo enlace mientras haya cupo.</p></section>
 </article>`;
   return shell(page, { api: pageApi(page), body, kind: 'condiciones', eventKey: 'inauguracion' });
+}
+
+/** Enlace único para voceros: ven la invitación y, para confirmar, inician sesión con su cuenta de vocero. */
+export function renderInaugurationVoceroGatePage(page) {
+  const body = `<header class="inv-hero inv-opening-hero">
+${inaugurationVisual()}
+<p class="inv-eyebrow">Invitación para nuestros voceros</p>
+<h1 class="inv-title"><span class="inv-name">Voceros de Finados,</span><span>queremos que estén en el inicio.</span></h1>
+<p class="inv-lead">Por primera vez abriremos la feria junto a quienes ya están ayudando a contarla. Te invitamos a la Inauguración Oficial de Finados Mushuc Runa.</p>
+<p class="inv-story">Inicia sesión con tu cuenta de vocero para ver tu invitación personal y confirmar tu asistencia.</p>
+<p class="inv-gate-jump"><a class="inv-yes" href="#respuesta">Confirmar mi asistencia</a></p>
+</header>
+${inaugurationDeadline}
+${inaugurationSpecialGuests}
+${inaugurationEventCard}
+${inaugurationMoments}
+${inaugurationSignature}
+<section id="respuesta" class="inv-rsvp inv-rsvp--opening inv-gate" aria-labelledby="inv-gate-title">
+<p class="inv-kicker"><span class="inv-eq" aria-hidden="true"><i></i><i></i><i></i></span>Reserva tu lugar</p>
+<h2 id="inv-gate-title">Confirma tu asistencia</h2>
+<p class="inv-rsvp-deadline" data-deadline-inline>Tienes hasta el <strong>lunes 26 de octubre a las 9:00</strong> para confirmar.</p>
+<p class="inv-gate-help">Inicia sesión con la misma cuenta con la que entras a tu registro de vocero. Te llevamos a tu invitación personal para que confirmes.</p>
+<form class="inv-form" data-gate-form novalidate>
+<fieldset disabled>
+<label>Correo de tu cuenta de vocero<input name="email" type="email" autocomplete="username" inputmode="email" maxlength="254" required autocapitalize="none" spellcheck="false"></label>
+<label>Contraseña<input name="password" type="password" autocomplete="current-password" maxlength="1024" required></label>
+<button type="submit" class="inv-yes">Ver mi invitación</button>
+</fieldset>
+<p class="inv-status" data-status role="status" aria-live="polite">Comprobando tu sesión…</p>
+</form>
+<p class="inv-gate-links"><a href="/finados/voceros/acceso/" target="_blank" rel="noopener">¿Olvidaste tu contraseña o no tienes cuenta?</a></p>
+</section>
+${inaugurationFinePrint}`;
+  return shell(page, { api: pageApi(page), body, kind: 'vocero-acceso', eventKey: 'inauguracion' });
 }

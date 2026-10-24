@@ -226,6 +226,34 @@ final class InfluencerRepository
         return ['name' => (string) $row['full_name'], 'response' => $response, 'kind' => (string) $row['kind'], 'message_variant' => (string) $row['message_variant'], 'badge' => self::badgeReady([...$row, 'response' => $response])];
     }
 
+    /**
+     * Enlace único para voceros: con su sesión, el vocero recibe el código de su invitación personal a la inauguración.
+     * Se busca por número de WhatsApp (mismo número aunque el nombre esté escrito distinto) o por nombre idéntico.
+     */
+    public function voceroInvitationToken(int $accountId): ?string
+    {
+        $query = $this->pdo->prepare("SELECT v.full_name, v.whatsapp_enc FROM vocero_account_links l JOIN voceros v ON v.id = l.vocero_id WHERE l.account_id = ? AND v.status IN ('Aprobado', 'Nuevo') LIMIT 1");
+        $query->execute([$accountId]);
+        $vocero = $query->fetch(PDO::FETCH_ASSOC);
+        if (!is_array($vocero)) return null;
+        $phoneKey = function (?string $encrypted): string {
+            if ($encrypted === null || $encrypted === '') return '';
+            try { $digits = preg_replace('/\D/', '', $this->crypto->decrypt($encrypted)) ?? ''; } catch (\Throwable) { return ''; }
+            return strlen($digits) >= 9 ? substr($digits, -9) : '';
+        };
+        $name = static fn (string $value): string => mb_strtolower(trim(preg_replace('/\s+/u', ' ', $value) ?? ''), 'UTF-8');
+        $phone = $phoneKey($vocero['whatsapp_enc'] ?? null);
+        $event = $this->eventRow('inauguracion');
+        $guests = $this->pdo->prepare('SELECT full_name, whatsapp_enc, invite_token FROM influencer_guests WHERE event_id = ? AND archived_at IS NULL AND invite_token IS NOT NULL ORDER BY id');
+        $guests->execute([(int) $event['id']]);
+        $byName = null;
+        foreach ($guests->fetchAll(PDO::FETCH_ASSOC) as $guest) {
+            if ($phone !== '' && $phoneKey($guest['whatsapp_enc'] ?? null) === $phone) return (string) $guest['invite_token'];
+            if ($byName === null && $name((string) $guest['full_name']) === $name((string) $vocero['full_name'])) $byName = (string) $guest['invite_token'];
+        }
+        return $byName;
+    }
+
     /** El gafete existe cuando la persona confirmó que asiste y su lugar está aprobado. */
     public function badge(string $token, string $eventSlug = self::DEFAULT_EVENT): array
     {

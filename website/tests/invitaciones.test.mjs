@@ -188,3 +188,18 @@ test('solo la versión «registro» (voceros sin video) invita a subir el video'
   const source = await readFile(new URL('../src/finados/influencer-invitation.js', import.meta.url), 'utf8');
   assert.match(source, /node\.hidden = variant !== 'registro'/);
 });
+
+test('el enlace único de voceros muestra la invitación y pide iniciar sesión para confirmar', async () => {
+  const { createVoceroGateClient } = await import('../src/finados/influencer-invitation.js');
+  const page = pages.find(item => item.route === '/inauguracion/');
+  const html = page.render(page);
+  assert.match(html, /data-invitation="vocero-acceso"/);
+  assert.match(html, /data-gate-form/);
+  assert.match(html, /autocomplete="current-password"/);
+  assert.match(html, /data-deadline-at="2026-10-26T09:00:00-05:00"/);
+  assert.match(html, /noindex/);
+  const calls = [];
+  const client = createVoceroGateClient(undefined, async (url, options) => { calls.push([url, options.method]); return { ok: true, json: async () => ({ csrf: 'x', token: 'abcdefghjk' }) }; });
+  await client.session(); await client.invitation();
+  assert.deepEqual(calls.map(([url, method]) => [url.replace(/^https:\/\/[^/]+\/api/, ''), method]), [['/vocero/auth/session', 'GET'], ['/vocero/inauguracion', 'GET']]);
+});

@@ -188,6 +188,15 @@ final class Router
                 try { $user = $this->voceroAuth->requireUser(); } catch (Unauthorized) { $user = null; }
                 return $this->json(200, ['authenticated' => $user !== null, 'user' => $user, 'csrf' => $this->voceroAuth->csrfToken()], $headers);
             }
+            // Enlace único de la inauguración para voceros: con su sesión reciben el código de su invitación personal.
+            if ($path === '/api/vocero/inauguracion') {
+                if ($method !== 'GET') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+                if ($query !== []) throw new InvalidArgumentException();
+                $user = $this->voceroAuth->requireUser();
+                $invitation = $this->influencers()->voceroInvitationToken((int) $user['id']);
+                if ($invitation === null) return $this->error(404, 'invitation_not_found', 'No encontramos tu invitación con esta cuenta.', $headers);
+                return $this->json(200, ['ok' => true, 'token' => $invitation], $headers);
+            }
             if (in_array($path, ['/api/vocero/auth/register', '/api/vocero/auth/login', '/api/vocero/auth/logout'], true) && $method === 'POST') {
                 if (!$this->config->isAllowedOrigin($origin)) throw new Forbidden();
                 if (!is_string($ip) || inet_pton($ip) === false) throw new Forbidden();

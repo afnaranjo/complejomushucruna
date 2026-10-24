@@ -301,6 +301,77 @@ function startDeadline(onClose = () => {}) {
   return { closed: () => closed, close };
 }
 
+/** Enlace único para voceros: la API de voceros (solo estas rutas) y el código de su invitación personal. */
+export function createVoceroGateClient(baseUrl = API, fetchImplementation = globalThis.fetch) {
+  if (![API, MIRROR_API_BASE, LOCAL_API].filter(Boolean).includes(baseUrl)) throw new Error('Origen de API no permitido.');
+  let csrf = '';
+  async function request(path, body) {
+    if (!['/vocero/auth/session', '/vocero/auth/login', '/vocero/inauguracion'].includes(path)) throw new Error('Ruta de API no permitida.');
+    const headers = { Accept: 'application/json' };
+    if (body !== undefined) { headers['Content-Type'] = 'application/json'; headers['X-CSRF-Token'] = csrf; }
+    let response;
+    try {
+      response = await fetchImplementation(`${baseUrl}${path}`, {
+        method: body === undefined ? 'GET' : 'POST', credentials: 'include', cache: 'no-store', redirect: 'error', referrerPolicy: 'no-referrer', headers,
+        ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+      });
+    } catch { const error = new Error('No se pudo conectar. Revisa tu conexión e intenta de nuevo.'); error.status = 0; throw error; }
+    let data = null;
+    try { data = await response.json(); } catch { /* sin cuerpo */ }
+    if (typeof data?.csrf === 'string') csrf = data.csrf;
+    if (!response.ok) {
+      const error = new Error(({
+        401: path === '/vocero/auth/login' ? 'El correo o la contraseña no coinciden. Revisa e intenta de nuevo.' : 'Inicia sesión para ver tu invitación.',
+        404: 'No encontramos tu invitación con esta cuenta. Escríbele a la coordinación de voceros para que te ayude.',
+        422: 'Escribe tu correo y tu contraseña.',
+        429: 'Hay demasiados intentos. Espera 15 minutos antes de volver a intentar.',
+      })[response.status] ?? 'No se pudo completar. Intenta de nuevo en un momento.');
+      error.status = response.status;
+      throw error;
+    }
+    return data;
+  }
+  return {
+    session: () => request('/vocero/auth/session'),
+    login: (email, password) => request('/vocero/auth/login', { email, password }),
+    invitation: () => request('/vocero/inauguracion'),
+  };
+}
+
+async function startVoceroGate(base) {
+  startDeadline();
+  const form = document.querySelector('[data-gate-form]');
+  const fields = form.querySelector('fieldset');
+  const status = form.querySelector('[data-status]');
+  const client = createVoceroGateClient(base);
+  const say = (text, error = false) => { status.textContent = text; status.dataset.error = String(error); };
+  const openInvitation = async () => {
+    say('Abriendo tu invitación…');
+    const data = await client.invitation();
+    if (!/^(?:[a-f0-9]{32}|[a-hjkmnp-z2-9]{10})$/.test(String(data?.token ?? ''))) throw new Error('No se pudo abrir tu invitación.');
+    location.replace(`${invitationPaths('inauguracion').personalShort}?c=${data.token}`);
+  };
+  try {
+    const session = await client.session();
+    if (session?.authenticated && session.user?.role === 'vocero') { await openInvitation(); return; }
+    fields.disabled = false;
+    say('');
+  } catch (error) { fields.disabled = false; say(error.status === 401 ? '' : error.message, error.status !== 401); }
+  form.addEventListener('submit', async event => {
+    event.preventDefault();
+    const email = form.elements.email.value.trim();
+    const password = form.elements.password.value;
+    if (!email || !password) { say('Escribe tu correo y tu contraseña.', true); return; }
+    fields.disabled = true;
+    say('Iniciando sesión…');
+    try {
+      const result = await client.login(email, password);
+      if (result?.authenticated !== true || result.user?.role !== 'vocero') throw Object.assign(new Error('El correo o la contraseña no coinciden. Revisa e intenta de nuevo.'), { status: 401 });
+      await openInvitation();
+    } catch (error) { say(error.message, true); fields.disabled = false; }
+  });
+}
+
 async function startPersonal(client, eventKey = 'guaynaa') {
   const paths = invitationPaths(eventKey);
   const status = document.querySelector('[data-status]');
@@ -654,5 +725,6 @@ if (typeof document !== 'undefined') {
   else if (document.body.dataset.invitation === 'gafete') startBadge(client, eventKey);
   else if (document.body.dataset.invitation === 'verificar') startVerify(client, eventKey);
   else if (document.body.dataset.invitation === 'condiciones') { /* página informativa: sin llamadas */ }
+  else if (document.body.dataset.invitation === 'vocero-acceso') startVoceroGate(base);
   else startOpen(client, eventKey);
 }
