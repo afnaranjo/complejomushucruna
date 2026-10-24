@@ -2383,3 +2383,11 @@ Nota de relevo escrita a pedido de Alex para que otro agente (Codex) retome la s
 ### 2026-10-24 — Sin rol debajo del nombre en la invitación de inauguración
 
 - Alex pidió quitar «Vocero/a · Creador/a» debajo del nombre. La invitación pasa del nombre directo al titular («Hemos visto tu apoyo…»). El gafete conserva el rol para la entrada. Caché `20261024-invitacion-13`. Solo frontend; `npm run check` en verde (302 Node, PHP, 11 integración). Publicado con autorización de Alex («sí, súbelo a producción»), con respaldo y sin borrar archivos exclusivos; por el espejo la invitación coincide con el build por SHA-256 y ya no trae el rol.
+
+### 2026-10-24 — Carga de invitados de creadores a la inauguración y lista para el masivo
+
+- Alex pidió enviar la invitación de inauguración a Creadoras (`/admin/creadoras/`) y a Influencers (Creadores y Nuevos creadores) y recibir en PDF el nombre, el número y el enlace personalizado de cada persona.
+- Con su pedido explícito se crearon en producción 96 invitaciones del evento `inauguracion` (tipo `creador`, versión «apoyo»), mediante `InfluencerRepository::createGuests` y `update`, con auditoría a nombre de `admin`. Fuentes: 91 creadores de Influencers no retirados ni rechazados del evento Guaynaa y 6 creadoras activas; se unificaron solo los nombres idénticos (Jhos estaba en las dos). Simulación previa sin escrituras; una segunda corrida no crea nada.
+- Resultado verificado en solo lectura: 96 invitados con 96 enlaces únicos, 90 con WhatsApp; las 6 sin número son las 5 creadoras y un creador sin número registrado. Tres creadores comparten un mismo número y quedaron como invitaciones separadas. Los invitados de Guaynaa no cambiaron.
+- La lista (PDF y CSV, con números y enlaces) se entregó solo en `~/Downloads` de Alex; no se versiona por contener datos personales. Las copias temporales se borraron.
+- Pendiente: enviar el masivo antes del cierre del lunes 26 a las 09:00 y conseguir los números de las 6 personas que no lo tienen.
