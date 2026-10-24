@@ -86,7 +86,7 @@ export class MediaApiClient {
   invitation(token) { return this.request(`/invitation?token=${token}`); }
   lookup(name) { return this.request(`/lookup?name=${encodeURIComponent(name).slice(0, 200)}`); }
   claim(publicId) { return this.request('/claim', { body: { public_id: publicId } }); }
-  confirmAttendance(event, answer) { return this.request('/attendance', { body: { event, answer } }); }
+  confirmAttendance(event, answer, details = {}) { return this.request('/attendance', { body: { event, answer, ...details } }); }
   checkIn(event) { return this.request('/checkin', { body: { event } }); }
   event(id) { return this.request(`/event?id=${id}`); }
   login(email, password) { return this.request('/auth/login', { body: { email, password } }); }
@@ -210,6 +210,88 @@ function validateForm(form) {
   if (first) { first.focus(); throw new Error('Revisa los campos marcados antes de continuar.'); }
 }
 
+export const LIVE_PLATFORMS = Object.freeze([['facebook', 'Facebook'], ['tiktok', 'TikTok'], ['youtube', 'YouTube'], ['instagram', 'Instagram'], ['radio', 'Radio FM'], ['tv', 'TV abierta'], ['web', 'Página web'], ['otro', 'Otro']]);
+const WEEKDAYS = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+const MONTH_NAMES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+
+/** «2026-10-28T12:00:00-05:00» → «miércoles 28 de octubre a las 12:00», sin depender de la zona del teléfono. */
+export function deadlineLabel(value) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(String(value ?? ''));
+  if (!match) return '';
+  const [, year, month, day, hour, minute] = match;
+  const weekday = WEEKDAYS[new Date(Date.UTC(Number(year), Number(month) - 1, Number(day))).getUTCDay()];
+  return `${weekday} ${Number(day)} de ${MONTH_NAMES[Number(month) - 1]} a las ${hour}:${minute}`;
+}
+
+/** Revisa y arma lo que el medio responde sobre su transmisión; devuelve el error a mostrar si falta algo. */
+export function liveDetails(values) {
+  const stream = values.live_stream;
+  if (!['yes', 'no', 'recorded'].includes(stream)) return { error: 'Cuéntanos si transmitirán en vivo.' };
+  if (values.conditions !== true) return { error: 'Acepta las condiciones de cobertura para confirmar.' };
+  if (stream !== 'yes') return { details: { live_stream: stream, live_channels: [], live_detail: '', conditions: true } };
+  const channels = (values.channels ?? []).map(channel => ({ platform: channel.platform, url: String(channel.url ?? '').trim() }));
+  if (!channels.length) return { error: 'Marca al menos una plataforma donde transmitirán.' };
+  for (const channel of channels) {
+    const broadcast = ['radio', 'tv'].includes(channel.platform);
+    if (!broadcast && !/^https:\/\/\S+$/.test(channel.url)) return { error: 'Pega el enlace (https://…) de la página o el canal donde transmitirán.' };
+    if (broadcast && channel.url && !/^https:\/\/\S+$/.test(channel.url)) return { error: 'El enlace de radio o TV debe empezar con https://, o déjalo vacío.' };
+  }
+  const detail = String(values.live_detail ?? '').trim();
+  if (channels.some(channel => ['radio', 'tv'].includes(channel.platform)) && detail.length < 2) return { error: 'Escribe la frecuencia o el canal y el nombre del programa.' };
+  return { details: { live_stream: stream, live_channels: channels, live_detail: detail, conditions: true } };
+}
+
+/** Formulario de confirmación con las preguntas de transmisión en vivo. */
+function mediaLiveForm(event, submit) {
+  const form = document.createElement('form'); form.className = 'media-live'; form.noValidate = true;
+  const uid = event.public_id.slice(0, 8);
+  const stream = document.createElement('fieldset'); stream.className = 'media-live__stream';
+  const legend = document.createElement('legend'); legend.textContent = '¿Transmitirán la inauguración en vivo?'; stream.append(legend);
+  for (const [value, label] of [['yes', 'Sí, transmitiremos en vivo'], ['recorded', 'No en vivo: grabaremos para publicar después'], ['no', 'No transmitiremos ni publicaremos']]) {
+    const option = document.createElement('label'); const input = document.createElement('input'); input.type = 'radio'; input.name = `live_stream_${uid}`; input.value = value;
+    input.checked = event.live_stream === value; option.append(input, ` ${label}`); stream.append(option);
+  }
+  const channelsBox = document.createElement('fieldset'); channelsBox.className = 'media-live__channels';
+  const channelsLegend = document.createElement('legend'); channelsLegend.textContent = '¿Dónde transmitirán? Marca cada plataforma y pega el enlace de su página o canal.'; channelsBox.append(channelsLegend);
+  const saved = new Map((event.live_channels ?? []).map(channel => [channel.platform, channel.url ?? '']));
+  for (const [platform, label] of LIVE_PLATFORMS) {
+    const row = document.createElement('div'); row.className = 'media-live__channel';
+    const check = document.createElement('label'); const box = document.createElement('input'); box.type = 'checkbox'; box.value = platform; box.checked = saved.has(platform);
+    check.append(box, ` ${label}`);
+    const url = document.createElement('input'); url.type = 'url'; url.inputMode = 'url'; url.maxLength = 500; url.dataset.platform = platform; url.value = saved.get(platform) ?? '';
+    url.placeholder = ['radio', 'tv'].includes(platform) ? 'Enlace de su transmisión en línea (opcional)' : 'https://… enlace de la página o el canal';
+    url.setAttribute('aria-label', `Enlace de ${label}`); url.hidden = !box.checked;
+    box.addEventListener('change', () => { url.hidden = !box.checked; if (box.checked) url.focus(); });
+    row.append(check, url); channelsBox.append(row);
+  }
+  const detailLabel = document.createElement('label'); detailLabel.className = 'media-live__detail'; detailLabel.textContent = 'Si es radio o TV: frecuencia o canal y nombre del programa';
+  const detail = document.createElement('input'); detail.maxLength = 300; detail.value = event.live_detail ?? ''; detail.placeholder = 'Ej.: 98.5 FM · Programa La Mañana'; detailLabel.append(detail);
+  const conditions = document.createElement('label'); conditions.className = 'media-live__conditions';
+  const accept = document.createElement('input'); accept.type = 'checkbox'; accept.checked = Boolean(event.conditions_at);
+  const link = document.createElement('a'); link.href = '/finados/medios/buenas-practicas/'; link.target = '_blank'; link.rel = 'noopener'; link.textContent = 'condiciones de cobertura';
+  conditions.append(accept, ' Acepto las ', link, ' del evento y las indicaciones de la organización.');
+  const error = document.createElement('p'); error.className = 'media-live__error'; error.setAttribute('role', 'status');
+  const send = document.createElement('button'); send.type = 'submit'; send.className = 'vocero-primary'; send.textContent = 'Enviar mi confirmación';
+  const refresh = () => {
+    const live = form.querySelector(`input[name="live_stream_${uid}"]:checked`)?.value === 'yes';
+    channelsBox.hidden = !live; detailLabel.hidden = !live;
+  };
+  stream.addEventListener('change', refresh); refresh();
+  form.append(stream, channelsBox, detailLabel, conditions, error, send);
+  form.addEventListener('submit', async submitEvent => {
+    submitEvent.preventDefault();
+    const checked = liveDetails({
+      live_stream: form.querySelector(`input[name="live_stream_${uid}"]:checked`)?.value,
+      channels: [...channelsBox.querySelectorAll('input[type="checkbox"]:checked')].map(box => ({ platform: box.value, url: channelsBox.querySelector(`input[data-platform="${box.value}"]`).value })),
+      live_detail: detail.value, conditions: accept.checked,
+    });
+    if (checked.error) { error.textContent = checked.error; return; }
+    error.textContent = ''; send.disabled = true;
+    try { await submit(checked.details); } catch { send.disabled = false; }
+  });
+  return form;
+}
+
 /** Página a la que lleva el QR de un evento: muestra el evento y guía al login, al registro o al check-in. */
 export async function initializeMediaAccreditation(root = document, location = globalThis.location) {
   if (root.body?.dataset.mediaView !== 'acreditacion') return;
@@ -246,8 +328,9 @@ export async function initializeMediaAccreditation(root = document, location = g
       : own?.confirmation === 'no' ? 'Habías indicado que no podrías asistir. Si llegaste, registra tu asistencia.'
       : '¿Vas a asistir a este evento? Confírmalo y, cuando llegues, registra tu asistencia.';
     checkin.hidden = arrived;
-    confirm.hidden = arrived || own?.confirmation === 'yes';
-    decline.hidden = arrived || own?.confirmation === 'no';
+    // Los eventos con preguntas de transmisión se confirman desde el registro del medio; aquí solo se registra la llegada.
+    confirm.hidden = arrived || own?.confirmation === 'yes' || own?.asks_live === true;
+    decline.hidden = arrived || own?.confirmation === 'no' || own?.asks_live === true;
   }
   const act = async (action, text) => {
     for (const button of [checkin, confirm, decline]) button.disabled = true;
@@ -461,9 +544,26 @@ export async function initializeMediaPortal(root = document) {
         : event.confirmation === 'yes' ? 'Confirmaste tu asistencia. El día del evento registra tu llegada con el QR.'
         : event.confirmation === 'no' ? 'Indicaste que no podrás asistir.' : '¿Asistirás a este evento?';
       const actions = document.createElement('div'); actions.className = 'media-event__actions';
+      const liveForm = event.asks_live ? mediaLiveForm(event, async details => {
+        try { const result = await api.confirmAttendance(event.public_id, 'yes', details); renderEvents(result.events ?? []); message('Confirmaste tu asistencia. Gracias.'); }
+        catch (error) { reportError(error); throw error; }
+      }) : null;
+      if (event.asks_live && event.rsvp_deadline) {
+        const note = document.createElement('p'); note.className = 'media-event__deadline';
+        note.textContent = event.rsvp_closed ? 'El plazo para confirmar terminó.' : `Puedes confirmar hasta el ${deadlineLabel(event.rsvp_deadline)}.`;
+        item.append(note);
+      }
       for (const [answer, label, className] of [['yes', 'Confirmo mi asistencia', 'vocero-primary'], ['no', 'No podré asistir', 'vocero-quiet']]) {
+        if (event.rsvp_closed) break;
         const button = document.createElement('button'); button.type = 'button'; button.className = className; button.textContent = label;
-        button.disabled = event.confirmation === answer;
+        button.disabled = event.confirmation === answer && !(answer === 'yes' && liveForm);
+        if (answer === 'yes' && liveForm) {
+          // Al confirmar, el medio cuenta si transmitirá en vivo y dónde; la confirmación se envía desde ese formulario.
+          if (event.confirmation === 'yes') button.textContent = 'Editar mi confirmación';
+          button.addEventListener('click', () => { liveForm.hidden = false; liveForm.querySelector('input')?.focus(); });
+          actions.append(button);
+          continue;
+        }
         button.addEventListener('click', async () => {
           for (const control of actions.querySelectorAll('button')) control.disabled = true;
           try { const result = await api.confirmAttendance(event.public_id, answer); renderEvents(result.events ?? []); message(answer === 'yes' ? 'Confirmaste tu asistencia. Gracias.' : 'Registramos que no podrás asistir.'); }
@@ -473,6 +573,7 @@ export async function initializeMediaPortal(root = document) {
       }
       if (event.checked_in_at) item.dataset.answer = 'checked';
       item.append(state, actions);
+      if (liveForm && !event.rsvp_closed) { liveForm.hidden = true; item.append(liveForm); }
       list.append(item);
     }
   }

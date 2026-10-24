@@ -417,3 +417,9 @@ body.inv--inauguracion::before {
 .inv-gate-missing[hidden], .inv-gate .inv-form[hidden] { display: none; }
 .inv-gate-missing p { margin: 0; line-height: 1.5; }
 .inv-gate-missing a { text-decoration: none; }
+
+/* Enlace para medios: indicaciones, pasos y accesos. */
+.inv-media-rules ul { display: grid; gap: .55rem; margin: 0; padding-left: 1.2rem; color: #33156b; line-height: 1.5; }
+.inv-media-steps li { color: #4921ad; }
+.inv-media-actions { display: grid; gap: .7rem; margin-top: 1rem; }
+.inv-media-actions a { display: block; text-align: center; text-decoration: none; }

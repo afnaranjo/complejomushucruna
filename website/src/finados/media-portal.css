@@ -335,3 +335,17 @@
 .media-event__actions { display: flex; flex-wrap: wrap; gap: .5rem; }
 .media-event[data-answer="checked"] { border-left-color: #00d2d6; }
 .media-accreditation-box { margin: 1rem 0; padding: 1rem 1.25rem; border-radius: 1rem; background: #fff; border: 1px solid rgba(36, 17, 70, .15); display: grid; gap: .75rem; }
+
+/* Confirmación con datos de transmisión en vivo. */
+.media-event__deadline { margin: .4rem 0 0; font-weight: 700; color: #94165e; }
+.media-live { display: grid; gap: .9rem; margin-top: .9rem; padding: 1rem; border: 2px solid #4921ad; background: #fff; }
+.media-live[hidden], .media-live [hidden] { display: none; }
+.media-live fieldset { display: grid; gap: .45rem; margin: 0; padding: 0; border: 0; }
+.media-live legend { margin-bottom: .4rem; font-weight: 800; color: #241146; }
+.media-live label { display: flex; gap: .5rem; align-items: flex-start; line-height: 1.4; }
+.media-live__channel { display: grid; gap: .35rem; }
+.media-live__channel input[type="url"], .media-live__detail input { width: 100%; min-height: 44px; padding: .55rem .7rem; border: 1px solid #b9aac7; border-radius: .4rem; font: inherit; }
+.media-live__detail { display: grid !important; gap: .35rem; font-weight: 700; }
+.media-live__conditions a { color: #4921ad; font-weight: 700; }
+.media-live__error { margin: 0; color: #c0185e; font-weight: 700; }
+.media-live__error:empty { display: none; }

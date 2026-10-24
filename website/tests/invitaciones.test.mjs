@@ -205,3 +205,24 @@ test('el enlace único de voceros muestra la invitación y pide iniciar sesión 
   await client.session(); await client.invitation();
   assert.deepEqual(calls.map(([url, method]) => [url.replace(/^https:\/\/[^/]+\/api/, ''), method]), [['/vocero/auth/session', 'GET'], ['/vocero/inauguracion', 'GET']]);
 });
+
+test('medios: enlace del grupo, plazo y preguntas de transmisión en vivo', async () => {
+  const { liveDetails, deadlineLabel } = await import('../src/finados/media-portal.js');
+  const { liveSummaryText } = await import('../src/admin/admin-medios.js');
+  const page = pages.find(item => item.route === '/medios-inauguracion/');
+  const html = page.render(page);
+  assert.match(html, /data-deadline-at="2026-10-28T12:00:00-05:00"/);
+  assert.match(html, /Máximo 3 personas por medio/);
+  assert.match(html, /href="\/finados\/medios\/acceso\/\?modo=login"/);
+  assert.match(html, /noindex/);
+  assert.equal(deadlineLabel('2026-10-28T12:00:00-05:00'), 'miércoles 28 de octubre a las 12:00');
+  assert.ok(liveDetails({ live_stream: 'yes', channels: [], conditions: true }).error);
+  assert.ok(liveDetails({ live_stream: 'yes', channels: [{ platform: 'facebook', url: 'facebook.com/x' }], conditions: true }).error);
+  assert.ok(liveDetails({ live_stream: 'no', conditions: false }).error);
+  assert.ok(liveDetails({ live_stream: 'yes', channels: [{ platform: 'radio', url: '' }], live_detail: '', conditions: true }).error);
+  assert.deepEqual(liveDetails({ live_stream: 'yes', channels: [{ platform: 'tiktok', url: 'https://tiktok.com/@medio' }], live_detail: '', conditions: true }).details,
+    { live_stream: 'yes', live_channels: [{ platform: 'tiktok', url: 'https://tiktok.com/@medio' }], live_detail: '', conditions: true });
+  assert.equal(liveSummaryText({ confirmation: 'yes', live_stream: 'yes', live_channels: [{ platform: 'facebook' }, { platform: 'radio' }], live_detail: '98.5 FM' }), 'En vivo · Facebook, Radio FM · 98.5 FM');
+  assert.equal(liveSummaryText({ confirmation: 'yes', live_stream: 'recorded' }), 'Solo grabará');
+  assert.equal(liveSummaryText({ confirmation: 'no', live_stream: 'yes' }), '—');
+});

@@ -733,5 +733,6 @@ if (typeof document !== 'undefined') {
   else if (document.body.dataset.invitation === 'verificar') startVerify(client, eventKey);
   else if (document.body.dataset.invitation === 'condiciones') { /* página informativa: sin llamadas */ }
   else if (document.body.dataset.invitation === 'vocero-acceso') startVoceroGate(base);
+  else if (document.body.dataset.invitation === 'medios') startDeadline();
   else startOpen(client, eventKey);
 }

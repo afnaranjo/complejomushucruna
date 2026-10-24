@@ -46,7 +46,7 @@ function coverage_json(array $payload): string { return json_encode($payload, JS
 coverage_close_session();
 $config = coverage_config();
 $pdo = Database::connect($config);
-foreach (['001_initial', '002_sheets_outbox', '003_vocero_accounts', '008_media_accounts', '009_media_videos', '010_media_video_views', '011_media_contact_channels', '012_media_consents', '013_media_types_radio', '014_media_channels_photo', '015_media_traffic_light', '016_media_paid', '018_media_coverage', '019_media_event_attendance', '020_media_event_checkin'] as $migration) {
+foreach (['001_initial', '002_sheets_outbox', '003_vocero_accounts', '008_media_accounts', '009_media_videos', '010_media_video_views', '011_media_contact_channels', '012_media_consents', '013_media_types_radio', '014_media_channels_photo', '015_media_traffic_light', '016_media_paid', '018_media_coverage', '019_media_event_attendance', '020_media_event_checkin', '039_media_event_rsvp'] as $migration) {
     $pdo->exec(file_get_contents(__DIR__ . '/../migrations/' . $migration . '_sqlite.sql'));
 }
 same('018_media_coverage', $pdo->query("SELECT version FROM schema_migrations WHERE version = '018_media_coverage'")->fetchColumn());
@@ -371,7 +371,7 @@ coverage_close_session();
 $public = coverage_body($router->handle('GET', '/api/media/event?id=' . $rueda, ['REMOTE_ADDR' => '198.51.100.30']));
 same('Rueda de prensa Finados', $public['event']['name']);
 same('Complejo Mushuc Runa', $public['event']['place']);
-same(['public_id', 'name', 'event_date', 'place', 'details'], array_keys($public['event']));
+same(['public_id', 'name', 'event_date', 'place', 'details', 'rsvp_deadline'], array_keys($public['event']));
 same(404, $router->handle('GET', '/api/media/event?id=' . str_repeat('e', 32), $origin)->status);
 // Un identificador mal formado responde como uno inexistente: no revela nada.
 same(404, $router->handle('GET', '/api/media/event?id=corto', $origin)->status);
@@ -403,3 +403,46 @@ $events = coverage_body($router->handle('GET', '/api/media-events', $origin))['i
 foreach ($events as $event) if ($event['public_id'] === $rueda) same(1, $event['checked_in_count']);
 same(2, (int) $pdo->query("SELECT COUNT(*) FROM audit_log WHERE event_type = 'media.checked_in'")->fetchColumn());
 coverage_close_session();
+
+// ---------------------------------------------------------------- 039: plazo para confirmar y transmisión en vivo
+$adminSession = coverage_body($router->handle('GET', '/api/auth/session', $origin));
+$adminLogin = coverage_body($router->handle('POST', '/api/auth/login', $json($adminSession['csrf']), coverage_json(['username' => 'admin', 'password' => $adminSecret])));
+$admin = $json($adminLogin['csrf']);
+same(422, $router->handle('POST', '/api/media-events', $admin, coverage_json(['name' => 'Inauguración prueba', 'event_date' => '2099-10-30', 'rsvp_deadline' => '2099-10-28 12:00']))->status);
+$opening = coverage_body($router->handle('POST', '/api/media-events', $admin, coverage_json(['name' => 'Inauguración prueba', 'event_date' => '2099-10-30', 'place' => 'Complejo', 'details' => 'Máximo 3 personas por medio.', 'rsvp_deadline' => '2099-10-28T12:00'])))['event'];
+same('2099-10-28T12:00:00-05:00', $opening['rsvp_deadline']);
+same('2099-10-28 17:00:00', $pdo->query("SELECT rsvp_deadline FROM media_events WHERE public_id = '" . $opening['public_id'] . "'")->fetchColumn());
+coverage_close_session();
+$session = coverage_body($router->handle('GET', '/api/media/auth/session', $origin));
+$login = coverage_body($router->handle('POST', '/api/media/auth/login', $json($session['csrf']), coverage_json(['email' => 'cumbre@example.invalid', 'password' => $secret])));
+$own = coverage_body($router->handle('GET', '/api/media/profile', $origin));
+$entry = null; foreach ($own['events'] as $item) if ($item['public_id'] === $opening['public_id']) $entry = $item;
+same([true, false, '2099-10-28T12:00:00-05:00'], [$entry['asks_live'], $entry['rsvp_closed'], $entry['rsvp_deadline']]);
+// Confirmar «sí» exige contar la transmisión y aceptar las condiciones.
+same(422, $router->handle('POST', '/api/media/attendance', $json($login['csrf']), coverage_json(['event' => $opening['public_id'], 'answer' => 'yes']))->status);
+same(422, $router->handle('POST', '/api/media/attendance', $json($login['csrf']), coverage_json(['event' => $opening['public_id'], 'answer' => 'yes', 'live_stream' => 'yes', 'live_channels' => [], 'conditions' => true]))->status);
+same(422, $router->handle('POST', '/api/media/attendance', $json($login['csrf']), coverage_json(['event' => $opening['public_id'], 'answer' => 'yes', 'live_stream' => 'yes', 'live_channels' => [['platform' => 'radio', 'url' => '']], 'live_detail' => '', 'conditions' => true]))->status, 'la radio indica su frecuencia');
+$liveAnswer = coverage_body($router->handle('POST', '/api/media/attendance', $json($login['csrf']), coverage_json(['event' => $opening['public_id'], 'answer' => 'yes', 'live_stream' => 'yes', 'live_channels' => [['platform' => 'facebook', 'url' => 'https://www.facebook.com/cumbre'], ['platform' => 'radio', 'url' => '']], 'live_detail' => '98.5 FM · La Mañana', 'conditions' => true])));
+foreach ($liveAnswer['events'] as $item) if ($item['public_id'] === $opening['public_id']) {
+    same(['yes', 'yes', '98.5 FM · La Mañana'], [$item['confirmation'], $item['live_stream'], $item['live_detail']]);
+    same([['platform' => 'facebook', 'url' => 'https://www.facebook.com/cumbre'], ['platform' => 'radio', 'url' => '']], $item['live_channels']);
+    same(true, $item['conditions_at'] !== null);
+}
+// «No podré asistir» no pide datos y limpia la transmisión.
+$declined = coverage_body($router->handle('POST', '/api/media/attendance', $json($login['csrf']), coverage_json(['event' => $opening['public_id'], 'answer' => 'no'])));
+foreach ($declined['events'] as $item) if ($item['public_id'] === $opening['public_id']) same(['no', null], [$item['confirmation'], $item['live_stream']]);
+coverage_body($router->handle('POST', '/api/media/attendance', $json($login['csrf']), coverage_json(['event' => $opening['public_id'], 'answer' => 'yes', 'live_stream' => 'recorded', 'conditions' => true])));
+coverage_close_session();
+$adminSession = coverage_body($router->handle('GET', '/api/auth/session', $origin));
+coverage_body($router->handle('POST', '/api/auth/login', $json($adminSession['csrf']), coverage_json(['username' => 'admin', 'password' => $adminSecret])));
+$openingDetail = coverage_body($router->handle('GET', '/api/media-events/' . $opening['public_id'], $origin));
+same(true, in_array($cumbre, $openingDetail['summary']['confirmaron']['ids'], true));
+same(false, in_array($cumbre, $openingDetail['summary']['en_vivo']['ids'], true), 'solo grabará no cuenta como en vivo');
+coverage_close_session();
+// Después del plazo ya no se aceptan respuestas.
+$cumbreAccount = (int) $pdo->query("SELECT account_id FROM media_profiles WHERE public_id = '" . $cumbre . "'")->fetchColumn();
+$late = new MediaRepository($pdo, new Finados\Crypto($config), null, strtotime('2099-10-28 17:00:00 UTC'));
+$closedError = null;
+try { $late->confirmAttendance($cumbreAccount, $opening['public_id'], 'no', '192.0.2.80'); } catch (Finados\MediaInvitationClosed $error) { $closedError = $error; }
+same(true, $closedError !== null, 'después del plazo no se aceptan respuestas');
+foreach ($late->invitationsForAccount($cumbreAccount) as $item) if ($item['public_id'] === $opening['public_id']) same(true, $item['rsvp_closed']);

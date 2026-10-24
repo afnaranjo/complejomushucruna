@@ -269,9 +269,35 @@ export function drawQr(canvas, value, { size = 560, quiet = 4 } = {}) {
   return canvas;
 }
 
+export const LIVE_PLATFORM_LABELS = Object.freeze({ facebook: 'Facebook', tiktok: 'TikTok', youtube: 'YouTube', instagram: 'Instagram', radio: 'Radio FM', tv: 'TV abierta', web: 'Página web', otro: 'Otro' });
+
+/** Lo que el medio respondió sobre su transmisión en vivo: texto corto y los enlaces de cada plataforma. */
+export function liveSummaryText(item = {}) {
+  if (item.confirmation !== 'yes' || !item.live_stream) return '—';
+  if (item.live_stream === 'no') return 'No transmitirá';
+  if (item.live_stream === 'recorded') return 'Solo grabará';
+  const platforms = (item.live_channels ?? []).map(channel => LIVE_PLATFORM_LABELS[channel.platform] ?? channel.platform);
+  return ['En vivo', platforms.join(', '), item.live_detail].filter(Boolean).join(' · ');
+}
+
+function liveSummary(item) {
+  const box = document.createElement('div');
+  box.className = 'admin-media-live';
+  const text = document.createElement('span'); text.textContent = liveSummaryText(item); box.append(text);
+  if (item.confirmation === 'yes' && item.live_stream === 'yes') {
+    for (const channel of item.live_channels ?? []) {
+      if (!/^https:\/\//.test(channel.url ?? '')) continue;
+      const link = document.createElement('a'); link.href = channel.url; link.target = '_blank'; link.rel = 'noopener noreferrer';
+      link.textContent = LIVE_PLATFORM_LABELS[channel.platform] ?? 'Enlace';
+      box.append(link);
+    }
+  }
+  return box;
+}
+
 /** Big-number cards in the order the team reads them; the id list drives the click filter. */
 export function coverageBuckets(summary = {}) {
-  const order = ['todos', 'confirmaron', 'no_confirmaron', 'asistieron', 'no_asistieron', 'pautados', 'pautados_publicaron', 'pautados_sin_publicacion', 'sin_contrato_publicaron', 'sin_contrato_sin_publicacion'];
+  const order = ['todos', 'confirmaron', 'en_vivo', 'no_confirmaron', 'asistieron', 'no_asistieron', 'pautados', 'pautados_publicaron', 'pautados_sin_publicacion', 'sin_contrato_publicaron', 'sin_contrato_sin_publicacion'];
   // Asistieron + No asistieron cubren el total, porque la asistencia es un check.
   return order.filter(key => summary[key]).map(key => ({ key, label: summary[key].label, count: (summary[key].ids ?? []).length, ids: new Set(summary[key].ids ?? []), alert: ['pautados_sin_publicacion', 'no_confirmaron', 'no_asistieron'].includes(key) }));
 }
@@ -969,6 +995,7 @@ export async function initializeMediaEventsAdmin() {
     confirmation.setAttribute('aria-label', `Confirmación de ${item.media_name}`);
     if (item.confirmed_at) confirmation.title = `Respondió ${dateTime(item.confirmed_at)}${item.linked ? '' : ' (registrado por coordinación)'}`;
     cell('Confirmó', confirmation);
+    cell('En vivo', liveSummary(item));
     // Marcado = asistió, desmarcado = no asistió. Las observaciones puntuales van en la nota.
     const attended = node('input'); attended.type = 'checkbox'; attended.className = 'admin-attendance-check';
     attended.checked = item.attended === 'yes'; attended.setAttribute('aria-label', `Asistió ${item.media_name}`);
@@ -1022,7 +1049,7 @@ export async function initializeMediaEventsAdmin() {
     const name = eventForm.elements.name.value.trim(); const date = eventForm.elements.event_date.value || null;
     if (name.length < 3) { feedback(eventFeedback, 'Escribe el nombre del evento.', 'error'); return; }
     eventForm.querySelector('fieldset').disabled = true; feedback(eventFeedback, 'Creando evento e invitando a todos los medios…');
-    try { const created = await client.createEvent({ name, event_date: date, place: eventForm.elements.place.value.trim(), details: eventForm.elements.details.value.trim() }); eventForm.reset(); feedback(eventFeedback, `Evento ${created.event.name} creado. Se invitó a ${created.event.coverage_count} medios; los que tienen cuenta lo verán en su portal para confirmar.`, 'success'); await loadEvents(created.event.public_id); }
+    try { const created = await client.createEvent({ name, event_date: date, place: eventForm.elements.place.value.trim(), details: eventForm.elements.details.value.trim(), rsvp_deadline: eventForm.elements.rsvp_deadline.value || null }); eventForm.reset(); feedback(eventFeedback, `Evento ${created.event.name} creado. Se invitó a ${created.event.coverage_count} medios; los que tienen cuenta lo verán en su portal para confirmar.`, 'success'); await loadEvents(created.event.public_id); }
     catch (error) { feedback(eventFeedback, error.status === 409 ? 'Ya existe un evento con ese nombre.' : error.message, 'error'); }
     finally { eventForm.querySelector('fieldset').disabled = false; }
   });

@@ -16,8 +16,14 @@ require_once __DIR__ . '/Audit.php';
 require_once __DIR__ . '/MediaPhotoStorage.php';
 
 /** Media accreditation records: owned by a media account, reviewed by administrators. */
+/** El plazo para confirmar la asistencia a un evento ya terminó. */
+final class MediaInvitationClosed extends \RuntimeException {}
+
 final class MediaRepository
 {
+    public const LIVE_STREAM = ['yes', 'no', 'recorded'];
+    public const LIVE_PLATFORMS = ['facebook' => 'Facebook', 'tiktok' => 'TikTok', 'youtube' => 'YouTube', 'instagram' => 'Instagram', 'radio' => 'Radio FM', 'tv' => 'TV abierta', 'web' => 'Página web', 'otro' => 'Otro'];
+
     public const STATUSES = ['Nuevo', 'En revisión', 'Aprobado', 'Rechazado'];
     public const PROVINCES = [
         'Azuay', 'Bolívar', 'Cañar', 'Carchi', 'Chimborazo', 'Cotopaxi', 'El Oro', 'Esmeraldas', 'Galápagos', 'Guayas',
@@ -68,7 +74,7 @@ final class MediaRepository
     private readonly array $conditions;
     private readonly array $catalogue;
 
-    public function __construct(private readonly PDO $pdo, private readonly Crypto $crypto, ?Audit $audit = null)
+    public function __construct(private readonly PDO $pdo, private readonly Crypto $crypto, ?Audit $audit = null, private readonly ?int $now = null)
     {
         $this->audit = $audit ?? new Audit($pdo, $crypto);
         try {
@@ -696,15 +702,15 @@ final class MediaRepository
 
     public function listEvents(): array
     {
-        $rows = $this->pdo->query("SELECT e.public_id, e.name, e.event_date, e.place, e.details, e.created_at, (SELECT COUNT(*) FROM media_event_coverage c JOIN media_profiles p ON p.id = c.profile_id WHERE c.event_id = e.id AND p.status <> 'Eliminado') AS coverage_count, (SELECT COUNT(*) FROM media_event_coverage c JOIN media_profiles p ON p.id = c.profile_id WHERE c.event_id = e.id AND p.status <> 'Eliminado' AND c.confirmation = 'yes') AS confirmed_count, (SELECT COUNT(*) FROM media_event_coverage c JOIN media_profiles p ON p.id = c.profile_id WHERE c.event_id = e.id AND p.status <> 'Eliminado' AND c.checked_in_at IS NOT NULL) AS checked_in_count FROM media_events e ORDER BY e.event_date DESC, e.id DESC");
-        return array_map(static fn (array $row): array => ['public_id' => $row['public_id'], 'name' => $row['name'], 'event_date' => $row['event_date'], 'place' => (string) $row['place'], 'details' => (string) $row['details'],
+        $rows = $this->pdo->query("SELECT e.public_id, e.name, e.event_date, e.place, e.details, e.rsvp_deadline, e.created_at, (SELECT COUNT(*) FROM media_event_coverage c JOIN media_profiles p ON p.id = c.profile_id WHERE c.event_id = e.id AND p.status <> 'Eliminado') AS coverage_count, (SELECT COUNT(*) FROM media_event_coverage c JOIN media_profiles p ON p.id = c.profile_id WHERE c.event_id = e.id AND p.status <> 'Eliminado' AND c.confirmation = 'yes') AS confirmed_count, (SELECT COUNT(*) FROM media_event_coverage c JOIN media_profiles p ON p.id = c.profile_id WHERE c.event_id = e.id AND p.status <> 'Eliminado' AND c.checked_in_at IS NOT NULL) AS checked_in_count FROM media_events e ORDER BY e.event_date DESC, e.id DESC");
+        return array_map(static fn (array $row): array => ['public_id' => $row['public_id'], 'name' => $row['name'], 'event_date' => $row['event_date'], 'place' => (string) $row['place'], 'details' => (string) $row['details'], 'rsvp_deadline' => self::deadlineOut($row['rsvp_deadline'] ?? null),
             'created_at' => $row['created_at'], 'coverage_count' => (int) $row['coverage_count'], 'confirmed_count' => (int) $row['confirmed_count'], 'checked_in_count' => (int) $row['checked_in_count']], $rows->fetchAll(PDO::FETCH_ASSOC));
     }
 
     public function createEvent(mixed $input, ?int $actorId, string $ip = ''): array
     {
         if ($input instanceof \stdClass) $input = (array) $input;
-        if (!is_array($input) || array_diff(array_keys($input), ['name', 'event_date', 'place', 'details']) !== [] || !is_string($input['name'] ?? null)) throw new InvalidArgumentException();
+        if (!is_array($input) || array_diff(array_keys($input), ['name', 'event_date', 'place', 'details', 'rsvp_deadline']) !== [] || !is_string($input['name'] ?? null)) throw new InvalidArgumentException();
         $name = trim(preg_replace('/\s+/u', ' ', $input['name']) ?? '');
         if (self::length($name) < 3 || self::length($name) > 160) throw new InvalidArgumentException();
         $text = static function (mixed $value, int $max): string {
@@ -719,6 +725,7 @@ final class MediaRepository
         $date = $input['event_date'] ?? null;
         if ($date === '') $date = null;
         if ($date !== null && (!is_string($date) || preg_match('/^(\d{4})-(\d{2})-(\d{2})$/D', $date, $parts) !== 1 || !checkdate((int) $parts[2], (int) $parts[3], (int) $parts[1]))) throw new InvalidArgumentException();
+        $deadline = self::deadlineIn($input['rsvp_deadline'] ?? null);
         $existing = $this->pdo->prepare('SELECT public_id FROM media_events WHERE LOWER(name) = LOWER(?)');
         $existing->execute([$name]);
         if ($existing->fetchColumn() !== false) throw new DuplicateRegistration();
@@ -726,7 +733,7 @@ final class MediaRepository
         $now = gmdate('Y-m-d H:i:s');
         $this->begin();
         try {
-            $this->pdo->prepare('INSERT INTO media_events (public_id, name, event_date, place, details, created_by_admin_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')->execute([$publicId, $name, $date, $place, $details, $actorId, $now, $now]);
+            $this->pdo->prepare('INSERT INTO media_events (public_id, name, event_date, place, details, rsvp_deadline, created_by_admin_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)')->execute([$publicId, $name, $date, $place, $details, $deadline, $actorId, $now, $now]);
             $eventId = (int) $this->pdo->lastInsertId();
             // Every active medium is invited at once: those with an account see it in their portal and
             // confirm; the rest are marked by coordination. Contract is pre-filled from the record.
@@ -739,13 +746,13 @@ final class MediaRepository
             $this->rollBack();
             throw $error;
         }
-        return ['public_id' => $publicId, 'name' => $name, 'event_date' => $date, 'place' => $place, 'details' => $details, 'created_at' => $now, 'coverage_count' => $count];
+        return ['public_id' => $publicId, 'name' => $name, 'event_date' => $date, 'place' => $place, 'details' => $details, 'rsvp_deadline' => self::deadlineOut($deadline), 'created_at' => $now, 'coverage_count' => $count];
     }
 
     private function eventRow(string $publicId): array
     {
         if (preg_match('/^[a-f0-9]{32}$/D', $publicId) !== 1) throw new InvalidArgumentException();
-        $query = $this->pdo->prepare('SELECT id, public_id, name, event_date, place, details FROM media_events WHERE public_id = ?');
+        $query = $this->pdo->prepare('SELECT id, public_id, name, event_date, place, details, rsvp_deadline FROM media_events WHERE public_id = ?');
         $query->execute([$publicId]);
         $row = $query->fetch();
         if ($row === false) throw new OutOfBoundsException();
@@ -759,10 +766,10 @@ final class MediaRepository
     public function publicEvent(mixed $publicId): ?array
     {
         if (!is_string($publicId) || preg_match('/^[a-f0-9]{32}$/D', $publicId) !== 1) return null;
-        $query = $this->pdo->prepare('SELECT public_id, name, event_date, place, details FROM media_events WHERE public_id = ?');
+        $query = $this->pdo->prepare('SELECT public_id, name, event_date, place, details, rsvp_deadline FROM media_events WHERE public_id = ?');
         $query->execute([$publicId]);
         $row = $query->fetch();
-        return $row === false ? null : ['public_id' => $row['public_id'], 'name' => $row['name'], 'event_date' => $row['event_date'], 'place' => (string) $row['place'], 'details' => (string) $row['details']];
+        return $row === false ? null : ['public_id' => $row['public_id'], 'name' => $row['name'], 'event_date' => $row['event_date'], 'place' => (string) $row['place'], 'details' => (string) $row['details'], 'rsvp_deadline' => self::deadlineOut($row['rsvp_deadline'] ?? null)];
     }
 
     /** The medium registers its arrival on the day of the event; this is what marks attendance. */
@@ -796,7 +803,7 @@ final class MediaRepository
     public function coverageForEvent(string $eventPublicId): array
     {
         $event = $this->eventRow($eventPublicId);
-        $rows = $this->pdo->prepare('SELECT p.public_id, p.media_name, p.media_types, p.frequency_channel, p.city, p.origin, p.account_id, p.paid_media, p.followers_validated, c.contracted, c.result, c.people_count, c.links, c.note, c.confirmation, c.confirmed_at, c.attended, c.checked_in_at, c.updated_at FROM media_event_coverage c JOIN media_profiles p ON p.id = c.profile_id WHERE c.event_id = ? AND p.status <> ? ORDER BY p.media_name');
+        $rows = $this->pdo->prepare('SELECT p.public_id, p.media_name, p.media_types, p.frequency_channel, p.city, p.origin, p.account_id, p.paid_media, p.followers_validated, c.contracted, c.result, c.people_count, c.links, c.note, c.confirmation, c.confirmed_at, c.attended, c.checked_in_at, c.updated_at, c.live_stream, c.live_channels, c.live_detail, c.conditions_at FROM media_event_coverage c JOIN media_profiles p ON p.id = c.profile_id WHERE c.event_id = ? AND p.status <> ? ORDER BY p.media_name');
         $rows->execute([$event['id'], self::ARCHIVED]);
         $items = array_map(static fn (array $row): array => [
             'public_id' => $row['public_id'], 'media_name' => $row['media_name'], 'media_types' => self::typeKeys((string) $row['media_types']), 'frequency_channel' => $row['frequency_channel'], 'city' => $row['city'],
@@ -805,8 +812,9 @@ final class MediaRepository
             'people_count' => (int) $row['people_count'], 'links' => json_decode((string) ($row['links'] ?? '') ?: '[]', true, 4) ?: [], 'note' => (string) ($row['note'] ?? ''),
             'confirmation' => in_array($row['confirmation'], self::ATTENDANCE, true) ? $row['confirmation'] : null, 'confirmed_at' => $row['confirmed_at'],
             'attended' => in_array($row['attended'], self::ATTENDANCE, true) ? $row['attended'] : null, 'checked_in_at' => $row['checked_in_at'], 'updated_at' => $row['updated_at'],
+            ...self::liveOut($row),
         ], $rows->fetchAll(PDO::FETCH_ASSOC));
-        return ['event' => ['public_id' => $event['public_id'], 'name' => $event['name'], 'event_date' => $event['event_date'], 'place' => (string) $event['place'], 'details' => (string) $event['details']],
+        return ['event' => ['public_id' => $event['public_id'], 'name' => $event['name'], 'event_date' => $event['event_date'], 'place' => (string) $event['place'], 'details' => (string) $event['details'], 'rsvp_deadline' => self::deadlineOut($event['rsvp_deadline'] ?? null)],
             'summary' => self::coverageSummary($items), 'items' => $items];
     }
 
@@ -828,6 +836,7 @@ final class MediaRepository
             'registrados' => ['label' => 'Se registraron con el QR', 'ids' => $bucket(static fn (array $item): bool => ($item['checked_in_at'] ?? null) !== null)],
             'no_asistieron' => ['label' => 'No asistieron', 'ids' => $bucket(static fn (array $item): bool => $item['attended'] !== 'yes')],
             'confirmaron' => ['label' => 'Confirmaron asistencia', 'ids' => $bucket(static fn (array $item): bool => $item['confirmation'] === 'yes')],
+            'en_vivo' => ['label' => 'Transmitirán en vivo', 'ids' => $bucket(static fn (array $item): bool => $item['confirmation'] === 'yes' && ($item['live_stream'] ?? null) === 'yes')],
             'no_confirmaron' => ['label' => 'Sin respuesta', 'ids' => $bucket(static fn (array $item): bool => $item['confirmation'] === null)],
         ];
     }
@@ -880,18 +889,27 @@ final class MediaRepository
         $profile->execute([$accountId, self::ARCHIVED]);
         $profileId = $profile->fetchColumn();
         if ($profileId === false) return [];
-        $rows = $this->pdo->prepare('SELECT e.public_id, e.name, e.event_date, e.place, e.details, c.confirmation, c.confirmed_at, c.attended, c.checked_in_at FROM media_event_coverage c JOIN media_events e ON e.id = c.event_id WHERE c.profile_id = ? ORDER BY e.event_date DESC, e.id DESC LIMIT 50');
-        $rows->execute([$profileId]);
+        // Its own invitations, plus any event still open for confirmation (a medium registered after the event was created).
+        $rows = $this->pdo->prepare('SELECT e.public_id, e.name, e.event_date, e.place, e.details, e.rsvp_deadline, c.confirmation, c.confirmed_at, c.attended, c.checked_in_at, c.live_stream, c.live_channels, c.live_detail, c.conditions_at FROM media_events e LEFT JOIN media_event_coverage c ON c.event_id = e.id AND c.profile_id = ? WHERE c.profile_id IS NOT NULL OR (e.rsvp_deadline IS NOT NULL AND e.rsvp_deadline > ?) ORDER BY e.event_date DESC, e.id DESC LIMIT 50');
+        $rows->execute([$profileId, gmdate('Y-m-d H:i:s', $this->clock())]);
+        $now = $this->clock();
         return array_map(static fn (array $row): array => ['public_id' => $row['public_id'], 'name' => $row['name'], 'event_date' => $row['event_date'], 'place' => (string) $row['place'], 'details' => (string) $row['details'],
             'confirmation' => in_array($row['confirmation'], self::ATTENDANCE, true) ? $row['confirmation'] : null, 'confirmed_at' => $row['confirmed_at'],
-            'attended' => in_array($row['attended'], self::ATTENDANCE, true) ? $row['attended'] : null, 'checked_in_at' => $row['checked_in_at']], $rows->fetchAll(PDO::FETCH_ASSOC));
+            'attended' => in_array($row['attended'], self::ATTENDANCE, true) ? $row['attended'] : null, 'checked_in_at' => $row['checked_in_at'],
+            'rsvp_deadline' => self::deadlineOut($row['rsvp_deadline'] ?? null), 'asks_live' => $row['rsvp_deadline'] !== null,
+            'rsvp_closed' => $row['rsvp_deadline'] !== null && $now >= strtotime($row['rsvp_deadline'] . ' UTC'),
+            ...self::liveOut($row)], $rows->fetchAll(PDO::FETCH_ASSOC));
     }
 
     /** The medium answers its own invitation. It may change the answer; coordination records attendance separately. */
-    public function confirmAttendance(int $accountId, string $eventPublicId, mixed $answer, string $ip): array
+    public function confirmAttendance(int $accountId, string $eventPublicId, mixed $answer, string $ip, array $details = []): array
     {
         if (!is_string($answer) || !in_array($answer, self::ATTENDANCE, true)) throw new InvalidArgumentException();
         $event = $this->eventRow($eventPublicId);
+        // Events with a deadline ask how the medium will broadcast, and close at that time.
+        $asks = ($event['rsvp_deadline'] ?? null) !== null;
+        if ($asks && $this->clock() >= strtotime($event['rsvp_deadline'] . ' UTC')) throw new MediaInvitationClosed();
+        $live = $asks && $answer === 'yes' ? self::liveIn($details) : ['live_stream' => null, 'live_channels' => null, 'live_detail' => null, 'conditions' => false];
         $this->begin();
         try {
             $profile = $this->pdo->prepare('SELECT id, public_id FROM media_profiles WHERE account_id = ? AND status <> ?' . $this->rowLock());
@@ -899,13 +917,15 @@ final class MediaRepository
             $row = $profile->fetch();
             if ($row === false) throw new Forbidden();
             $now = gmdate('Y-m-d H:i:s');
-            $update = $this->pdo->prepare('UPDATE media_event_coverage SET confirmation = ?, confirmed_at = ?, updated_at = ? WHERE event_id = ? AND profile_id = ?');
-            $update->execute([$answer, $now, $now, $event['id'], $row['id']]);
-            if ($update->rowCount() === 0) {
+            $exists = $this->pdo->prepare('SELECT 1 FROM media_event_coverage WHERE event_id = ? AND profile_id = ?');
+            $exists->execute([$event['id'], $row['id']]);
+            if ($exists->fetchColumn() === false) {
                 // The medium was registered after the event was created: it joins the invitation list now.
-                $this->pdo->prepare("INSERT INTO media_event_coverage (event_id, profile_id, contracted, result, people_count, links, note, confirmation, confirmed_at, updated_at) VALUES (?, ?, NULL, 'pendiente', 0, '[]', '', ?, ?, ?)")
-                    ->execute([$event['id'], $row['id'], $answer, $now, $now]);
+                $this->pdo->prepare("INSERT INTO media_event_coverage (event_id, profile_id, contracted, result, people_count, links, note, updated_at) VALUES (?, ?, NULL, 'pendiente', 0, '[]', '', ?)")
+                    ->execute([$event['id'], $row['id'], $now]);
             }
+            $this->pdo->prepare('UPDATE media_event_coverage SET confirmation = ?, confirmed_at = ?, live_stream = ?, live_channels = ?, live_detail = ?, conditions_at = ?, updated_at = ? WHERE event_id = ? AND profile_id = ?')
+                ->execute([$answer, $now, $live['live_stream'], $live['live_channels'], $live['live_detail'], $live['conditions'] ? $now : null, $now, $event['id'], $row['id']]);
             $this->audit->log('media.attendance_confirmed', null, 'media_profile', $row['public_id'], [], $ip);
             $this->commit();
         } catch (Throwable $error) {
@@ -913,6 +933,63 @@ final class MediaRepository
             throw $error;
         }
         return $this->invitationsForAccount($accountId);
+    }
+
+    private function clock(): int
+    {
+        return $this->now ?? time();
+    }
+
+    /** «2026-10-28T12:00» (hora de Ecuador) → «2026-10-28 17:00:00» UTC; vacío = sin plazo. */
+    private static function deadlineIn(mixed $value): ?string
+    {
+        if ($value === null || $value === '') return null;
+        if (!is_string($value) || preg_match('/^(\d{4})-(\d{2})-(\d{2})T([01]\d|2[0-3]):([0-5]\d)$/D', $value, $p) !== 1 || !checkdate((int) $p[2], (int) $p[3], (int) $p[1])) throw new InvalidArgumentException();
+        return gmdate('Y-m-d H:i:s', (int) gmmktime((int) $p[4] + 5, (int) $p[5], 0, (int) $p[2], (int) $p[3], (int) $p[1]));
+    }
+
+    /** UTC guardado → «2026-10-28T12:00:00-05:00». */
+    private static function deadlineOut(?string $value): ?string
+    {
+        if ($value === null || $value === '') return null;
+        return gmdate('Y-m-d\\TH:i:s', strtotime($value . ' UTC') - 5 * 3600) . '-05:00';
+    }
+
+    /** Lo que el medio responde sobre su transmisión en vivo al confirmar. */
+    private static function liveIn(array $details): array
+    {
+        if (($details['conditions'] ?? null) !== true) throw new InvalidArgumentException();
+        $stream = $details['live_stream'] ?? null;
+        if (!is_string($stream) || !in_array($stream, self::LIVE_STREAM, true)) throw new InvalidArgumentException();
+        $channels = [];
+        $detail = '';
+        if ($stream === 'yes') {
+            $list = $details['live_channels'] ?? null;
+            if (!is_array($list) || !array_is_list($list) || $list === [] || count($list) > 8) throw new InvalidArgumentException();
+            $needsDetail = false;
+            foreach ($list as $channel) {
+                if ($channel instanceof \stdClass) $channel = (array) $channel;
+                if (!is_array($channel) || !is_string($channel['platform'] ?? null) || !isset(self::LIVE_PLATFORMS[$channel['platform']])) throw new InvalidArgumentException();
+                $url = $channel['url'] ?? '';
+                if (!is_string($url)) throw new InvalidArgumentException();
+                $url = trim($url);
+                if (in_array($channel['platform'], ['radio', 'tv'], true)) { $needsDetail = true; $url = $url === '' ? '' : self::link($url, 500); }
+                else $url = self::link($url, 500);
+                $channels[] = ['platform' => $channel['platform'], 'url' => $url];
+            }
+            $raw = $details['live_detail'] ?? '';
+            if (!is_string($raw)) throw new InvalidArgumentException();
+            $detail = trim(preg_replace('/\s+/u', ' ', preg_replace('/\p{C}+/u', ' ', $raw) ?? '') ?? '');
+            if (self::length($detail) > 300 || ($needsDetail && self::length($detail) < 2)) throw new InvalidArgumentException();
+        }
+        return ['live_stream' => $stream, 'live_channels' => json_encode($channels, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES), 'live_detail' => $detail, 'conditions' => true];
+    }
+
+    private static function liveOut(array $row): array
+    {
+        $channels = json_decode((string) ($row['live_channels'] ?? '') ?: '[]', true, 4);
+        return ['live_stream' => in_array($row['live_stream'] ?? null, self::LIVE_STREAM, true) ? $row['live_stream'] : null,
+            'live_channels' => is_array($channels) ? $channels : [], 'live_detail' => (string) ($row['live_detail'] ?? ''), 'conditions_at' => $row['conditions_at'] ?? null];
     }
 
     private function coverageForProfile(int $profileId): array

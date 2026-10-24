@@ -19,7 +19,7 @@ export const inaugurationEventDefaults = Object.freeze({
   place: 'Complejo Intercultural y Deportivo Mushuc Runa · Santa Lucía, Tisaleo · Panamericana Sur km 12, vía Ambato–Riobamba',
   dressCode: '',
 });
-export const influencerInvitationVersion = '20261024-invitacion-16';
+export const influencerInvitationVersion = '20261024-invitacion-17';
 
 function shell(page, { api, body, kind, eventKey = 'guaynaa' }) {
   const connect = apiBasesForCsp(api);
@@ -446,4 +446,54 @@ ${inaugurationSignature}
 </section>
 ${inaugurationFinePrint}`;
   return shell(page, { api: pageApi(page), body, kind: 'vocero-acceso', eventKey: 'inauguracion' });
+}
+
+/** Hasta cuándo pueden confirmar los medios (hora de Ecuador). Debe coincidir con el plazo del evento en Medios → Eventos. */
+export const MEDIA_INAUGURATION_DEADLINE = '2026-10-28T12:00:00-05:00';
+
+/** Enlace para el grupo de medios: la invitación, las indicaciones y el camino para confirmar desde la cuenta del medio. */
+export function renderInaugurationMediaPage(page) {
+  const body = `<header class="inv-hero inv-opening-hero">
+${inaugurationVisual()}
+<p class="inv-eyebrow">Invitación para medios de comunicación</p>
+<h1 class="inv-title"><span class="inv-name">Medios de comunicación,</span><span>los esperamos en la inauguración.</span></h1>
+<p class="inv-lead">Acompáñennos en la Inauguración Oficial de Finados Mushuc Runa 2026 y cuenten desde adentro el inicio de esta tradición.</p>
+<p class="inv-story">Para acreditarse, confirmen su asistencia desde la cuenta de su medio y cuéntennos si transmitirán en vivo.</p>
+<p class="inv-gate-jump"><a class="inv-yes" href="#confirmar">Confirmar asistencia</a></p>
+</header>
+<section class="inv-deadline" data-deadline data-deadline-at="${MEDIA_INAUGURATION_DEADLINE}" aria-labelledby="inv-media-deadline-title">
+<p class="inv-deadline__label" id="inv-media-deadline-title" data-deadline-label>Confirma tu asistencia hasta el</p>
+<p class="inv-deadline__date"><time datetime="${MEDIA_INAUGURATION_DEADLINE}">Miércoles 28 de octubre · 12:00</time></p>
+<div class="inv-deadline__clock" data-deadline-clock role="timer" aria-label="Tiempo que queda para confirmar">
+<span><b data-deadline-days>--</b><small>días</small></span><span><b data-deadline-hours>--</b><small>horas</small></span><span><b data-deadline-minutes>--</b><small>min</small></span><span><b data-deadline-seconds>--</b><small>seg</small></span>
+</div>
+<p class="inv-deadline__note" data-deadline-note>Con su confirmación armamos la lista de medios acreditados para la inauguración.</p>
+</section>
+${inaugurationEventCard}
+<section class="inv-radar inv-radar--opening inv-media-rules" aria-labelledby="inv-media-rules-title">
+<p class="inv-kicker"><span class="inv-eq" aria-hidden="true"><i></i><i></i><i></i></span>Indicaciones para la cobertura</p>
+<h2 id="inv-media-rules-title">Antes de venir</h2>
+<ul>
+<li><strong>Máximo 3 personas por medio</strong>, con su nombre y cargo (periodista, camarógrafo o fotógrafo).</li>
+<li>Tengan a mano el <strong>WhatsApp de la persona responsable</strong> del medio ese día, para coordinar con ustedes.</li>
+<li>Al llegar, <strong>registren su llegada con el código QR</strong> de la acreditación de medios.</li>
+<li>Respeten las zonas de prensa, los horarios y las indicaciones del personal de la organización.</li>
+</ul>
+</section>
+<section id="confirmar" class="inv-rsvp inv-rsvp--opening inv-gate" aria-labelledby="inv-media-confirm-title">
+<p class="inv-kicker"><span class="inv-eq" aria-hidden="true"><i></i><i></i><i></i></span>Acreditación</p>
+<h2 id="inv-media-confirm-title">Confirma la asistencia de tu medio</h2>
+<ol class="inv-video__steps inv-media-steps">
+<li><b>1</b>Inicia sesión con la cuenta de tu medio, o créala si todavía no la tienes.</li>
+<li><b>2</b>Si es tu primera vez, completa y guarda el registro de tu medio.</li>
+<li><b>3</b>En «Invitaciones · Eventos de la feria», busca la Inauguración y pulsa «Confirmo mi asistencia».</li>
+<li><b>4</b>Cuéntanos si transmitirán en vivo y en qué páginas, acepta las condiciones y envía.</li>
+</ol>
+<div class="inv-media-actions">
+<a class="inv-yes" href="/finados/medios/acceso/?modo=login">Ya tengo cuenta · Iniciar sesión</a>
+<a class="inv-no" href="/finados/medios/acceso/">Crear la cuenta de mi medio</a>
+</div>
+</section>
+${inaugurationSignature}`;
+  return shell(page, { api: pageApi(page), body, kind: 'medios', eventKey: 'inauguracion' });
 }

@@ -1654,9 +1654,12 @@ final class Router
             if ($method !== 'POST') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
             if (!$this->config->isAllowedOrigin($origin) || !$validIp || $query !== []) throw new Forbidden();
             $this->mediaAuth()->verifyCsrf($token);
-            $body = $this->body($server, $rawBody, ['event', 'answer']);
+            $body = $this->body($server, $rawBody, ['event', 'answer', 'live_stream', 'live_channels', 'live_detail', 'conditions']);
             if (!is_string($body['event'] ?? null)) throw new InvalidArgumentException();
-            return $this->json(200, ['ok' => true, 'events' => $this->media()->confirmAttendance($user['id'], $body['event'], $body['answer'] ?? null, $ip)], $headers);
+            $details = array_intersect_key($body, array_flip(['live_stream', 'live_channels', 'live_detail', 'conditions']));
+            try { $events = $this->media()->confirmAttendance($user['id'], $body['event'], $body['answer'] ?? null, $ip, $details); }
+            catch (MediaInvitationClosed) { return $this->error(410, 'invitation_closed', 'El plazo para confirmar la asistencia a este evento ya terminó.', $headers); }
+            return $this->json(200, ['ok' => true, 'events' => $events], $headers);
         }
         if ($path === '/api/media/claim') {
             $user = $this->mediaAuth()->requireUser();
@@ -1748,7 +1751,7 @@ final class Router
             if ($query !== []) throw new InvalidArgumentException();
             if ($method === 'GET') return $this->json(200, ['items' => $this->media()->listEvents()], $headers);
             if ($method !== 'POST') return $notAllowed();
-            return $this->json(201, ['ok' => true, 'event' => $this->media()->createEvent($this->body($server, $rawBody, ['name', 'event_date', 'place', 'details']), $user['id'], $ip)], $headers);
+            return $this->json(201, ['ok' => true, 'event' => $this->media()->createEvent($this->body($server, $rawBody, ['name', 'event_date', 'place', 'details', 'rsvp_deadline']), $user['id'], $ip)], $headers);
         }
         if (preg_match('~^/api/media-events/([a-f0-9]{32})$~D', $path, $parts)) {
             if ($method !== 'GET') return $notAllowed();

@@ -32,11 +32,11 @@ test('el build publica el submenú Eventos de Medios, el alta desde coordinació
   assert.match(events, /name="place"/);
   assert.match(events, /name="details"/);
   assert.match(events, /Crear evento e invitar a todos/);
-  assert.match(events, /<th scope="col">Confirmó<\/th><th scope="col">Asistió<\/th><th scope="col">Link<\/th>/);
+  assert.match(events, /<th scope="col">Confirmó<\/th><th scope="col">En vivo<\/th><th scope="col">Asistió<\/th><th scope="col">Link<\/th>/);
   assert.match(events, /Marca el check de «Asistió»/);
   // La tabla es ancha: se desplaza sola en escritorio y se apila en móvil.
   assert.match(events, /class="admin-coverage-scroll"/);
-  assert.equal((events.match(/<th scope="col">/g) ?? []).length, 10, 'la tabla conserva sus diez columnas');
+  assert.equal((events.match(/<th scope="col">/g) ?? []).length, 11, 'la tabla conserva sus once columnas (con «En vivo»)');
   // Acreditación: enlace y QR del evento para imprimir o compartir.
   assert.match(events, /data-accreditation-url/);
   assert.match(events, /<canvas data-accreditation-qr/);
@@ -58,7 +58,7 @@ test('el build publica el submenú Eventos de Medios, el alta desde coordinació
   assert.match(admin, /<textarea name="tv_channel"/);
   assert.match(admin, /name="audience_count"/);
   assert.match(admin, /<select name="radio_genre">/);
-  assert.match(admin, /admin-medios\.js\?v=20261001-mapa-4/);
+  assert.match(admin, /admin-medios\.js\?v=20261024-medios-envivo-1/);
   // Portal: invitation notice on access, suggestion and pending-claim notices on the profile.
   const access = await readFile(join(output, 'finados/medios/acceso/index.html'), 'utf8');
   assert.match(access, /data-media-invitation hidden/);
@@ -69,7 +69,7 @@ test('el build publica el submenú Eventos de Medios, el alta desde coordinació
   assert.match(profile, /data-media-claim hidden/);
   assert.match(profile, /data-media-events hidden/);
   assert.match(profile, /data-media-events-list/);
-  assert.match(profile, /media-portal\.js\?v=20260923-medios-13/);
+  assert.match(profile, /media-portal\.js\?v=20261024-medios-envivo-1/);
   // Voceros and Emprendedores untouched by the Medios change.
   assert.doesNotMatch(await readFile(join(output, 'finados/voceros/mi-registro/index.html'), 'utf8'), /data-media-lookup|data-media-claim/);
   assert.doesNotMatch(await readFile(join(output, 'admin/emprendedores/index.html'), 'utf8'), /data-admin-medios-eventos|data-record-dialog/);
