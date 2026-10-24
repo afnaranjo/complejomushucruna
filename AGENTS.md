@@ -2391,3 +2391,11 @@ Nota de relevo escrita a pedido de Alex para que otro agente (Codex) retome la s
 - Resultado verificado en solo lectura: 96 invitados con 96 enlaces únicos, 90 con WhatsApp; las 6 sin número son las 5 creadoras y un creador sin número registrado. Tres creadores comparten un mismo número y quedaron como invitaciones separadas. Los invitados de Guaynaa no cambiaron.
 - La lista (PDF y CSV, con números y enlaces) se entregó solo en `~/Downloads` de Alex; no se versiona por contener datos personales. Las copias temporales se borraron.
 - Pendiente: enviar el masivo antes del cierre del lunes 26 a las 09:00 y conseguir los números de las 6 personas que no lo tienen.
+
+### 2026-10-24 — Voceros agregados a la invitación de inauguración
+
+- Alex pidió incluir también a los voceros de `/admin/voceros/`. Con su pedido se crearon 129 invitaciones `vocero` en el evento `inauguracion` para los voceros en estado Aprobado o Nuevo (los 5 Eliminado quedan fuera): versión «apoyo» si tienen al menos un video enviado y «registro» si no. Simulación previa; una segunda corrida no crea nada.
+- Se omitieron 6 voceros que ya estaban invitados como creadores con el mismo nombre. Al revisar, otros 10 coincidían con un creador por número de WhatsApp (misma persona con el nombre escrito distinto). Sus invitaciones de vocero, recién creadas y sin abrir, se retiraron con `archive` (reversible, sin borrar) para que nadie reciba dos.
+- Total verificado en solo lectura: 215 invitados activos (96 creadores, 119 voceros: 31 «apoyo» y 88 «registro»), todos con enlace único. Un vocero es menor de edad: en la lista figura el contacto de su representante.
+- Listas en PDF y CSV (voceros y lista completa) entregadas solo en `~/Downloads`; no se versionan por contener datos personales. Las copias temporales se borraron.
+- Riesgo: la versión «registro» dice «Esta será tu primera vez en la feria», que puede no ser cierto para muchos voceros; se propuso corregir el texto antes del masivo.
