@@ -208,6 +208,7 @@ export function createInvitationClient(baseUrl = API, fetchImplementation = glob
     if (!response.ok) {
       const error = new Error(({
         404: 'Este enlace de invitación no está disponible. Escríbenos para enviarte uno nuevo.',
+        410: 'El plazo para confirmar terminó el lunes 26 de octubre a las 9:00. Si necesitas ayuda, escríbenos.',
         422: 'Revisa los datos e intenta de nuevo.',
         429: 'Recibimos varios registros seguidos. Espera unos minutos e intenta de nuevo.',
       })[response.status] ?? 'No se pudo completar. Intenta de nuevo en un momento.');
@@ -257,11 +258,58 @@ function paintOpeningNarrative(eventKey, variant) {
   }
 }
 
+/** Días, horas, minutos y segundos que faltan para el cierre; closed cuando ya pasó. */
+export function deadlineParts(deadline, now = Date.now()) {
+  const end = Date.parse(deadline);
+  if (Number.isNaN(end)) return null;
+  const left = Math.max(0, Math.floor((end - now) / 1000));
+  return { closed: left === 0, days: Math.floor(left / 86400), hours: Math.floor(left / 3600) % 24, minutes: Math.floor(left / 60) % 60, seconds: left % 60 };
+}
+
+/** Contador del plazo para confirmar. Al llegar a cero cierra los botones; el servidor también rechaza respuestas tardías. */
+function startDeadline(onClose = () => {}) {
+  const box = document.querySelector('[data-deadline]');
+  if (!box) return { closed: () => false, close: () => {} };
+  let closed = false;
+  const close = () => {
+    if (closed) return;
+    closed = true;
+    clearInterval(timer);
+    box.dataset.closed = 'true';
+    box.querySelector('[data-deadline-label]').textContent = 'El plazo para confirmar terminó el';
+    box.querySelector('[data-deadline-clock]').hidden = true;
+    box.querySelector('[data-deadline-note]').textContent = 'Ya cerramos el listado de invitados. Gracias por tu interés en acompañarnos.';
+    const inline = document.querySelector('[data-deadline-inline]');
+    if (inline) inline.innerHTML = 'El plazo para confirmar terminó el <strong>lunes 26 de octubre a las 9:00</strong>.';
+    onClose();
+  };
+  const two = value => String(value).padStart(2, '0');
+  const tick = () => {
+    const parts = deadlineParts(box.dataset.deadlineAt);
+    if (!parts) return;
+    if (parts.closed) { close(); return; }
+    box.querySelector('[data-deadline-days]').textContent = String(parts.days);
+    box.querySelector('[data-deadline-hours]').textContent = two(parts.hours);
+    box.querySelector('[data-deadline-minutes]').textContent = two(parts.minutes);
+    box.querySelector('[data-deadline-seconds]').textContent = two(parts.seconds);
+    box.dataset.urgent = String(parts.days === 0);
+  };
+  const timer = setInterval(tick, 1000);
+  tick();
+  return { closed: () => closed, close };
+}
+
 async function startPersonal(client, eventKey = 'guaynaa') {
   const paths = invitationPaths(eventKey);
   const status = document.querySelector('[data-status]');
   const choices = document.querySelector('[data-choices]');
   const buttons = [...choices.querySelectorAll('[data-answer]')];
+  const deadline = startDeadline(() => {
+    choices.hidden = true;
+    status.textContent = 'El plazo para confirmar terminó. Si ya confirmaste, tu lugar sigue reservado.';
+    status.dataset.error = 'false';
+    for (const link of document.querySelectorAll('.inv-change a[href="#respuesta"]')) link.hidden = true;
+  });
   if (isPreview(location.search)) {
     paintOpeningNarrative(eventKey, resolveInvitationVariant({ eventKey, search: location.search, preview: true }));
     client.event().then(data => paintEvent(data?.event)).catch(() => {});
@@ -291,6 +339,8 @@ async function startPersonal(client, eventKey = 'guaynaa') {
     document.title = `${name}, te invitamos | Finados Mushuc Runa 2026`;
     choices.hidden = false;
     mark(data.guest.response);
+    if (data.event?.rsvp_closed === true) deadline.close();
+    else if (deadline.closed()) choices.hidden = true;
     const badgeLink = document.querySelector('[data-badge-link]');
     if (badgeLink && data.guest.badge) { badgeLink.querySelector('a').href = badgePath(token, eventKey); badgeLink.hidden = false; }
     if (data.guest.response === 'si') showConfirmed(client, token, data, eventKey);
@@ -305,6 +355,7 @@ async function startPersonal(client, eventKey = 'guaynaa') {
         if (eventKey === 'guaynaa') location.assign(THANKS_PATH);
         else location.assign(paths.thanks);
       } catch (error) {
+        if (error.status === 410) { deadline.close(); status.textContent = error.message; return; }
         status.textContent = error.message; status.dataset.error = 'true';
         buttons.forEach(item => { item.disabled = false; });
       }

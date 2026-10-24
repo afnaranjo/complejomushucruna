@@ -14,8 +14,14 @@ use PDO;
  *  - «Nuevos creadores»: un enlace general; la persona deja sus datos, confirma y coordinación la aprueba.
  * Nada se borra: retirar una invitación la archiva y conserva su respuesta.
  */
+/** El plazo para confirmar ya terminó: la respuesta no se guarda. */
+final class InvitationClosed extends \RuntimeException {}
+
 final class InfluencerRepository
 {
+    /** Hasta cuándo se puede confirmar cada evento (UTC). La inauguración cierra el lunes 26 de octubre a las 09:00 de Ecuador. */
+    public const RSVP_DEADLINES = ['inauguracion' => '2026-10-26 14:00:00'];
+
     public const DEFAULT_EVENT = 'guaynaa';
     public const KINDS = ['creador', 'nuevo', 'vocero'];
     public const MESSAGE_VARIANTS = ['apoyo', 'registro'];
@@ -30,7 +36,21 @@ final class InfluencerRepository
     public const TOKEN_PATTERN = '/^(?:[a-f0-9]{32}|[a-hjkmnp-z2-9]{10})$/D';
     private const TOKEN_ALPHABET = 'abcdefghjkmnpqrstuvwxyz23456789';
 
-    public function __construct(private readonly PDO $pdo, private readonly Crypto $crypto, private readonly Audit $audit) {}
+    /** $now permite fijar el reloj en las pruebas; en producción es la hora actual. */
+    public function __construct(private readonly PDO $pdo, private readonly Crypto $crypto, private readonly Audit $audit, private readonly ?int $now = null) {}
+
+    /** «2026-10-26T09:00:00-05:00» para mostrar el contador; null si el evento no tiene plazo. */
+    public static function rsvpDeadline(string $slug): ?string
+    {
+        $deadline = self::RSVP_DEADLINES[$slug] ?? null;
+        return $deadline === null ? null : gmdate('Y-m-d\\TH:i:s', strtotime($deadline . ' UTC') - 5 * 3600) . '-05:00';
+    }
+
+    private function rsvpClosed(string $slug): bool
+    {
+        $deadline = self::RSVP_DEADLINES[$slug] ?? null;
+        return $deadline !== null && ($this->now ?? time()) >= strtotime($deadline . ' UTC');
+    }
 
     /* ---------- Evento ---------- */
 
@@ -40,6 +60,7 @@ final class InfluencerRepository
         return [
             'slug' => (string) $row['slug'], 'title' => (string) $row['title'], 'date' => substr((string) $row['event_date'], 0, 10), 'time' => (string) $row['event_time'],
             'place' => (string) $row['place'], 'details' => (string) $row['details'],
+            'rsvp_deadline' => self::rsvpDeadline((string) $row['slug']), 'rsvp_closed' => $this->rsvpClosed((string) $row['slug']),
         ];
     }
 
@@ -193,6 +214,7 @@ final class InfluencerRepository
     {
         if (!in_array($response, ['si', 'no'], true)) throw new InvalidArgumentException();
         $row = $this->byToken($token, $eventSlug);
+        if ($this->rsvpClosed((string) $row['event_slug'])) throw new InvitationClosed();
         $now = gmdate('Y-m-d H:i:s');
         $this->pdo->prepare('UPDATE influencer_guests SET response = ?, responded_at = ?, opened_at = COALESCE(opened_at, ?), updated_at = ? WHERE id = ?')
             ->execute([$response, $now, $now, $now, (int) $row['id']]);

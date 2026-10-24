@@ -373,3 +373,19 @@ body.inv--inauguracion::before {
 .inv-terms p { margin: 0; line-height: 1.6; }
 .inv-terms a { color: #4921ad; font-weight: 700; }
 .inv--inauguracion .inv-perks--opening { padding-bottom: 2.4rem; }
+
+/* Plazo para confirmar: contador grande, imposible de pasar por alto. */
+.inv-deadline { margin: 0 0 1.6rem; padding: 1.2rem 1rem 1.1rem; color: #fff; text-align: center; background: #ff2b86; filter: drop-shadow(.5rem .6rem 0 #4921ad); clip-path: polygon(0 2%, 100% 0, 98% 100%, 2% 97%); }
+.inv-deadline__label { margin: 0; font: 800 .78rem/1.2 Inter, sans-serif; letter-spacing: .16em; text-transform: uppercase; }
+.inv-deadline__date { margin: .25rem 0 .8rem; font-family: "Anton", sans-serif; font-size: clamp(1.7rem, 7.5vw, 2.4rem); line-height: 1; text-transform: uppercase; color: #ffe27a; }
+.inv-deadline__clock { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .45rem; max-width: 24rem; margin: 0 auto; }
+.inv-deadline__clock span { display: grid; gap: .15rem; padding: .55rem .2rem; background: #fff; color: #4921ad; }
+.inv-deadline__clock b { font-family: "Anton", sans-serif; font-weight: 400; font-size: clamp(1.7rem, 8vw, 2.4rem); line-height: 1; font-variant-numeric: tabular-nums; }
+.inv-deadline__clock small { font: 700 .66rem/1 Inter, sans-serif; letter-spacing: .1em; text-transform: uppercase; }
+.inv-deadline__note { margin: .8rem auto 0; max-width: 26rem; font: 600 .86rem/1.45 Inter, sans-serif; }
+.inv-deadline[data-urgent="true"] .inv-deadline__clock span { animation: inv-deadline-pulse 1.6s ease-in-out infinite; }
+.inv-deadline[data-closed="true"] { background: #4921ad; filter: drop-shadow(.5rem .6rem 0 #ff2b86); }
+@keyframes inv-deadline-pulse { 50% { transform: scale(1.04); } }
+@media (prefers-reduced-motion: reduce) { .inv-deadline[data-urgent="true"] .inv-deadline__clock span { animation: none; } }
+.inv-rsvp-deadline { margin: 0 0 .8rem; padding: .55rem .8rem; color: #fff; background: #4921ad; font-size: .9rem; text-align: center; }
+.inv-rsvp-deadline strong { color: #ffe27a; }

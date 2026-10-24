@@ -8,6 +8,10 @@ use Finados\Auth;
 use Finados\Config;
 use Finados\Database;
 use Finados\Router;
+use Finados\Crypto;
+use Finados\Audit;
+use Finados\InfluencerRepository;
+use Finados\InvitationClosed;
 
 $root = tempnam(sys_get_temp_dir(), 'finados-influencers-');
 if ($root === false || !unlink($root) || !mkdir($root, 0700)) throw new RuntimeException('Unable to create influencer test root.');
@@ -85,6 +89,18 @@ same('si', $decode($router->handle('POST', '/api/invitacion/inauguracion/c/' . $
 $consent = $pdo->prepare('SELECT consent_at FROM influencer_guests WHERE public_id = ?');
 $consent->execute([$inaugurationVocero['public_id']]);
 same(true, $consent->fetchColumn() !== null, 'la aceptación de condiciones queda registrada');
+// El plazo para confirmar la inauguración cierra el lunes 26 de octubre a las 09:00 de Ecuador.
+same('2026-10-26T09:00:00-05:00', $decode($router->handle('GET', '/api/invitacion/inauguracion/evento', $origin))['event']['rsvp_deadline']);
+$clockCrypto = new Crypto($config);
+$beforeClose = new InfluencerRepository($pdo, $clockCrypto, new Audit($pdo, $clockCrypto), strtotime('2026-10-26 13:59:59 UTC'));
+same('no', $beforeClose->respond($inaugurationVocero['invite_token'], 'no', '192.0.2.81', 'inauguracion')['response']);
+$afterClose = new InfluencerRepository($pdo, $clockCrypto, new Audit($pdo, $clockCrypto), strtotime('2026-10-26 14:00:00 UTC'));
+same(true, $afterClose->event('inauguracion')['rsvp_closed']);
+$closedError = null;
+try { $afterClose->respond($inaugurationVocero['invite_token'], 'si', '192.0.2.81', 'inauguracion'); } catch (InvitationClosed $error) { $closedError = $error; }
+same(true, $closedError instanceof InvitationClosed, 'después del plazo no se aceptan respuestas');
+same(null, $afterClose->event('guaynaa')['rsvp_deadline']);
+$beforeClose->respond($inaugurationVocero['invite_token'], 'si', '192.0.2.81', 'inauguracion');
 $decode($send('PATCH', '/api/influencers/' . $inaugurationVocero['public_id'], ['social_link' => 'vocera.inauguracion']));
 $inaugurationBadge = $decode($router->handle('GET', '/api/invitacion/inauguracion/gafete/' . $inaugurationVocero['invite_token'], $origin));
 same(['inauguracion', true], [$inaugurationBadge['event']['slug'], $inaugurationBadge['ready']]);

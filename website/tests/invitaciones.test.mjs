@@ -159,3 +159,16 @@ test('la invitación de inauguración ofrece tren, break y entradas Arena, con c
   assert.match(termsHtml, /noindex/);
   assert.match(termsHtml, /data-invitation="condiciones"/);
 });
+
+test('la inauguración muestra el plazo para confirmar con un contador que cierra a la hora exacta', async () => {
+  const { deadlineParts } = await import('../src/finados/influencer-invitation.js');
+  const page = pages.find(item => item.route === '/finados/invitacion/inauguracion/');
+  const html = page.render(page);
+  assert.match(html, /data-deadline-at="2026-10-26T09:00:00-05:00"/);
+  assert.match(html, /Lunes 26 de octubre · 9:00/);
+  assert.match(html, /Tienes hasta el <strong>lunes 26 de octubre a las 9:00<\/strong> para confirmar/);
+  const deadline = '2026-10-26T09:00:00-05:00';
+  assert.deepEqual(deadlineParts(deadline, Date.parse('2026-10-24T09:00:00-05:00')), { closed: false, days: 2, hours: 0, minutes: 0, seconds: 0 });
+  assert.deepEqual(deadlineParts(deadline, Date.parse('2026-10-26T08:59:59-05:00')), { closed: false, days: 0, hours: 0, minutes: 0, seconds: 1 });
+  assert.equal(deadlineParts(deadline, Date.parse('2026-10-26T09:00:00-05:00')).closed, true);
+});

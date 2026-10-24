@@ -2371,3 +2371,10 @@ Nota de relevo escrita a pedido de Alex para que otro agente (Codex) retome la s
 - Alex autorizó con «sí, publícala». El primer intento se detuvo antes de escribir nada porque la carpeta sin versionar `output/` (seis PDF de planes de cobertura de otra sesión) dejaba `main` sucia; se movió sin borrar a `~/Downloads/output-planes-cobertura-20261024/`.
 - Backend (`InfluencerRepository` con la aceptación al responder «sí») y luego frontend publicados desde `main` sincronizada, con respaldo previo, sin migraciones y sin borrar archivos exclusivos del servidor. `backend:deploy` terminó con «Operación backend completada» y `deploy` con «Despliegue verificado».
 - Verificación por el espejo: invitación, condiciones, foto del tren y Voceros en 200; la invitación entrega «entradas Arena», «Aplican restricciones» y la caché `20261024-invitacion-11`; HTML, CSS y JS idénticos al build por SHA-256; API `health` 200. No se crearon invitados ni se modificaron datos.
+
+### 2026-10-24 — Plazo con contador para confirmar la inauguración
+
+- Alex pidió un cronómetro visible: solo se puede confirmar asistencia a la inauguración hasta el lunes 26 de octubre a las 09:00 (Ecuador), porque con eso entrega el listado.
+- Invitación: bloque fucsia debajo del saludo, «Confirma tu asistencia hasta el lunes 26 de octubre · 9:00», con días, horas, minutos y segundos que bajan en vivo y laten el último día; recordatorio sobre los botones. Al llegar a cero el bloque pasa a «El plazo para confirmar terminó», los botones desaparecen y quien ya confirmó conserva su gafete.
+- Backend: `InfluencerRepository::RSVP_DEADLINES` (`inauguracion` → `2026-10-26 14:00:00` UTC). El evento expone `rsvp_deadline` y `rsvp_closed`; responder después del cierre devuelve 410 `invitation_closed`, aunque la página siga abierta. Guaynaa no tiene plazo. El panel puede seguir registrando respuestas a mano. Sin migraciones. Caché `20261024-invitacion-12`.
+- QA: `npm run check` en verde (301 Node, PHP con el cierre a las 13:59:59 y 14:00:00 UTC, 11 integración; 294 archivos).

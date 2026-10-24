@@ -685,7 +685,9 @@ final class Router
             if ($method === 'GET') return $this->json(200, ['ok' => true, ...$repository->openInvitation($parts[1], $eventSlug)], $headers);
             if ($method !== 'POST') return $notAllowed();
             $body = $this->body($server, $rawBody, ['response']);
-            return $this->json(200, ['ok' => true, 'guest' => $repository->respond($parts[1], $body['response'] ?? null, (string) $ip, $eventSlug)], $headers);
+            try { $guest = $repository->respond($parts[1], $body['response'] ?? null, (string) $ip, $eventSlug); }
+            catch (InvitationClosed) { return $this->error(410, 'invitation_closed', 'El plazo para confirmar la asistencia ya terminó.', $headers); }
+            return $this->json(200, ['ok' => true, 'guest' => $guest], $headers);
         }
         return $this->error(404, 'not_found', 'Recurso no encontrado.', $headers);
     }

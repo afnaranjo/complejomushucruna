@@ -19,7 +19,7 @@ export const inaugurationEventDefaults = Object.freeze({
   place: 'Complejo Intercultural y Deportivo Mushuc Runa · Santa Lucía, Tisaleo · Panamericana Sur km 12, vía Ambato–Riobamba',
   dressCode: '',
 });
-export const influencerInvitationVersion = '20261024-invitacion-11';
+export const influencerInvitationVersion = '20261024-invitacion-12';
 
 function shell(page, { api, body, kind, eventKey = 'guaynaa' }) {
   const connect = apiBasesForCsp(api);
@@ -284,6 +284,18 @@ export const INAUGURATION_TERMS_PATH = '/finados/invitacion/inauguracion/condici
 /** Versión del texto de condiciones que acepta quien confirma; súbela si cambia el contenido. */
 export const INAUGURATION_TERMS_VERSION = '2026-10-24';
 
+/** Hasta cuándo se puede confirmar (hora de Ecuador). Debe coincidir con InfluencerRepository::RSVP_DEADLINES. */
+export const INAUGURATION_RSVP_DEADLINE = '2026-10-26T09:00:00-05:00';
+
+const inaugurationDeadline = `<section class="inv-deadline" data-deadline data-deadline-at="${INAUGURATION_RSVP_DEADLINE}" aria-labelledby="inv-deadline-title">
+<p class="inv-deadline__label" id="inv-deadline-title" data-deadline-label>Confirma tu asistencia hasta el</p>
+<p class="inv-deadline__date"><time datetime="${INAUGURATION_RSVP_DEADLINE}">Lunes 26 de octubre · 9:00</time></p>
+<div class="inv-deadline__clock" data-deadline-clock role="timer" aria-label="Tiempo que queda para confirmar">
+<span><b data-deadline-days>--</b><small>días</small></span><span><b data-deadline-hours>--</b><small>horas</small></span><span><b data-deadline-minutes>--</b><small>min</small></span><span><b data-deadline-seconds>--</b><small>seg</small></span>
+</div>
+<p class="inv-deadline__note" data-deadline-note>Con tu confirmación armamos el listado oficial de invitados. Después de esa hora ya no podremos incluirte.</p>
+</section>`;
+
 const inaugurationFinePrint = `<p class="inv-fineprint">Invitación personal e intransferible. Actividades, horarios, recorrido en tren, break y entradas sujetos a cambios y a disponibilidad. Aplican restricciones. <a href="${INAUGURATION_TERMS_PATH}" target="_blank" rel="noopener">Ver condiciones</a>.</p>`;
 
 const inaugurationSignature = `<footer class="inv-opening-signature"><span>Atentamente,</span><strong>Ab. Luis Alfonso Chango</strong><small>Mentalizador Feria Finados Mushuc Runa</small></footer>`;
@@ -314,6 +326,7 @@ ${inaugurationVisual()}
 <p class="inv-lead" data-opening-lead>${esc(narrative.lead)}</p>
 <p class="inv-story" data-opening-story>${esc(narrative.story)}</p>
 </header>
+${inaugurationDeadline}
 ${inaugurationConfirmed}
 <section class="inv-radar inv-radar--opening" aria-labelledby="inv-opening-story-title">
 <p class="inv-kicker"><span class="inv-eq" aria-hidden="true"><i></i><i></i><i></i></span>¡Legado que nos une!</p>
@@ -327,6 +340,7 @@ ${inaugurationSignature}
 <section id="respuesta" class="inv-rsvp inv-rsvp--opening" aria-labelledby="inv-rsvp-title">
 <p class="inv-kicker"><span class="inv-eq" aria-hidden="true"><i></i><i></i><i></i></span>Reserva tu lugar</p>
 <h2 id="inv-rsvp-title">¿Nos acompañas?</h2>
+<p class="inv-rsvp-deadline" data-deadline-inline>Tienes hasta el <strong>lunes 26 de octubre a las 9:00</strong> para confirmar.</p>
 <p class="inv-status" data-status role="status" aria-live="polite">Abriendo tu invitación…</p>
 <p class="inv-accept">Al confirmar «Sí, ahí estaré» aceptas las <a href="${INAUGURATION_TERMS_PATH}" target="_blank" rel="noopener">condiciones de la invitación</a>, incluida la autorización de uso de tu imagen captada durante la inauguración.</p>
 <div class="inv-choices" data-choices hidden><button type="button" class="inv-yes" data-answer="si">Sí, ahí estaré</button><button type="button" class="inv-no" data-answer="no">Esta vez no podré</button></div>
