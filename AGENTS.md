@@ -2382,4 +2382,4 @@ Nota de relevo escrita a pedido de Alex para que otro agente (Codex) retome la s
 
 ### 2026-10-24 — Sin rol debajo del nombre en la invitación de inauguración
 
-- Alex pidió quitar «Vocero/a · Creador/a» debajo del nombre. La invitación pasa del nombre directo al titular («Hemos visto tu apoyo…»). El gafete conserva el rol para la entrada. Caché `20261024-invitacion-13`. Solo frontend; `npm run check` en verde (302 Node, PHP, 11 integración). Pendiente de autorización para publicar.
+- Alex pidió quitar «Vocero/a · Creador/a» debajo del nombre. La invitación pasa del nombre directo al titular («Hemos visto tu apoyo…»). El gafete conserva el rol para la entrada. Caché `20261024-invitacion-13`. Solo frontend; `npm run check` en verde (302 Node, PHP, 11 integración). Publicado con autorización de Alex («sí, súbelo a producción»), con respaldo y sin borrar archivos exclusivos; por el espejo la invitación coincide con el build por SHA-256 y ya no trae el rol.
