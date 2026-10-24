@@ -2365,3 +2365,9 @@ Nota de relevo escrita a pedido de Alex para que otro agente (Codex) retome la s
 - Backend: al responder «sí» en la inauguración se guarda `consent_at` como evidencia de la aceptación. Sin migraciones. Caché `20261024-invitacion-11`.
 - QA: `npm run check` en verde (300 Node, PHP con la aceptación en `influencer_invitations_test.php`, 11 integración; 294 archivos, 99 HTML, 3231 referencias).
 - Riesgos/pendientes: validar con asesoría legal el texto de condiciones y que la aceptación por clic con aviso visible sea suficiente; confirmar cantidad de entradas Arena, shows y forma de entrega. Las entradas dependen de registrar la llegada, y todavía no existe ese registro: el escaneo del gafete valida pero no marca asistencia.
+
+### 2026-10-24 — Publicación del tren, entradas Arena y condiciones de la invitación de inauguración
+
+- Alex autorizó con «sí, publícala». El primer intento se detuvo antes de escribir nada porque la carpeta sin versionar `output/` (seis PDF de planes de cobertura de otra sesión) dejaba `main` sucia; se movió sin borrar a `~/Downloads/output-planes-cobertura-20261024/`.
+- Backend (`InfluencerRepository` con la aceptación al responder «sí») y luego frontend publicados desde `main` sincronizada, con respaldo previo, sin migraciones y sin borrar archivos exclusivos del servidor. `backend:deploy` terminó con «Operación backend completada» y `deploy` con «Despliegue verificado».
+- Verificación por el espejo: invitación, condiciones, foto del tren y Voceros en 200; la invitación entrega «entradas Arena», «Aplican restricciones» y la caché `20261024-invitacion-11`; HTML, CSS y JS idénticos al build por SHA-256; API `health` 200. No se crearon invitados ni se modificaron datos.
