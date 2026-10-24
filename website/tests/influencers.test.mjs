@@ -221,7 +221,8 @@ test('la narrativa de Inauguración distingue apoyo y primera participación sin
   const registration = inaugurationNarrative('registro');
   assert.match(support.title, /^Hemos visto tu apoyo a Finados 2026/);
   assert.match(registration.title, /^Te sumaste a Finados 2026/);
-  assert.match(registration.lead, /primera vez/i);
+  assert.match(registration.lead, /recibirte desde el inicio/);
+  assert.doesNotMatch(registration.lead, /primera vez en la feria/);
   assert.notDeepEqual(support, registration);
   assert.equal(resolveInvitationVariant({ eventKey: 'inauguracion', search: '?variante=apoyo', apiVariant: 'registro' }), 'registro', 'la API manda en enlaces reales');
   assert.equal(resolveInvitationVariant({ eventKey: 'inauguracion', search: '?vista=1&variante=apoyo', apiVariant: 'registro', preview: true }), 'apoyo', 'la URL solo manda en vista previa');

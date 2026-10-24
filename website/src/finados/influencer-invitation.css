@@ -389,3 +389,15 @@ body.inv--inauguracion::before {
 @media (prefers-reduced-motion: reduce) { .inv-deadline[data-urgent="true"] .inv-deadline__clock span { animation: none; } }
 .inv-rsvp-deadline { margin: 0 0 .8rem; padding: .55rem .8rem; color: #fff; background: #4921ad; font-size: .9rem; text-align: center; }
 .inv-rsvp-deadline strong { color: #ffe27a; }
+
+/* Solo voceros sin video: invitación a grabar y subir el primero. */
+.inv-video { margin: 0 0 1.6rem; padding: clamp(1.2rem, 4vw, 1.7rem); color: #fff; background: #4921ad; filter: drop-shadow(.5rem .6rem 0 #00c8cc); clip-path: polygon(0 1%, 99% 0, 100% 98%, 1% 100%); }
+.inv-video[hidden] { display: none; }
+.inv-video .inv-kicker { color: #ffe27a; } .inv-video .inv-eq i { background: #ffe27a; }
+.inv-video h2 { margin: .3rem 0 .7rem; color: #fff; font-family: "Anton", sans-serif; font-weight: 400; font-size: clamp(1.7rem, 7vw, 2.4rem); line-height: 1.02; text-transform: uppercase; }
+.inv-video p { margin: 0 0 .9rem; line-height: 1.55; }
+.inv-video__steps { display: grid; gap: .5rem; margin: 0 0 .9rem; padding: 0; list-style: none; }
+.inv-video__steps li { display: flex; gap: .7rem; align-items: center; padding: .6rem .8rem; color: #4921ad; background: #fff7e9; font-weight: 600; }
+.inv-video__steps b { display: grid; place-items: center; flex: none; width: 1.9rem; height: 1.9rem; color: #fff; background: #ff2b86; font-family: "Anton", sans-serif; font-weight: 400; font-size: 1.1rem; }
+.inv-video__extra { color: #ffe27a; font-weight: 700; }
+.inv-video__cta { display: block; text-align: center; text-decoration: none; }

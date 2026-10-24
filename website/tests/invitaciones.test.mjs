@@ -177,3 +177,14 @@ test('la invitación de inauguración no muestra el rol debajo del nombre', () =
   const page = pages.find(item => item.route === '/finados/invitacion/inauguracion/');
   assert.doesNotMatch(page.render(page), /data-guest-role|VOCERO\/A · CREADOR\/A/);
 });
+
+test('solo la versión «registro» (voceros sin video) invita a subir el video', async () => {
+  const { inaugurationNarrative } = await import('../src/finados/influencer-invitation.js');
+  const page = pages.find(item => item.route === '/finados/invitacion/inauguracion/');
+  const html = page.render(page);
+  assert.match(html, /<section class="inv-video" data-opening-video hidden/);
+  assert.match(html, /href="\/finados\/voceros\/mi-registro\/"[^>]*>Subir mi video</);
+  assert.doesNotMatch(inaugurationNarrative('registro').lead, /primera vez en la feria/);
+  const source = await readFile(new URL('../src/finados/influencer-invitation.js', import.meta.url), 'utf8');
+  assert.match(source, /node\.hidden = variant !== 'registro'/);
+});

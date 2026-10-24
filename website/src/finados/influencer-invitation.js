@@ -65,10 +65,10 @@ const INAUGURATION_NARRATIVES = Object.freeze({
     story: 'Por primera vez abriremos la feria junto a quienes ya están ayudando a contarla. Tu presencia hará parte de este primer capítulo.',
   }),
   registro: Object.freeze({
-    eyebrow: 'Tu primer capítulo empieza aquí',
+    eyebrow: 'Una invitación personal',
     title: 'Te sumaste a Finados 2026.',
-    lead: 'Esta será tu primera vez en la feria y queremos recibirte desde el inicio, en la Inauguración Oficial de Finados Mushuc Runa.',
-    story: 'Queremos que conozcas desde adentro el legado, la comunidad y la tradición que dan vida a Finados. Tu historia comienza en esta apertura.',
+    lead: 'Queremos recibirte desde el inicio, en la Inauguración Oficial de Finados Mushuc Runa.',
+    story: 'Cuando dijiste «aquí estoy», te volviste parte de las voces que mantienen viva esta tradición. Tu historia también empieza en esta apertura.',
   }),
 });
 
@@ -256,6 +256,8 @@ function paintOpeningNarrative(eventKey, variant) {
     const node = document.querySelector(`[data-opening-${key}]`);
     if (node) node.textContent = value;
   }
+  // Solo quien todavía no subió su video (versión «registro») ve la invitación a grabarlo.
+  for (const node of document.querySelectorAll('[data-opening-video]')) node.hidden = variant !== 'registro';
 }
 
 /** Días, horas, minutos y segundos que faltan para el cierre; closed cuando ya pasó. */

@@ -19,7 +19,7 @@ export const inaugurationEventDefaults = Object.freeze({
   place: 'Complejo Intercultural y Deportivo Mushuc Runa · Santa Lucía, Tisaleo · Panamericana Sur km 12, vía Ambato–Riobamba',
   dressCode: '',
 });
-export const influencerInvitationVersion = '20261024-invitacion-13';
+export const influencerInvitationVersion = '20261024-invitacion-14';
 
 function shell(page, { api, body, kind, eventKey = 'guaynaa' }) {
   const connect = apiBasesForCsp(api);
@@ -296,6 +296,16 @@ const inaugurationDeadline = `<section class="inv-deadline" data-deadline data-d
 <p class="inv-deadline__note" data-deadline-note>Con tu confirmación armamos el listado oficial de invitados. Después de esa hora ya no podremos incluirte.</p>
 </section>`;
 
+/** Solo para voceros que todavía no subieron su video: la invitación también los anima a grabarlo. */
+const inaugurationVideoNudge = `<section class="inv-video" data-opening-video hidden aria-labelledby="inv-video-title">
+<p class="inv-kicker"><span class="inv-eq" aria-hidden="true"><i></i><i></i><i></i></span>Tu voz también cuenta</p>
+<h2 id="inv-video-title">Todavía estás a tiempo de subir tu video</h2>
+<p>Tu primer video puede ser el que invite a otra familia a volver a Finados. Graba con tu celular qué significa Finados para ti o qué te emociona de esta edición, publícalo en tus redes y súbelo en tu registro de vocero.</p>
+<ol class="inv-video__steps"><li><b>1</b>Graba un video corto con tu celular.</li><li><b>2</b>Publícalo en TikTok, Instagram o Facebook.</li><li><b>3</b>Pega el enlace en tu registro de vocero.</li></ol>
+<p class="inv-video__extra">Llega a la inauguración con tu video publicado: es la mejor forma de empezar a contar esta tradición.</p>
+<a class="inv-yes inv-video__cta" href="/finados/voceros/mi-registro/" target="_blank" rel="noopener">Subir mi video</a>
+</section>`;
+
 const inaugurationFinePrint = `<p class="inv-fineprint">Invitación personal e intransferible. Actividades, horarios, recorrido en tren, break y entradas sujetos a cambios y a disponibilidad. Aplican restricciones. <a href="${INAUGURATION_TERMS_PATH}" target="_blank" rel="noopener">Ver condiciones</a>.</p>`;
 
 const inaugurationSignature = `<footer class="inv-opening-signature"><span>Atentamente,</span><strong>Ab. Luis Alfonso Chango</strong><small>Mentalizador Feria Finados Mushuc Runa</small></footer>`;
@@ -334,6 +344,7 @@ ${inaugurationConfirmed}
 <p>Este viernes comienza una nueva edición de un encuentro construido por generaciones. Nos honra recibirte para compartir la bienvenida, el acto inaugural y el inicio de cinco días de feria.</p>
 </section>
 ${inaugurationSpecialGuests}
+${inaugurationVideoNudge}
 ${inaugurationEventCard}
 ${inaugurationMoments}
 ${inaugurationSignature}

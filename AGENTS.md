@@ -2399,3 +2399,9 @@ Nota de relevo escrita a pedido de Alex para que otro agente (Codex) retome la s
 - Total verificado en solo lectura: 215 invitados activos (96 creadores, 119 voceros: 31 «apoyo» y 88 «registro»), todos con enlace único. Un vocero es menor de edad: en la lista figura el contacto de su representante.
 - Listas en PDF y CSV (voceros y lista completa) entregadas solo en `~/Downloads`; no se versionan por contener datos personales. Las copias temporales se borraron.
 - Riesgo: la versión «registro» dice «Esta será tu primera vez en la feria», que puede no ser cierto para muchos voceros; se propuso corregir el texto antes del masivo.
+
+### 2026-10-24 — Invitación a subir su video para voceros sin video
+
+- Alex pidió motivar a subir un video solo a los voceros que todavía no lo han hecho. En la inauguración esos son exactamente los que reciben la versión «registro» (88 voceros sin video; creadores y voceros con video reciben «apoyo»).
+- Nueva sección «Tu voz también cuenta · Todavía estás a tiempo de subir tu video», visible solo en «registro»: por qué importa su video, tres pasos (grabar, publicar, pegar el enlace) y el botón «Subir mi video» hacia `/finados/voceros/mi-registro/`. Además se corrigió el texto «registro», que decía «Esta será tu primera vez en la feria», por «Queremos recibirte desde el inicio…» y «Cuando dijiste “aquí estoy”, te volviste parte de las voces que mantienen viva esta tradición».
+- Caché `20261024-invitacion-14`. Solo frontend. QA: `npm run check` en verde (303 Node, PHP, 11 integración) y revisión de las dos versiones en celular. Pendiente de autorización para publicar.
