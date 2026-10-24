@@ -81,6 +81,10 @@ $openedInauguration = $decode($router->handle('GET', '/api/invitacion/inauguraci
 same(['inauguracion', 'Vocera Inauguración', 'vocero', 'apoyo'], [$openedInauguration['event']['slug'], $openedInauguration['guest']['name'], $openedInauguration['guest']['kind'], $openedInauguration['guest']['message_variant']]);
 same(404, $router->handle('GET', '/api/invitacion/inauguracion/c/' . $created[0]['invite_token'], $origin)->status);
 same('si', $decode($router->handle('POST', '/api/invitacion/inauguracion/c/' . $inaugurationVocero['invite_token'], $json, json_encode(['response' => 'si'])))['guest']['response']);
+// Confirmar «sí» en la inauguración deja la fecha de aceptación de las condiciones (uso de imagen incluido).
+$consent = $pdo->prepare('SELECT consent_at FROM influencer_guests WHERE public_id = ?');
+$consent->execute([$inaugurationVocero['public_id']]);
+same(true, $consent->fetchColumn() !== null, 'la aceptación de condiciones queda registrada');
 $decode($send('PATCH', '/api/influencers/' . $inaugurationVocero['public_id'], ['social_link' => 'vocera.inauguracion']));
 $inaugurationBadge = $decode($router->handle('GET', '/api/invitacion/inauguracion/gafete/' . $inaugurationVocero['invite_token'], $origin));
 same(['inauguracion', true], [$inaugurationBadge['event']['slug'], $inaugurationBadge['ready']]);

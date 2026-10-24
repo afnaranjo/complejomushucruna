@@ -361,3 +361,15 @@ body.inv--inauguracion::before {
 .inv-special strong { color: #ff2b86; }
 .inv--inauguracion .inv-perks--opening ul { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 @media (max-width: 560px) { .inv--inauguracion .inv-perks--opening ul { grid-template-columns: minmax(0, 1fr); } }
+
+.inv-special__gift { display: flex; gap: .7rem; align-items: flex-start; padding: .85rem 1rem; border: 2px dashed #ff2b86; background: #fff; }
+.inv-special__gift > span:first-child { font-size: 1.5rem; line-height: 1; }
+.inv-accept { margin: 0 0 1rem; color: #4921ad; font-size: .86rem; line-height: 1.5; text-align: center; }
+.inv-accept a, .inv-fineprint a { color: #4921ad; font-weight: 700; text-underline-offset: 3px; }
+.inv-fineprint { max-width: 34rem; margin: 1.4rem auto 0; padding: 0 1rem; color: #6a5a86; font-size: .74rem; line-height: 1.5; text-align: center; }
+.inv-terms { margin: 0 0 2rem; padding: clamp(1.2rem, 4vw, 1.8rem); color: #33156b; background: #fff7e9; outline: 3px solid #6b2de1; outline-offset: -3px; }
+.inv-terms h2 { margin: 1.2rem 0 .4rem; color: #4921ad; font-family: "Anton", sans-serif; font-weight: 400; font-size: 1.35rem; text-transform: uppercase; }
+.inv-terms section:first-child h2 { margin-top: 0; }
+.inv-terms p { margin: 0; line-height: 1.6; }
+.inv-terms a { color: #4921ad; font-weight: 700; }
+.inv--inauguracion .inv-perks--opening { padding-bottom: 2.4rem; }

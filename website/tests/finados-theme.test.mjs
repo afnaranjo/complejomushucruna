@@ -7,7 +7,7 @@ import { renderLayout } from '../src/render/layout.mjs';
 test('Finados y sus registros no cargan el CSS institucional del Complejo', () => {
   const campaignPages = pages.filter(page => page.route.startsWith('/finados/')
     || ['/acceso-compra-stands/', '/acreditacion-de-medios/'].includes(page.route));
-  assert.equal(campaignPages.length, 59);
+  assert.equal(campaignPages.length, 60);
   for (const page of campaignPages) {
     const html = page.render ? page.render(page) : renderLayout(page);
     assert.doesNotMatch(html, /href="\/assets\/styles\.css/, page.route);
@@ -16,7 +16,7 @@ test('Finados y sus registros no cargan el CSS institucional del Complejo', () =
       && !/^\/finados\/(nombre|pantalla)\/(?:escribe\/)?$/.test(page.route)
       // Las invitaciones de Influencers son una tarjeta propia, sin el menú de la campaña.
       && !/^\/finados\/invitacion\/(?:creadores\/|gracias\/|gafete\/|verificar\/)?$/.test(page.route)
-      && !/^\/finados\/invitacion\/inauguracion\/(?:gracias\/|gafete\/|verificar\/)?$/.test(page.route)) {
+      && !/^\/finados\/invitacion\/inauguracion\/(?:gracias\/|gafete\/|verificar\/|condiciones\/)?$/.test(page.route)) {
       const cssVersion = page.route === '/finados/' ? '20260928-axis-2' : '20260916-7';
       assert.match(html, new RegExp(`/assets/finados/finados\\.css\\?v=${cssVersion}`), page.route);
       assert.match(html, /\/assets\/finados\/navigation\.css\?v=20260925-navigation-fluid-1/, page.route);

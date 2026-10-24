@@ -19,7 +19,7 @@ export const inaugurationEventDefaults = Object.freeze({
   place: 'Complejo Intercultural y Deportivo Mushuc Runa · Santa Lucía, Tisaleo · Panamericana Sur km 12, vía Ambato–Riobamba',
   dressCode: '',
 });
-export const influencerInvitationVersion = '20261024-invitacion-10';
+export const influencerInvitationVersion = '20261024-invitacion-11';
 
 function shell(page, { api, body, kind, eventKey = 'guaynaa' }) {
   const connect = apiBasesForCsp(api);
@@ -264,6 +264,7 @@ const inaugurationMoments = `<section class="inv-perks inv-perks--opening" aria-
 <li><span class="inv-perk-icon" aria-hidden="true">02</span><strong>Acto inaugural</strong><small>La ceremonia oficial que da inicio a esta edición.</small></li>
 <li><span class="inv-perk-icon" aria-hidden="true">03</span><strong>Recorrido en el tren</strong><small>Conoce el Complejo a bordo de nuestro tren, junto a los demás invitados especiales.</small></li>
 <li><span class="inv-perk-icon" aria-hidden="true">04</span><strong>Break para compartir</strong><small>Un momento para conversar, celebrar y conocernos.</small></li>
+<li><span class="inv-perk-icon" aria-hidden="true">05</span><strong>Entradas Arena</strong><small>Por asistir, recibes entradas Arena para los conciertos de Finados 2026.</small></li>
 </ul>
 </section>`;
 
@@ -274,9 +275,16 @@ const inaugurationSpecialGuests = `<section class="inv-special" aria-labelledby=
 <p class="inv-kicker"><span class="inv-eq" aria-hidden="true"><i></i><i></i><i></i></span>Solo para nuestros invitados especiales</p>
 <h2 id="inv-special-title">Ese día, eres parte del recorrido</h2>
 <p>Quienes nos acompañen en la inauguración serán nuestros invitados especiales: recorrerán el Complejo a bordo del <strong>tren del Complejo Mushuc Runa</strong> y compartiremos juntos un <strong>pequeño break</strong>.</p>
+<p class="inv-special__gift"><span aria-hidden="true">🎟</span><span><strong>Además, por asistir recibes entradas Arena</strong> para disfrutar los conciertos de Finados 2026.</span></p>
 <p>Queremos que vivas la apertura de Finados 2026 desde adentro, como alguien de casa.</p>
 </div>
 </section>`;
+
+export const INAUGURATION_TERMS_PATH = '/finados/invitacion/inauguracion/condiciones/';
+/** Versión del texto de condiciones que acepta quien confirma; súbela si cambia el contenido. */
+export const INAUGURATION_TERMS_VERSION = '2026-10-24';
+
+const inaugurationFinePrint = `<p class="inv-fineprint">Invitación personal e intransferible. Actividades, horarios, recorrido en tren, break y entradas sujetos a cambios y a disponibilidad. Aplican restricciones. <a href="${INAUGURATION_TERMS_PATH}" target="_blank" rel="noopener">Ver condiciones</a>.</p>`;
 
 const inaugurationSignature = `<footer class="inv-opening-signature"><span>Atentamente,</span><strong>Ab. Luis Alfonso Chango</strong><small>Mentalizador Feria Finados Mushuc Runa</small></footer>`;
 
@@ -320,9 +328,11 @@ ${inaugurationSignature}
 <p class="inv-kicker"><span class="inv-eq" aria-hidden="true"><i></i><i></i><i></i></span>Reserva tu lugar</p>
 <h2 id="inv-rsvp-title">¿Nos acompañas?</h2>
 <p class="inv-status" data-status role="status" aria-live="polite">Abriendo tu invitación…</p>
+<p class="inv-accept">Al confirmar «Sí, ahí estaré» aceptas las <a href="${INAUGURATION_TERMS_PATH}" target="_blank" rel="noopener">condiciones de la invitación</a>, incluida la autorización de uso de tu imagen captada durante la inauguración.</p>
 <div class="inv-choices" data-choices hidden><button type="button" class="inv-yes" data-answer="si">Sí, ahí estaré</button><button type="button" class="inv-no" data-answer="no">Esta vez no podré</button></div>
 <p class="inv-change" data-badge-link hidden><a href="/finados/invitacion/inauguracion/gafete/">Ver y descargar mi gafete</a></p>
-</section>`;
+</section>
+${inaugurationFinePrint}`;
   return shell(page, { api: pageApi(page), body, kind: 'creador', eventKey: 'inauguracion' });
 }
 
@@ -337,7 +347,8 @@ ${inaugurationEventCard}
 <div data-thanks-perks>${inaugurationMoments}</div>
 ${inaugurationSignature}
 <div class="inv-badge-cta" data-thanks-badge hidden><a class="inv-yes" data-thanks-badge-link href="/finados/invitacion/inauguracion/gafete/">Ver y descargar mi gafete</a><p>Tu gafete tiene un código QR único: preséntalo en la entrada.</p></div>
-<p class="inv-change"><a data-thanks-back href="/ii/" hidden>Cambiar mi respuesta</a></p>`;
+<p class="inv-change"><a data-thanks-back href="/ii/" hidden>Cambiar mi respuesta</a></p>
+${inaugurationFinePrint}`;
   return shell(page, { api: pageApi(page), body, kind: 'gracias', eventKey: 'inauguracion' });
 }
 
@@ -356,4 +367,20 @@ export function renderInaugurationVerifyPage(page) {
   const body = `<header class="inv-hero inv-opening-hero">${inaugurationVisual(true)}<p class="inv-eyebrow">Validación de gafete</p><h1 class="inv-title"><span class="inv-name">Inauguración Oficial</span><span>Finados Mushuc Runa 2026</span></h1></header>
 <section class="inv-rsvp inv-verify inv-rsvp--opening" aria-live="polite"><p class="inv-status" data-status role="status">Validando…</p><div class="inv-verify-result" data-verify-result hidden><p class="inv-verify-state" data-verify-state></p><p class="inv-verify-name" data-verify-name></p><p class="inv-verify-meta" data-verify-kind></p><p class="inv-verify-meta" data-verify-social></p></div></section>`;
   return shell(page, { api: pageApi(page), body, kind: 'verificar', eventKey: 'inauguracion' });
+}
+
+/** Condiciones de la invitación: beneficios, cambios, uso de imagen y datos. Lo que acepta quien confirma. */
+export function renderInaugurationTermsPage(page) {
+  const c = { name: 'Eventos Finados 2026', address: 'Santa Lucía, Tisaleo, Tungurahua – Panamericana Sur km 12, vía Ambato–Riobamba', phone: '+593 980 346 729', email: 'facturacioncomplejomushuc@gmail.com' };
+  const body = `<header class="inv-hero inv-opening-hero"><p class="inv-eyebrow">Inauguración Oficial · Finados Mushuc Runa 2026</p><h1 class="inv-title"><span class="inv-name">Condiciones</span><span>de la invitación</span></h1>
+<p class="inv-lead">Versión ${INAUGURATION_TERMS_VERSION}. Al confirmar tu asistencia con «Sí, ahí estaré» aceptas estas condiciones.</p></header>
+<article class="inv-terms">
+<section><h2>1. La invitación</h2><p>La invitación es personal e intransferible y se dirige a voceros y creadores de contenido de Finados Mushuc Runa 2026. Los cupos son limitados. Para ingresar se presenta el gafete con código QR que se genera al confirmar la asistencia.</p></section>
+<section><h2>2. Beneficios para invitados especiales</h2><p>Quienes asistan a la inauguración podrán participar del recorrido en el tren del Complejo Mushuc Runa y de un break para compartir, y recibirán entradas de la localidad Arena para los conciertos de Finados 2026. Las entradas se entregan solo a quien asiste y registra su llegada; la cantidad, los shows y la forma de entrega los comunica la organización. Son personales, están sujetas a disponibilidad y no se canjean por dinero.</p></section>
+<section><h2>3. Sujeto a cambios</h2><p>Los horarios, actividades, recorridos, beneficios y entradas pueden cambiar, reprogramarse o suspenderse por razones de seguridad, clima, operación del evento o fuerza mayor, sin que esto genere compensación. Aplican restricciones de aforo, edad, seguridad e ingreso. Sigue en todo momento las indicaciones del personal de la organización y de seguridad.</p></section>
+<section><h2>4. Uso de imagen</h2><p>Durante la inauguración se toman fotografías y videos. Al confirmar tu asistencia autorizas a ${c.name} a usar, sin costo, tu imagen y tu voz captadas en el evento, junto con tu nombre y tu calidad de vocero o creador de contenido, para difundir Finados Mushuc Runa 2026 en su sitio web, redes sociales oficiales, piezas digitales e impresas y pantallas. La licencia es no exclusiva y no se cede a terceros para campañas ajenas. Puedes revocarla escribiendo a <a href="mailto:${c.email}">${c.email}</a>; la organización dejará de hacer nuevos usos, sin efectos retroactivos.</p></section>
+<section><h2>5. Datos personales</h2><p>El responsable es <strong>${c.name}</strong>, con domicilio en ${c.address}, teléfono ${c.phone} y correo <a href="mailto:${c.email}">${c.email}</a>. Se tratan tu nombre, tu WhatsApp, tu respuesta, la fecha de tu confirmación y de tu llegada, solo para coordinar tu asistencia, entregar tus beneficios y validar tu ingreso. Puedes ejercer tus derechos de acceso, rectificación, eliminación, oposición, suspensión y portabilidad escribiendo a ese correo, conforme a la Ley Orgánica de Protección de Datos Personales.</p></section>
+<section><h2>6. Si no puedes asistir</h2><p>Si respondes «Esta vez no podré» no aceptas estas condiciones ni recibes los beneficios. Puedes cambiar tu respuesta desde el mismo enlace mientras haya cupo.</p></section>
+</article>`;
+  return shell(page, { api: pageApi(page), body, kind: 'condiciones', eventKey: 'inauguracion' });
 }

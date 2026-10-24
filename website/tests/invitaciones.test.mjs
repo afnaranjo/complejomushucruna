@@ -144,3 +144,18 @@ test('el cliente solo lee la sesión y las listas, separando los conteos por eve
   const source = await readFile(new URL('../src/admin/admin-invitaciones.js', import.meta.url), 'utf8');
   assert.doesNotMatch(source, /method: '(?:POST|PATCH|DELETE)'/);
 });
+
+test('la invitación de inauguración ofrece tren, break y entradas Arena, con condiciones y aceptación visibles', () => {
+  const page = pages.find(item => item.route === '/finados/invitacion/inauguracion/');
+  const html = page.render(page);
+  assert.match(html, /tren-complejo-752\.webp/);
+  assert.match(html, /entradas Arena/);
+  assert.match(html, /Break para compartir/);
+  assert.match(html, /Al confirmar «Sí, ahí estaré» aceptas las <a href="\/finados\/invitacion\/inauguracion\/condiciones\/"/);
+  assert.match(html, /sujetos a cambios y a disponibilidad\. Aplican restricciones\./);
+  const terms = pages.find(item => item.route === '/finados/invitacion/inauguracion/condiciones/');
+  const termsHtml = terms.render(terms);
+  assert.match(termsHtml, /Uso de imagen/);
+  assert.match(termsHtml, /noindex/);
+  assert.match(termsHtml, /data-invitation="condiciones"/);
+});

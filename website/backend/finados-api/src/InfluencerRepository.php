@@ -196,6 +196,10 @@ final class InfluencerRepository
         $now = gmdate('Y-m-d H:i:s');
         $this->pdo->prepare('UPDATE influencer_guests SET response = ?, responded_at = ?, opened_at = COALESCE(opened_at, ?), updated_at = ? WHERE id = ?')
             ->execute([$response, $now, $now, $now, (int) $row['id']]);
+        // En la inauguración, confirmar «sí» acepta las condiciones de la invitación (incluido el uso de imagen): queda la fecha como evidencia.
+        if ($response === 'si' && ($row['event_slug'] ?? '') === 'inauguracion') {
+            $this->pdo->prepare('UPDATE influencer_guests SET consent_at = ? WHERE id = ?')->execute([$now, (int) $row['id']]);
+        }
         $this->audit->log('influencer.responded', null, 'influencer', (string) $row['public_id'], [], $ip);
         return ['name' => (string) $row['full_name'], 'response' => $response, 'kind' => (string) $row['kind'], 'message_variant' => (string) $row['message_variant'], 'badge' => self::badgeReady([...$row, 'response' => $response])];
     }

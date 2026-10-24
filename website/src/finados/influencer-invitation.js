@@ -600,5 +600,6 @@ if (typeof document !== 'undefined') {
   else if (document.body.dataset.invitation === 'gracias') startThanks(client, eventKey);
   else if (document.body.dataset.invitation === 'gafete') startBadge(client, eventKey);
   else if (document.body.dataset.invitation === 'verificar') startVerify(client, eventKey);
+  else if (document.body.dataset.invitation === 'condiciones') { /* página informativa: sin llamadas */ }
   else startOpen(client, eventKey);
 }
