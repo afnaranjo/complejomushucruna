@@ -2473,3 +2473,14 @@ Nota de relevo escrita a pedido de Alex para que otro agente (Codex) retome la s
 - QA: `npm run check` en verde, con pruebas nuevas en `media_coverage_test.php` y `medios-cobertura.test.mjs`. Además, la tarjeta se revisó visualmente en Chrome sin interfaz.
 - Pendiente: publicar backend → frontend con autorización de Alex. Los medios con cuenta que confirman desde su portal no ven todavía el botón; coordinación descarga su QR desde Eventos.
 - Publicación: Alex autorizó con «sube». Se publicó primero el backend y después el frontend, en ambos casos con respaldo y sin migraciones. Por el espejo, `media-pass.mjs`, `influencer-invitation.js`, `admin-medios.js` y `media-portal.js` coinciden por SHA-256 con el build, `/medios-inauguracion/` trae «Descargar mi QR» y `GET /api/media/pass` responde 200. A pedido de Alex, la confirmación de prueba de Carlos Pumagualli en la inauguración se dejó dos veces en «Sin respuesta», con una copia previa impresa; su registro del Lanzamiento no cambió.
+
+### 2026-10-26 — Plazo de confirmación de la inauguración ampliado a las 14:00
+
+- A pedido de Alex, voceros e influencers pueden confirmar la inauguración hasta hoy a las 14:00 de Ecuador, por su enlace personal o por `/inauguracion/`.
+- El cambio cubre:
+  - `InfluencerRepository::RSVP_DEADLINES` (`2026-10-26 19:00:00` UTC);
+  - el contador y los textos de la página y del cierre;
+  - las pruebas con hora fija.
+- Caché `20261026-plazo-14-1`. Sin migraciones. Los medios siguen hasta el miércoles 28 a las 12:00.
+- Publicación autorizada con «sube»: primero el backend y después el frontend, con respaldo. El primer intento se detuvo en las pruebas previas, sin tocar el servidor, porque dos aserciones seguían en 12:00; se corrigieron.
+- Verificación por el espejo: la API devuelve el plazo `2026-10-26T14:00:00-05:00` abierto, `/inauguracion/` muestra «26 de octubre · 14:00», y la invitación y su JS coinciden con el build por SHA-256.
