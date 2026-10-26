@@ -19,7 +19,7 @@ export const inaugurationEventDefaults = Object.freeze({
   place: 'Complejo Intercultural y Deportivo Mushuc Runa · Santa Lucía, Tisaleo · Panamericana Sur km 12, vía Ambato–Riobamba',
   dressCode: '',
 });
-export const influencerInvitationVersion = '20261026-plazo-12-1';
+export const influencerInvitationVersion = '20261026-plazo-12-2';
 
 function shell(page, { api, body, kind, eventKey = 'guaynaa' }) {
   const connect = apiBasesForCsp(api);
@@ -442,7 +442,7 @@ ${inaugurationSignature}
 <p><strong>Primero completa tu registro de vocero.</strong> Tu cuenta todavía no tiene tu ficha con tus datos. Llénala, guárdala y vuelve a este mismo enlace para confirmar tu asistencia.</p>
 <a class="inv-yes" href="/finados/voceros/mi-registro/">Completar mi registro</a>
 </div>
-<p class="inv-gate-links"><a href="/finados/voceros/acceso/" target="_blank" rel="noopener">¿Olvidaste tu contraseña o no tienes cuenta?</a></p>
+<p class="inv-gate-links"><a href="/finados/voceros/acceso/?modo=recuperar" target="_blank" rel="noopener">¿Olvidaste tu contraseña? Recupérala aquí</a> · <a href="/finados/voceros/acceso/" target="_blank" rel="noopener">Crear cuenta</a></p>
 </section>
 ${inaugurationFinePrint}`;
   return shell(page, { api: pageApi(page), body, kind: 'vocero-acceso', eventKey: 'inauguracion' });

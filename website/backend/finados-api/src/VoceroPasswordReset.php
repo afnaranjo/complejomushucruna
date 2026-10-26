@@ -12,6 +12,7 @@ use Throwable;
 require_once __DIR__ . '/VoceroAuth.php';
 
 final class PasswordResetRateLimit extends RuntimeException {}
+final class RecoveryMismatch extends RuntimeException {}
 
 /** Assisted recovery: plaintext tokens leave this service only in create's return value. */
 final class VoceroPasswordReset
@@ -77,6 +78,40 @@ final class VoceroPasswordReset
             return true;
         });
         if (!$accepted) throw new InvalidArgumentException();
+    }
+
+    /**
+     * Self-service recovery: the vocero proves who it is with the e-mail of its account plus the cédula
+     * and WhatsApp of its own record, and sets a new password at once. A mismatch never says which datum failed.
+     */
+    public function selfRecover(string $email, string $cedula, string $whatsapp, #[\SensitiveParameter] string $password, string $ip): void
+    {
+        $ip = $this->ip($ip);
+        VoceroAuth::password($password);
+        $email = strtolower(trim($email));
+        $cedula = preg_replace('/\D/', '', $cedula) ?? '';
+        $whatsapp = preg_replace('/\D/', '', $whatsapp) ?? '';
+        if (str_starts_with($whatsapp, '593') && strlen($whatsapp) === 12) $whatsapp = '0' . substr($whatsapp, 3);
+        if (strlen($email) > 254 || filter_var($email, FILTER_VALIDATE_EMAIL) === false || preg_match('/^\d{10}$/D', $cedula) !== 1 || preg_match('/^09\d{8}$/D', $whatsapp) !== 1) throw new InvalidArgumentException();
+        $accepted = $this->transaction(function () use ($email, $cedula, $whatsapp, $password, $ip): bool {
+            $now = ($this->clock)(); $at = gmdate('Y-m-d H:i:s', $now);
+            $count = $this->pdo->prepare("SELECT COUNT(*) FROM audit_log WHERE event_type = 'vocero.password_self_reset_attempted' AND ip_hash = ? AND created_at > ?");
+            $count->execute([$this->crypto->lookup($ip), gmdate('Y-m-d H:i:s', $now - 900)]);
+            if ((int) $count->fetchColumn() >= 8) throw new PasswordResetRateLimit();
+            $this->audit->log('vocero.password_self_reset_attempted', null, 'vocero_account', null, [], $ip);
+            $query = $this->pdo->prepare('SELECT a.id, a.public_id FROM vocero_accounts a JOIN vocero_account_links l ON l.account_id = a.id JOIN voceros v ON v.id = l.vocero_id WHERE a.email_idx = ? AND a.active = 1 AND v.cedula_idx = ? AND v.whatsapp_idx IN (?, ?, ?) AND v.status <> ?' . $this->rowLock());
+            // El WhatsApp pudo guardarse como 09…, +5939… o 5939…: se aceptan las tres escrituras del mismo número.
+            $local = substr($whatsapp, 1);
+            $query->execute([$this->crypto->lookup($email), $this->crypto->lookup($cedula), $this->crypto->lookup($whatsapp), $this->crypto->lookup('+593' . $local), $this->crypto->lookup('593' . $local), 'Eliminado']);
+            $row = $query->fetch();
+            if (!$row) return false;
+            // Changing the hash changes the credential version: every earlier session is closed.
+            $this->pdo->prepare('UPDATE vocero_accounts SET password_hash = ?, updated_at = ? WHERE id = ?')->execute([Auth::hashPassword($password), $at, $row['id']]);
+            $this->pdo->prepare('UPDATE vocero_password_resets SET consumed_at = ? WHERE account_id = ? AND consumed_at IS NULL')->execute([$at, $row['id']]);
+            $this->audit->log('vocero.password_self_reset', null, 'vocero_account', $row['public_id'], [], $ip);
+            return true;
+        });
+        if (!$accepted) throw new RecoveryMismatch();
     }
 
     private function ip(string $ip): string

@@ -280,6 +280,17 @@ input[type=file]::file-selector-button {
   padding-top:1rem;
   font-size:.875rem
 }
+.vocero-link {
+  min-height:44px;
+  padding:0;
+  color:var(--accent);
+  background:none;
+  border:0;
+  font:inherit;
+  font-weight:700;
+  text-decoration:underline;
+  cursor:pointer
+}
 .vocero-help summary {
   cursor:pointer;
   min-height:44px;

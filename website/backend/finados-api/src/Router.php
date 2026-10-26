@@ -174,6 +174,18 @@ final class Router
                 return $this->json(200, ['ok' => true], $headers);
             }
             // Vocero authentication is deliberately isolated from the administrative guard and session.
+            if ($path === '/api/vocero/auth/recover' && $method === 'POST') {
+                // Recuperación sin coordinación: correo de la cuenta + cédula y WhatsApp de la ficha.
+                if (!$this->config->isAllowedOrigin($origin) || !is_string($ip) || inet_pton($ip) === false) throw new Forbidden();
+                $this->voceroAuth->verifyCsrf($token);
+                if ($query !== []) throw new InvalidArgumentException();
+                $body = $this->body($server, $rawBody, ['email', 'cedula', 'whatsapp', 'password']);
+                foreach (['email', 'cedula', 'whatsapp', 'password'] as $field) if (!is_string($body[$field] ?? null)) throw new InvalidArgumentException();
+                try { (new VoceroPasswordReset($this->pdo, $this->config))->selfRecover($body['email'], $body['cedula'], $body['whatsapp'], $body['password'], $ip); }
+                catch (RecoveryMismatch) { return $this->error(404, 'recovery_mismatch', 'Los datos no coinciden con ningún registro de vocero.', $headers); }
+                $this->voceroAuth->logout();
+                return $this->json(200, ['ok' => true, 'csrf' => $this->voceroAuth->csrfToken()], $headers);
+            }
             if ($path === '/api/vocero/auth/reset' && $method === 'POST') {
                 if (!$this->config->isAllowedOrigin($origin) || !is_string($ip) || inet_pton($ip) === false) throw new Forbidden();
                 $this->voceroAuth->verifyCsrf($token);

@@ -62,6 +62,8 @@ export class VoceroError extends Error {
       429: 'Hay demasiados intentos. Espera 15 minutos antes de volver a intentar.' })[status] ?? 'No se pudo completar la solicitud. Intenta de nuevo.');
     this.status = status;
     if (context === 'reset' && [401, 403, 404, 422].includes(status)) this.message = 'El enlace de recuperación venció, ya fue usado o no está disponible. Solicita un enlace nuevo a la coordinación.';
+    if (context === 'recover' && status === 404) this.message = 'Los datos no coinciden con ningún registro de vocero. Revisa tu correo, tu cédula y tu WhatsApp tal como los pusiste en tu registro.';
+    if (context === 'recover' && status === 422) this.message = 'Revisa los datos: la cédula tiene 10 números, el WhatsApp empieza con 09 y la contraseña tiene de 10 a 128 caracteres.';
   }
 }
 
@@ -73,7 +75,7 @@ export class VoceroApiClient {
     this.fetch = fetchImplementation;
   }
   async request(path, { body, blob = false } = {}) {
-    if (!/^(?:\/(?:auth\/(?:session|register|login|logout|reset)|profile|photo)|\/videos\/[1-5])$/.test(path)) throw new Error('Ruta de API no permitida.');
+    if (!/^(?:\/(?:auth\/(?:session|register|login|logout|reset|recover)|profile|photo)|\/videos\/[1-5])$/.test(path)) throw new Error('Ruta de API no permitida.');
     if (body !== undefined && !this.#csrf) await this.session();
     const headers = { Accept: blob ? 'image/jpeg' : 'application/json' };
     const multipart = body instanceof FormData;
@@ -97,7 +99,7 @@ export class VoceroApiClient {
     if (typeof data?.csrf === 'string') this.#csrf = data.csrf;
     if (!response.ok) {
       if ([401, 403].includes(response.status)) this.#csrf = '';
-      throw new VoceroError(response.status, path === '/auth/login' ? 'login' : path === '/auth/reset' ? 'reset' : '');
+      throw new VoceroError(response.status, path === '/auth/login' ? 'login' : path === '/auth/reset' ? 'reset' : path === '/auth/recover' ? 'recover' : '');
     }
     return data;
   }
@@ -109,6 +111,11 @@ export class VoceroApiClient {
   saveProfile(body) { return this.request('/profile', { body }); }
   saveVideo(slot, url) { return this.request(`/videos/${slot}`, { body: { url } }); }
   photo() { return this.request('/photo', { blob: true }); }
+  async recover(email, cedula, whatsapp, password) {
+    const result = await this.request('/auth/recover', { body: { email, cedula, whatsapp, password } });
+    if (result?.ok !== true) throw new VoceroError(502, 'recover');
+    return result;
+  }
   async reset(token, password) {
     const result = await this.request('/auth/reset', { body: { token, password } });
     if (result?.ok !== true) throw new VoceroError(502, 'reset');
@@ -506,18 +513,22 @@ export async function initializeVoceroPortal(root = document, location = globalT
   });
   const register = root.querySelector('[data-vocero-register]');
   const login = root.querySelector('[data-vocero-login]');
+  const recover = root.querySelector('[data-vocero-recover]');
+  const accessForms = { register, login, recover };
   function setMode({ mode, email, message: text }) {
-    const source = register.hidden ? login : register;
+    const source = Object.values(accessForms).find(form => form && !form.hidden) ?? login;
     const rememberedEmail = email ?? source.elements.namedItem('email').value;
-    register.hidden = mode !== 'register'; login.hidden = mode !== 'login';
-    const active = mode === 'register' ? register : login;
+    for (const [name, form] of Object.entries(accessForms)) if (form) form.hidden = name !== mode;
+    const active = accessForms[mode] ?? login;
     active.elements.namedItem('email').value = rememberedEmail;
-    for (const form of [register, login]) for (const input of form.querySelectorAll('input[type="password"]')) input.value = '';
-    for (const button of root.querySelectorAll('[data-mode]')) button.setAttribute('aria-pressed', String(button.dataset.mode === mode));
+    for (const form of Object.values(accessForms)) for (const input of form?.querySelectorAll('input[type="password"]') ?? []) input.value = '';
+    for (const button of root.querySelectorAll('.vocero-modes [data-mode]')) button.setAttribute('aria-pressed', String(button.dataset.mode === mode));
     if (text) message(text); else active.elements.namedItem('email').focus();
   }
   for (const button of root.querySelectorAll('[data-mode]')) button.addEventListener('click', () => setMode({ mode: button.dataset.mode }));
-  if (view === 'access' && new URLSearchParams(location.search).get('modo') === 'login') setMode({ mode: 'login' });
+  const requestedMode = view === 'access' ? new URLSearchParams(location.search).get('modo') : '';
+  if (requestedMode === 'login') setMode({ mode: 'login' });
+  else if (requestedMode === 'recuperar' && recover) setMode({ mode: 'recover' });
   // Remove the recovery token from the address bar before any subsequent navigation.
   let resetToken = view === 'reset' ? new URLSearchParams(location.search).get('token') ?? '' : '';
   if (view === 'reset' && location.search) globalThis.history?.replaceState(null, '', location.pathname);
@@ -591,6 +602,10 @@ export async function initializeVoceroPortal(root = document, location = globalT
     const result = await api.login(data.get('email'), data.get('password'));
     if (result.authenticated !== true || result.user?.role !== 'vocero') throw new VoceroError(401, 'login');
     location.assign(PROFILE);
+  });
+  submit(recover, async data => {
+    await api.recover(data.get('email'), data.get('cedula'), data.get('whatsapp'), data.get('password'));
+    setMode({ mode: 'login', email: data.get('email'), message: 'Listo, tu contraseña quedó actualizada. Inicia sesión con tu nueva contraseña.' });
   });
   submit(root.querySelector('[data-vocero-reset]'), async data => {
     if (!/^[a-f0-9]{64}$/.test(resetToken)) throw new Error('El enlace no es válido. Solicita un enlace nuevo a la coordinación.');

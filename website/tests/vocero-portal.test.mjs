@@ -315,3 +315,19 @@ test('endpoint anónimo devuelve 401 sin inicializar backend ni Sheets', () => {
   assert.equal(response.json.message, 'Crea una cuenta o inicia sesión para completar tu registro.');
   assert.equal(hit, false);
 });
+
+test('voceros: recuperar la contraseña con correo, cédula y WhatsApp', async () => {
+  const { VoceroApiClient } = await import('../src/finados/vocero-portal.js');
+  const { renderVoceroPortalPage } = await import('../src/finados/vocero-portal-page.mjs');
+  const html = renderVoceroPortalPage({ route: '/finados/voceros/acceso/' });
+  assert.match(html, /data-vocero-recover/);
+  assert.match(html, /name="cedula"/);
+  assert.match(html, /data-mode="recover"/);
+  const calls = [];
+  const client = new VoceroApiClient(undefined, async (url, options) => { calls.push([url.replace(/^https:\/\/[^/]+\/api/, ''), options.method, options.body]); return { ok: true, json: async () => ({ ok: true, csrf: 'x' }) }; });
+  await client.recover('ana@example.invalid', '1800000001', '0990000001', 'NuevaClave2026');
+  assert.deepEqual(calls.map(([url, method]) => [url, method]), [['/vocero/auth/session', 'GET'], ['/vocero/auth/recover', 'POST']]);
+  assert.deepEqual(JSON.parse(calls[1][2]), { email: 'ana@example.invalid', cedula: '1800000001', whatsapp: '0990000001', password: 'NuevaClave2026' });
+  const failing = new VoceroApiClient(undefined, async url => url.endsWith('/session') ? { ok: true, json: async () => ({ csrf: 'x' }) } : { ok: false, status: 404, json: async () => ({ code: 'recovery_mismatch' }) });
+  await assert.rejects(failing.recover('ana@example.invalid', '1800000002', '0990000001', 'NuevaClave2026'), /no coinciden con ningún registro de vocero/);
+});

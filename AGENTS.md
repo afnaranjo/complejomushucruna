@@ -2445,3 +2445,12 @@ Nota de relevo escrita a pedido de Alex para que otro agente (Codex) retome la s
 ### 2026-10-26 — Plazo de confirmación de la inauguración ampliado a las 12:00
 
 - A pedido de Alex, la invitación de inauguración para voceros e influencers (enlaces personales y `/inauguracion/`) acepta respuestas hasta hoy lunes 26 de octubre a las 12:00 de Ecuador, en lugar de las 9:00. Cambian `InfluencerRepository::RSVP_DEADLINES` (`2026-10-26 17:00:00` UTC), el contador y los textos de la página, y las pruebas con hora fija. Caché `20261026-plazo-12-1`. Sin migraciones.
+
+### 2026-10-26 — Voceros recuperan su contraseña solos (correo + cédula + WhatsApp)
+
+- Alex pidió que los voceros que olvidaron su contraseña la recuperen solos y rápido. Eligió verificar con correo + cédula + WhatsApp (el sistema no envía correos) y solo para Voceros.
+- `POST /api/vocero/auth/recover` (origen permitido y CSRF de la sesión de voceros): si el correo de la cuenta activa coincide con la cédula y el WhatsApp de su ficha vinculada (no eliminada), se guarda la nueva contraseña al instante, se cierran las sesiones anteriores y se anulan los enlaces de recuperación pendientes. Si no coincide, responde 404 sin decir qué dato falló. Tope de 8 intentos por IP cada 15 minutos. El WhatsApp se acepta como 09…, +5939… o 5939…. La auditoría no guarda la cédula ni el teléfono.
+- Página `/finados/voceros/acceso/`: «¿Olvidaste tu contraseña? Recupérala aquí» abre el formulario (también con `?modo=recuperar`). El enlace de la invitación `/inauguracion/` lleva directo ahí. Cachés `vocero-portal.js`/`.css` `20261026-recuperar-1` e invitación `20261026-plazo-12-2`.
+- QA: `npm run check` en verde (307 Node, todas las suites PHP con la nueva `vocero_self_recover_test.php`, 11 integración).
+- Riesgo aceptado por Alex: quien conozca el correo, la cédula y el WhatsApp de otra persona podría cambiarle la contraseña. Las cuentas sin ficha siguen recuperándose por coordinación.
+- Publicación externa: pendiente de autorización (junto con el plazo de las 12:00).
