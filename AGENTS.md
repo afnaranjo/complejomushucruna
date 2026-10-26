@@ -2484,3 +2484,11 @@ Nota de relevo escrita a pedido de Alex para que otro agente (Codex) retome la s
 - Caché `20261026-plazo-14-1`. Sin migraciones. Los medios siguen hasta el miércoles 28 a las 12:00.
 - Publicación autorizada con «sube»: primero el backend y después el frontend, con respaldo. El primer intento se detuvo en las pruebas previas, sin tocar el servidor, porque dos aserciones seguían en 12:00; se corrigieron.
 - Verificación por el espejo: la API devuelve el plazo `2026-10-26T14:00:00-05:00` abierto, `/inauguracion/` muestra «26 de octubre · 14:00», y la invitación y su JS coinciden con el build por SHA-256.
+
+### 2026-10-26 — Checklist público de la inauguración con marcas compartidas
+
+- Alex pidió publicar su checklist de la inauguración (`checklist-inauguracion-finados.html`) en el sitio para ir marcando. Como `/inauguracion/` es el enlace de los voceros, se publicó en `/inauguracion/checklist/` (noindex, sin Meta Pixel ni aviso de cookies). Alex eligió que cualquiera con el enlace pueda marcar, sin clave.
+- Las marcas, los responsables, los hitos y los resultados se guardan en el servidor y se actualizan cada 8 s en todos los dispositivos; «Ocultar lo listo» queda en cada navegador. Ruta pública `GET|POST /api/checklist/inauguracion-2026`. Solo acepta escrituras desde los dominios del sitio, con claves de forma conocida, textos de hasta 300 caracteres, hasta 300 marcas y 240 escrituras por minuto. Migración aditiva `041_checklist_marks` (tabla nueva `checklist_marks`).
+- QA: `npm run check` en verde (309 Node, suites PHP con `checklist_test.php`, 11 integración; 300 archivos, 102 HTML, 3296 referencias). Prueba real por HTTP en el entorno local.
+- Commits `be6fbf8` y `55791be`. El primer despliegue del backend falló en la migración por un `;` dentro de un comentario SQL; no se activó la versión nueva y producción siguió igual. Tras corregirlo: backend con respaldo y migración 041, y frontend con respaldo y sin borrar archivos exclusivos. En el espejo, la página, su CSS y su JS coinciden por SHA-256 con el build; `/inauguracion/` de voceros sigue intacto; la API responde vacía y rechaza con 403 un origen ajeno.
+- Riesgo aceptado por Alex: cualquiera con el enlace puede marcar o borrar.
