@@ -12,8 +12,8 @@ import { injectInvitationOpeningHeader } from '../src/finados/opening-header.mjs
 
 const websiteRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const execFileAsync = promisify(execFile);
-const isPrivateInvitationRoute = route => route.startsWith('/finados/invitacion/') || ['/i/', '/ii/', '/inauguracion/', '/medios-inauguracion/'].includes(route);
-const isPrivateInvitationFile = file => file.startsWith('finados/invitacion/') || /^(?:i|ii|inauguracion|medios-inauguracion)\/index\.html$/.test(file);
+const isPrivateInvitationRoute = route => route.startsWith('/finados/invitacion/') || ['/i/', '/ii/', '/inauguracion/', '/inauguracion/checklist/', '/medios-inauguracion/'].includes(route);
+const isPrivateInvitationFile = file => file.startsWith('finados/invitacion/') || /^(?:i|ii|inauguracion|inauguracion\/checklist|medios-inauguracion)\/index\.html$/.test(file);
 
 const cookieConsentMarkup = `  <aside class="cookie-consent" data-cookie-consent hidden role="region" aria-label="Preferencias de cookies">
     <p class="cookie-consent__message">Nuestro sitio web utiliza cookies para mejorar tu navegación.</p>
@@ -184,6 +184,10 @@ export async function buildSite(outputDirectory = join(websiteRoot, 'dist'), { a
   await writeFile(join(finadosAssets, 'influencer-invitation.js'), influencerInvitationScript.replace(
     "const LOCAL_API = 'http://127.0.0.1:4174/api';",
     adminEnvironment === 'production' ? 'const LOCAL_API = null;' : `const LOCAL_API = '${developmentApi}';`), 'utf8');
+
+  // Checklist público de la inauguración: estilos y script propios, la API sale de runtime-origins.
+  await cp(join(websiteRoot, 'src', 'finados', 'checklist-inauguracion.css'), join(finadosAssets, 'checklist-inauguracion.css'));
+  await cp(join(websiteRoot, 'src', 'finados', 'checklist-inauguracion.js'), join(finadosAssets, 'checklist-inauguracion.js'));
 
   const adminAssets = join(output, 'assets', 'admin');
   await mkdir(adminAssets, { recursive: true });

@@ -27,6 +27,7 @@ import { renderMfsPage } from './finados/mfs-page.mjs';
 import { renderMfsPortalPage } from './finados/mfs-portal-page.mjs';
 import { renderMfsVerificationPage } from './finados/mfs-verification-page.mjs';
 import { renderPaseDoradoVerificationPage } from './finados/pase-dorado-verification-page.mjs';
+import { renderChecklistInauguracionPage } from './finados/checklist-inauguracion-page.mjs';
 import { renderInaugurationBadgePage, renderInaugurationPersonalPage, renderInaugurationThanksPage, renderInaugurationVerifyPage, renderInaugurationTermsPage, renderInaugurationVoceroGatePage, renderInaugurationMediaPage, renderInfluencerBadgePage, renderInfluencerOpenPage, renderInfluencerPersonalPage, renderInfluencerThanksPage, renderInfluencerVerifyPage } from './finados/influencer-invitation-page.mjs';
 import { mfsLegalDocuments, mfsLegalRoutes, renderMfsLegalPage } from './finados/mfs-legal-page.mjs';
 import { renderStandsAccessPage } from './finados/stands-page.mjs';
@@ -415,6 +416,7 @@ export const pages = Object.freeze([
   { route: '/finados/invitacion/inauguracion/gafete/', title: 'Tu gafete · Inauguración Oficial', description: 'Gafete con código QR para la Inauguración Oficial de Finados Mushuc Runa 2026.', indexable: false, render: renderInaugurationBadgePage },
   { route: '/medios-inauguracion/', title: 'Invitación para medios · Inauguración Oficial', description: 'Acreditación de medios de comunicación para la Inauguración Oficial de Finados Mushuc Runa 2026.', indexable: false, render: renderInaugurationMediaPage },
   { route: '/inauguracion/', title: 'Invitación para voceros · Inauguración Oficial', description: 'Invitación de los voceros a la Inauguración Oficial de Finados Mushuc Runa 2026.', indexable: false, render: renderInaugurationVoceroGatePage },
+  { route: '/inauguracion/checklist/', title: 'Checklist de la Inauguración Oficial', description: 'Tablero del coordinador general para la Inauguración Oficial de Finados Mushuc Runa 2026.', indexable: false, render: renderChecklistInauguracionPage },
   { route: '/finados/invitacion/inauguracion/condiciones/', title: 'Condiciones · Inauguración Oficial', description: 'Condiciones de la invitación a la Inauguración Oficial de Finados Mushuc Runa 2026.', indexable: false, render: renderInaugurationTermsPage },
   { route: '/finados/invitacion/inauguracion/verificar/', title: 'Validación de gafete · Inauguración Oficial', description: 'Validación del gafete de la Inauguración Oficial de Finados Mushuc Runa 2026.', indexable: false, render: renderInaugurationVerifyPage },
   { route: '/finados/creadoras/', title: 'Creadoras de contenido · Finados 2026', indexable: false, render: renderCreadorasLandingPage },

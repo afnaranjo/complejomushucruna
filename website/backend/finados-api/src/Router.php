@@ -110,6 +110,19 @@ final class Router
                 if ($limit < 1 || $limit > 20) throw new InvalidArgumentException();
                 return $this->json(200, ['items' => $this->nameQueue()->pending($limit)], $headers);
             }
+            if (preg_match('~^/api/checklist/([a-z0-9-]{1,40})$~D', $path, $parts)) {
+                // Checklist público de coordinación: cualquiera con el enlace ve y marca (decisión 2026-10-26).
+                require_once __DIR__ . '/ChecklistStore.php';
+                $store = new ChecklistStore($this->pdo);
+                if ($method === 'GET') {
+                    if ($query !== []) throw new InvalidArgumentException();
+                    return $this->json(200, ['ok' => true, ...$store->get($parts[1])], $headers);
+                }
+                if ($method !== 'POST') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+                if (!$this->config->isAllowedOrigin($origin) || $query !== []) throw new Forbidden();
+                $body = $this->body($server, $rawBody, ['key', 'value']);
+                return $this->json(200, ['ok' => true, ...$store->set($parts[1], $body['key'] ?? null, $body['value'] ?? null)], $headers);
+            }
             // Badge QR validation is deliberately public but returns only a minimal projection.
             if (preg_match('~^/api/voceros/verify/([a-f0-9]{32})$~D', $path, $parts)) {
                 if ($method !== 'GET') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
