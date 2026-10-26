@@ -20,7 +20,7 @@ final class InvitationClosed extends \RuntimeException {}
 final class InfluencerRepository
 {
     /** Hasta cuándo se puede confirmar cada evento (UTC). La inauguración cierra el lunes 26 de octubre a las 12:00 de Ecuador. */
-    public const RSVP_DEADLINES = ['inauguracion' => '2026-10-26 17:00:00'];
+    public const RSVP_DEADLINES = ['inauguracion' => '2026-10-26 19:00:00'];
 
     public const DEFAULT_EVENT = 'guaynaa';
     public const KINDS = ['creador', 'nuevo', 'vocero'];
