@@ -752,11 +752,15 @@ export function mediaRsvpPayload(values) {
   if (values.answer === 'no') return { payload: base };
   const stream = values.live_stream;
   if (!['yes', 'no', 'recorded'].includes(stream)) return { error: 'Cuéntanos si transmitirán en vivo.' };
-  const channels = (values.channels ?? []).map(channel => ({ platform: channel.platform, url: String(channel.url ?? '').trim() }));
+  const channels = (values.channels ?? []).map(channel => {
+    const raw = String(channel.followers ?? '').replace(/[.,\s]/g, '');
+    return { platform: channel.platform, url: String(channel.url ?? '').trim(), followers: /^\d{1,10}$/.test(raw) ? Number(raw) : null };
+  });
   const detail = String(values.live_detail ?? '').trim();
   if (stream === 'yes') {
     if (!channels.length) return { error: 'Marca al menos una plataforma donde transmitirán.' };
     for (const channel of channels) {
+      if (channel.followers === null || channel.followers > 1000000000) return { error: ['radio', 'tv'].includes(channel.platform) ? 'Escribe los oyentes o la audiencia aproximada de la radio o TV (solo números).' : 'Escribe cuántos seguidores tiene cada página donde transmitirán (solo números).' };
       const broadcast = ['radio', 'tv'].includes(channel.platform);
       if (!broadcast && !/^https:\/\/\S+$/.test(channel.url)) return { error: 'Pega el enlace (https://…) de la página o el canal donde transmitirán.' };
       if (broadcast && channel.url && !/^https:\/\/\S+$/.test(channel.url)) return { error: 'El enlace de radio o TV debe empezar con https://, o déjalo vacío.' };
@@ -865,7 +869,7 @@ async function startMediaRsvp(base) {
     const yes = form.querySelector('input[name="answer"]:checked')?.value === 'yes';
     yesBox.hidden = !yes;
     channelsBox.hidden = form.querySelector('input[name="live_stream"]:checked')?.value !== 'yes';
-    for (const box of channelsBox.querySelectorAll('input[name="platform"]')) channelsBox.querySelector(`input[data-platform="${box.value}"]`).hidden = !box.checked;
+    for (const box of channelsBox.querySelectorAll('input[name="platform"]')) for (const field of channelsBox.querySelectorAll(`input[data-platform="${box.value}"], input[data-followers="${box.value}"]`)) field.hidden = !box.checked;
   };
   form.addEventListener('change', refresh); refresh();
 
@@ -885,7 +889,7 @@ async function startMediaRsvp(base) {
     const result = mediaRsvpPayload({
       event: eventId, media: selected?.public_id ?? '', new_media_name: selected ? '' : search.value, new_media_type: value('new_media_type'),
       answer: checked('answer'), live_stream: checked('live_stream'), live_detail: value('live_detail'),
-      channels: [...channelsBox.querySelectorAll('input[name="platform"]:checked')].map(box => ({ platform: box.value, url: channelsBox.querySelector(`input[data-platform="${box.value}"]`).value })),
+      channels: [...channelsBox.querySelectorAll('input[name="platform"]:checked')].map(box => ({ platform: box.value, url: channelsBox.querySelector(`input[data-platform="${box.value}"]`).value, followers: channelsBox.querySelector(`input[data-followers="${box.value}"]`).value })),
       contact_name: value('contact_name'), contact_phone: value('contact_phone'), conditions: form.querySelector('input[name="conditions"]').checked,
     });
     if (result.error) { say(result.error, true); return; }

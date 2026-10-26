@@ -251,9 +251,11 @@ test('medios: confirmación directa sin cuenta, con buscador de medios', async (
   assert.ok(mediaRsvpPayload({ event, media: '', new_media_name: '', answer: 'no' }).error);
   assert.ok(mediaRsvpPayload({ event, media: '', new_media_name: 'Radio Nueva', answer: 'no' }).error, 'un medio nuevo indica su tipo');
   assert.deepEqual(mediaRsvpPayload({ event, media: list[0].public_id, answer: 'no' }).payload, { event, media: list[0].public_id, new_media_name: '', new_media_type: '', answer: 'no' });
-  const yes = { event, media: list[0].public_id, answer: 'yes', live_stream: 'yes', channels: [{ platform: 'radio', url: '' }], live_detail: '98.5 FM · La Mañana', contact_name: 'Ana Ruiz', contact_phone: '0991234567', conditions: true };
+  const yes = { event, media: list[0].public_id, answer: 'yes', live_stream: 'yes', channels: [{ platform: 'radio', url: '', followers: '12.500' }], live_detail: '98.5 FM · La Mañana', contact_name: 'Ana Ruiz', contact_phone: '0991234567', conditions: true };
   assert.equal(mediaRsvpPayload(yes).payload.contact_phone, '0991234567');
   assert.ok(mediaRsvpPayload({ ...yes, contact_phone: '' }).error);
+  assert.deepEqual(mediaRsvpPayload(yes).payload.live_channels, [{ platform: 'radio', url: '', followers: 12500 }], 'los seguidores se envían como número');
+  assert.ok(mediaRsvpPayload({ ...yes, channels: [{ platform: 'facebook', url: 'https://facebook.com/x', followers: '' }] }).error, 'cada plataforma pide sus seguidores');
   assert.ok(mediaRsvpPayload({ ...yes, conditions: false }).error);
   assert.ok(mediaRsvpPayload({ ...yes, live_detail: '' }).error, 'radio indica frecuencia');
   assert.deepEqual(mediaRsvpPayload({ ...yes, live_stream: 'recorded' }).payload.live_channels, [], 'solo grabará no envía plataformas');

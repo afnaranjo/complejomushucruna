@@ -288,9 +288,13 @@ function liveSummary(item) {
     for (const channel of item.live_channels ?? []) {
       if (!/^https:\/\//.test(channel.url ?? '')) continue;
       const link = document.createElement('a'); link.href = channel.url; link.target = '_blank'; link.rel = 'noopener noreferrer';
-      link.textContent = LIVE_PLATFORM_LABELS[channel.platform] ?? 'Enlace';
+      link.textContent = (LIVE_PLATFORM_LABELS[channel.platform] ?? 'Enlace') + (Number.isInteger(channel.followers) ? ` · ${channel.followers.toLocaleString('es-EC')} seg.` : '');
       box.append(link);
     }
+  }
+  if (item.confirmation === 'yes' && item.live_stream === 'yes') {
+    const offline = (item.live_channels ?? []).filter(channel => !/^https:\/\//.test(channel.url ?? '') && Number.isInteger(channel.followers));
+    for (const channel of offline) { const small = document.createElement('small'); small.textContent = `${LIVE_PLATFORM_LABELS[channel.platform] ?? channel.platform}: ${channel.followers.toLocaleString('es-EC')} oyentes`; box.append(small); }
   }
   if (item.rsvp_contact_name || item.rsvp_contact_phone) {
     const contact = document.createElement('small');

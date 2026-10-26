@@ -462,7 +462,8 @@ same(403, $router->handle('POST', '/api/media/rsvp', [...$public, 'HTTP_ORIGIN' 
 same(422, $router->handle('POST', '/api/media/rsvp', $public, coverage_json(['event' => $opening['public_id'], 'media' => $cumbre, 'answer' => 'yes', 'live_stream' => 'no', 'conditions' => true]))->status);
 same(422, $router->handle('POST', '/api/media/rsvp', $public, coverage_json(['event' => $opening['public_id'], 'media' => $cumbre, 'answer' => 'yes', 'contact_name' => 'Ana Ruiz', 'contact_phone' => '0991234567', 'live_stream' => 'no']))->status);
 $direct = coverage_body($router->handle('POST', '/api/media/rsvp', $public, coverage_json(['event' => $opening['public_id'], 'media' => $cumbre, 'answer' => 'yes', 'contact_name' => 'Ana Ruiz', 'contact_phone' => '0991234567',
-    'live_stream' => 'yes', 'live_channels' => [['platform' => 'tiktok', 'url' => 'https://www.tiktok.com/@cumbre']], 'live_detail' => '', 'conditions' => true])));
+    'live_stream' => 'yes', 'live_channels' => [['platform' => 'tiktok', 'url' => 'https://www.tiktok.com/@cumbre', 'followers' => 15400]], 'live_detail' => '', 'conditions' => true])));
+same(422, $router->handle('POST', '/api/media/rsvp', $public, coverage_json(['event' => $opening['public_id'], 'media' => $cumbre, 'answer' => 'yes', 'contact_name' => 'Ana Ruiz', 'contact_phone' => '0991234567', 'live_stream' => 'yes', 'live_channels' => [['platform' => 'tiktok', 'url' => 'https://www.tiktok.com/@cumbre', 'followers' => -1]], 'conditions' => true]))->status, 'seguidores negativos no');
 same(['yes', 'yes'], [$direct['confirmation']['answer'], $direct['confirmation']['live_stream']]);
 // Un medio que no está en la lista se crea como registro de coordinación; si ya existe con ese nombre, se reutiliza.
 $profilesBefore = (int) $pdo->query('SELECT COUNT(*) FROM media_profiles')->fetchColumn();
@@ -475,7 +476,7 @@ same('coordinacion', $pdo->query("SELECT origin FROM media_profiles WHERE media_
 $adminSession = coverage_body($router->handle('GET', '/api/auth/session', $origin));
 coverage_body($router->handle('POST', '/api/auth/login', $json($adminSession['csrf']), coverage_json(['username' => 'admin', 'password' => $adminSecret])));
 $withDirect = coverage_body($router->handle('GET', '/api/media-events/' . $opening['public_id'], $origin));
-foreach ($withDirect['items'] as $item) if ($item['public_id'] === $cumbre) same(['Ana Ruiz', '0991234567', 'directo', 'yes'], [$item['rsvp_contact_name'], $item['rsvp_contact_phone'], $item['rsvp_via'], $item['live_stream']]);
+foreach ($withDirect['items'] as $item) if ($item['public_id'] === $cumbre) { same(['Ana Ruiz', '0991234567', 'directo', 'yes'], [$item['rsvp_contact_name'], $item['rsvp_contact_phone'], $item['rsvp_via'], $item['live_stream']]); same(15400, $item['live_channels'][0]['followers']); }
 same(true, in_array($cumbre, $withDirect['summary']['en_vivo']['ids'], true));
 coverage_close_session();
 // Después del plazo, la página directa también se cierra.

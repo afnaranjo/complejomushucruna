@@ -1071,7 +1071,10 @@ final class MediaRepository
                 $url = trim($url);
                 if (in_array($channel['platform'], ['radio', 'tv'], true)) { $needsDetail = true; $url = $url === '' ? '' : self::link($url, 500); }
                 else $url = self::link($url, 500);
-                $channels[] = ['platform' => $channel['platform'], 'url' => $url];
+                // Seguidores (u oyentes) declarados de esa página o señal; opcional para no romper el portal.
+                $followers = $channel['followers'] ?? null;
+                if ($followers !== null && (!is_int($followers) || $followers < 0 || $followers > 1000000000)) throw new InvalidArgumentException();
+                $channels[] = ['platform' => $channel['platform'], 'url' => $url, ...($followers === null ? [] : ['followers' => $followers])];
             }
             $raw = $details['live_detail'] ?? '';
             if (!is_string($raw)) throw new InvalidArgumentException();
