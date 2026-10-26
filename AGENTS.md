@@ -2492,3 +2492,8 @@ Nota de relevo escrita a pedido de Alex para que otro agente (Codex) retome la s
 - QA: `npm run check` en verde (309 Node, suites PHP con `checklist_test.php`, 11 integración; 300 archivos, 102 HTML, 3296 referencias). Prueba real por HTTP en el entorno local.
 - Commits `be6fbf8` y `55791be`. El primer despliegue del backend falló en la migración por un `;` dentro de un comentario SQL; no se activó la versión nueva y producción siguió igual. Tras corregirlo: backend con respaldo y migración 041, y frontend con respaldo y sin borrar archivos exclusivos. En el espejo, la página, su CSS y su JS coinciden por SHA-256 con el build; `/inauguracion/` de voceros sigue intacto; la API responde vacía y rechaza con 403 un origen ajeno.
 - Riesgo aceptado por Alex: cualquiera con el enlace puede marcar o borrar.
+
+### 2026-10-26 — Plazo de confirmación de la inauguración ampliado al martes 27 a las 10:00
+
+- A pedido de Alex, voceros e influencers pueden volver a confirmar la Inauguración Oficial, por su enlace personal o por `/inauguracion/`, hasta el martes 27 de octubre a las 10:00 de Ecuador (`2026-10-27 15:00:00` UTC en `InfluencerRepository::RSVP_DEADLINES`). Se actualizaron el contador, los textos y las pruebas. Caché `20261026-plazo-27-10-1`. Sin migraciones; los medios siguen hasta el miércoles 28 a las 12:00.
+- QA: `npm run check` en verde. Commit `9a673f6`; se publicaron primero el backend y después el frontend, con respaldo. Por el espejo, la API devuelve el plazo `2026-10-27T10:00:00-05:00` abierto y la invitación muestra «Martes 27 de octubre · 10:00».
