@@ -1059,3 +1059,7 @@ body[data-shift-dragging="true"], body[data-shift-dragging="true"] * { cursor: g
 .ivt-card--new p:last-child { margin: .25rem 0 0; color: #665771; }
 @media (max-width: 520px) { .ivt-card { padding: 1rem; } .ivt-phone { margin: 0 auto; } }
 .admin-media-live { display: grid; gap: .15rem; font-size: .74rem; min-width: 9rem; } .admin-media-live a { color: var(--color-action, #94165e); font-weight: 700; }
+.admin-media-pass { display: inline-flex; align-items: center; gap: .3rem; margin-top: .35rem; padding: .3rem .65rem; border: 0; border-radius: 999px; font: inherit; font-size: .74rem; font-weight: 800; background: #241146; color: #ffd23f; cursor: pointer; }
+.admin-media-pass::before { content: "▦"; font-size: .85rem; }
+.admin-media-pass:hover, .admin-media-pass:focus-visible { background: #ff2e8a; color: #fff; }
+.admin-media-pass[hidden] { display: none; }

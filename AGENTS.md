@@ -2454,3 +2454,21 @@ Nota de relevo escrita a pedido de Alex para que otro agente (Codex) retome la s
 - QA: `npm run check` en verde (307 Node, todas las suites PHP con la nueva `vocero_self_recover_test.php`, 11 integración).
 - Riesgo aceptado por Alex: quien conozca el correo, la cédula y el WhatsApp de otra persona podría cambiarle la contraseña. Las cuentas sin ficha siguen recuperándose por coordinación.
 - Publicación externa: Alex autorizó con «sube». Backend y luego frontend publicados con respaldo, sin migraciones y sin borrar archivos exclusivos. Verificación por el espejo: la API de la inauguración devuelve el plazo 2026-10-26T12:00:00-05:00 y abierto; la invitación muestra «Lunes 26 de octubre · 12:00»; el acceso de voceros trae el formulario de recuperación y `/inauguracion/` enlaza a `?modo=recuperar`; `vocero-portal.js` e `influencer-invitation.js` coinciden con el build por SHA-256; `POST /api/vocero/auth/recover` sin CSRF 403 y `health` 200.
+
+### 2026-10-26 — QR descargable por cada medio confirmado (local)
+
+- Alex pidió que, cuando un medio confirma su asistencia, se genere un QR y se pueda descargar.
+- En `/admin/medios/eventos/`, cada medio con «Confirmó» tiene ahora el botón «Descargar QR». Descarga una tarjeta PNG de 1080 × 1350 con el nombre del medio, el evento, la fecha, el lugar y el QR. El botón aparece en cuanto se marca la confirmación.
+- Al confirmar «sí» por el enlace directo `/medios-inauguracion/`, la pantalla final muestra la misma tarjeta con «Descargar mi QR».
+- El QR lleva a `/finados/medios/acreditacion/?evento=…&medio=…` y solo contiene identificadores públicos. Al escanearlo se ve «✓ Medio confirmado», «✓ Confirmado · ya registró su llegada» o «✕ Sin confirmación», junto con el nombre del medio y si transmitirá en vivo. Nunca muestra el contacto ni el teléfono.
+- Backend:
+  - nueva ruta pública `GET /api/media/pass?event=&media=` (`MediaRepository::publicPass`);
+  - `directRsvp` devuelve además los identificadores del medio y del evento;
+  - sin migraciones.
+- Build: el versionado automático de importaciones se repite hasta resolver cadenas de módulos, porque `media-pass.mjs` depende de otros dos.
+- Cachés:
+  - `admin-medios.js` y `admin.css`: `20261026-medios-qr-1`;
+  - invitación: `20261026-medios-qr-1`;
+  - portal de medios: `20261026-medios-qr-1`.
+- QA: `npm run check` en verde, con pruebas nuevas en `media_coverage_test.php` y `medios-cobertura.test.mjs`. Además, la tarjeta se revisó visualmente en Chrome sin interfaz.
+- Pendiente: publicar backend → frontend con autorización de Alex. Los medios con cuenta que confirman desde su portal no ven todavía el botón; coordinación descarga su QR desde Eventos.

@@ -349,3 +349,7 @@
 .media-live__conditions a { color: #4921ad; font-weight: 700; }
 .media-live__error { margin: 0; color: #c0185e; font-weight: 700; }
 .media-live__error:empty { display: none; }
+.media-pass { text-align: center; }
+.media-pass__state { margin: 0; padding: 1rem; border-radius: 16px; font-size: 1.6rem; font-weight: 900; background: #fde2ea; color: #9b1239; }
+.media-pass[data-valid="true"] .media-pass__state { background: #d8f7e6; color: #11663c; }
+.media-pass__name { margin: .75rem 0 0; font-size: 1.35rem; font-weight: 800; }

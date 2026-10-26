@@ -1651,6 +1651,15 @@ final class Router
             if ($event === null) throw new OutOfBoundsException();
             return $this->json(200, ['ok' => true, 'event' => $event], $headers);
         }
+        if ($path === '/api/media/pass') {
+            // Público: la página a la que lleva el QR de un medio confirmado.
+            if ($method !== 'GET') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+            $keys = array_keys($query); sort($keys);
+            if ($keys !== ['event', 'media']) throw new InvalidArgumentException();
+            $pass = $this->media()->publicPass($query['event'], $query['media']);
+            if ($pass === null) throw new OutOfBoundsException();
+            return $this->json(200, ['ok' => true, 'pass' => $pass], $headers);
+        }
         if ($path === '/api/media/checkin') {
             $user = $this->mediaAuth()->requireUser();
             if ($method !== 'POST') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);

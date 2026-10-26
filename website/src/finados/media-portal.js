@@ -54,7 +54,7 @@ export class MediaApiClient {
     this.fetch = fetchImplementation;
   }
   async request(path, { body, blob = false } = {}) {
-    if (!/^\/(?:auth\/(?:session|register|login|logout|reset)|profile|videos|photo|claim|attendance|checkin|event\?id=[a-f0-9]{32}|invitation\?token=[a-f0-9]{64}|lookup\?name=[^&#]{1,200})$/.test(path)) throw new Error('Ruta de API no permitida.');
+    if (!/^\/(?:auth\/(?:session|register|login|logout|reset)|profile|videos|photo|claim|attendance|checkin|event\?id=[a-f0-9]{32}|pass\?event=[a-f0-9]{32}&media=[a-f0-9]{32}|invitation\?token=[a-f0-9]{64}|lookup\?name=[^&#]{1,200})$/.test(path)) throw new Error('Ruta de API no permitida.');
     if (body !== undefined && !this.#csrf) await this.session();
     const headers = { Accept: blob ? 'image/jpeg' : 'application/json' };
     const multipart = typeof FormData !== 'undefined' && body instanceof FormData;
@@ -89,6 +89,7 @@ export class MediaApiClient {
   confirmAttendance(event, answer, details = {}) { return this.request('/attendance', { body: { event, answer, ...details } }); }
   checkIn(event) { return this.request('/checkin', { body: { event } }); }
   event(id) { return this.request(`/event?id=${id}`); }
+  pass(eventId, mediaId) { return this.request(`/pass?event=${eventId}&media=${mediaId}`); }
   login(email, password) { return this.request('/auth/login', { body: { email, password } }); }
   async logout() { const result = await this.request('/auth/logout', { body: {} }); this.#csrf = ''; return result; }
   profile() { return this.request('/profile'); }
@@ -319,6 +320,21 @@ export async function initializeMediaAccreditation(root = document, location = g
     root.querySelector('[data-accreditation-meta]').textContent = [event.event_date ? eventDate(event.event_date) : 'Fecha por confirmar', event.place].filter(Boolean).join(' · ');
     root.querySelector('[data-accreditation-details]').textContent = event.details ?? '';
   } catch { message('No encontramos este evento. Revisa el enlace o pide uno nuevo a la organización.', true); return; }
+  // QR personal de un medio confirmado: se muestra su estado para validarlo en la puerta, sin pedir sesión.
+  const mediaId = new URLSearchParams(location.search ?? '').get('medio');
+  if (mediaId !== null) {
+    const pass = root.querySelector('[data-accreditation-pass]');
+    if (!/^[a-f0-9]{32}$/.test(mediaId) || !pass) { message('Este QR no es válido. Pide uno nuevo a la organización.', true); return; }
+    try {
+      const data = (await api.pass(id, mediaId)).pass;
+      pass.hidden = false; pass.dataset.valid = String(data.valid === true);
+      pass.querySelector('[data-pass-state]').textContent = data.arrived ? '✓ Confirmado · ya registró su llegada' : data.valid ? '✓ Medio confirmado' : data.confirmation === 'no' ? '✕ Indicó que no asistirá' : '✕ Sin confirmación';
+      pass.querySelector('[data-pass-name]').textContent = data.media_name;
+      pass.querySelector('[data-pass-live]').textContent = data.live_stream === 'yes' ? 'Transmitirá en vivo.' : data.live_stream === 'recorded' ? 'Grabará para publicar después.' : '';
+      message('');
+    } catch (error) { message(error?.status === 404 ? 'Este medio no está registrado para este evento.' : (error?.message ?? 'No se pudo validar el QR.'), true); }
+    return;
+  }
   function render(invitations = []) {
     const own = invitations.find(entry => entry.public_id === id) ?? null;
     session.hidden = false; anonymous.hidden = true;

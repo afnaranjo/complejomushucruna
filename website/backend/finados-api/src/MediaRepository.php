@@ -772,6 +772,24 @@ final class MediaRepository
         return $row === false ? null : ['public_id' => $row['public_id'], 'name' => $row['name'], 'event_date' => $row['event_date'], 'place' => (string) $row['place'], 'details' => (string) $row['details'], 'rsvp_deadline' => self::deadlineOut($row['rsvp_deadline'] ?? null)];
     }
 
+    /**
+     * Público: lo que muestra el QR de un medio confirmado. Solo el nombre del medio, el evento y el estado;
+     * nunca el contacto, el teléfono ni los enlaces.
+     */
+    public function publicPass(mixed $eventPublicId, mixed $mediaPublicId): ?array
+    {
+        foreach ([$eventPublicId, $mediaPublicId] as $id) if (!is_string($id) || preg_match('/^[a-f0-9]{32}$/D', $id) !== 1) return null;
+        $query = $this->pdo->prepare('SELECT e.public_id AS event_id, e.name, e.event_date, e.place, p.media_name, c.confirmation, c.attended, c.checked_in_at, c.live_stream FROM media_event_coverage c JOIN media_events e ON e.id = c.event_id JOIN media_profiles p ON p.id = c.profile_id WHERE e.public_id = ? AND p.public_id = ? AND p.status <> ?');
+        $query->execute([$eventPublicId, $mediaPublicId, self::ARCHIVED]);
+        $row = $query->fetch();
+        if ($row === false) return null;
+        $confirmation = in_array($row['confirmation'], self::ATTENDANCE, true) ? $row['confirmation'] : null;
+        return ['media_name' => $row['media_name'], 'confirmation' => $confirmation, 'valid' => $confirmation === 'yes',
+            'arrived' => $row['attended'] === 'yes', 'checked_in_at' => $row['checked_in_at'],
+            'live_stream' => in_array($row['live_stream'], self::LIVE_STREAM, true) ? $row['live_stream'] : null,
+            'event' => ['public_id' => $row['event_id'], 'name' => $row['name'], 'event_date' => $row['event_date'], 'place' => (string) $row['place']]];
+    }
+
     /** The medium registers its arrival on the day of the event; this is what marks attendance. */
     public function checkIn(int $accountId, string $eventPublicId, string $ip): array
     {
@@ -1028,7 +1046,8 @@ final class MediaRepository
             $this->rollBack();
             throw $error;
         }
-        return ['media_name' => $row['media_name'], 'answer' => $answer, 'live_stream' => $live['live_stream'], 'event' => $event['name']];
+        return ['media_name' => $row['media_name'], 'answer' => $answer, 'live_stream' => $live['live_stream'], 'event' => $event['name'],
+            'media_id' => $row['public_id'], 'event_id' => $event['public_id'], 'event_date' => $event['event_date'], 'place' => (string) ($event['place'] ?? '')];
     }
 
     private function clock(): int

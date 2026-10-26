@@ -58,7 +58,7 @@ test('el build publica el submenú Eventos de Medios, el alta desde coordinació
   assert.match(admin, /<textarea name="tv_channel"/);
   assert.match(admin, /name="audience_count"/);
   assert.match(admin, /<select name="radio_genre">/);
-  assert.match(admin, /admin-medios\.js\?v=20261026-medios-directo-1/);
+  assert.match(admin, /admin-medios\.js\?v=20261026-medios-qr-1/);
   // Portal: invitation notice on access, suggestion and pending-claim notices on the profile.
   const access = await readFile(join(output, 'finados/medios/acceso/index.html'), 'utf8');
   assert.match(access, /data-media-invitation hidden/);
@@ -69,7 +69,7 @@ test('el build publica el submenú Eventos de Medios, el alta desde coordinació
   assert.match(profile, /data-media-claim hidden/);
   assert.match(profile, /data-media-events hidden/);
   assert.match(profile, /data-media-events-list/);
-  assert.match(profile, /media-portal\.js\?v=20261024-medios-envivo-1/);
+  assert.match(profile, /media-portal\.js\?v=20261026-medios-qr-1/);
   // Voceros and Emprendedores untouched by the Medios change.
   assert.doesNotMatch(await readFile(join(output, 'finados/voceros/mi-registro/index.html'), 'utf8'), /data-media-lookup|data-media-claim/);
   assert.doesNotMatch(await readFile(join(output, 'admin/emprendedores/index.html'), 'utf8'), /data-admin-medios-eventos|data-record-dialog/);
@@ -193,4 +193,18 @@ test('los clientes del panel y del portal solo usan las rutas nuevas permitidas'
   assert.equal(portalCalls.at(-1)[0], 'https://finados.complejomushucruna.com/api/media/attendance');
   await assert.rejects(api.request('/invitation?token=corto'), /Ruta de API no permitida/);
   await assert.rejects(api.request('/lookup?name=a&extra=1'), /Ruta de API no permitida/);
+});
+
+test('el QR de un medio confirmado lleva solo los identificadores públicos', async () => {
+  const { mediaPassUrl, mediaPassFileName, passDate } = await import('../src/finados/media-pass.mjs');
+  const event = 'a'.repeat(32); const media = 'b'.repeat(32);
+  assert.equal(mediaPassUrl(event, media, 'https://complejomushucruna.com'), `https://complejomushucruna.com/finados/medios/acreditacion/?evento=${event}&medio=${media}`);
+  assert.throws(() => mediaPassUrl(event, 'x', 'https://complejomushucruna.com'));
+  assert.throws(() => mediaPassUrl(event, media, 'https://evil.invalid'));
+  assert.equal(mediaPassFileName('Radio Éxito 98.5'), 'qr-medio-radio-exito-98-5.png');
+  assert.equal(passDate('2026-10-30'), '30 de octubre de 2026');
+  const admin = await readFile(new URL('../src/admin/admin-medios.js', import.meta.url), 'utf8');
+  assert.match(admin, /Descargar QR/);
+  const accreditation = await readFile(new URL('../src/medios/accreditation-page.mjs', import.meta.url), 'utf8');
+  assert.match(accreditation, /data-accreditation-pass/);
 });

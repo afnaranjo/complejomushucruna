@@ -19,7 +19,7 @@ export const inaugurationEventDefaults = Object.freeze({
   place: 'Complejo Intercultural y Deportivo Mushuc Runa · Santa Lucía, Tisaleo · Panamericana Sur km 12, vía Ambato–Riobamba',
   dressCode: '',
 });
-export const influencerInvitationVersion = '20261026-plazo-12-2';
+export const influencerInvitationVersion = '20261026-medios-qr-1';
 
 function shell(page, { api, body, kind, eventKey = 'guaynaa' }) {
   const connect = apiBasesForCsp(api);
@@ -536,6 +536,11 @@ ${inaugurationEventCard}
 </form>
 <div class="inv-gate-missing inv-media-done" data-media-done hidden>
 <p data-media-done-text></p>
+<div class="inv-media-pass" data-media-pass hidden>
+<canvas data-media-pass-canvas width="1080" height="1350" aria-label="Código QR del medio confirmado"></canvas>
+<a class="inv-yes" data-media-pass-download href="#" download="qr-medio.png">Descargar mi QR</a>
+<p>Guárdalo en el celular o imprímelo: lo presentan en el ingreso de prensa el día del evento.</p>
+</div>
 <button type="button" class="inv-no" data-media-again>Confirmar otro medio</button>
 </div>
 <p class="inv-gate-links"><a href="/finados/medios/acceso/?modo=login">¿Tu medio ya tiene cuenta? También puedes confirmar desde ella</a></p>

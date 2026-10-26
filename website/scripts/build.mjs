@@ -143,6 +143,7 @@ export async function buildSite(outputDirectory = join(websiteRoot, 'dist'), { a
   await cp(join(websiteRoot, 'src', 'finados', 'vocero-portal.css'), join(finadosAssets, 'vocero-portal.css'));
   await cp(join(websiteRoot, 'src', 'finados', 'qrcode-generator.mjs'), join(finadosAssets, 'qrcode-generator.mjs'));
   await cp(join(websiteRoot, 'src', 'finados', 'runtime-origins.mjs'), join(finadosAssets, 'runtime-origins.mjs'));
+  await cp(join(websiteRoot, 'src', 'finados', 'media-pass.mjs'), join(finadosAssets, 'media-pass.mjs'));
   await cp(join(websiteRoot, 'src', 'finados', 'nombres-en-pantalla.css'), join(finadosAssets, 'nombres-en-pantalla.css'));
   await cp(join(websiteRoot, 'src', 'finados', 'nombres-en-pantalla.js'), join(finadosAssets, 'nombres-en-pantalla.js'));
   await cp(join(websiteRoot, 'src', 'finados', 'vocero-verification.js'), join(finadosAssets, 'vocero-verification.js'));
@@ -310,6 +311,12 @@ const UNVERSIONED_IMPORT = /((?:\bfrom\s*|\bimport\s*)['"])(\.{1,2}\/[^'"?#]+\.m
 
 export async function versionUnversionedImports(output) {
   const assets = (await listFiles(output)).filter((file) => file.startsWith('assets/') && /\.m?js$/.test(file));
+  // Cada vuelta versiona las dependencias que ya quedaron cerradas; se repite hasta cubrir las cadenas de importación.
+  for (let pass = 0; pass < 5; pass += 1) if (!(await versionImportsPass(output, assets))) break;
+}
+
+async function versionImportsPass(output, assets) {
+  let touched = false;
   const hashes = new Map();
   const hashOf = async (file) => {
     if (!hashes.has(file)) hashes.set(file, createHash('sha256').update(await readFile(join(output, file))).digest('hex').slice(0, 10));
@@ -326,8 +333,9 @@ export async function versionUnversionedImports(output) {
       if (targetSource === null || [...targetSource.matchAll(UNVERSIONED_IMPORT)].length) continue;
       changed = changed.replace(match[0], `${match[1]}${match[2]}?v=${await hashOf(target)}${match[3]}`);
     }
-    if (changed !== source) await writeFile(path, changed, 'utf8');
+    if (changed !== source) { await writeFile(path, changed, 'utf8'); touched = true; }
   }
+  return touched;
 }
 
 const STATIC_IMPORT = /(?:^|[;\n}])\s*import\s+(?:[\w*{}\s,$]+?\s+from\s+)?['"](\.{1,2}\/[^'"]+)['"]/g;

@@ -465,6 +465,13 @@ $direct = coverage_body($router->handle('POST', '/api/media/rsvp', $public, cove
     'live_stream' => 'yes', 'live_channels' => [['platform' => 'tiktok', 'url' => 'https://www.tiktok.com/@cumbre', 'followers' => 15400]], 'live_detail' => '', 'conditions' => true])));
 same(422, $router->handle('POST', '/api/media/rsvp', $public, coverage_json(['event' => $opening['public_id'], 'media' => $cumbre, 'answer' => 'yes', 'contact_name' => 'Ana Ruiz', 'contact_phone' => '0991234567', 'live_stream' => 'yes', 'live_channels' => [['platform' => 'tiktok', 'url' => 'https://www.tiktok.com/@cumbre', 'followers' => -1]], 'conditions' => true]))->status, 'seguidores negativos no');
 same(['yes', 'yes'], [$direct['confirmation']['answer'], $direct['confirmation']['live_stream']]);
+// El QR del medio confirmado: identificadores públicos y una validación sin datos de contacto.
+same([$cumbre, $opening['public_id']], [$direct['confirmation']['media_id'], $direct['confirmation']['event_id']]);
+$pass = coverage_body($router->handle('GET', '/api/media/pass?event=' . $opening['public_id'] . '&media=' . $cumbre, $origin))['pass'];
+same([true, 'yes', 'yes'], [$pass['valid'], $pass['confirmation'], $pass['live_stream']], 'el QR muestra al medio confirmado');
+same(['media_name', 'confirmation', 'valid', 'arrived', 'checked_in_at', 'live_stream', 'event'], array_keys($pass), 'el QR no expone contacto ni teléfono');
+same(404, $router->handle('GET', '/api/media/pass?media=' . str_repeat('a', 32) . '&event=' . $opening['public_id'], $origin)->status);
+same(422, $router->handle('GET', '/api/media/pass?event=' . $opening['public_id'], $origin)->status);
 // Un medio que no está en la lista se crea como registro de coordinación; si ya existe con ese nombre, se reutiliza.
 $profilesBefore = (int) $pdo->query('SELECT COUNT(*) FROM media_profiles')->fetchColumn();
 same(422, $router->handle('POST', '/api/media/rsvp', $public, coverage_json(['event' => $opening['public_id'], 'media' => '', 'new_media_name' => 'Radio Nueva Prueba', 'answer' => 'no']))->status, 'un medio nuevo indica su tipo');

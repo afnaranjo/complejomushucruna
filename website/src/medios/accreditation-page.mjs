@@ -25,6 +25,11 @@ export function renderMediaAccreditationPage(page) {
 <main id="contenido" class="vocero-workspace vocero-workspace--access">
 <div class="vocero-feedback" data-vocero-feedback role="status" aria-live="polite" aria-atomic="true" tabindex="-1">Cargando el evento…</div>
 <div class="vocero-access-intro"><p class="vocero-eyebrow">Acreditación de medios</p><h1 data-accreditation-name>Evento</h1><p data-accreditation-meta></p><p data-accreditation-details></p></div>
+<section class="media-accreditation-box media-pass" data-accreditation-pass hidden>
+  <p class="media-pass__state" data-pass-state></p>
+  <p class="media-pass__name" data-pass-name></p>
+  <p data-pass-live></p>
+</section>
 <section class="media-accreditation-box" data-accreditation-anonymous hidden>
   <p>Para acreditarte necesitas la cuenta de tu medio. Si ya la tienes, inicia sesión; si no, créala en un minuto y vuelve a este enlace.</p>
   <div class="media-event__actions">

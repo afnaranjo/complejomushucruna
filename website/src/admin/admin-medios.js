@@ -1,5 +1,6 @@
 import { isAllowedSiteOrigin, MIRROR_API_BASE, PRIMARY_API_BASE, resolveRuntimeOrigins } from '../finados/runtime-origins.mjs';
 import { qrcode } from '../finados/qrcode-generator.mjs';
+import { drawMediaPass, mediaPassFileName, mediaPassUrl } from '../finados/media-pass.mjs';
 import './sidebar.js?v=20260926-admin-sidebar-3';
 import './campaign-banner.js?v=20261001-banner-3';
 
@@ -996,6 +997,12 @@ export async function initializeMediaEventsAdmin() {
     const name = node('div'); name.append(node('strong', item.media_name), node('small', [describeField('media_types', item.media_types), item.frequency_channel, item.city].filter(Boolean).join(' · ')));
     const originMark = node('span', item.origin === 'cuenta' ? 'Con cuenta' : item.linked ? 'Coord. · vinculado' : 'Coord. · sin cuenta', 'admin-media-origin'); originMark.dataset.origin = item.origin; name.append(originMark);
     cell('Medio', name).className = 'record-name';
+    // Medio confirmado: su QR personal se descarga para enviarlo o imprimirlo.
+    const passButton = node('button', 'Descargar QR', 'admin-media-pass'); passButton.type = 'button';
+    passButton.hidden = item.confirmation !== 'yes';
+    passButton.setAttribute('aria-label', `Descargar el QR de ${item.media_name}`);
+    passButton.addEventListener('click', () => downloadPass(item));
+    name.append(passButton);
     const contracted = node('select'); for (const [value, label] of [['', 'Sin dato'], ['yes', 'Sí · Pautado'], ['no', 'No · Sin contrato']]) { const option = node('option', label); option.value = value; contracted.append(option); } contracted.value = item.contracted ?? ''; contracted.setAttribute('aria-label', `Contrato de ${item.media_name}`);
     cell('Contrato', contracted);
     const confirmation = node('select', undefined, 'admin-media-confirmation');
@@ -1040,12 +1047,22 @@ export async function initializeMediaEventsAdmin() {
         preview.replaceChildren(); for (const url of updated?.links ?? []) preview.append(linkNode(url));
         published.checked = (updated?.links ?? []).length > 0;
         confirmation.dataset.confirmation = updated?.confirmation ?? 'pendiente';
+        passButton.hidden = updated?.confirmation !== 'yes';
         // The row stays visible while editing even if it leaves the active bucket; the numbers above already moved.
       } catch (error) { state.textContent = 'No se pudo guardar'; fail(error, tableMessage); }
     };
     const schedule = () => { globalThis.clearTimeout(timers.get(item.public_id)); timers.set(item.public_id, globalThis.setTimeout(save, 900)); };
     for (const control of [contracted, confirmation, attended, result, people, links, note]) { control.addEventListener('change', schedule); control.addEventListener('input', schedule); }
     return row;
+  }
+  /** Tarjeta PNG con el QR del medio confirmado para este evento. */
+  function downloadPass(item) {
+    try {
+      const event = coverage.event ?? {};
+      const canvas = drawMediaPass(document.createElement('canvas'), { url: mediaPassUrl(current, item.public_id, runtime.siteOrigin), mediaName: item.media_name, eventName: event.name ?? '', eventDate: event.event_date ?? '', place: event.place ?? '' });
+      const link = document.createElement('a'); link.href = canvas.toDataURL('image/png'); link.download = mediaPassFileName(item.media_name);
+      document.body.append(link); link.click(); link.remove();
+    } catch (error) { fail(error, tableMessage); }
   }
   async function loadCoverage(id) {
     const own = ++generation; current = id;

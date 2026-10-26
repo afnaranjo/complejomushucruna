@@ -83,7 +83,7 @@ function layout(page, content, script = '/assets/admin/admin.js?v=20261012-views
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' blob:; media-src blob:;${frames} font-src 'self'; connect-src ${connectSources}; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="admin-api-base" content="${api}">
 <link rel="icon" href="/assets/finados/favicon-finados.png">
-<link rel="stylesheet" href="/assets/admin/admin.css?v=20261024-medios-envivo-1">
+<link rel="stylesheet" href="/assets/admin/admin.css?v=20261026-medios-qr-1">
 <script type="module" src="${script}"></script>
 </head><body class="admin-page">
 <a class="skip-link" href="#contenido">Ir al contenido</a>
@@ -180,7 +180,7 @@ ${select('province', 'Provincia', ecuadorProvinces)}</div>
 
 const ADMIN_CREADORAS_SCRIPT = '/assets/admin/admin-creadoras.js?v=20261001-mapa-4';
 export const ADMIN_CREADORAS_EDICION_SCRIPT = '/assets/admin/admin-creadoras-edicion.js?v=20261001-mapa-4';
-const ADMIN_MEDIOS_SCRIPT = '/assets/admin/admin-medios.js?v=20261026-medios-directo-1';
+const ADMIN_MEDIOS_SCRIPT = '/assets/admin/admin-medios.js?v=20261026-medios-qr-1';
 const RADIO_GENRE_OPTIONS = ['Noticias e información', 'Musical variada', 'Popular y tropical', 'Folclórica y andina', 'Juvenil y pop', 'Romántica', 'Religiosa', 'Deportiva', 'Comunitaria', 'Otro'];
 const PROVINCE_OPTIONS = ['Azuay', 'Bolívar', 'Cañar', 'Carchi', 'Chimborazo', 'Cotopaxi', 'El Oro', 'Esmeraldas', 'Galápagos', 'Guayas', 'Imbabura', 'Loja', 'Los Ríos', 'Manabí', 'Morona Santiago', 'Napo', 'Orellana', 'Pastaza', 'Pichincha', 'Santa Elena', 'Santo Domingo de los Tsáchilas', 'Sucumbíos', 'Tungurahua', 'Zamora Chinchipe'];
 

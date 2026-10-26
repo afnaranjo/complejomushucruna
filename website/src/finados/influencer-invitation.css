@@ -448,3 +448,7 @@ body.inv--inauguracion::before {
 .inv-media-rsvp .inv-form label.inv-media-accept { display: flex; gap: .55rem; align-items: flex-start; color: #2a1450; font-weight: 600; line-height: 1.45; }
 .inv-media-accept a { color: #c0185e; }
 .inv-media-done { text-align: left; }
+.inv-media-pass { display: grid; gap: .75rem; justify-items: center; margin: 1rem 0; text-align: center; }
+.inv-media-pass[hidden] { display: none; }
+.inv-media-pass canvas { width: min(100%, 320px); height: auto; border-radius: 18px; box-shadow: 0 10px 30px rgba(36, 17, 70, .25); }
+.inv-media-pass p { margin: 0; font-size: .9rem; }

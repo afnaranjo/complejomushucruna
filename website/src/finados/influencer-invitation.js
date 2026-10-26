@@ -1,4 +1,5 @@
 import { qrcode } from './qrcode-generator.mjs';
+import { drawMediaPass, mediaPassFileName, mediaPassUrl } from './media-pass.mjs';
 import { isAllowedSiteOrigin, MIRROR_API_BASE, PRIMARY_API_BASE, PRIMARY_SITE_ORIGIN, resolveRuntimeOrigins } from './runtime-origins.mjs';
 
 const API = PRIMARY_API_BASE;
@@ -898,8 +899,20 @@ async function startMediaRsvp(base) {
       const response = await client.send(result.payload);
       const name = response.confirmation?.media_name ?? '';
       done.querySelector('[data-media-done-text]').textContent = result.payload.answer === 'yes'
-        ? `¡Listo! ${name} quedó confirmado para la Inauguración Oficial. Te escribiremos al WhatsApp de la persona responsable para coordinar. Al llegar, registren su llegada con el QR de acreditación.`
+        ? `¡Listo! ${name} quedó confirmado para la Inauguración Oficial. Te escribiremos al WhatsApp de la persona responsable para coordinar. Descarguen su QR y preséntenlo en el ingreso de prensa.`
         : `Gracias por avisarnos. Registramos que ${name} no podrá asistir. Si cambian de planes, vuelvan a este enlace y confirmen.`;
+      const pass = done.querySelector('[data-media-pass]');
+      pass.hidden = true;
+      const confirmation = response.confirmation ?? {};
+      if (result.payload.answer === 'yes' && confirmation.media_id && confirmation.event_id) {
+        // El QR del medio confirmado: se ve en pantalla y se descarga como imagen.
+        try {
+          const canvas = drawMediaPass(pass.querySelector('[data-media-pass-canvas]'), { url: mediaPassUrl(confirmation.event_id, confirmation.media_id, resolveRuntimeOrigins(location).siteOrigin), mediaName: name, eventName: confirmation.event ?? '', eventDate: confirmation.event_date ?? '', place: confirmation.place ?? '' });
+          const download = pass.querySelector('[data-media-pass-download]');
+          download.href = canvas.toDataURL('image/png'); download.download = mediaPassFileName(name);
+          pass.hidden = false;
+        } catch { pass.hidden = true; }
+      }
       form.hidden = true; done.hidden = false; say('');
       done.scrollIntoView({ behavior: 'smooth', block: 'center' });
     } catch (error) { fields.disabled = false; say(error.message, true); }
