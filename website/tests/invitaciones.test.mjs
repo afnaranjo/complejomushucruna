@@ -166,7 +166,7 @@ test('la inauguración muestra el plazo para confirmar con un contador que cierr
   const html = page.render(page);
   assert.match(html, /data-deadline-at="2026-10-26T14:00:00-05:00"/);
   assert.match(html, /Lunes 26 de octubre · 14:00/);
-  assert.match(html, /Tienes hasta el <strong>lunes 26 de octubre a las 12:00<\/strong> para confirmar/);
+  assert.match(html, /Tienes hasta el <strong>lunes 26 de octubre a las 14:00<\/strong> para confirmar/);
   const deadline = '2026-10-26T14:00:00-05:00';
   assert.deepEqual(deadlineParts(deadline, Date.parse('2026-10-24T14:00:00-05:00')), { closed: false, days: 2, hours: 0, minutes: 0, seconds: 0 });
   assert.deepEqual(deadlineParts(deadline, Date.parse('2026-10-26T11:59:59-05:00')), { closed: false, days: 0, hours: 0, minutes: 0, seconds: 1 });
