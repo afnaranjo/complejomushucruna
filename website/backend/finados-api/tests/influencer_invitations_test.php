@@ -86,16 +86,16 @@ same(['inauguracion', 'Vocera Inauguración', 'vocero', 'apoyo'], [$openedInaugu
 same(404, $router->handle('GET', '/api/invitacion/inauguracion/c/' . $created[0]['invite_token'], $origin)->status);
 // El plazo de la inauguración ya pasó en el reloj real: las respuestas se prueban con una hora fija anterior al cierre.
 $clockCrypto = new Crypto($config);
-$beforeClose = new InfluencerRepository($pdo, $clockCrypto, new Audit($pdo, $clockCrypto), strtotime('2026-10-26 13:59:59 UTC'));
+$beforeClose = new InfluencerRepository($pdo, $clockCrypto, new Audit($pdo, $clockCrypto), strtotime('2026-10-26 16:59:59 UTC'));
 same('si', $beforeClose->respond($inaugurationVocero['invite_token'], 'si', '192.0.2.81', 'inauguracion')['response']);
 // Confirmar «sí» en la inauguración deja la fecha de aceptación de las condiciones (uso de imagen incluido).
 $consent = $pdo->prepare('SELECT consent_at FROM influencer_guests WHERE public_id = ?');
 $consent->execute([$inaugurationVocero['public_id']]);
 same(true, $consent->fetchColumn() !== null, 'la aceptación de condiciones queda registrada');
-// El plazo para confirmar la inauguración cierra el lunes 26 de octubre a las 09:00 de Ecuador.
-same('2026-10-26T09:00:00-05:00', $decode($router->handle('GET', '/api/invitacion/inauguracion/evento', $origin))['event']['rsvp_deadline']);
+// El plazo para confirmar la inauguración cierra el lunes 26 de octubre a las 12:00 de Ecuador.
+same('2026-10-26T12:00:00-05:00', $decode($router->handle('GET', '/api/invitacion/inauguracion/evento', $origin))['event']['rsvp_deadline']);
 same('no', $beforeClose->respond($inaugurationVocero['invite_token'], 'no', '192.0.2.81', 'inauguracion')['response']);
-$afterClose = new InfluencerRepository($pdo, $clockCrypto, new Audit($pdo, $clockCrypto), strtotime('2026-10-26 14:00:00 UTC'));
+$afterClose = new InfluencerRepository($pdo, $clockCrypto, new Audit($pdo, $clockCrypto), strtotime('2026-10-26 17:00:00 UTC'));
 same(true, $afterClose->event('inauguracion')['rsvp_closed']);
 $closedError = null;
 try { $afterClose->respond($inaugurationVocero['invite_token'], 'si', '192.0.2.81', 'inauguracion'); } catch (InvitationClosed $error) { $closedError = $error; }
@@ -104,7 +104,7 @@ same(null, $afterClose->event('guaynaa')['rsvp_deadline']);
 $beforeClose->respond($inaugurationVocero['invite_token'], 'si', '192.0.2.81', 'inauguracion');
 
 // Enlace único de voceros: con su cuenta, el vocero recibe el código de su invitación (por número, aunque el nombre cambie).
-$gate = new InfluencerRepository($pdo, $clockCrypto, new Audit($pdo, $clockCrypto), strtotime('2026-10-26 13:59:59 UTC'));
+$gate = new InfluencerRepository($pdo, $clockCrypto, new Audit($pdo, $clockCrypto), strtotime('2026-10-26 16:59:59 UTC'));
 $now = gmdate('Y-m-d H:i:s');
 $pdo->prepare('INSERT INTO voceros (public_id,submission_id,status,full_name,cedula_enc,cedula_idx,birth_date_enc,age_at_submission,whatsapp_enc,whatsapp_idx,email_enc,email_idx,city,main_network,previous_participation,community_source,kit_pickup,submitted_at,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)')
     ->execute([str_repeat('d', 32), str_repeat('e', 32), 'Aprobado', 'Vocera Con Nombre Largo', 'c', 'gate-ced', 'c', 22, $clockCrypto->encrypt('0991234567'), 'gate-tel', 'c', 'gate-mail', 'Ambato', 'TikTok', 'No', 'Otro', 'Oficina', $now, $now, $now]);
@@ -131,7 +131,7 @@ same($late, $gate->voceroInvitation($lateAccount, '192.0.2.81'), 'la segunda vez
 $lateRow = $pdo->prepare('SELECT kind, message_variant, full_name, whatsapp_enc IS NOT NULL AS tel FROM influencer_guests WHERE invite_token = ?');
 $lateRow->execute([$late['token']]);
 same(['vocero', 'registro', 'Vocero Tardío', 1], array_map(static fn ($v) => is_numeric($v) ? (int) $v : $v, array_values($lateRow->fetch(PDO::FETCH_ASSOC))));
-$closedGate = new InfluencerRepository($pdo, $clockCrypto, new Audit($pdo, $clockCrypto), strtotime('2026-10-26 14:00:00 UTC'));
+$closedGate = new InfluencerRepository($pdo, $clockCrypto, new Audit($pdo, $clockCrypto), strtotime('2026-10-26 17:00:00 UTC'));
 $pdo->prepare("UPDATE influencer_guests SET archived_at = ? WHERE invite_token = ?")->execute([$now, $late['token']]);
 same(['missing' => 'invitacion'], $closedGate->voceroInvitation($lateAccount), 'después del cierre no se crean invitaciones nuevas');
 $pdo->prepare('DELETE FROM influencer_guests WHERE invite_token = ?')->execute([$late['token']]); // solo en la base de prueba: no altera los conteos siguientes
