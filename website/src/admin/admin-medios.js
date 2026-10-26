@@ -292,6 +292,12 @@ function liveSummary(item) {
       box.append(link);
     }
   }
+  if (item.rsvp_contact_name || item.rsvp_contact_phone) {
+    const contact = document.createElement('small');
+    contact.textContent = ['Responsable: ' + (item.rsvp_contact_name || '—'), item.rsvp_contact_phone].filter(Boolean).join(' · ');
+    box.append(contact);
+  }
+  if (item.rsvp_via === 'directo') { const via = document.createElement('small'); via.textContent = 'Confirmó por el enlace directo'; box.append(via); }
   return box;
 }
 

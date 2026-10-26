@@ -453,7 +453,7 @@ final class MediaRepository
     // ---------------------------------------------------------------- coordination-created records
 
     /** Coordination creates a record for a medium that has no account (yet); it may be linked to an account later. */
-    public function createByAdmin(array $input, int $actorId, string $ip = ''): array
+    public function createByAdmin(array $input, ?int $actorId, string $ip = ''): array
     {
         $record = $this->validateAdmin($input);
         $now = gmdate('Y-m-d H:i:s');
@@ -803,15 +803,17 @@ final class MediaRepository
     public function coverageForEvent(string $eventPublicId): array
     {
         $event = $this->eventRow($eventPublicId);
-        $rows = $this->pdo->prepare('SELECT p.public_id, p.media_name, p.media_types, p.frequency_channel, p.city, p.origin, p.account_id, p.paid_media, p.followers_validated, c.contracted, c.result, c.people_count, c.links, c.note, c.confirmation, c.confirmed_at, c.attended, c.checked_in_at, c.updated_at, c.live_stream, c.live_channels, c.live_detail, c.conditions_at FROM media_event_coverage c JOIN media_profiles p ON p.id = c.profile_id WHERE c.event_id = ? AND p.status <> ? ORDER BY p.media_name');
+        $rows = $this->pdo->prepare('SELECT p.public_id, p.media_name, p.media_types, p.frequency_channel, p.city, p.origin, p.account_id, p.paid_media, p.followers_validated, c.contracted, c.result, c.people_count, c.links, c.note, c.confirmation, c.confirmed_at, c.attended, c.checked_in_at, c.updated_at, c.live_stream, c.live_channels, c.live_detail, c.conditions_at, c.rsvp_contact_name, c.rsvp_contact_phone_enc, c.rsvp_via FROM media_event_coverage c JOIN media_profiles p ON p.id = c.profile_id WHERE c.event_id = ? AND p.status <> ? ORDER BY p.media_name');
         $rows->execute([$event['id'], self::ARCHIVED]);
-        $items = array_map(static fn (array $row): array => [
+        $items = array_map(fn (array $row): array => [
             'public_id' => $row['public_id'], 'media_name' => $row['media_name'], 'media_types' => self::typeKeys((string) $row['media_types']), 'frequency_channel' => $row['frequency_channel'], 'city' => $row['city'],
             'origin' => self::origin($row), 'linked' => $row['account_id'] !== null, 'paid_media' => self::paid($row), 'followers_validated' => $row['followers_validated'] === null ? null : (int) $row['followers_validated'],
             'contracted' => in_array($row['contracted'], self::PAID_MEDIA, true) ? $row['contracted'] : null, 'result' => isset(self::COVERAGE_RESULTS[$row['result']]) ? $row['result'] : 'pendiente',
             'people_count' => (int) $row['people_count'], 'links' => json_decode((string) ($row['links'] ?? '') ?: '[]', true, 4) ?: [], 'note' => (string) ($row['note'] ?? ''),
             'confirmation' => in_array($row['confirmation'], self::ATTENDANCE, true) ? $row['confirmation'] : null, 'confirmed_at' => $row['confirmed_at'],
             'attended' => in_array($row['attended'], self::ATTENDANCE, true) ? $row['attended'] : null, 'checked_in_at' => $row['checked_in_at'], 'updated_at' => $row['updated_at'],
+            'rsvp_contact_name' => (string) ($row['rsvp_contact_name'] ?? ''), 'rsvp_contact_phone' => ($row['rsvp_contact_phone_enc'] ?? null) === null ? '' : $this->crypto->decrypt($row['rsvp_contact_phone_enc']),
+            'rsvp_via' => in_array($row['rsvp_via'] ?? null, ['portal', 'directo'], true) ? $row['rsvp_via'] : null,
             ...self::liveOut($row),
         ], $rows->fetchAll(PDO::FETCH_ASSOC));
         return ['event' => ['public_id' => $event['public_id'], 'name' => $event['name'], 'event_date' => $event['event_date'], 'place' => (string) $event['place'], 'details' => (string) $event['details'], 'rsvp_deadline' => self::deadlineOut($event['rsvp_deadline'] ?? null)],
@@ -924,8 +926,8 @@ final class MediaRepository
                 $this->pdo->prepare("INSERT INTO media_event_coverage (event_id, profile_id, contracted, result, people_count, links, note, updated_at) VALUES (?, ?, NULL, 'pendiente', 0, '[]', '', ?)")
                     ->execute([$event['id'], $row['id'], $now]);
             }
-            $this->pdo->prepare('UPDATE media_event_coverage SET confirmation = ?, confirmed_at = ?, live_stream = ?, live_channels = ?, live_detail = ?, conditions_at = ?, updated_at = ? WHERE event_id = ? AND profile_id = ?')
-                ->execute([$answer, $now, $live['live_stream'], $live['live_channels'], $live['live_detail'], $live['conditions'] ? $now : null, $now, $event['id'], $row['id']]);
+            $this->pdo->prepare('UPDATE media_event_coverage SET confirmation = ?, confirmed_at = ?, live_stream = ?, live_channels = ?, live_detail = ?, conditions_at = ?, rsvp_via = ?, updated_at = ? WHERE event_id = ? AND profile_id = ?')
+                ->execute([$answer, $now, $live['live_stream'], $live['live_channels'], $live['live_detail'], $live['conditions'] ? $now : null, 'portal', $now, $event['id'], $row['id']]);
             $this->audit->log('media.attendance_confirmed', null, 'media_profile', $row['public_id'], [], $ip);
             $this->commit();
         } catch (Throwable $error) {
@@ -933,6 +935,100 @@ final class MediaRepository
             throw $error;
         }
         return $this->invitationsForAccount($accountId);
+    }
+
+    // ---------------------------------------------------------------- direct confirmation, without an account
+
+    public const DIRECT_RSVP_FIELDS = ['event', 'media', 'new_media_name', 'new_media_type', 'answer', 'live_stream', 'live_channels', 'live_detail', 'contact_name', 'contact_phone', 'conditions'];
+    private const DIRECT_RSVP_PER_HOUR = 20;
+
+    /**
+     * The event the public confirmation page answers (the open one closest in time, or the last closed one)
+     * and the media names for its search box. Names and city only: nothing private leaves here.
+     */
+    public function directRsvpContext(): array
+    {
+        $now = $this->clock();
+        $events = $this->pdo->query('SELECT public_id, name, event_date, place, details, rsvp_deadline FROM media_events WHERE rsvp_deadline IS NOT NULL ORDER BY event_date ASC, id ASC')->fetchAll(PDO::FETCH_ASSOC);
+        $open = array_values(array_filter($events, static fn (array $row): bool => $now < strtotime($row['rsvp_deadline'] . ' UTC')));
+        $event = $open[0] ?? ($events === [] ? null : $events[array_key_last($events)]);
+        $media = [];
+        if ($event !== null) {
+            $query = $this->pdo->prepare('SELECT public_id, media_name, city, media_types FROM media_profiles WHERE status <> ? ORDER BY media_name LIMIT 1000');
+            $query->execute([self::ARCHIVED]);
+            $media = array_map(static fn (array $row): array => ['public_id' => $row['public_id'], 'media_name' => $row['media_name'], 'city' => (string) $row['city'], 'media_types' => self::typeKeys((string) $row['media_types'])], $query->fetchAll(PDO::FETCH_ASSOC));
+        }
+        return ['event' => $event === null ? null : ['public_id' => $event['public_id'], 'name' => $event['name'], 'event_date' => $event['event_date'], 'place' => (string) $event['place'], 'details' => (string) $event['details'],
+            'rsvp_deadline' => self::deadlineOut($event['rsvp_deadline']), 'rsvp_closed' => $now >= strtotime($event['rsvp_deadline'] . ' UTC')], 'media' => $media];
+    }
+
+    /**
+     * A medium confirms from the public page without an account: it picks its name from the list (or writes it
+     * if it is not there), says whether it will broadcast and leaves the person in charge for that day.
+     * It never changes an existing record: a new name becomes a coordination record, as if loaded by hand.
+     */
+    public function directRsvp(array $input, string $ip): array
+    {
+        if (array_diff(array_keys($input), self::DIRECT_RSVP_FIELDS) !== []) throw new InvalidArgumentException();
+        $text = static function (mixed $value, int $max, int $min = 0): string {
+            if ($value === null) $value = '';
+            if (!is_string($value)) throw new InvalidArgumentException();
+            $value = trim(preg_replace('/\s+/u', ' ', preg_replace('/\p{C}+/u', ' ', $value) ?? '') ?? '');
+            if (self::length($value) < $min || self::length($value) > $max) throw new InvalidArgumentException();
+            return $value;
+        };
+        $answer = $input['answer'] ?? null;
+        if (!is_string($answer) || !in_array($answer, self::ATTENDANCE, true)) throw new InvalidArgumentException();
+        $event = $this->eventRow(is_string($input['event'] ?? null) ? $input['event'] : '');
+        if (($event['rsvp_deadline'] ?? null) === null) throw new OutOfBoundsException();
+        if ($this->clock() >= strtotime($event['rsvp_deadline'] . ' UTC')) throw new MediaInvitationClosed();
+        $yes = $answer === 'yes';
+        $contactName = $text($input['contact_name'] ?? '', 160, $yes ? 3 : 0);
+        $contactPhone = $text($input['contact_phone'] ?? '', 25, $yes ? 7 : 0);
+        if ($contactPhone !== '' && preg_match('/^\+?[0-9][0-9 ()-]{6,23}$/D', $contactPhone) !== 1) throw new InvalidArgumentException();
+        $live = $yes ? self::liveIn(['conditions' => $input['conditions'] ?? null, 'live_stream' => $input['live_stream'] ?? null, 'live_channels' => $input['live_channels'] ?? null, 'live_detail' => $input['live_detail'] ?? ''])
+            : ['live_stream' => null, 'live_channels' => null, 'live_detail' => null, 'conditions' => false];
+        // Público y sin cuenta: un tope por IP evita que alguien llene la lista desde un mismo equipo.
+        $recent = $this->pdo->prepare("SELECT COUNT(*) FROM audit_log WHERE event_type = 'media.rsvp_direct' AND ip_hash = ? AND created_at >= ?");
+        $recent->execute([$this->crypto->lookup($ip), gmdate('Y-m-d H:i:s', $this->clock() - 3600)]);
+        if ((int) $recent->fetchColumn() >= self::DIRECT_RSVP_PER_HOUR) throw new RateLimitException();
+        $mediaId = $input['media'] ?? '';
+        if (!is_string($mediaId)) throw new InvalidArgumentException();
+        if ($mediaId === '') {
+            $name = $text($input['new_media_name'] ?? '', 140, 2);
+            $type = $input['new_media_type'] ?? '';
+            if (!is_string($type) || !isset(self::MEDIA_TYPES[$type])) throw new InvalidArgumentException();
+            $existing = $this->pdo->prepare('SELECT public_id FROM media_profiles WHERE LOWER(media_name) = LOWER(?) AND status <> ? ORDER BY id LIMIT 1');
+            $existing->execute([$name, self::ARCHIVED]);
+            $mediaId = (string) ($existing->fetchColumn() ?: '');
+            if ($mediaId === '') {
+                $mediaId = $this->createByAdmin(['media_name' => $name, 'media_types' => [$type], 'frequency' => '', 'tv_channel' => '', 'province' => '', 'city' => '', 'program_name' => '', 'representatives' => [], 'channels' => [],
+                    'followers_validated' => null, 'paid_media' => 'no', 'contact_name' => $contactName, 'phone' => $contactPhone, 'contact_email' => '', 'audience_count' => null, 'radio_genre' => ''], null, $ip)['public_id'];
+            }
+        } elseif (preg_match('/^[a-f0-9]{32}$/D', $mediaId) !== 1) throw new InvalidArgumentException();
+        $this->begin();
+        try {
+            $profile = $this->pdo->prepare('SELECT id, public_id, media_name FROM media_profiles WHERE public_id = ? AND status <> ?' . $this->rowLock());
+            $profile->execute([$mediaId, self::ARCHIVED]);
+            $row = $profile->fetch();
+            if ($row === false) throw new OutOfBoundsException();
+            $now = gmdate('Y-m-d H:i:s');
+            $exists = $this->pdo->prepare('SELECT 1 FROM media_event_coverage WHERE event_id = ? AND profile_id = ?');
+            $exists->execute([$event['id'], $row['id']]);
+            if ($exists->fetchColumn() === false) {
+                $this->pdo->prepare("INSERT INTO media_event_coverage (event_id, profile_id, contracted, result, people_count, links, note, updated_at) VALUES (?, ?, NULL, 'pendiente', 0, '[]', '', ?)")
+                    ->execute([$event['id'], $row['id'], $now]);
+            }
+            $this->pdo->prepare('UPDATE media_event_coverage SET confirmation = ?, confirmed_at = ?, live_stream = ?, live_channels = ?, live_detail = ?, conditions_at = ?, rsvp_contact_name = ?, rsvp_contact_phone_enc = ?, rsvp_via = ?, updated_at = ? WHERE event_id = ? AND profile_id = ?')
+                ->execute([$answer, $now, $live['live_stream'], $live['live_channels'], $live['live_detail'], $live['conditions'] ? $now : null, $contactName === '' ? null : $contactName,
+                    $contactPhone === '' ? null : $this->crypto->encrypt($contactPhone), 'directo', $now, $event['id'], $row['id']]);
+            $this->audit->log('media.rsvp_direct', null, 'media_profile', $row['public_id'], [], $ip);
+            $this->commit();
+        } catch (Throwable $error) {
+            $this->rollBack();
+            throw $error;
+        }
+        return ['media_name' => $row['media_name'], 'answer' => $answer, 'live_stream' => $live['live_stream'], 'event' => $event['name']];
     }
 
     private function clock(): int

@@ -226,3 +226,39 @@ test('medios: enlace del grupo, plazo y preguntas de transmisión en vivo', asyn
   assert.equal(liveSummaryText({ confirmation: 'yes', live_stream: 'recorded' }), 'Solo grabará');
   assert.equal(liveSummaryText({ confirmation: 'no', live_stream: 'yes' }), '—');
 });
+
+test('medios: confirmación directa sin cuenta, con buscador de medios', async () => {
+  const { filterMedia, mediaOptionLabel, mediaRsvpPayload, createMediaRsvpClient } = await import('../src/finados/influencer-invitation.js');
+  const page = pages.find(item => item.route === '/medios-inauguracion/');
+  const html = page.render(page);
+  assert.match(html, /data-media-rsvp/);
+  assert.match(html, /role="combobox"/);
+  assert.match(html, /name="contact_phone"/);
+  assert.doesNotMatch(html, /Crear la cuenta de mi medio/);
+  const list = [
+    { public_id: 'a'.repeat(32), media_name: 'Radio Centro', city: 'Ambato', media_types: ['radio'] },
+    { public_id: 'b'.repeat(32), media_name: 'Unimax Televisión', city: 'Ambato', media_types: ['tv'] },
+    { public_id: 'c'.repeat(32), media_name: 'La Voz del Centro', city: 'Riobamba', media_types: ['radio'] },
+  ];
+  assert.deepEqual(filterMedia(list, 'centro').map(item => item.media_name), ['La Voz del Centro', 'Radio Centro']);
+  assert.deepEqual(filterMedia(list, 'radio').map(item => item.media_name), ['Radio Centro'], 'primero los que empiezan con el texto');
+  assert.deepEqual(filterMedia(list, 'televisión').map(item => item.media_name), ['Unimax Televisión']);
+  assert.deepEqual(filterMedia(list, 'unimax television').map(item => item.media_name), ['Unimax Televisión'], 'sin importar tildes');
+  assert.deepEqual(filterMedia(list, 'riobamba').map(item => item.media_name), ['La Voz del Centro'], 'también por ciudad');
+  assert.deepEqual(filterMedia(list, 'r'), [], 'desde dos letras');
+  assert.equal(mediaOptionLabel(list[0]), 'Radio Centro — Ambato · Radio');
+  const event = 'e'.repeat(32);
+  assert.ok(mediaRsvpPayload({ event, media: '', new_media_name: '', answer: 'no' }).error);
+  assert.ok(mediaRsvpPayload({ event, media: '', new_media_name: 'Radio Nueva', answer: 'no' }).error, 'un medio nuevo indica su tipo');
+  assert.deepEqual(mediaRsvpPayload({ event, media: list[0].public_id, answer: 'no' }).payload, { event, media: list[0].public_id, new_media_name: '', new_media_type: '', answer: 'no' });
+  const yes = { event, media: list[0].public_id, answer: 'yes', live_stream: 'yes', channels: [{ platform: 'radio', url: '' }], live_detail: '98.5 FM · La Mañana', contact_name: 'Ana Ruiz', contact_phone: '0991234567', conditions: true };
+  assert.equal(mediaRsvpPayload(yes).payload.contact_phone, '0991234567');
+  assert.ok(mediaRsvpPayload({ ...yes, contact_phone: '' }).error);
+  assert.ok(mediaRsvpPayload({ ...yes, conditions: false }).error);
+  assert.ok(mediaRsvpPayload({ ...yes, live_detail: '' }).error, 'radio indica frecuencia');
+  assert.deepEqual(mediaRsvpPayload({ ...yes, live_stream: 'recorded' }).payload.live_channels, [], 'solo grabará no envía plataformas');
+  const calls = [];
+  const client = createMediaRsvpClient(undefined, async (url, options) => { calls.push([url, options.method, options.credentials]); return { ok: true, json: async () => ({ ok: true, event: null, media: [] }) }; });
+  await client.context(); await client.send({ event });
+  assert.deepEqual(calls.map(([url, method, credentials]) => [url.replace(/^https:\/\/[^/]+\/api/, ''), method, credentials]), [['/media/rsvp', 'GET', 'omit'], ['/media/rsvp', 'POST', 'omit']]);
+});

@@ -1618,6 +1618,19 @@ final class Router
             $this->mediaAuth()->logout();
             return $this->json(200, ['ok' => true], $headers);
         }
+        if ($path === '/api/media/rsvp') {
+            // Confirmación directa, sin cuenta: la lista de medios para el buscador y la respuesta del medio.
+            if ($method === 'GET') {
+                if ($query !== []) throw new InvalidArgumentException();
+                return $this->json(200, ['ok' => true, ...$this->media()->directRsvpContext()], $headers);
+            }
+            if ($method !== 'POST') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);
+            if (!$this->config->isAllowedOrigin($origin) || !$validIp || $query !== []) throw new Forbidden();
+            $body = $this->body($server, $rawBody, MediaRepository::DIRECT_RSVP_FIELDS);
+            try { $result = $this->media()->directRsvp($body, $ip); }
+            catch (MediaInvitationClosed) { return $this->error(410, 'invitation_closed', 'El plazo para confirmar la asistencia a este evento ya terminó.', $headers); }
+            return $this->json(200, ['ok' => true, 'confirmation' => $result], $headers);
+        }
         if ($path === '/api/media/event') {
             // Público: la página de acreditación a la que lleva el QR necesita el nombre, la fecha y el lugar.
             if ($method !== 'GET') return $this->error(405, 'method_not_allowed', 'Método no permitido.', $headers);

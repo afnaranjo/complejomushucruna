@@ -46,7 +46,7 @@ function coverage_json(array $payload): string { return json_encode($payload, JS
 coverage_close_session();
 $config = coverage_config();
 $pdo = Database::connect($config);
-foreach (['001_initial', '002_sheets_outbox', '003_vocero_accounts', '008_media_accounts', '009_media_videos', '010_media_video_views', '011_media_contact_channels', '012_media_consents', '013_media_types_radio', '014_media_channels_photo', '015_media_traffic_light', '016_media_paid', '018_media_coverage', '019_media_event_attendance', '020_media_event_checkin', '039_media_event_rsvp'] as $migration) {
+foreach (['001_initial', '002_sheets_outbox', '003_vocero_accounts', '008_media_accounts', '009_media_videos', '010_media_video_views', '011_media_contact_channels', '012_media_consents', '013_media_types_radio', '014_media_channels_photo', '015_media_traffic_light', '016_media_paid', '018_media_coverage', '019_media_event_attendance', '020_media_event_checkin', '039_media_event_rsvp', '040_media_rsvp_contact'] as $migration) {
     $pdo->exec(file_get_contents(__DIR__ . '/../migrations/' . $migration . '_sqlite.sql'));
 }
 same('018_media_coverage', $pdo->query("SELECT version FROM schema_migrations WHERE version = '018_media_coverage'")->fetchColumn());
@@ -446,3 +446,46 @@ $closedError = null;
 try { $late->confirmAttendance($cumbreAccount, $opening['public_id'], 'no', '192.0.2.80'); } catch (Finados\MediaInvitationClosed $error) { $closedError = $error; }
 same(true, $closedError !== null, 'después del plazo no se aceptan respuestas');
 foreach ($late->invitationsForAccount($cumbreAccount) as $item) if ($item['public_id'] === $opening['public_id']) same(true, $item['rsvp_closed']);
+
+// ---------------------------------------------------------------- 040: confirmación directa, sin cuenta
+coverage_close_session();
+$public = ['HTTP_ORIGIN' => 'https://example.invalid', 'REMOTE_ADDR' => '192.0.2.91', 'CONTENT_TYPE' => 'application/json'];
+$context = coverage_body($router->handle('GET', '/api/media/rsvp', $origin));
+same($opening['public_id'], $context['event']['public_id'], 'la página directa responde al evento abierto');
+same(false, $context['event']['rsvp_closed']);
+$listed = array_column($context['media'], 'media_name', 'public_id');
+same(true, isset($listed[$cumbre]), 'el buscador lista los medios registrados');
+same(['public_id', 'media_name', 'city', 'media_types'], array_keys($context['media'][0]), 'solo nombre, ciudad y tipo');
+// Otro origen no puede enviar.
+same(403, $router->handle('POST', '/api/media/rsvp', [...$public, 'HTTP_ORIGIN' => 'https://evil.invalid'], coverage_json(['event' => $opening['public_id'], 'media' => $cumbre, 'answer' => 'no']))->status);
+// «Sí» exige responsable, WhatsApp, transmisión y condiciones.
+same(422, $router->handle('POST', '/api/media/rsvp', $public, coverage_json(['event' => $opening['public_id'], 'media' => $cumbre, 'answer' => 'yes', 'live_stream' => 'no', 'conditions' => true]))->status);
+same(422, $router->handle('POST', '/api/media/rsvp', $public, coverage_json(['event' => $opening['public_id'], 'media' => $cumbre, 'answer' => 'yes', 'contact_name' => 'Ana Ruiz', 'contact_phone' => '0991234567', 'live_stream' => 'no']))->status);
+$direct = coverage_body($router->handle('POST', '/api/media/rsvp', $public, coverage_json(['event' => $opening['public_id'], 'media' => $cumbre, 'answer' => 'yes', 'contact_name' => 'Ana Ruiz', 'contact_phone' => '0991234567',
+    'live_stream' => 'yes', 'live_channels' => [['platform' => 'tiktok', 'url' => 'https://www.tiktok.com/@cumbre']], 'live_detail' => '', 'conditions' => true])));
+same(['yes', 'yes'], [$direct['confirmation']['answer'], $direct['confirmation']['live_stream']]);
+// Un medio que no está en la lista se crea como registro de coordinación; si ya existe con ese nombre, se reutiliza.
+$profilesBefore = (int) $pdo->query('SELECT COUNT(*) FROM media_profiles')->fetchColumn();
+same(422, $router->handle('POST', '/api/media/rsvp', $public, coverage_json(['event' => $opening['public_id'], 'media' => '', 'new_media_name' => 'Radio Nueva Prueba', 'answer' => 'no']))->status, 'un medio nuevo indica su tipo');
+coverage_body($router->handle('POST', '/api/media/rsvp', $public, coverage_json(['event' => $opening['public_id'], 'media' => '', 'new_media_name' => 'Radio Nueva Prueba', 'new_media_type' => 'radio', 'answer' => 'yes',
+    'contact_name' => 'Luis Paz', 'contact_phone' => '0987654321', 'live_stream' => 'yes', 'live_channels' => [['platform' => 'radio', 'url' => '']], 'live_detail' => '100.1 FM · Despertar', 'conditions' => true])));
+coverage_body($router->handle('POST', '/api/media/rsvp', $public, coverage_json(['event' => $opening['public_id'], 'media' => '', 'new_media_name' => 'radio nueva prueba', 'new_media_type' => 'radio', 'answer' => 'no'])));
+same($profilesBefore + 1, (int) $pdo->query('SELECT COUNT(*) FROM media_profiles')->fetchColumn(), 'el mismo nombre no se duplica');
+same('coordinacion', $pdo->query("SELECT origin FROM media_profiles WHERE media_name = 'Radio Nueva Prueba'")->fetchColumn());
+$adminSession = coverage_body($router->handle('GET', '/api/auth/session', $origin));
+coverage_body($router->handle('POST', '/api/auth/login', $json($adminSession['csrf']), coverage_json(['username' => 'admin', 'password' => $adminSecret])));
+$withDirect = coverage_body($router->handle('GET', '/api/media-events/' . $opening['public_id'], $origin));
+foreach ($withDirect['items'] as $item) if ($item['public_id'] === $cumbre) same(['Ana Ruiz', '0991234567', 'directo', 'yes'], [$item['rsvp_contact_name'], $item['rsvp_contact_phone'], $item['rsvp_via'], $item['live_stream']]);
+same(true, in_array($cumbre, $withDirect['summary']['en_vivo']['ids'], true));
+coverage_close_session();
+// Después del plazo, la página directa también se cierra.
+$lateDirect = new MediaRepository($pdo, new Finados\Crypto($config), new Finados\Audit($pdo, new Finados\Crypto($config)), strtotime('2099-10-28 17:00:00 UTC'));
+$closedDirect = null;
+try { $lateDirect->directRsvp(['event' => $opening['public_id'], 'media' => $cumbre, 'answer' => 'no'], '192.0.2.92'); } catch (Finados\MediaInvitationClosed $error) { $closedDirect = $error; }
+same(true, $closedDirect !== null);
+same(true, $lateDirect->directRsvpContext()['event']['rsvp_closed']);
+// Tope por IP.
+$limitError = null;
+try { for ($i = 0; $i < 25; $i++) (new MediaRepository($pdo, new Finados\Crypto($config), new Finados\Audit($pdo, new Finados\Crypto($config))))->directRsvp(['event' => $opening['public_id'], 'media' => $cumbre, 'answer' => 'no'], '192.0.2.93'); }
+catch (Finados\RateLimitException $error) { $limitError = $error; }
+same(true, $limitError !== null, 'un mismo equipo no puede enviar sin límite');

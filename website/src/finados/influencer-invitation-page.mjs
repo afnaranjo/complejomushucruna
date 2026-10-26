@@ -19,7 +19,7 @@ export const inaugurationEventDefaults = Object.freeze({
   place: 'Complejo Intercultural y Deportivo Mushuc Runa · Santa Lucía, Tisaleo · Panamericana Sur km 12, vía Ambato–Riobamba',
   dressCode: '',
 });
-export const influencerInvitationVersion = '20261024-invitacion-17';
+export const influencerInvitationVersion = '20261026-medios-directo-1';
 
 function shell(page, { api, body, kind, eventKey = 'guaynaa' }) {
   const connect = apiBasesForCsp(api);
@@ -451,14 +451,14 @@ ${inaugurationFinePrint}`;
 /** Hasta cuándo pueden confirmar los medios (hora de Ecuador). Debe coincidir con el plazo del evento en Medios → Eventos. */
 export const MEDIA_INAUGURATION_DEADLINE = '2026-10-28T12:00:00-05:00';
 
-/** Enlace para el grupo de medios: la invitación, las indicaciones y el camino para confirmar desde la cuenta del medio. */
+/** Enlace para el grupo de medios: la invitación, las indicaciones y la confirmación directa, sin cuenta. */
 export function renderInaugurationMediaPage(page) {
   const body = `<header class="inv-hero inv-opening-hero">
 ${inaugurationVisual()}
 <p class="inv-eyebrow">Invitación para medios de comunicación</p>
 <h1 class="inv-title"><span class="inv-name">Medios de comunicación,</span><span>los esperamos en la inauguración.</span></h1>
 <p class="inv-lead">Acompáñennos en la Inauguración Oficial de Finados Mushuc Runa 2026 y cuenten desde adentro el inicio de esta tradición.</p>
-<p class="inv-story">Para acreditarse, confirmen su asistencia desde la cuenta de su medio y cuéntennos si transmitirán en vivo.</p>
+<p class="inv-story">Para acreditarse, confirmen aquí mismo su asistencia y cuéntennos si transmitirán en vivo. No hace falta crear una cuenta.</p>
 <p class="inv-gate-jump"><a class="inv-yes" href="#confirmar">Confirmar asistencia</a></p>
 </header>
 <section class="inv-deadline" data-deadline data-deadline-at="${MEDIA_INAUGURATION_DEADLINE}" aria-labelledby="inv-media-deadline-title">
@@ -480,19 +480,65 @@ ${inaugurationEventCard}
 <li>Respeten las zonas de prensa, los horarios y las indicaciones del personal de la organización.</li>
 </ul>
 </section>
-<section id="confirmar" class="inv-rsvp inv-rsvp--opening inv-gate" aria-labelledby="inv-media-confirm-title">
+<section id="confirmar" class="inv-rsvp inv-rsvp--opening inv-gate inv-media-rsvp" aria-labelledby="inv-media-confirm-title">
 <p class="inv-kicker"><span class="inv-eq" aria-hidden="true"><i></i><i></i><i></i></span>Acreditación</p>
 <h2 id="inv-media-confirm-title">Confirma la asistencia de tu medio</h2>
-<ol class="inv-video__steps inv-media-steps">
-<li><b>1</b>Inicia sesión con la cuenta de tu medio, o créala si todavía no la tienes.</li>
-<li><b>2</b>Si es tu primera vez, completa y guarda el registro de tu medio.</li>
-<li><b>3</b>En «Invitaciones · Eventos de la feria», busca la Inauguración y pulsa «Confirmo mi asistencia».</li>
-<li><b>4</b>Cuéntanos si transmitirán en vivo y en qué páginas, acepta las condiciones y envía.</li>
-</ol>
-<div class="inv-media-actions">
-<a class="inv-yes" href="/finados/medios/acceso/?modo=login">Ya tengo cuenta · Iniciar sesión</a>
-<a class="inv-no" href="/finados/medios/acceso/">Crear la cuenta de mi medio</a>
+<p class="inv-gate-help">Sin crear cuenta: busca tu medio, cuéntanos si transmitirán y envía. Toma menos de un minuto.</p>
+<form class="inv-form" data-media-rsvp novalidate>
+<fieldset disabled>
+<div class="inv-media-search">
+<label for="inv-media-search">Nombre de tu medio</label>
+<input id="inv-media-search" type="text" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="inv-media-options" autocomplete="off" maxlength="140" placeholder="Escribe para buscar: radio, canal, página…" data-media-search>
+<ul id="inv-media-options" class="inv-media-options" role="listbox" data-media-options hidden></ul>
+<p class="inv-media-picked" data-media-picked hidden></p>
 </div>
+<div class="inv-media-new" data-media-new hidden>
+<p>No está en la lista: lo registramos con este nombre.</p>
+<label>Tipo de medio<select name="new_media_type" data-media-type><option value="">Elige el tipo</option>
+<option value="radio">Radio</option>
+<option value="tv">Televisión</option>
+<option value="prensa">Prensa escrita</option>
+<option value="digital">Medio digital</option>
+<option value="redes">Redes sociales</option>
+</select></label>
+</div>
+<fieldset class="inv-media-question">
+<legend>¿Tu medio asistirá a la inauguración?</legend>
+<label><input type="radio" name="answer" value="yes"> Sí, asistiremos</label>
+<label><input type="radio" name="answer" value="no"> No podremos asistir</label>
+</fieldset>
+<div class="inv-media-yes" data-media-yes hidden>
+<fieldset class="inv-media-question">
+<legend>¿Transmitirán la inauguración en vivo?</legend>
+<label><input type="radio" name="live_stream" value="yes"> Sí, transmitiremos en vivo</label>
+<label><input type="radio" name="live_stream" value="recorded"> No en vivo: grabaremos para publicar después</label>
+<label><input type="radio" name="live_stream" value="no"> No transmitiremos ni publicaremos</label>
+</fieldset>
+<fieldset class="inv-media-question inv-media-channels" data-media-channels hidden>
+<legend>¿Dónde transmitirán? Marca cada plataforma y pega su enlace.</legend>
+<div class="inv-media-channel"><label><input type="checkbox" name="platform" value="facebook"> Facebook</label><input type="url" inputmode="url" maxlength="500" data-platform="facebook" aria-label="Enlace de Facebook" placeholder="https://… enlace de la página o el canal" hidden></div>
+<div class="inv-media-channel"><label><input type="checkbox" name="platform" value="tiktok"> TikTok</label><input type="url" inputmode="url" maxlength="500" data-platform="tiktok" aria-label="Enlace de TikTok" placeholder="https://… enlace de la página o el canal" hidden></div>
+<div class="inv-media-channel"><label><input type="checkbox" name="platform" value="youtube"> YouTube</label><input type="url" inputmode="url" maxlength="500" data-platform="youtube" aria-label="Enlace de YouTube" placeholder="https://… enlace de la página o el canal" hidden></div>
+<div class="inv-media-channel"><label><input type="checkbox" name="platform" value="instagram"> Instagram</label><input type="url" inputmode="url" maxlength="500" data-platform="instagram" aria-label="Enlace de Instagram" placeholder="https://… enlace de la página o el canal" hidden></div>
+<div class="inv-media-channel"><label><input type="checkbox" name="platform" value="radio"> Radio FM</label><input type="url" inputmode="url" maxlength="500" data-platform="radio" aria-label="Enlace de Radio FM" placeholder="Enlace de su transmisión en línea (opcional)" hidden></div>
+<div class="inv-media-channel"><label><input type="checkbox" name="platform" value="tv"> TV abierta</label><input type="url" inputmode="url" maxlength="500" data-platform="tv" aria-label="Enlace de TV abierta" placeholder="Enlace de su transmisión en línea (opcional)" hidden></div>
+<div class="inv-media-channel"><label><input type="checkbox" name="platform" value="web"> Página web</label><input type="url" inputmode="url" maxlength="500" data-platform="web" aria-label="Enlace de Página web" placeholder="https://… enlace de la página o el canal" hidden></div>
+<div class="inv-media-channel"><label><input type="checkbox" name="platform" value="otro"> Otro</label><input type="url" inputmode="url" maxlength="500" data-platform="otro" aria-label="Enlace de Otro" placeholder="https://… enlace de la página o el canal" hidden></div>
+<label class="inv-media-detail">Si es radio o TV: frecuencia o canal y programa<input name="live_detail" maxlength="300" placeholder="Ej.: 98.5 FM · Programa La Mañana"></label>
+</fieldset>
+<label>Persona responsable del medio ese día<input name="contact_name" maxlength="160" autocomplete="name" placeholder="Nombre y apellido"></label>
+<label>WhatsApp de la persona responsable<input name="contact_phone" type="tel" inputmode="tel" maxlength="25" autocomplete="tel" placeholder="09…"></label>
+<label class="inv-media-accept"><input type="checkbox" name="conditions"><span>Acepto las <a href="/finados/medios/buenas-practicas/" target="_blank" rel="noopener">condiciones de cobertura</a> y las indicaciones de la organización.</span></label>
+</div>
+<button type="submit" class="inv-yes">Enviar confirmación</button>
+</fieldset>
+<p class="inv-status" data-status role="status" aria-live="polite">Cargando la lista de medios…</p>
+</form>
+<div class="inv-gate-missing inv-media-done" data-media-done hidden>
+<p data-media-done-text></p>
+<button type="button" class="inv-no" data-media-again>Confirmar otro medio</button>
+</div>
+<p class="inv-gate-links"><a href="/finados/medios/acceso/?modo=login">¿Tu medio ya tiene cuenta? También puedes confirmar desde ella</a></p>
 </section>
 ${inaugurationSignature}`;
   return shell(page, { api: pageApi(page), body, kind: 'medios', eventKey: 'inauguracion' });

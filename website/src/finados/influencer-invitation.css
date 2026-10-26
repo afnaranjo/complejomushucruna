@@ -423,3 +423,28 @@ body.inv--inauguracion::before {
 .inv-media-steps li { color: #4921ad; }
 .inv-media-actions { display: grid; gap: .7rem; margin-top: 1rem; }
 .inv-media-actions a { display: block; text-align: center; text-decoration: none; }
+
+/* Confirmación directa de medios, sin cuenta */
+.inv-media-rsvp .inv-form > fieldset { display: grid; gap: 1rem; min-width: 0; }
+.inv-media-rsvp fieldset, .inv-media-rsvp .inv-form { min-width: 0; max-width: 100%; }
+.inv-media-rsvp .inv-form select { width: 100%; min-height: 48px; padding: .6rem .8rem; color: #2a1450; background: #fff; border: 2px solid #4921ad; border-radius: 0; font: 500 1rem/1.3 Inter, sans-serif; }
+.inv-media-search { position: relative; display: grid; gap: .35rem; }
+.inv-media-search > label { color: #4921ad; font-weight: 700; }
+.inv-media-options { position: absolute; top: 100%; left: 0; right: 0; z-index: 5; max-height: 18rem; margin: -2px 0 0; padding: 0; overflow-y: auto; list-style: none; background: #fff; border: 2px solid #4921ad; box-shadow: 0 10px 24px rgb(42 20 80 / .18); }
+.inv-media-options[hidden], .inv-media-new[hidden], .inv-media-yes[hidden], .inv-media-channels[hidden], .inv-media-picked[hidden], .inv-media-done[hidden], .inv-media-rsvp .inv-form[hidden] { display: none; }
+.inv-media-options li { padding: .7rem .85rem; color: #2a1450; line-height: 1.35; cursor: pointer; border-bottom: 1px solid #ece4f7; }
+.inv-media-options li:hover, .inv-media-options li[aria-selected="true"] { background: #f3ecfd; }
+.inv-media-options .inv-media-other { color: #c0185e; font-weight: 700; }
+.inv-media-picked { margin: 0; padding: .45rem .7rem; color: #1b5e20; background: #effbe3; border-left: 3px solid #5cb21e; font-weight: 700; font-size: .92rem; }
+.inv-media-new { display: grid; gap: .5rem; padding: .8rem; background: #fff7e0; border-left: 3px solid #ffc43d; }
+.inv-media-new p { margin: 0; color: #6a4b00; font-size: .92rem; }
+.inv-media-yes { display: grid; gap: 1rem; }
+.inv-media-question { display: grid; gap: .45rem; margin: 0; padding: .85rem; background: #fff; border: 2px solid #e2d6f5; }
+.inv-media-question legend { padding: 0 .3rem; color: #4921ad; font-weight: 800; }
+.inv-media-rsvp .inv-form .inv-media-question label { display: flex; gap: .55rem; align-items: center; color: #2a1450; font-weight: 600; }
+.inv-media-question input[type="radio"], .inv-media-question input[type="checkbox"], .inv-media-accept input { width: 1.2rem; height: 1.2rem; accent-color: #ff2b86; flex: none; }
+.inv-media-channel { display: grid; gap: .35rem; }
+.inv-media-rsvp .inv-form .inv-media-question label.inv-media-detail { display: grid; gap: .35rem; margin-top: .4rem; color: #4921ad; font-weight: 700; }
+.inv-media-rsvp .inv-form label.inv-media-accept { display: flex; gap: .55rem; align-items: flex-start; color: #2a1450; font-weight: 600; line-height: 1.45; }
+.inv-media-accept a { color: #c0185e; }
+.inv-media-done { text-align: left; }

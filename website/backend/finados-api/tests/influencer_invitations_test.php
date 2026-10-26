@@ -84,15 +84,16 @@ same(404, $router->handle('GET', '/api/invitacion/c/' . $inaugurationVocero['inv
 $openedInauguration = $decode($router->handle('GET', '/api/invitacion/inauguracion/c/' . $inaugurationVocero['invite_token'], $origin));
 same(['inauguracion', 'Vocera Inauguración', 'vocero', 'apoyo'], [$openedInauguration['event']['slug'], $openedInauguration['guest']['name'], $openedInauguration['guest']['kind'], $openedInauguration['guest']['message_variant']]);
 same(404, $router->handle('GET', '/api/invitacion/inauguracion/c/' . $created[0]['invite_token'], $origin)->status);
-same('si', $decode($router->handle('POST', '/api/invitacion/inauguracion/c/' . $inaugurationVocero['invite_token'], $json, json_encode(['response' => 'si'])))['guest']['response']);
+// El plazo de la inauguración ya pasó en el reloj real: las respuestas se prueban con una hora fija anterior al cierre.
+$clockCrypto = new Crypto($config);
+$beforeClose = new InfluencerRepository($pdo, $clockCrypto, new Audit($pdo, $clockCrypto), strtotime('2026-10-26 13:59:59 UTC'));
+same('si', $beforeClose->respond($inaugurationVocero['invite_token'], 'si', '192.0.2.81', 'inauguracion')['response']);
 // Confirmar «sí» en la inauguración deja la fecha de aceptación de las condiciones (uso de imagen incluido).
 $consent = $pdo->prepare('SELECT consent_at FROM influencer_guests WHERE public_id = ?');
 $consent->execute([$inaugurationVocero['public_id']]);
 same(true, $consent->fetchColumn() !== null, 'la aceptación de condiciones queda registrada');
 // El plazo para confirmar la inauguración cierra el lunes 26 de octubre a las 09:00 de Ecuador.
 same('2026-10-26T09:00:00-05:00', $decode($router->handle('GET', '/api/invitacion/inauguracion/evento', $origin))['event']['rsvp_deadline']);
-$clockCrypto = new Crypto($config);
-$beforeClose = new InfluencerRepository($pdo, $clockCrypto, new Audit($pdo, $clockCrypto), strtotime('2026-10-26 13:59:59 UTC'));
 same('no', $beforeClose->respond($inaugurationVocero['invite_token'], 'no', '192.0.2.81', 'inauguracion')['response']);
 $afterClose = new InfluencerRepository($pdo, $clockCrypto, new Audit($pdo, $clockCrypto), strtotime('2026-10-26 14:00:00 UTC'));
 same(true, $afterClose->event('inauguracion')['rsvp_closed']);
@@ -103,7 +104,7 @@ same(null, $afterClose->event('guaynaa')['rsvp_deadline']);
 $beforeClose->respond($inaugurationVocero['invite_token'], 'si', '192.0.2.81', 'inauguracion');
 
 // Enlace único de voceros: con su cuenta, el vocero recibe el código de su invitación (por número, aunque el nombre cambie).
-$gate = new InfluencerRepository($pdo, $clockCrypto, new Audit($pdo, $clockCrypto));
+$gate = new InfluencerRepository($pdo, $clockCrypto, new Audit($pdo, $clockCrypto), strtotime('2026-10-26 13:59:59 UTC'));
 $now = gmdate('Y-m-d H:i:s');
 $pdo->prepare('INSERT INTO voceros (public_id,submission_id,status,full_name,cedula_enc,cedula_idx,birth_date_enc,age_at_submission,whatsapp_enc,whatsapp_idx,email_enc,email_idx,city,main_network,previous_participation,community_source,kit_pickup,submitted_at,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)')
     ->execute([str_repeat('d', 32), str_repeat('e', 32), 'Aprobado', 'Vocera Con Nombre Largo', 'c', 'gate-ced', 'c', 22, $clockCrypto->encrypt('0991234567'), 'gate-tel', 'c', 'gate-mail', 'Ambato', 'TikTok', 'No', 'Otro', 'Oficina', $now, $now, $now]);

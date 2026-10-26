@@ -721,6 +721,191 @@ async function startVerify(client) {
   } catch (error) { status.textContent = error.status === 404 ? 'Este gafete no existe.' : error.message; status.dataset.error = 'true'; }
 }
 
+const MEDIA_TYPE_LABELS = Object.freeze({ radio: 'Radio', tv: 'Televisión', prensa: 'Prensa escrita', digital: 'Medio digital', redes: 'Redes sociales' });
+const fold = value => String(value ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+
+/** Medios que coinciden con lo escrito (nombre o ciudad, sin importar tildes); primero los que empiezan con el texto. */
+export function filterMedia(list, text, limit = 8) {
+  const query = fold(text);
+  if (query.length < 2) return [];
+  const words = query.split(/\s+/);
+  return list
+    .map(item => ({ item, name: fold(item.media_name), city: fold(item.city) }))
+    .filter(entry => words.every(word => entry.name.includes(word) || entry.city.includes(word)))
+    .sort((a, b) => Number(!b.name.startsWith(query)) - Number(!a.name.startsWith(query)) || a.name.localeCompare(b.name))
+    .slice(0, limit).map(entry => entry.item);
+}
+
+export function mediaOptionLabel(item) {
+  const types = (item.media_types ?? []).map(type => MEDIA_TYPE_LABELS[type]).filter(Boolean).join(', ');
+  return [item.media_name, [item.city, types].filter(Boolean).join(' · ')].filter(Boolean).join(' — ');
+}
+
+/** Lo que se envía al confirmar sin cuenta, o el primer error a corregir. */
+export function mediaRsvpPayload(values) {
+  const media = values.media ?? '';
+  const newName = String(values.new_media_name ?? '').trim();
+  if (!media && newName.length < 2) return { error: 'Escribe el nombre de tu medio y elígelo de la lista.' };
+  if (!media && !MEDIA_TYPE_LABELS[values.new_media_type]) return { error: 'Elige el tipo de tu medio.' };
+  if (!['yes', 'no'].includes(values.answer)) return { error: 'Cuéntanos si tu medio asistirá.' };
+  const base = { event: values.event, media, new_media_name: media ? '' : newName, new_media_type: media ? '' : values.new_media_type, answer: values.answer };
+  if (values.answer === 'no') return { payload: base };
+  const stream = values.live_stream;
+  if (!['yes', 'no', 'recorded'].includes(stream)) return { error: 'Cuéntanos si transmitirán en vivo.' };
+  const channels = (values.channels ?? []).map(channel => ({ platform: channel.platform, url: String(channel.url ?? '').trim() }));
+  const detail = String(values.live_detail ?? '').trim();
+  if (stream === 'yes') {
+    if (!channels.length) return { error: 'Marca al menos una plataforma donde transmitirán.' };
+    for (const channel of channels) {
+      const broadcast = ['radio', 'tv'].includes(channel.platform);
+      if (!broadcast && !/^https:\/\/\S+$/.test(channel.url)) return { error: 'Pega el enlace (https://…) de la página o el canal donde transmitirán.' };
+      if (broadcast && channel.url && !/^https:\/\/\S+$/.test(channel.url)) return { error: 'El enlace de radio o TV debe empezar con https://, o déjalo vacío.' };
+    }
+    if (channels.some(channel => ['radio', 'tv'].includes(channel.platform)) && detail.length < 2) return { error: 'Escribe la frecuencia o el canal y el nombre del programa.' };
+  }
+  const name = String(values.contact_name ?? '').trim();
+  const phone = String(values.contact_phone ?? '').trim();
+  if (name.length < 3) return { error: 'Escribe el nombre de la persona responsable del medio ese día.' };
+  if (!/^\+?[0-9][0-9 ()-]{6,23}$/.test(phone)) return { error: 'Escribe el WhatsApp de la persona responsable (por ejemplo, 0991234567).' };
+  if (values.conditions !== true) return { error: 'Acepta las condiciones de cobertura para confirmar.' };
+  return { payload: { ...base, live_stream: stream, live_channels: stream === 'yes' ? channels : [], live_detail: stream === 'yes' ? detail : '', contact_name: name, contact_phone: phone, conditions: true } };
+}
+
+/** Confirmación directa de medios: una sola ruta pública, sin sesión ni cookies. */
+export function createMediaRsvpClient(baseUrl = API, fetchImplementation = globalThis.fetch) {
+  if (![API, MIRROR_API_BASE, LOCAL_API].filter(Boolean).includes(baseUrl)) throw new Error('Origen de API no permitido.');
+  async function request(body) {
+    let response;
+    try {
+      response = await fetchImplementation(`${baseUrl}/media/rsvp`, {
+        method: body === undefined ? 'GET' : 'POST', credentials: 'omit', cache: 'no-store', redirect: 'error', referrerPolicy: 'no-referrer',
+        headers: body === undefined ? { Accept: 'application/json' } : { Accept: 'application/json', 'Content-Type': 'application/json' },
+        ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+      });
+    } catch { const error = new Error('No se pudo conectar. Revisa tu conexión e intenta de nuevo.'); error.status = 0; throw error; }
+    let data = null;
+    try { data = await response.json(); } catch { /* sin cuerpo */ }
+    if (!response.ok) {
+      const error = new Error(({
+        404: 'No encontramos ese medio o el evento. Recarga la página e intenta de nuevo.',
+        410: 'El plazo para confirmar la asistencia ya terminó.',
+        422: 'Revisa los datos e intenta de nuevo.',
+        429: 'Se enviaron demasiadas confirmaciones desde este equipo. Espera un momento e intenta de nuevo.',
+      })[response.status] ?? 'No se pudo enviar. Intenta de nuevo en un momento.');
+      error.status = response.status;
+      throw error;
+    }
+    return data;
+  }
+  return { context: () => request(), send: payload => request(payload) };
+}
+
+async function startMediaRsvp(base) {
+  const form = document.querySelector('[data-media-rsvp]');
+  if (!form) { startDeadline(); return; }
+  const fields = form.querySelector('fieldset');
+  const status = form.querySelector('[data-status]');
+  const search = form.querySelector('[data-media-search]');
+  const options = form.querySelector('[data-media-options]');
+  const picked = form.querySelector('[data-media-picked]');
+  const fresh = form.querySelector('[data-media-new]');
+  const yesBox = form.querySelector('[data-media-yes]');
+  const channelsBox = form.querySelector('[data-media-channels]');
+  const done = document.querySelector('[data-media-done]');
+  const say = (text, error = false) => { status.textContent = text; status.dataset.error = String(error); };
+  const deadline = startDeadline(() => { fields.disabled = true; form.hidden = true; });
+  const client = createMediaRsvpClient(base);
+  let media = []; let eventId = ''; let selected = null; let matches = []; let active = -1;
+
+  const choose = item => {
+    selected = item;
+    search.value = item ? item.media_name : search.value;
+    picked.hidden = !item; picked.textContent = item ? `✓ ${mediaOptionLabel(item)}` : '';
+    options.hidden = true; search.setAttribute('aria-expanded', 'false');
+    fresh.hidden = Boolean(item) || fold(search.value).length < 2;
+  };
+  const renderOptions = () => {
+    options.replaceChildren();
+    matches.forEach((item, index) => {
+      const li = document.createElement('li'); li.role = 'option'; li.id = `inv-media-option-${index}`; li.textContent = mediaOptionLabel(item);
+      li.setAttribute('aria-selected', String(index === active));
+      li.addEventListener('mousedown', event => { event.preventDefault(); choose(item); });
+      options.append(li);
+    });
+    const other = document.createElement('li'); other.role = 'option'; other.className = 'inv-media-other'; other.id = `inv-media-option-${matches.length}`;
+    other.textContent = `Mi medio no está en la lista: «${search.value.trim()}»`;
+    other.setAttribute('aria-selected', String(active === matches.length));
+    other.addEventListener('mousedown', event => { event.preventDefault(); choose(null); fresh.hidden = false; form.querySelector('[data-media-type]').focus(); });
+    options.append(other);
+    const open = fold(search.value).length >= 2;
+    options.hidden = !open; search.setAttribute('aria-expanded', String(open));
+    if (active >= 0) search.setAttribute('aria-activedescendant', `inv-media-option-${active}`); else search.removeAttribute('aria-activedescendant');
+  };
+  search.addEventListener('input', () => {
+    selected = null; picked.hidden = true; fresh.hidden = true;
+    matches = filterMedia(media, search.value); active = -1; renderOptions();
+  });
+  search.addEventListener('keydown', event => {
+    if (options.hidden) return;
+    const total = matches.length + 1;
+    if (event.key === 'ArrowDown') { event.preventDefault(); active = (active + 1) % total; renderOptions(); }
+    else if (event.key === 'ArrowUp') { event.preventDefault(); active = (active - 1 + total) % total; renderOptions(); }
+    else if (event.key === 'Enter' && active >= 0) { event.preventDefault(); if (active < matches.length) choose(matches[active]); else { choose(null); fresh.hidden = false; } }
+    else if (event.key === 'Escape') { options.hidden = true; search.setAttribute('aria-expanded', 'false'); }
+  });
+  search.addEventListener('blur', () => setTimeout(() => {
+    options.hidden = true; search.setAttribute('aria-expanded', 'false');
+    if (!selected && fold(search.value).length >= 2) {
+      const exact = media.find(item => fold(item.media_name) === fold(search.value));
+      if (exact) choose(exact); else fresh.hidden = false;
+    }
+  }, 120));
+
+  const refresh = () => {
+    const yes = form.querySelector('input[name="answer"]:checked')?.value === 'yes';
+    yesBox.hidden = !yes;
+    channelsBox.hidden = form.querySelector('input[name="live_stream"]:checked')?.value !== 'yes';
+    for (const box of channelsBox.querySelectorAll('input[name="platform"]')) channelsBox.querySelector(`input[data-platform="${box.value}"]`).hidden = !box.checked;
+  };
+  form.addEventListener('change', refresh); refresh();
+
+  try {
+    const context = await client.context();
+    if (!context.event) { say('La confirmación todavía no está abierta. Vuelve a este enlace en un momento.'); return; }
+    if (context.event.rsvp_closed) { deadline.close(); say('El plazo para confirmar ya terminó.'); return; }
+    eventId = context.event.public_id; media = context.media ?? [];
+    fields.disabled = false; say('');
+  } catch (error) { say(error.message, true); return; }
+
+  form.addEventListener('submit', async event => {
+    event.preventDefault();
+    if (deadline.closed()) return;
+    const value = name => form.querySelector(`[name="${name}"]`)?.value ?? '';
+    const checked = liveName => form.querySelector(`input[name="${liveName}"]:checked`)?.value;
+    const result = mediaRsvpPayload({
+      event: eventId, media: selected?.public_id ?? '', new_media_name: selected ? '' : search.value, new_media_type: value('new_media_type'),
+      answer: checked('answer'), live_stream: checked('live_stream'), live_detail: value('live_detail'),
+      channels: [...channelsBox.querySelectorAll('input[name="platform"]:checked')].map(box => ({ platform: box.value, url: channelsBox.querySelector(`input[data-platform="${box.value}"]`).value })),
+      contact_name: value('contact_name'), contact_phone: value('contact_phone'), conditions: form.querySelector('input[name="conditions"]').checked,
+    });
+    if (result.error) { say(result.error, true); return; }
+    fields.disabled = true; say('Enviando…');
+    try {
+      const response = await client.send(result.payload);
+      const name = response.confirmation?.media_name ?? '';
+      done.querySelector('[data-media-done-text]').textContent = result.payload.answer === 'yes'
+        ? `¡Listo! ${name} quedó confirmado para la Inauguración Oficial. Te escribiremos al WhatsApp de la persona responsable para coordinar. Al llegar, registren su llegada con el QR de acreditación.`
+        : `Gracias por avisarnos. Registramos que ${name} no podrá asistir. Si cambian de planes, vuelvan a este enlace y confirmen.`;
+      form.hidden = true; done.hidden = false; say('');
+      done.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } catch (error) { fields.disabled = false; say(error.message, true); }
+  });
+  done.querySelector('[data-media-again]').addEventListener('click', () => {
+    form.reset(); choose(null); search.value = ''; fresh.hidden = true; refresh();
+    done.hidden = true; form.hidden = false; fields.disabled = false; search.focus();
+  });
+}
+
 if (typeof document !== 'undefined') {
   const eventKey = document.body.dataset.invitationEvent || 'guaynaa';
   const configured = document.querySelector('meta[name="invitation-api-base"]')?.content;
@@ -733,6 +918,6 @@ if (typeof document !== 'undefined') {
   else if (document.body.dataset.invitation === 'verificar') startVerify(client, eventKey);
   else if (document.body.dataset.invitation === 'condiciones') { /* página informativa: sin llamadas */ }
   else if (document.body.dataset.invitation === 'vocero-acceso') startVoceroGate(base);
-  else if (document.body.dataset.invitation === 'medios') startDeadline();
+  else if (document.body.dataset.invitation === 'medios') startMediaRsvp(base);
   else startOpen(client, eventKey);
 }
