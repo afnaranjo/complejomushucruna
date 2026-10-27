@@ -2497,7 +2497,3 @@ Nota de relevo escrita a pedido de Alex para que otro agente (Codex) retome la s
 
 - A pedido de Alex, voceros e influencers pueden volver a confirmar la Inauguración Oficial, por su enlace personal o por `/inauguracion/`, hasta el martes 27 de octubre a las 10:00 de Ecuador (`2026-10-27 15:00:00` UTC en `InfluencerRepository::RSVP_DEADLINES`). Se actualizaron el contador, los textos y las pruebas. Caché `20261026-plazo-27-10-1`. Sin migraciones; los medios siguen hasta el miércoles 28 a las 12:00.
 - QA: `npm run check` en verde. Commit `9a673f6`; se publicaron primero el backend y después el frontend, con respaldo. Por el espejo, la API devuelve el plazo `2026-10-27T10:00:00-05:00` abierto y la invitación muestra «Martes 27 de octubre · 10:00».
-
-### 2026-10-27 — Plazo de confirmación de la inauguración ampliado a hoy martes 27 a las 15:00
-
-- A pedido de Alex («mejor pon hasta hoy las 3 pm que confirmen»), voceros e influencers pueden confirmar la Inauguración Oficial, por su enlace personal o por `/inauguracion/`, hasta hoy martes 27 de octubre a las 15:00 de Ecuador (`2026-10-27 20:00:00` UTC en `InfluencerRepository::RSVP_DEADLINES`). El plazo anterior (10:00) ya había cerrado. Se actualizaron el contador, los textos y las pruebas con hora fija. Caché `20261027-plazo-15-1`. Sin migraciones; los medios siguen hasta el miércoles 28 a las 12:00.

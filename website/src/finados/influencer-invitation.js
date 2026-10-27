@@ -209,7 +209,7 @@ export function createInvitationClient(baseUrl = API, fetchImplementation = glob
     if (!response.ok) {
       const error = new Error(({
         404: 'Este enlace de invitación no está disponible. Escríbenos para enviarte uno nuevo.',
-        410: 'El plazo para confirmar terminó el martes 27 de octubre a las 15:00. Si necesitas ayuda, escríbenos.',
+        410: 'El plazo para confirmar terminó el martes 27 de octubre a las 10:00. Si necesitas ayuda, escríbenos.',
         422: 'Revisa los datos e intenta de nuevo.',
         429: 'Recibimos varios registros seguidos. Espera unos minutos e intenta de nuevo.',
       })[response.status] ?? 'No se pudo completar. Intenta de nuevo en un momento.');
@@ -283,7 +283,7 @@ function startDeadline(onClose = () => {}) {
     box.querySelector('[data-deadline-clock]').hidden = true;
     box.querySelector('[data-deadline-note]').textContent = 'Ya cerramos el listado de invitados. Gracias por tu interés en acompañarnos.';
     const inline = document.querySelector('[data-deadline-inline]');
-    if (inline) inline.innerHTML = 'El plazo para confirmar terminó el <strong>martes 27 de octubre a las 15:00</strong>.';
+    if (inline) inline.innerHTML = 'El plazo para confirmar terminó el <strong>martes 27 de octubre a las 10:00</strong>.';
     onClose();
   };
   const two = value => String(value).padStart(2, '0');
