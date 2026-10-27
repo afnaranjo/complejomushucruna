@@ -19,7 +19,7 @@ export const inaugurationEventDefaults = Object.freeze({
   place: 'Complejo Intercultural y Deportivo Mushuc Runa · Santa Lucía, Tisaleo · Panamericana Sur km 12, vía Ambato–Riobamba',
   dressCode: '',
 });
-export const influencerInvitationVersion = '20261026-plazo-27-10-1';
+export const influencerInvitationVersion = '20261027-plazo-15-1';
 
 function shell(page, { api, body, kind, eventKey = 'guaynaa' }) {
   const connect = apiBasesForCsp(api);
@@ -285,11 +285,11 @@ export const INAUGURATION_TERMS_PATH = '/finados/invitacion/inauguracion/condici
 export const INAUGURATION_TERMS_VERSION = '2026-10-24';
 
 /** Hasta cuándo se puede confirmar (hora de Ecuador). Debe coincidir con InfluencerRepository::RSVP_DEADLINES. */
-export const INAUGURATION_RSVP_DEADLINE = '2026-10-27T10:00:00-05:00';
+export const INAUGURATION_RSVP_DEADLINE = '2026-10-27T15:00:00-05:00';
 
 const inaugurationDeadline = `<section class="inv-deadline" data-deadline data-deadline-at="${INAUGURATION_RSVP_DEADLINE}" aria-labelledby="inv-deadline-title">
 <p class="inv-deadline__label" id="inv-deadline-title" data-deadline-label>Confirma tu asistencia hasta el</p>
-<p class="inv-deadline__date"><time datetime="${INAUGURATION_RSVP_DEADLINE}">Martes 27 de octubre · 10:00</time></p>
+<p class="inv-deadline__date"><time datetime="${INAUGURATION_RSVP_DEADLINE}">Martes 27 de octubre · 15:00</time></p>
 <div class="inv-deadline__clock" data-deadline-clock role="timer" aria-label="Tiempo que queda para confirmar">
 <span><b data-deadline-days>--</b><small>días</small></span><span><b data-deadline-hours>--</b><small>horas</small></span><span><b data-deadline-minutes>--</b><small>min</small></span><span><b data-deadline-seconds>--</b><small>seg</small></span>
 </div>
@@ -351,7 +351,7 @@ ${inaugurationSignature}
 <section id="respuesta" class="inv-rsvp inv-rsvp--opening" aria-labelledby="inv-rsvp-title">
 <p class="inv-kicker"><span class="inv-eq" aria-hidden="true"><i></i><i></i><i></i></span>Reserva tu lugar</p>
 <h2 id="inv-rsvp-title">¿Nos acompañas?</h2>
-<p class="inv-rsvp-deadline" data-deadline-inline>Tienes hasta el <strong>martes 27 de octubre a las 10:00</strong> para confirmar.</p>
+<p class="inv-rsvp-deadline" data-deadline-inline>Tienes hasta el <strong>martes 27 de octubre a las 15:00</strong> para confirmar.</p>
 <p class="inv-status" data-status role="status" aria-live="polite">Abriendo tu invitación…</p>
 <p class="inv-accept">Al confirmar «Sí, ahí estaré» aceptas las <a href="${INAUGURATION_TERMS_PATH}" target="_blank" rel="noopener">condiciones de la invitación</a>, incluida la autorización de uso de tu imagen captada durante la inauguración.</p>
 <div class="inv-choices" data-choices hidden><button type="button" class="inv-yes" data-answer="si">Sí, ahí estaré</button><button type="button" class="inv-no" data-answer="no">Esta vez no podré</button></div>
@@ -428,7 +428,7 @@ ${inaugurationSignature}
 <section id="respuesta" class="inv-rsvp inv-rsvp--opening inv-gate" aria-labelledby="inv-gate-title">
 <p class="inv-kicker"><span class="inv-eq" aria-hidden="true"><i></i><i></i><i></i></span>Reserva tu lugar</p>
 <h2 id="inv-gate-title">Confirma tu asistencia</h2>
-<p class="inv-rsvp-deadline" data-deadline-inline>Tienes hasta el <strong>martes 27 de octubre a las 10:00</strong> para confirmar.</p>
+<p class="inv-rsvp-deadline" data-deadline-inline>Tienes hasta el <strong>martes 27 de octubre a las 15:00</strong> para confirmar.</p>
 <p class="inv-gate-help">Inicia sesión con la misma cuenta con la que entras a tu registro de vocero. Te llevamos a tu invitación personal para que confirmes.</p>
 <form class="inv-form" data-gate-form novalidate>
 <fieldset disabled>

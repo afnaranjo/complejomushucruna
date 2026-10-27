@@ -19,8 +19,8 @@ final class InvitationClosed extends \RuntimeException {}
 
 final class InfluencerRepository
 {
-    /** Hasta cuándo se puede confirmar cada evento (UTC). La inauguración cierra el martes 27 de octubre a las 10:00 de Ecuador. */
-    public const RSVP_DEADLINES = ['inauguracion' => '2026-10-27 15:00:00'];
+    /** Hasta cuándo se puede confirmar cada evento (UTC). La inauguración cierra el martes 27 de octubre a las 15:00 de Ecuador. */
+    public const RSVP_DEADLINES = ['inauguracion' => '2026-10-27 20:00:00'];
 
     public const DEFAULT_EVENT = 'guaynaa';
     public const KINDS = ['creador', 'nuevo', 'vocero'];
@@ -39,7 +39,7 @@ final class InfluencerRepository
     /** $now permite fijar el reloj en las pruebas; en producción es la hora actual. */
     public function __construct(private readonly PDO $pdo, private readonly Crypto $crypto, private readonly Audit $audit, private readonly ?int $now = null) {}
 
-    /** «2026-10-27T10:00:00-05:00» para mostrar el contador; null si el evento no tiene plazo. */
+    /** «2026-10-27T15:00:00-05:00» para mostrar el contador; null si el evento no tiene plazo. */
     public static function rsvpDeadline(string $slug): ?string
     {
         $deadline = self::RSVP_DEADLINES[$slug] ?? null;
