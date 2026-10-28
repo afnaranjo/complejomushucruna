@@ -19,7 +19,7 @@ export const inaugurationEventDefaults = Object.freeze({
   place: 'Complejo Intercultural y Deportivo Mushuc Runa · Santa Lucía, Tisaleo · Panamericana Sur km 12, vía Ambato–Riobamba',
   dressCode: '',
 });
-export const influencerInvitationVersion = '20261027-plazo-15-1';
+export const influencerInvitationVersion = '20261028-medios-18-1';
 
 function shell(page, { api, body, kind, eventKey = 'guaynaa' }) {
   const connect = apiBasesForCsp(api);
@@ -449,7 +449,7 @@ ${inaugurationFinePrint}`;
 }
 
 /** Hasta cuándo pueden confirmar los medios (hora de Ecuador). Debe coincidir con el plazo del evento en Medios → Eventos. */
-export const MEDIA_INAUGURATION_DEADLINE = '2026-10-28T12:00:00-05:00';
+export const MEDIA_INAUGURATION_DEADLINE = '2026-10-28T18:00:00-05:00';
 
 /** Enlace para el grupo de medios: la invitación, las indicaciones y la confirmación directa, sin cuenta. */
 export function renderInaugurationMediaPage(page) {
@@ -463,7 +463,7 @@ ${inaugurationVisual()}
 </header>
 <section class="inv-deadline" data-deadline data-deadline-at="${MEDIA_INAUGURATION_DEADLINE}" aria-labelledby="inv-media-deadline-title">
 <p class="inv-deadline__label" id="inv-media-deadline-title" data-deadline-label>Confirma tu asistencia hasta el</p>
-<p class="inv-deadline__date"><time datetime="${MEDIA_INAUGURATION_DEADLINE}">Miércoles 28 de octubre · 12:00</time></p>
+<p class="inv-deadline__date"><time datetime="${MEDIA_INAUGURATION_DEADLINE}">Miércoles 28 de octubre · 18:00</time></p>
 <div class="inv-deadline__clock" data-deadline-clock role="timer" aria-label="Tiempo que queda para confirmar">
 <span><b data-deadline-days>--</b><small>días</small></span><span><b data-deadline-hours>--</b><small>horas</small></span><span><b data-deadline-minutes>--</b><small>min</small></span><span><b data-deadline-seconds>--</b><small>seg</small></span>
 </div>

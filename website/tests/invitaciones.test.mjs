@@ -211,7 +211,7 @@ test('medios: enlace del grupo, plazo y preguntas de transmisión en vivo', asyn
   const { liveSummaryText } = await import('../src/admin/admin-medios.js');
   const page = pages.find(item => item.route === '/medios-inauguracion/');
   const html = page.render(page);
-  assert.match(html, /data-deadline-at="2026-10-28T12:00:00-05:00"/);
+  assert.match(html, /data-deadline-at="2026-10-28T18:00:00-05:00"/);
   assert.match(html, /Máximo 3 personas por medio/);
   assert.match(html, /href="\/finados\/medios\/acceso\/\?modo=login"/);
   assert.match(html, /noindex/);
